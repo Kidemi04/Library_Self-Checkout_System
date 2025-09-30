@@ -4,8 +4,9 @@ import { lusitana } from '@/app/ui/fonts';
 export default function AcmeLogo() {
   return (
     <div
-      className={`${lusitana.className} flex flex-row items-center leading-none text-white text-center`}>
-      <BuildingLibraryIcon className="max-w-10 max-h-10 " />
+      className={`${lusitana.className} flex flex-row items-center text-swin-ivory`}
+    >
+      <BuildingLibraryIcon className="h-8 w-8" />
     </div>
   );
 }
