@@ -5,11 +5,10 @@ export default function LoginPage() {
         <main className="flex min-h-screen items-center justify-center bg-gray-100 p-6">
             <title>Login Page</title>
             <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
-                <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
-                    <img src="https://www.swinburne.edu.my/wp-content/themes/mytheme-2021/images/logo-long-full.svg"></img>
-                </div>
+                    <img className='mx-auto static rounded-xl shadow-lg' src="https://www.swinburne.edu.my/wp-content/themes/mytheme-2021/images/logo-long-full.svg"></img>
+                    <br></br>
                 <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
-                Login to Your Account
+                    Login to Your Account
                 </h1>
 
                 <form className="space-y-5">
@@ -17,18 +16,16 @@ export default function LoginPage() {
                         <label
                             htmlFor="email"
                             className="mb-1 block text-sm font-medium text-gray-700">
-                        Email
+                                Email
                         </label>
 
                         <input
                             type="email"
                             id="email"
-                            placeholder="you@example.com"
                             className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                             required />
                     
                     </div>
-
                     {/*Password */}
                     <div>
                         <label
@@ -40,7 +37,6 @@ export default function LoginPage() {
                         <input
                             type="password"
                             id="password"
-                            placeholder="••••••••"
                             className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                             required />
                     </div>

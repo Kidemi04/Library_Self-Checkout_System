@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 export default function Page() {
   return (
-    <main className="flex min-h-screen flex-col p-6">
+    <main className="flex min-h-screen flex-col p-6 bg-white">
       <title>Main Page</title>
       <div className="flex h-20 shrink-0 items-end rounded-lg bg-blue-500 p-4 md:h-52">
         <img className='flex aspect-3/2' src='https://www.swinburne.edu.my/wp-content/themes/mytheme-2021/images/logo-long-full.svg'/>
