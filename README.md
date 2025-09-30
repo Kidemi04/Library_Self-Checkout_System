@@ -17,5 +17,6 @@ npm install -g pnpm
 \
 Run the program:
 ```
+pnpm i
 pnpm dev
 ```
