@@ -5,10 +5,12 @@ export default function LoginPage() {
         <main className="flex min-h-screen items-center justify-center bg-gray-100 p-6">
             <title>Login Page</title>
             <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
-                    <img className='mx-auto static rounded-xl shadow-lg' src="https://www.swinburne.edu.my/wp-content/themes/mytheme-2021/images/logo-long-full.svg"></img>
+                    <a href='/' >
+                        <img className='mx-auto static shadow-lg scale-125' src="https://www.swinburne.edu.my/wp-content/themes/mytheme-2021/images/logo-long-full.svg"></img>
+                    </a>
                     <br></br>
                 <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
-                    Login to Your Account
+                    Swinburne Sarawak Library
                 </h1>
 
                 <form className="space-y-5">
