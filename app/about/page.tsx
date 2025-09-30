@@ -10,6 +10,10 @@ export default function AboutPage() {
                     src="https://www.swinburne.edu.my/wp-content/themes/mytheme-2021/images/logo-long-full.svg"
                     alt="Swinburne Logo"/>
             </header>
+
+            <img
+                className='scale-50'
+                src="https://aadcdn.msauthimages.net/447973e2-uddq3dansz8dzvbzqaldisw5-z1gjnyitaoanchjrvw/logintenantbranding/0/illustration?ts=636377489049121844" />
         </main>
     )
 }
