@@ -1,13 +1,23 @@
 import Link from 'next/link';
+import Image from 'next/image'
 
 export default function LoginPage() {
     return (
         <main className="flex min-h-screen items-center justify-center bg-gray-100 p-6">
             <title>Login Page</title>
-            <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
-                    <a href='/' >
-                        <img className='mx-auto static shadow-lg scale-125' src="https://www.swinburne.edu.my/wp-content/themes/mytheme-2021/images/logo-long-full.svg"></img>
-                    </a>
+
+            <Image
+                src="https://aadcdn.msauthimages.net/447973e2-uddq3dansz8dzvbzqaldisw5-z1gjnyitaoanchjrvw/logintenantbranding/0/illustration?ts=636377489049121844"
+                alt="background"
+                fill sizes="100vw"
+                style={{ objectFit: 'cover', objectPosition: 'center' }}
+                priority />
+
+            <div className="absolute inset-0 bg-black/40" />
+            <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg relative">
+                <a href='/' >
+                    <img className='mx-auto static shadow-lg scale-125' src="https://www.swinburne.edu.my/wp-content/themes/mytheme-2021/images/logo-long-full.svg"></img>
+                </a>
                     <br></br>
                 <h1 className="mb-6 text-center text-2xl font-bold text-gray-800">
                     Swinburne Sarawak Library
