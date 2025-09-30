@@ -5,32 +5,44 @@
 /.pnp
 .pnp.js
 
-# testing
-/coverage
-
-# next.js
+# build outputs
 /.next/
 /out/
-
-# production
 /build
+/dist
+
+# caching
+/.turbo/
+/.swc/
+
+# testing
+/coverage
 
 # misc
 .DS_Store
 *.pem
+/document/
 
-# debug
+# debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
 
 # local env files
-.env*.local
 .env
+.env*.local
+
+# pnpm
+.pnpm-store/
 
 # vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# tooling caches
+.eslintcache
+
+# editors
+.idea/
+.vscode/
