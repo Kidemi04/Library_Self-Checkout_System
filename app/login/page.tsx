@@ -60,7 +60,7 @@ export default function LoginPage() {
                                 Remember me
                         </label>
                     
-                        <Link href="#" className="text-blue-500 hover:underline">
+                        <Link href="#" className="text-red-500 hover:underline">
                             Forgot password?
                         </Link>
                     </div>
@@ -68,7 +68,7 @@ export default function LoginPage() {
                     {/* Login button */}
                     <button
                     type="submit"
-                    className="w-full rounded-lg bg-blue-500 px-4 py-2 font-medium text-white transition hover:bg-blue-400">
+                    className="w-full rounded-lg bg-red-500 px-4 py-2 font-medium text-white transition hover:bg-red-400">
                         Log In
                     </button>
                 </form>
@@ -83,7 +83,7 @@ export default function LoginPage() {
                     {/* Signup link */}
                     <p className="text-center text-sm text-gray-600">
                         Don't have an account?{" "}
-                        <Link href="/register" className="text-blue-500 hover:underline">
+                        <Link href="/register" className="text-red-500 hover:underline">
                             Sign up
                         </Link>
                     </p>
