@@ -57,12 +57,12 @@ export default function RegisterPage() {
                     {/* Register button */}
                     <button
                         type="submit"
-                        className="w-full rounded-lg bg-blue-500 px-4 py-2 font-medium text-white transition hover:bg-blue-400">
+                        className="w-full rounded-lg bg-red-500 px-4 py-2 font-medium text-white transition hover:bg-red-400">
                             Register
                     </button>
 
                     <p className="text-center text-sm text-gray-600">
-                        <Link href="/login" className="text-blue-500 hover:underline">
+                        <Link href="/login" className="text-red-500 hover:underline">
                             Back to Login
                         </Link>
                     </p>

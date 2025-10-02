@@ -16,6 +16,8 @@ export default async function DashboardPage() {
 
   return (
     <main className="space-y-8">
+      <title>Dashboard | Home</title>
+
       <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
         <h1 className="text-2xl font-semibold">Library Operations Dashboard</h1>
         <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
