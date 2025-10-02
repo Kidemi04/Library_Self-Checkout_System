@@ -49,7 +49,7 @@ export default function HomePage() {
                     <ArrowRightIcon className="w-5 h-5" />
                 </Link>
                 <Link
-                    href="/about"
+                    href="https://www.swinburne.edu.my/"
                     className="rounded-lg border border-swin-charcoal/20 px-6 py-3 text-swin-charcoal hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory" >
                 Learn More
                 </Link>
