@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from 'next/image';
 import { BookOpenIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 
+
 export default function HomePage() {
     return (
         <main className="flex min-h-screen flex-col bg-swin-ivory justify-center">
@@ -21,23 +22,28 @@ export default function HomePage() {
             <div className="relative">
 
             {/* Header / Banner */}
-            <header className="fixed top-0 left-0 w-full z-50 flex items-center justify-between bg-white/70 px-6 py-4 text-swin-ivory shadow-lg shadow-swin-charcoal/40">
+            <header className="fixed top-0 left-0 w-full z-50 flex items-center justify-between bg-white/70 pr-6 text-swin-ivory shadow-lg shadow-swin-charcoal/40">
                 <img
-                    className="h-10 md:h-16"
+                    className="h-10 md:h-20"
                     src="https://www.swinburne.edu.my/wp-content/themes/mytheme-2021/images/logo-long-full.svg"
                     alt="Swinburne Logo" />
-                <nav className="space-x-4">
+                <nav className="space-x-6">
                     <Link
                         href="/login"
-                        className="rounded-lg bg-swin-ivory px-4 py-2 text-sm font-medium text-swin-red shadow hover:bg-white" >
+                        className="rounded-md bg-swin-red px-6 py-3 text-md font-medium text-white shadow" >
                     Log In
+                    </Link>
+                    <Link
+                        href="/register"
+                        className="rounded-md bg-white px-6 py-3 text-md font-medium text-swin-red shadow" >
+                    Sign Up
                     </Link>
                 </nav>
             </header>
 
             {/* Hero Section */}
             <section className="flex flex-col items-center justify-center flex-grow px-6 py-16 text-center">
-                <BookOpenIcon className="mb-6 h-16 w-16 text-swin-red" />
+                <BookOpenIcon className="mb-6 h-16 w-16 text-white" />
                 <h1 className="text-3xl font-bold text-white md:text-4xl">
                     Welcome to the Swinburne Library Self-Checkout
                 </h1>
@@ -66,7 +72,7 @@ export default function HomePage() {
 
                 {/* Footer */}
                 <footer className="fixed bottom-0 left-0 w-full bg-swin-charcoal py-4 text-center text-xs text-swin-ivory/70">
-                    Powered by Group 12 · © 2025 Swinburne FYP
+                    Powered by Group 12 · © 2025 Swinburne Final Year Project
                 </footer>
 
         
