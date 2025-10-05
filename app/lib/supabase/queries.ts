@@ -13,6 +13,11 @@ const buildSearchFragments = (searchTerm?: string) => {
   };
 };
 
+const normalizeLoanRecord = (loan: any) => ({
+  ...loan,
+  book: Array.isArray(loan.book) ? loan.book[0] ?? null : loan.book ?? null,
+});
+
 export async function fetchDashboardSummary(): Promise<DashboardSummary> {
   const supabase = getSupabaseServerClient();
   const nowIso = new Date().toISOString();
@@ -63,6 +68,8 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
         borrowed_at,
         due_at,
         returned_at,
+        created_at,
+        updated_at,
         book:books(title, barcode, isbn)
       `
     )
@@ -71,7 +78,7 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
 
   if (error) throw error;
 
-  return data as Loan[];
+  return (data ?? []).map(normalizeLoanRecord) as Loan[];
 }
 
 export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
@@ -88,6 +95,9 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
         status,
         borrowed_at,
         due_at,
+        returned_at,
+        created_at,
+        updated_at,
         book:books(title, barcode, isbn)
       `
     )
@@ -104,7 +114,7 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
   const { data, error } = await query;
   if (error) throw error;
 
-  return data as Loan[];
+  return (data ?? []).map(normalizeLoanRecord) as Loan[];
 }
 
 export async function fetchAvailableBooks(searchTerm?: string): Promise<Book[]> {

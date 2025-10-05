@@ -1,20 +1,32 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { checkinBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/action-state';
 import type { ActionState } from '@/app/dashboard/action-state';
+import CheckInScanner from '@/app/ui/dashboard/check-in-scanner';
 
 export default function CheckInForm({ activeLoanCount }: { activeLoanCount: number }) {
   const [state, formAction] = useFormState(checkinBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
+  const identifierInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (state.status === 'success') {
       formRef.current?.reset();
     }
   }, [state.status]);
+
+  const handleDetection = useCallback(
+    (value: string) => {
+      if (identifierInputRef.current) {
+        identifierInputRef.current.value = value;
+        identifierInputRef.current.focus();
+      }
+    },
+    [],
+  );
 
   return (
     <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5">
@@ -36,11 +48,13 @@ export default function CheckInForm({ activeLoanCount }: { activeLoanCount: numb
             type="text"
             required
             placeholder="Loan ID, borrower ID, barcode, or ISBN"
+            ref={identifierInputRef}
             className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
           />
           <p className="mt-2 text-xs text-swin-charcoal/60">
             {activeLoanCount} active loans awaiting return.
           </p>
+          <CheckInScanner onDetection={handleDetection} />
         </div>
         <div className="flex flex-col gap-3 md:w-auto">
           <ActionMessage status={state.status} message={state.message} />
