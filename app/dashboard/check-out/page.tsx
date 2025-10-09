@@ -15,9 +15,11 @@ const buildDefaultDueDate = () => {
 export default async function CheckOutPage({
   searchParams,
 }: {
-  searchParams?: { q?: string };
+  searchParams?: Promise<Record<string, string | string[]>>;
 }) {
-  const searchTerm = searchParams?.q?.trim() ?? '';
+  const params = searchParams ? await searchParams : undefined;
+  const raw = params?.q;
+  const searchTerm = Array.isArray(raw) ? raw[0]?.trim() ?? '' : raw?.trim() ?? '';
 
   const [books, activeLoans] = await Promise.all([
     fetchAvailableBooks(searchTerm),

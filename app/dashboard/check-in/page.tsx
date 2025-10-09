@@ -6,9 +6,11 @@ import { fetchActiveLoans, fetchDashboardSummary } from '@/app/lib/supabase/quer
 export default async function CheckInPage({
   searchParams,
 }: {
-  searchParams?: { q?: string };
+  searchParams?: Promise<Record<string, string | string[]>>;
 }) {
-  const searchTerm = searchParams?.q?.trim() ?? '';
+  const params = searchParams ? await searchParams : undefined;
+  const raw = params?.q;
+  const searchTerm = Array.isArray(raw) ? raw[0]?.trim() ?? '' : raw?.trim() ?? '';
 
   const [activeLoans, summary] = await Promise.all([
     fetchActiveLoans(searchTerm),

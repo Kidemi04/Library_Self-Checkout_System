@@ -49,17 +49,18 @@ export default function RecentLoans({ loans }: { loans: Loan[] }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white shadow-sm shadow-swin-charcoal/5">
-      <table className="min-w-full divide-y divide-swin-charcoal/10">
-        <thead className="bg-swin-ivory">
-          <tr className="text-left text-xs font-semibold uppercase tracking-wider text-swin-charcoal/70">
-            <th className="px-6 py-3">Borrower</th>
-            <th className="px-6 py-3">Book</th>
-            <th className="px-6 py-3">Borrowed</th>
-            <th className="px-6 py-3">Status</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-swin-charcoal/10 bg-white text-sm">
+    <div className="rounded-2xl border border-swin-charcoal/10 bg-white shadow-sm shadow-swin-charcoal/5">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-swin-charcoal/10">
+          <thead className="bg-swin-ivory">
+            <tr className="text-left text-xs font-semibold uppercase tracking-wider text-swin-charcoal/70">
+              <th className="px-6 py-3">Borrower</th>
+              <th className="px-6 py-3">Book</th>
+              <th className="px-6 py-3">Borrowed</th>
+              <th className="px-6 py-3">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-swin-charcoal/10 bg-white text-sm">
           {loans.map((loan) => {
             const status = resolveStatus(loan);
             return (
@@ -87,8 +88,9 @@ export default function RecentLoans({ loans }: { loans: Loan[] }) {
               </tr>
             );
           })}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

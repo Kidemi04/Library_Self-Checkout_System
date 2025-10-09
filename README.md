@@ -1,7 +1,17 @@
+## Project Tools
+NextJS\
+https://nextjs.org/
+
+Tailwind CSS\
+https://tailwindcss.com/
+
+Supabase\
+https://supabase.com/
+
 ## Install and Running
 Install nodejs:
 \
-[Nodejs](https://nodejs.org/en)
+[Nodejs Official website](https://nodejs.org/en)
 
 \
 Install pnpm:
@@ -15,16 +25,18 @@ Run the program:
 pnpm i
 pnpm dev
 ```
+\
+*Notice:*\
+When you run the program, it will show a black Dev Tools at the corner.\
+To disable the UI, set **devIndicators: false** in the next.config file.\
+Leave this tools until final.
 
-Notice:
-When you run the program, it will show a black Dev Tools at the corner.
-\
-To disable the UI, set **devIndicators: false** in the next.config file.
-\
-Leave the tools until final.
+## Custom color
+In the Tailwind CSS settings within the project, colors prefixed with ‘swin’ are custom colors, \
+such as swin-black, swin-red, and so on. \
+They can be found and configured in the file: *tailwind.config.ts*.
 
 ## Supabase Setup
-
 The dashboard relies on a Supabase project for catalogue and circulation data. Configure the following environment variables (see `.env.example`):
 
 - `NEXT_PUBLIC_SUPABASE_URL`

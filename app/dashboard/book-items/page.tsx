@@ -6,9 +6,11 @@ import { fetchBooks } from '@/app/lib/supabase/queries';
 export default async function BookItemsPage({
   searchParams,
 }: {
-  searchParams?: { q?: string };
+  searchParams?: Promise<Record<string, string | string[]>>;
 }) {
-  const searchTerm = searchParams?.q?.trim() ?? '';
+  const params = searchParams ? await searchParams : undefined;
+  const raw = params?.q;
+  const searchTerm = Array.isArray(raw) ? raw[0]?.trim() ?? '' : raw?.trim() ?? '';
   const books = await fetchBooks(searchTerm);
 
   return (

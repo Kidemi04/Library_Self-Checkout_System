@@ -1,6 +1,7 @@
 'use client';
 
 import { checkinBookAction } from '@/app/dashboard/actions';
+import { initialActionState } from '@/app/dashboard/action-state';
 import { useFormStatus } from 'react-dom';
 
 function SubmitButton() {
@@ -18,8 +19,12 @@ function SubmitButton() {
 }
 
 export default function QuickCheckInButton({ loanId }: { loanId: string }) {
+  const action = checkinBookAction.bind(null, initialActionState) as unknown as (
+    formData: FormData,
+  ) => Promise<void>;
+
   return (
-    <form action={checkinBookAction} className="flex justify-end">
+    <form action={action} className="flex justify-end">
       <input type="hidden" name="loanId" value={loanId} />
       <SubmitButton />
     </form>
