@@ -1,17 +1,8 @@
-import dynamic from 'next/dynamic';
 import CheckInForm from '@/app/ui/dashboard/check-in-form';
 import ActiveLoansTable from '@/app/ui/dashboard/active-loans-table';
 import SearchForm from '@/app/ui/dashboard/search-form';
 import { fetchActiveLoans, fetchDashboardSummary } from '@/app/lib/supabase/queries';
-
-const CameraScanButton = dynamic(() => import('@/app/ui/dashboard/camera-scanner-button'), {
-  ssr: false,
-  loading: () => (
-    <div className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-500 shadow-sm">
-      Preparing camera…
-    </div>
-  ),
-});
+import CameraScanButton from '@/app/ui/dashboard/camera-scanner-button';
 
 export default async function CheckInPage({
   searchParams,
