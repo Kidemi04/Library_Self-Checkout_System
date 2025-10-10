@@ -22,7 +22,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
           : 'bg-swin-ivory text-swin-charcoal',
       )}
     >
-      <aside className="hidden md:flex md:w-72 md:flex-none md:flex-col md:px-2 md:py-3">
+      <aside className="hidden md:flex md:w-72 md:flex-none md:flex-col">
         <SideNav user={user} isBypassed={isBypassed} />
       </aside>
       <div className="flex min-h-screen w-full flex-col">
