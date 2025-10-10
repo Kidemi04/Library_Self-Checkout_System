@@ -1,13 +1,18 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { checkinBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/action-state';
 import type { ActionState } from '@/app/dashboard/action-state';
-import CheckInScanner from '@/app/ui/dashboard/check-in-scanner';
 
-export default function CheckInForm({ activeLoanCount }: { activeLoanCount: number }) {
+export default function CheckInForm({
+  activeLoanCount,
+  defaultIdentifier,
+}: {
+  activeLoanCount: number;
+  defaultIdentifier?: string;
+}) {
   const [state, formAction] = useFormState(checkinBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
   const identifierInputRef = useRef<HTMLInputElement | null>(null);
@@ -18,22 +23,18 @@ export default function CheckInForm({ activeLoanCount }: { activeLoanCount: numb
     }
   }, [state.status]);
 
-  const handleDetection = useCallback(
-    (value: string) => {
-      if (identifierInputRef.current) {
-        identifierInputRef.current.value = value;
-        identifierInputRef.current.focus();
-      }
-    },
-    [],
-  );
+  useEffect(() => {
+    if (identifierInputRef.current) {
+      identifierInputRef.current.value = defaultIdentifier ?? '';
+    }
+  }, [defaultIdentifier]);
 
   return (
     <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5">
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-swin-charcoal">Check In Book</h2>
+        <h2 className="text-lg font-semibold text-swin-charcoal">Returning Item Details</h2>
         <p className="text-sm text-swin-charcoal/60">
-          Scan a book barcode or enter the loan reference to mark items as returned.
+          Use the search above or enter the loan reference to reconcile items being returned.
         </p>
       </div>
 
@@ -52,9 +53,8 @@ export default function CheckInForm({ activeLoanCount }: { activeLoanCount: numb
             className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
           />
           <p className="mt-2 text-xs text-swin-charcoal/60">
-            {activeLoanCount} active loans awaiting return.
+            {activeLoanCount} books are currently on loan.
           </p>
-          <CheckInScanner onDetection={handleDetection} />
         </div>
         <div className="flex flex-col gap-3 md:w-auto">
           <ActionMessage status={state.status} message={state.message} />

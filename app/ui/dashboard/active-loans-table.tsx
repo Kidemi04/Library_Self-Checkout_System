@@ -20,25 +20,26 @@ const isOverdue = (loan: Loan) => {
   return !Number.isNaN(due.valueOf()) && due.getTime() < Date.now();
 };
 
-export default function ActiveLoansTable({ loans }: { loans: Loan[] }) {
+export default function ActiveLoansTable({ loans, showActions = true }: { loans: Loan[]; showActions?: boolean }) {
   if (!loans.length) {
     return (
       <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-center text-sm text-swin-charcoal/60">
-        There are no active loans right now.
+        No books are currently on loan.
       </div>
     );
   }
 
   return (
     <div className="rounded-2xl border border-swin-charcoal/10 bg-white shadow-sm shadow-swin-charcoal/5">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-swin-charcoal/10">
+      <div className="rounded-2xl overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-swin-charcoal/10">
           <thead className="bg-swin-ivory">
             <tr className="text-left text-xs font-semibold uppercase tracking-wider text-swin-charcoal/70">
               <th className="px-6 py-3">Borrower</th>
               <th className="px-6 py-3">Book</th>
               <th className="px-6 py-3">Due</th>
-              <th className="px-6 py-3 text-right">Action</th>
+              {showActions ? <th className="px-6 py-3 text-right">Return</th> : null}
             </tr>
           </thead>
           <tbody className="divide-y divide-swin-charcoal/10 bg-white text-sm">
@@ -70,14 +71,17 @@ export default function ActiveLoansTable({ loans }: { loans: Loan[] }) {
                     {formatDate(loan.due_at)}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-right">
-                  <QuickCheckInButton loanId={loan.id} />
-                </td>
+                {showActions ? (
+                  <td className="px-6 py-4 text-right">
+                    <QuickCheckInButton loanId={loan.id} />
+                  </td>
+                ) : null}
               </tr>
             );
           })}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
     </div>
   );

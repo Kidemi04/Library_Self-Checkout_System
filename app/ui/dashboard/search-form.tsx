@@ -1,9 +1,12 @@
+import clsx from 'clsx';
+
 interface SearchFormProps {
   action: string;
   placeholder: string;
   defaultValue?: string;
   name?: string;
   'aria-label'?: string;
+  className?: string;
 }
 
 export default function SearchForm({
@@ -12,13 +15,17 @@ export default function SearchForm({
   defaultValue,
   name = 'q',
   'aria-label': ariaLabel,
+  className,
 }: SearchFormProps) {
   const inputId = `${name}-search`;
 
   return (
     <form
       action={action}
-      className="flex flex-col gap-2 rounded-xl border border-swin-charcoal/10 bg-white p-3 shadow-sm shadow-swin-charcoal/5 md:flex-row md:items-center"
+      className={clsx(
+        'flex flex-col gap-2 rounded-xl border border-swin-charcoal/10 bg-white p-3 shadow-sm shadow-swin-charcoal/5 md:flex-row md:items-center',
+        className,
+      )}
     >
       <label htmlFor={inputId} className="sr-only">
         {ariaLabel ?? 'Search'}

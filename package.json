@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@zxing/browser": "^0.1.1",
     "@supabase/supabase-js": "^2.47.10",
     "@tailwindcss/forms": "^0.5.10",
     "autoprefixer": "10.4.20",

@@ -4,17 +4,19 @@ import type { JWT } from 'next-auth/jwt';
 import AzureADProvider from 'next-auth/providers/azure-ad';
 
 const isProduction = process.env.NODE_ENV === 'production';
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 const clientId = process.env.AUTH_AZURE_AD_CLIENT_ID;
 const clientSecret = process.env.AUTH_AZURE_AD_CLIENT_SECRET;
 const tenantId = process.env.AUTH_AZURE_AD_TENANT_ID;
+const resolvedSecret = process.env.NEXTAUTH_SECRET ?? (isDevelopment ? 'dev-secret' : undefined);
 
 if (isProduction) {
   const missing = [
     ['AUTH_AZURE_AD_CLIENT_ID', clientId],
     ['AUTH_AZURE_AD_CLIENT_SECRET', clientSecret],
     ['AUTH_AZURE_AD_TENANT_ID', tenantId],
-    ['NEXTAUTH_SECRET', process.env.NEXTAUTH_SECRET],
+    ['NEXTAUTH_SECRET', resolvedSecret],
   ].filter(([, value]) => !value);
 
   if (missing.length > 0) {
@@ -49,7 +51,7 @@ export const authOptions = {
     },
   },
   trustHost: true,
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: resolvedSecret,
 };
 
 export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
