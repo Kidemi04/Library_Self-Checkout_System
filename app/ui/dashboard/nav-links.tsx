@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, ArrowUpTrayIcon, ArrowDownTrayIcon, BookOpenIcon, Squares2X2Icon, UserGroupIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, ArrowUpTrayIcon, ArrowDownTrayIcon, BookOpenIcon, Squares2X2Icon, UserGroupIcon, QueueListIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import type { DashboardRole } from '@/app/lib/auth/types';
 
 const studentLinks = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
+  { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
 ];
