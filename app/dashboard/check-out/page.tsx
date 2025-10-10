@@ -1,7 +1,9 @@
+import clsx from 'clsx';
 import CheckOutForm from '@/app/ui/dashboard/check-out-form';
 import ActiveLoansTable from '@/app/ui/dashboard/active-loans-table';
 import SearchForm from '@/app/ui/dashboard/search-form';
 import { fetchActiveLoans, fetchAvailableBooks } from '@/app/lib/supabase/queries';
+import { getDashboardSession } from '@/app/lib/auth/session';
 
 const defaultLoanDurationDays = 14;
 
@@ -12,11 +14,15 @@ const buildDefaultDueDate = () => {
   return iso.split('T')[0] ?? iso;
 };
 
-export default async function CheckOutPage({
+export default async function BorrowBooksPage({
   searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[]>>;
 }) {
+  const { user } = await getDashboardSession();
+  const role = user?.role ?? 'student';
+  const isStaff = role === 'staff';
+
   const params = searchParams ? await searchParams : undefined;
   const raw = params?.q;
   const searchTerm = Array.isArray(raw) ? raw[0]?.trim() ?? '' : raw?.trim() ?? '';
@@ -30,11 +36,13 @@ export default async function CheckOutPage({
 
   return (
     <main className="space-y-8">
-      <title>Check Out | Dashboard</title>
+      <title>Borrow Books | Dashboard</title>
       <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
-        <h1 className="text-2xl font-semibold">Check Out</h1>
+        <h1 className="text-2xl font-semibold">Borrow Books</h1>
         <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
-          Issue books by scanning borrower IDs and confirming availability in real time.
+          {isStaff
+            ? 'Lend titles by scanning library cards or selecting items from the catalogue.'
+            : 'Reserve a title by providing your borrower details to the library team.'}
         </p>
       </header>
 
@@ -49,12 +57,24 @@ export default async function CheckOutPage({
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-swin-charcoal">Currently checked out</h2>
-          <p className="text-sm text-swin-charcoal/60">
-            {activeLoans.length} active loans
+          <h2
+            className={clsx(
+              'text-lg font-semibold',
+              isStaff ? 'text-slate-100' : 'text-swin-charcoal',
+            )}
+          >
+            Books currently not available
+          </h2>
+          <p
+            className={clsx(
+              'text-sm',
+              isStaff ? 'text-slate-300' : 'text-swin-charcoal/60',
+            )}
+          >
+            {activeLoans.length} books are with borrowers right now
           </p>
         </div>
-        <ActiveLoansTable loans={activeLoans} />
+        <ActiveLoansTable loans={activeLoans} showActions={isStaff} />
       </section>
     </main>
   );

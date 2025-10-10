@@ -19,7 +19,7 @@ export async function checkoutBookAction(
   const borrowerType = formData.get('borrowerType')?.toString() as BorrowerType | undefined;
   const dueDateInput = formData.get('dueDate')?.toString();
 
-  if (!bookId) return failure('Select a book to check out.');
+  if (!bookId) return failure('Select a book to borrow.');
   if (!borrowerIdentifier) return failure('Borrower ID is required.');
   if (!borrowerName) return failure('Borrower name is required.');
   if (!borrowerType) return failure('Choose borrower type.');
@@ -39,7 +39,7 @@ export async function checkoutBookAction(
     .single();
 
   if (bookError || !book) {
-    console.error('Checkout book lookup failed', bookError);
+    console.error('Borrow book lookup failed', bookError);
     return failure('Unable to load book information.');
   }
 
@@ -61,8 +61,8 @@ export async function checkoutBookAction(
   });
 
   if (insertLoanError) {
-    console.error('Failed to insert loan', insertLoanError);
-    return failure('Unable to complete checkout. Try again.');
+    console.error('Failed to record borrow transaction', insertLoanError);
+    return failure('Unable to complete borrow request. Try again.');
   }
 
   const updatedAvailable = Math.max(0, (book.available_copies ?? 0) - 1);
@@ -78,15 +78,15 @@ export async function checkoutBookAction(
     .eq('id', bookId);
 
   if (updateBookError) {
-    console.error('Failed to update book availability', updateBookError);
-    return failure('Checkout succeeded but inventory update failed. Please verify manually.');
+    console.error('Failed to update book availability after borrowing', updateBookError);
+    return failure('Borrow succeeded but inventory update failed. Please verify manually.');
   }
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/check-out');
   revalidatePath('/dashboard/book-items');
 
-  return success(`Checked out to ${borrowerName}.`);
+  return success(`Borrow recorded for ${borrowerName}.`);
 }
 
 export async function checkinBookAction(
