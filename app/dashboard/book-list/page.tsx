@@ -107,7 +107,7 @@ export default function BookListPage() {
   }, [books, query, sortField, sortOrder, availability]);
 
   return (
-    <main className="space-y-8 p-6 bg-gray-50 min-h-screen">
+    <main className="space-y-8 p-6 bg-transparent-50 min-h-screen">
       <title>Dashboard | Book List</title>
 
       {/* Header bar */}
