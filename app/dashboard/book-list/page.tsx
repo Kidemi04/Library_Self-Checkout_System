@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-// Use a RELATIVE path that matches your tree:
-import BookList from "../../ui/dashboard/book-list"; // adjust if your file lives elsewhere
+// Use a RELATIVE path that matches your project structure
+import BookList from "../../ui/dashboard/book-list";
 
-// Local UI type used by this page
 type UIBook = {
   id: string;
   title: string;
@@ -18,7 +17,7 @@ type UIBook = {
   location?: string | null;
 };
 
-// --- TEMP sample data. Replace with real data when ready.
+// ---- Temporary sample data (replace with real data later) ----
 const SAMPLE_BOOKS: UIBook[] = [
   {
     id: "b1",
@@ -63,7 +62,6 @@ type SortOrder = "asc" | "desc";
 type Availability = "all" | "available" | "onloan";
 
 export default function BookListPage() {
-  // UI controls
   const [query, setQuery] = useState("");
   const [sortField, setSortField] = useState<SortField>("title");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
@@ -71,7 +69,6 @@ export default function BookListPage() {
   const [variant, setVariant] = useState<"grid" | "list">("grid");
   const [isMobile, setIsMobile] = useState(false);
 
-  // Responsive helper for potential mobile tweaks
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 640);
     onResize();
@@ -79,10 +76,8 @@ export default function BookListPage() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // In a real app, replace SAMPLE_BOOKS with fetched data
   const books = useMemo(() => SAMPLE_BOOKS, []);
 
-  // Search + filter + sort
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
 
@@ -133,7 +128,7 @@ export default function BookListPage() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by title or author"
             aria-label="Search by title or author"
-            className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-swin-red/60"
+            className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-swin-red/60 text-black placeholder-gray-500"
           />
 
           {/* Availability filter */}
@@ -141,7 +136,7 @@ export default function BookListPage() {
             value={availability}
             onChange={(e) => setAvailability(e.target.value as Availability)}
             aria-label="Filter by availability"
-            className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-swin-red/60"
+            className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-swin-red/60 text-black"
           >
             <option value="all">All items</option>
             <option value="available">Available</option>
@@ -153,7 +148,7 @@ export default function BookListPage() {
             value={sortField}
             onChange={(e) => setSortField(e.target.value as SortField)}
             aria-label="Sort field"
-            className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-swin-red/60"
+            className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-swin-red/60 text-black"
           >
             <option value="title">Sort: Title</option>
             <option value="author">Sort: Author</option>
@@ -165,7 +160,7 @@ export default function BookListPage() {
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as SortOrder)}
               aria-label="Sort order"
-              className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-swin-red/60"
+              className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-swin-red/60 text-black"
             >
               <option value="asc">A → Z</option>
               <option value="desc">Z → A</option>
