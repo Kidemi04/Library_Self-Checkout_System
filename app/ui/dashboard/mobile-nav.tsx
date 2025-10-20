@@ -51,7 +51,7 @@ export default function MobileNav({ user, isBypassed }: { user: DashboardUserPro
         <div className="fixed inset-0 z-50 flex bg-black/60 md:hidden" aria-modal="true" role="dialog">
           <div
             className={clsx(
-              'h-full w-72 max-w-[80vw] px-4 py-5 text-swin-ivory shadow-2xl',
+              'h-[45vh] min-w-full px-4 py-5 text-swin-ivory shadow-2xl backdrop-blur-xs',
               isStaff ? 'bg-slate-950 text-white' : 'bg-swin-charcoal',
             )}
           >
