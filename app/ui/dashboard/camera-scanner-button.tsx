@@ -54,7 +54,7 @@ export default function CameraScannerButton() {
   const decodeImageFile = async (file: File, source: 'camera' | 'gallery') => {
     const reader = new BrowserMultiFormatReader();
     const objectUrl = URL.createObjectURL(file);
-    setStatusMessage(source === 'camera' ? 'Processing camera image…' : 'Processing gallery image…');
+    setStatusMessage(source === 'camera' ? 'Processing camera image...' : 'Processing gallery image...');
     setErrorMessage(null);
 
     try {
@@ -88,20 +88,20 @@ export default function CameraScannerButton() {
     event.target.value = '';
   };
 
-  const buttonClass = 'inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-swin-charcoal/20 bg-white px-4 py-2 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-swin-ivory';
+  const buttonClass =
+    'inline-flex h-[56px] w-full items-center justify-center gap-2 rounded-lg border border-swin-charcoal/20 bg-white px-4 py-3 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-swin-ivory sm:w-auto';
 
   return (
     <>
-      <button
-        type="button"
-        onClick={handleOpen}
-        className={`${buttonClass} hidden md:inline-flex`}
-      >
-        <CameraIcon className="h-5 w-5" />
-        <span>Scan with Camera</span>
-      </button>
-
-      <div className="mt-2 flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={handleOpen}
+          className={`${buttonClass} hidden md:inline-flex`}
+        >
+          <CameraIcon className="h-5 w-5" />
+          <span>Scan with Camera</span>
+        </button>
         <button
           type="button"
           onClick={() => {
@@ -109,7 +109,7 @@ export default function CameraScannerButton() {
             setErrorMessage(null);
             cameraInputRef.current?.click();
           }}
-          className={buttonClass}
+          className={`${buttonClass} md:hidden`}
         >
           <CameraIcon className="h-5 w-5" />
           Use camera
@@ -174,7 +174,7 @@ export default function CameraScannerButton() {
               <div>
                 <h2 className="text-lg font-semibold">Scan book barcode</h2>
                 <p className="mt-1 text-sm text-white/70">
-                  Align the code within the frame. We’ll filter the results automatically.
+                  Align the code within the frame. We'll filter the results automatically.
                 </p>
               </div>
               <button
@@ -207,7 +207,7 @@ export default function CameraScannerButton() {
                   Supported formats: QR, EAN-13/8, UPC-A, Code-128, Code-39.
                 </p>
                 <p className="text-[11px] text-white/50">
-                  Tip: On mobile you can also use “Use camera” to open your native camera app.
+                  Tip: On mobile you can also use "Use camera" to open your native camera app.
                 </p>
               </div>
 
@@ -217,7 +217,7 @@ export default function CameraScannerButton() {
                 </p>
               ) : (
                 <p className="text-[11px] text-white/50">
-                  Tip: Grant camera permission if prompted. Use manual search when scanning isn’t available.
+                  Tip: Grant camera permission if prompted. Use manual search when scanning is not available.
                 </p>
               )}
             </div>
@@ -227,3 +227,6 @@ export default function CameraScannerButton() {
     </>
   );
 }
+
+
+

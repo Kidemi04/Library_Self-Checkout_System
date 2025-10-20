@@ -38,6 +38,21 @@ export default function NavLinks({
   const pathname = usePathname();
   const links = role === 'staff' ? adminLinks : studentLinks;
 
+  const activeHref = links.reduce<string | null>((current, { href }) => {
+    const isExactMatch = pathname === href;
+    const isNestedMatch = href !== '/dashboard' && pathname.startsWith(`${href}/`);
+
+    if (!isExactMatch && !isNestedMatch) {
+      return current;
+    }
+
+    if (!current) {
+      return href;
+    }
+
+    return href.length > current.length ? href : current;
+  }, null);
+
   const activeVariant =
     role === 'staff'
       ? 'bg-white/15 text-white shadow-lg shadow-slate-900/40'
@@ -51,9 +66,7 @@ export default function NavLinks({
   return (
     <>
       {links.map(({ name, href, icon: LinkIcon }) => {
-        const isActive =
-          pathname === href ||
-          (href !== '/dashboard' && pathname.startsWith(`${href}/`));
+        const isActive = href === activeHref;
 
         return (
           <Link
