@@ -6,6 +6,7 @@ import clsx from 'clsx';
 import { PencilSquareIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import type { Book, BookStatus } from '@/app/lib/supabase/types';
 import { updateBookAction } from '@/app/dashboard/actions';
+import { deleteBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/action-state';
 import type { ActionState } from '@/app/dashboard/action-state';
 
@@ -295,7 +296,25 @@ function ManageBookDialog({ book, onClose }: ManageBookDialogProps) {
 
           <ActionFeedback state={state} />
 
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-between items-center pt-4 border-t border-swin-charcoal/10">
+          
+          {/* Delete Button */}
+          <button
+          type="button"
+          onClick={async () => {
+            if (confirm(`Are you sure you want to delete "${book.title}"? This action cannot be undone.`)) {
+              const result = await deleteBookAction(book.id);
+              alert(result.message);
+              if (result.status === 'success') onClose();
+            }
+          }}
+          className="inline-flex items-center justify-center rounded-md border border-swin-red/30 bg-swin-red/10 px-4 py-2 text-sm font-semibold text-swin-red transition hover:bg-swin-red/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+        >
+          Delete
+        </button>
+
+          {/*Cancel and Save Function */}
+          <div className="flex gap-3">
             <button
               type="button"
               onClick={onClose}
@@ -305,6 +324,8 @@ function ManageBookDialog({ book, onClose }: ManageBookDialogProps) {
             </button>
             <DialogSubmitButton />
           </div>
+        </div>
+
         </form>
       </div>
     </div>

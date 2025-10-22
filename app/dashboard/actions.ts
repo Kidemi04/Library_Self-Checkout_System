@@ -6,6 +6,7 @@ import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import type { BorrowerType, BookStatus } from '@/app/lib/supabase/types';
 import type { ActionState } from '@/app/dashboard/action-state';
 
+
 const success = (message: string): ActionState => ({ status: 'success', message });
 const failure = (message: string): ActionState => ({ status: 'error', message });
 
@@ -283,6 +284,25 @@ export async function updateBookAction(
   revalidatePath('/dashboard/book-list');
 
   return success('Book details updated.');
+}
+
+export async function deleteBookAction(bookId: string): Promise<ActionState> {
+  const supabase = getSupabaseServerClient();
+
+  try {
+    const { error } = await supabase.from('books').delete().eq('id', bookId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    
+    revalidatePath('/dashboard');
+
+    return { status: 'success', message: 'Book deleted successfully.' };
+  } catch (err: any) {
+    return { status: 'error', message: `Failed to delete book: ${err.message}` };
+  }
 }
 
 export async function createBookAction(
