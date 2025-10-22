@@ -170,8 +170,7 @@ export default function BookListPage() {
               onClick={() => setVariant(variant === "grid" ? "list" : "grid")}
               className="hidden rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 lg:block"
               aria-label="Toggle layout"
-              title="Toggle layout"
-            >
+              title="Toggle layout" >
               {variant === "grid" ? "List view" : "Grid view"}
             </button>
           </div>
