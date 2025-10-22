@@ -294,14 +294,12 @@ function ManageBookDialog({ book, onClose }: ManageBookDialogProps) {
             />
           </div>
 
-
           <ActionFeedback state={state} />
 
-
-
           <div className="flex justify-between items-center pt-4 border-t border-swin-charcoal/10">
+          
           {/* Delete Button */}
-                  <button
+          <button
           type="button"
           onClick={async () => {
             if (confirm(`Are you sure you want to delete "${book.title}"? This action cannot be undone.`)) {
@@ -314,7 +312,6 @@ function ManageBookDialog({ book, onClose }: ManageBookDialogProps) {
         >
           Delete
         </button>
-
 
           {/*Cancel and Save Function */}
           <div className="flex gap-3">
