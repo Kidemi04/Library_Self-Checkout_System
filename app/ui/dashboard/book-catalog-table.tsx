@@ -85,12 +85,12 @@ export default function BookCatalogTable({ books }: BookCatalogTableProps) {
               {books.map((book) => (
                 <tr key={book.id} className="transition hover:bg-swin-ivory">
                   
-                  {/* Cover */}
-                  <td className="relative w-[100px] h-[150px]">
-                  <img
-                    src={book.cover_image_url ?? ''}
-                    alt={book.title || 'Book cover'}
-                  ></img>
+                  {/* Book Cover */}
+                  <td className="relative w-[70px] h-[105px] p-1">
+                    <img
+                      src={book.cover_image_url ?? ''}
+                      alt={book.title || 'Book cover'}>
+                    </img>
                   </td>
 
                   {/* Book Title */}
