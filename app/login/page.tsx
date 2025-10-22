@@ -1,7 +1,22 @@
+"use client";
 import Link from 'next/link';
 import Image from 'next/image';
+import { supabaseBrowserClient } from "@/app/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const handleLogin = async () => {
+    const { error } = await supabaseBrowserClient.auth.signInWithOAuth({
+      provider: "azure",
+      options: {
+        redirectTo: `${window.location.origin}/auth/redirect`, // 👈 will handle role-based redirect
+      },
+    });
+    if (error) console.error("Login error:", error);
+  };
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-100 p-6">
       <title>Login</title>
@@ -32,10 +47,9 @@ export default function LoginPage() {
         </p>
 
         <div className="mt-8 space-y-4">
-          <Link
-            href="/api/auth/signin/azure-ad"
-            prefetch={false}
-            className="flex items-center justify-center gap-3 rounded-lg bg-swin-red px-4 py-3 text-sm font-semibold text-swin-ivory shadow transition hover:bg-swin-red/90"
+          <button
+            onClick={handleLogin}
+            className="flex w-full items-center justify-center gap-3 rounded-lg bg-swin-red px-4 py-3 text-sm font-semibold text-swin-ivory shadow transition hover:bg-swin-red/90"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -49,7 +63,7 @@ export default function LoginPage() {
               <path fill="#ffb900" d="M21 21h-8v-8h8z" />
             </svg>
             <span>Sign in with Microsoft</span>
-          </Link>
+          </button>
 
           <p className="text-center text-xs text-swin-charcoal/60">
             Local development bypasses authentication automatically. In production you must sign in
