@@ -2,20 +2,25 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
-// ZXing browser decoder
-import { BrowserMultiFormatReader, Result } from '@zxing/browser';
+import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
 
 type ScanState = 'idle' | 'scanning' | 'paused';
 
 export default function QrScanPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
-  const stopStreamRef = useRef<() => void>(() => {});
+  const controlsRef = useRef<IScannerControls | null>(null);
+
   const [scanState, setScanState] = useState<ScanState>('idle');
   const [message, setMessage] = useState<string>('');
   const [decoded, setDecoded] = useState<string | null>(null);
 
-  // ---- helpers -------------------------------------------------------------
+  // ---------- helpers ----------
+  const ensureSecureContext = () => {
+    const host = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isLocal = /^localhost$|^127\.0\.0\.1$/.test(host);
+    return (typeof window !== 'undefined' && window.isSecureContext) || isLocal;
+  };
 
   const isUrl = (txt: string) => {
     try {
@@ -28,122 +33,153 @@ export default function QrScanPage() {
 
   const stopCamera = useCallback(() => {
     try {
-      readerRef.current?.reset();
+      controlsRef.current?.stop(); // stop ZXing loop
     } catch {}
-    stopStreamRef.current?.();
+    const video = videoRef.current;
+    const stream = (video?.srcObject as MediaStream | null) || null;
+    stream?.getTracks().forEach((t) => t.stop());
+    if (video) video.srcObject = null;
+    controlsRef.current = null;
     setScanState('idle');
+    setMessage('');
   }, []);
 
   const startCamera = useCallback(async () => {
     setDecoded(null);
-    setMessage('Initializing camera…');
 
-    // Create reader once
-    if (!readerRef.current) {
-      readerRef.current = new BrowserMultiFormatReader();
+    if (!ensureSecureContext()) {
+      setMessage('Camera requires HTTPS (or localhost). Open this page over https.');
+      setScanState('idle');
+      return;
     }
 
-    // Try to pick a back camera on mobile if available
-    const devices = await BrowserMultiFormatReader.listVideoInputDevices();
-    const backCam =
-      devices.find((d) => /back|rear|environment/i.test(d.label)) ??
-      devices.at(-1) ??
-      devices[0];
+    // permission pre-check (best-effort)
+    try {
+      const perm = await (navigator as any).permissions?.query?.({
+        name: 'camera' as PermissionName,
+      });
+      if (perm && perm.state === 'denied') {
+        setMessage('Camera permission is blocked in your browser settings.');
+        setScanState('idle');
+        return;
+      }
+    } catch {
+      /* ignore */
+    }
 
-    const video = videoRef.current!;
-    setScanState('scanning');
+    setMessage('Requesting camera access…');
 
-    // decodeFromVideoDevice returns a cleanup; keep a manual stop too
-    const controls = await readerRef.current.decodeFromVideoDevice(
-      backCam?.deviceId,
-      video,
-      (result: Result | undefined, err: unknown) => {
-        if (result) {
-          const text = result.getText().trim();
+    // Ask for a stream first (user gesture is required)
+    let stream: MediaStream | null = null;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+    } catch (err: any) {
+      const n = err?.name || '';
+      setMessage(
+        n === 'NotAllowedError'
+          ? 'Permission denied. Please allow camera access.'
+          : n === 'NotFoundError'
+          ? 'No camera found on this device.'
+          : 'Could not access the camera.'
+      );
+      setScanState('idle');
+      return;
+    }
+
+    try {
+      const video = videoRef.current!;
+      video.srcObject = stream;
+      await video.play();
+
+      // Prefer the back camera by label when possible
+      const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+      const backCam =
+        devices.find((d) => /back|rear|environment/i.test(d.label)) ??
+        devices.at(-1) ??
+        devices[0];
+
+      if (!readerRef.current) readerRef.current = new BrowserMultiFormatReader();
+
+      setScanState('scanning');
+      setMessage('Point your camera at a QR code.');
+
+      const controls = await readerRef.current.decodeFromVideoDevice(
+        backCam?.deviceId ?? undefined,
+        video,
+        (result) => {
+          if (!result) return;
+          const text = (result as { getText(): string }).getText().trim();
           setDecoded(text);
           setMessage('QR detected.');
-          // auto-open URLs
+
           if (isUrl(text)) {
+            // Auto-open links
             stopCamera();
             window.location.href = text;
           } else {
-            // Pause camera but keep the frame (user can resume)
+            // Pause scanning for non-URL payloads
+            controlsRef.current?.stop();
             setScanState('paused');
-            readerRef.current?.stopContinuousDecode();
           }
         }
-      }
-    );
+      );
 
-    // keep a manual stopper
-    stopStreamRef.current = () => {
-      try {
-        controls?.stop();
-      } catch {}
-      const s = video.srcObject as MediaStream | null;
-      s?.getTracks().forEach((t) => t.stop());
-      video.srcObject = null;
-    };
-
-    setMessage('Point your camera at a QR code.');
+      controlsRef.current = controls;
+    } catch {
+      // Clean up if ZXing fails to attach
+      stream?.getTracks().forEach((t) => t.stop());
+      const video = videoRef.current;
+      if (video) video.srcObject = null;
+      setScanState('idle');
+      setMessage('Failed to start the scanner.');
+    }
   }, [stopCamera]);
 
   useEffect(() => {
-    return () => {
-      stopCamera();
-    };
+    return () => stopCamera();
   }, [stopCamera]);
 
-  // ---- image upload decode -------------------------------------------------
+  const onUpload = useCallback(async (file: File) => {
+    setDecoded(null);
+    setMessage('Reading image…');
+    if (!readerRef.current) readerRef.current = new BrowserMultiFormatReader();
 
-  const onUpload = useCallback(
-    async (file: File) => {
-      setDecoded(null);
-      setMessage('Reading image…');
+    const url = URL.createObjectURL(file);
+    try {
+      const result = await readerRef.current.decodeFromImageUrl(url);
+      const text = (result as { getText(): string }).getText().trim();
+      setDecoded(text);
+      setMessage('QR detected from image.');
+      if (isUrl(text)) window.location.href = text;
+    } catch {
+      setMessage('No QR code found in that image.');
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }, []);
 
-      if (!readerRef.current) {
-        readerRef.current = new BrowserMultiFormatReader();
-      }
-
-      // Convert File -> object URL (faster than dataURL for ZXing)
-      const url = URL.createObjectURL(file);
-      try {
-        const result = await readerRef.current.decodeFromImageUrl(url);
-        const text = result.getText().trim();
-        setDecoded(text);
-        setMessage('QR detected from image.');
-        if (isUrl(text)) {
-          window.location.href = text;
-        }
-      } catch (e: any) {
-        setMessage('No QR code found in that image.');
-      } finally {
-        URL.revokeObjectURL(url);
-      }
-    },
-    []
-  );
-
-  // ---- UI -----------------------------------------------------------------
-
+  // ---------- UI ----------
   return (
     <main className="space-y-8">
       <title>QR Scanner | Dashboard</title>
 
-      {/* Header */}
       <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
         <h1 className="text-2xl font-semibold">Scan QR Code</h1>
         <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
-          Use your camera or upload an image to scan a QR code. If the code contains a link,
-          you’ll be redirected automatically.
+          Use your camera or upload an image. If the code contains a link, you’ll be redirected automatically.
         </p>
       </header>
 
-      {/* Scanner + Actions */}
       <section className="mx-auto grid max-w-5xl gap-6 md:grid-cols-[minmax(0,1fr)_300px]">
-        {/* Video / Preview */}
+        {/* Preview */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-black shadow-sm">
-          {/* Viewport */}
           <div className="aspect-[4/3] w-full">
             <video
               ref={videoRef}
@@ -154,18 +190,18 @@ export default function QrScanPage() {
             />
           </div>
 
-          {/* Overlay crosshair */}
+          {/* crosshair */}
           <div className="pointer-events-none absolute inset-0 grid place-items-center">
             <div className="h-40 w-40 rounded-2xl border-2 border-white/70 ring-2 ring-swin-red/60" />
           </div>
 
-          {/* Status bar */}
+          {/* status */}
           <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-4 py-2 text-xs text-white">
             {message || (scanState === 'scanning' ? 'Scanning…' : 'Camera idle')}
           </div>
         </div>
 
-        {/* Controls + Result */}
+        {/* Controls */}
         <aside className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <h2 className="text-sm font-semibold text-swin-charcoal">Controls</h2>
 
@@ -205,15 +241,15 @@ export default function QrScanPage() {
             <p className="break-all">{decoded ?? '—'}</p>
             {decoded && !isUrl(decoded) && (
               <p className="mt-2 text-slate-500">
-                This QR doesn’t look like a link. Copy the text or try another code.
+                This QR isn’t a URL. Copy the text or try another code.
               </p>
             )}
           </div>
 
           <ul className="text-xs text-slate-500">
-            <li>• On mobile, the back camera is selected when available.</li>
-            <li>• Grant camera permission when prompted.</li>
-            <li>• You can also upload a screenshot/photo of a QR code.</li>
+            <li>• Works on HTTPS or on localhost.</li>
+            <li>• Allow camera permission when prompted.</li>
+            <li>• You can also upload a photo/screenshot of a QR code.</li>
           </ul>
         </aside>
       </section>
