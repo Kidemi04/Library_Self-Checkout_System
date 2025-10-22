@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { BookOpenIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 
+
 export default function HomePageMobile() {
   return (
     <main className="flex min-h-screen flex-col bg-swin-ivory justify-center relative overflow-hidden">
@@ -27,12 +28,6 @@ export default function HomePageMobile() {
           href="/login"
           className="rounded bg-swin-red px-5 py-3 text-md font-medium text-white " >
           Log In
-        </Link>
-
-        <Link
-          href="/register"
-          className="rounded bg-white px-5 py-3 text-md font-medium text-swin-red " >
-          Sign Up
         </Link>
 
       </header>
