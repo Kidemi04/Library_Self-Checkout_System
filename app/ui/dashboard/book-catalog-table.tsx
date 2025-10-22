@@ -72,6 +72,7 @@ export default function BookCatalogTable({ books }: BookCatalogTableProps) {
           <table className="min-w-full divide-y divide-swin-charcoal/10 text-sm">
             <thead className="bg-swin-ivory text-left text-xs font-semibold uppercase tracking-wider text-swin-charcoal/70">
               <tr>
+                <th className="px-6 py-3">Image</th>
                 <th className="px-6 py-3">Title</th>
                 <th className="px-6 py-3">Availability</th>
                 <th className="px-6 py-3">Classification</th>
@@ -83,6 +84,16 @@ export default function BookCatalogTable({ books }: BookCatalogTableProps) {
             <tbody className="divide-y divide-swin-charcoal/10 bg-white text-swin-charcoal">
               {books.map((book) => (
                 <tr key={book.id} className="transition hover:bg-swin-ivory">
+                  
+                  {/* Cover */}
+                  <td className="relative w-[100px] h-[150px]">
+                  <img
+                    src={book.cover_image_url ?? ''}
+                    alt={book.title || 'Book cover'}
+                  ></img>
+                  </td>
+
+                  {/* Book Title */}
                   <td className="px-6 py-4">
                     <div className="font-semibold text-swin-charcoal">{book.title}</div>
                     <p className="text-xs text-swin-charcoal/60">
@@ -90,6 +101,8 @@ export default function BookCatalogTable({ books }: BookCatalogTableProps) {
                       {book.barcode ?? (book.isbn ? `ISBN ${book.isbn}` : 'No barcode')}
                     </p>
                   </td>
+
+                  {/* Book Avaliability */}
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap items-center gap-2">
                       <span
@@ -104,10 +117,20 @@ export default function BookCatalogTable({ books }: BookCatalogTableProps) {
                         {(book.available_copies ?? 0)}/{book.total_copies ?? 0} available
                       </span>
                     </div>
+
+                    
                   </td>
+
+                  {/* Book Classification */}
                   <td className="px-6 py-4 text-swin-charcoal/70">{book.classification ?? '--'}</td>
+
+                  {/* Book Location */}
                   <td className="px-6 py-4 text-swin-charcoal/70">{book.location ?? '--'}</td>
+
+                  {/*Last Activity */}
                   <td className="px-6 py-4 text-swin-charcoal/70">{formatDateTime(book.last_transaction_at)}</td>
+
+                  {/* Actions */}
                   <td className="px-6 py-4 text-right">
                     <button
                       type="button"
