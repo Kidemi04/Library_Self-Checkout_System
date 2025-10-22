@@ -35,9 +35,7 @@ export default async function BookItemsPage({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-swin-charcoal">Catalogue</h2>
-          <p className="text-sm text-swin-charcoal/60">
-            Showing {books.length} records
-          </p>
+          <p className="text-sm text-swin-charcoal/60">Showing {books.length} records</p>
         </div>
         <BookCatalogTable books={books} />
       </section>

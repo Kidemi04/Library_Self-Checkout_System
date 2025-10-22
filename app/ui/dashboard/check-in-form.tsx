@@ -6,13 +6,12 @@ import { checkinBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/action-state';
 import type { ActionState } from '@/app/dashboard/action-state';
 
-export default function CheckInForm({
-  activeLoanCount,
-  defaultIdentifier,
-}: {
+type CheckInFormProps = {
   activeLoanCount: number;
   defaultIdentifier?: string;
-}) {
+};
+
+export default function CheckInForm({ activeLoanCount, defaultIdentifier }: CheckInFormProps) {
   const [state, formAction] = useFormState(checkinBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
   const identifierInputRef = useRef<HTMLInputElement | null>(null);
@@ -38,8 +37,12 @@ export default function CheckInForm({
         </p>
       </div>
 
-      <form ref={formRef} action={formAction} className="flex flex-col gap-4 md:flex-row md:items-end">
-        <div className="flex-1">
+      <form
+        ref={formRef}
+        action={formAction}
+        className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-6"
+      >
+        <div className="flex flex-col">
           <label className="block text-sm font-medium text-swin-charcoal" htmlFor="identifier">
             Scan barcode or enter loan ID
           </label>
@@ -52,14 +55,12 @@ export default function CheckInForm({
             ref={identifierInputRef}
             className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
           />
-          <p className="mt-2 text-xs text-swin-charcoal/60">
-            {activeLoanCount} books are currently on loan.
-          </p>
+          <p className="mt-2 text-xs text-swin-charcoal/60">{activeLoanCount} books are currently on loan.</p>
         </div>
-        <div className="flex flex-col gap-3 md:w-auto">
-          <ActionMessage status={state.status} message={state.message} />
+        <div className="flex items-stretch justify-end md:self-end">
           <SubmitButton />
         </div>
+        <ActionMessage status={state.status} message={state.message} />
       </form>
     </section>
   );
@@ -72,9 +73,9 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex items-center justify-center rounded-lg bg-swin-charcoal px-5 py-2 text-sm font-semibold text-swin-ivory shadow-sm shadow-swin-charcoal/30 transition hover:bg-swin-charcoal/90 disabled:cursor-not-allowed disabled:bg-swin-charcoal/40"
+      className="inline-flex h-[56px] min-w-[140px] items-center justify-center rounded-lg bg-swin-charcoal px-6 text-sm font-semibold uppercase tracking-wide text-swin-ivory shadow-sm shadow-swin-charcoal/30 transition hover:bg-swin-charcoal/90 disabled:cursor-not-allowed disabled:bg-swin-charcoal/40"
     >
-      {pending ? 'Processing…' : 'Check in'}
+      {pending ? 'Processing...' : 'Check In'}
     </button>
   );
 }
@@ -84,5 +85,5 @@ function ActionMessage({ status, message }: { status: ActionState['status']; mes
 
   const tone = status === 'success' ? 'text-emerald-600' : status === 'error' ? 'text-swin-red' : 'text-swin-charcoal';
 
-  return <p className={`text-sm font-medium ${tone}`}>{message}</p>;
+  return <p className={`md:col-span-2 text-sm font-medium ${tone}`}>{message}</p>;
 }
