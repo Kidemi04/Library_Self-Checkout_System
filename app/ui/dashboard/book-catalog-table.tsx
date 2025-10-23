@@ -5,10 +5,8 @@ import { useFormState, useFormStatus } from 'react-dom';
 import clsx from 'clsx';
 import { PencilSquareIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import type { Book, BookStatus } from '@/app/lib/supabase/types';
-import { updateBookAction } from '@/app/dashboard/actions';
-import { deleteBookAction } from '@/app/dashboard/actions';
-import { initialActionState } from '@/app/dashboard/action-state';
-import type { ActionState } from '@/app/dashboard/action-state';
+import { updateBookAction, deleteBookAction } from '@/app/dashboard/actions';
+import { initialActionState, type ActionState } from '@/app/dashboard/action-state';
 
 type BookCatalogTableProps = {
   books: Book[];
@@ -52,6 +50,15 @@ const formatStatusLabel = (status: BookStatus) =>
 export default function BookCatalogTable({ books }: BookCatalogTableProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Page status
+  const [currentPage, setCurrentPage] = useState(1);
+  const booksPerPage = 10; // Books per page
+
+  // Calculating paging data
+  const totalPages = Math.ceil(books.length / booksPerPage);
+  const startIndex = (currentPage - 1) * booksPerPage;
+  const currentBooks = books.slice(startIndex, startIndex + booksPerPage);
+
   const editingBook = useMemo(() => {
     if (!editingId) return null;
     return books.find((book) => book.id === editingId) ?? null;
@@ -70,6 +77,7 @@ export default function BookCatalogTable({ books }: BookCatalogTableProps) {
       <div className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white shadow-sm shadow-swin-charcoal/5">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-swin-charcoal/10 text-sm">
+            {/* Table Head */}
             <thead className="bg-swin-ivory text-left text-xs font-semibold uppercase tracking-wider text-swin-charcoal/70">
               <tr>
                 <th className="px-6 py-3">Image</th>
@@ -81,16 +89,19 @@ export default function BookCatalogTable({ books }: BookCatalogTableProps) {
                 <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
+
+            {/* Table Body */}
+            {/* Only render books on the current page */}
             <tbody className="divide-y divide-swin-charcoal/10 bg-white text-swin-charcoal">
-              {books.map((book) => (
+              {currentBooks.map((book) => (
                 <tr key={book.id} className="transition hover:bg-swin-ivory">
                   
                   {/* Book Cover */}
-                  <td className="relative w-[70px] h-[105px] p-1">
+                  <td className="relative w-[70px] h-[105px] p-1 ">
                     <img
                       src={book.cover_image_url || undefined} // Return nothing if dont have the image url
                       alt={book.title || 'Book cover'} // Add the Book Title at the cover image
-                      className={book.cover_image_url ? 'rounded-md border-2' : 'brightness-200'} // If have cover imamge, generate the broder
+                      className={book.cover_image_url ? 'rounded-md border-2 max-h-[150px]' : 'brightness-200'} // If have cover imamge, generate the broder
                       />
                   </td>
 
@@ -147,8 +158,54 @@ export default function BookCatalogTable({ books }: BookCatalogTableProps) {
             </tbody>
           </table>
         </div>
+
+        {/* Paging control */}
+        <div className="flex items-center justify-center px-6 py-4 border-t border-swin-charcoal/10 bg-swin-ivory/50 text-sm text-swin-charcoal/70">
+          
+          {/* Previous Number */}
+          <div className="flex gap-1 m-3">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              className={clsx(
+                'rounded-md border px-3 py-1.5 transition',
+                currentPage === 1
+                  ? 'cursor-not-allowed border-swin-charcoal/10 text-swin-charcoal/30'
+                  : 'border-swin-charcoal/20 hover:bg-swin-charcoal/5',
+              )}>
+              Previous
+            </button>
+          </div>
+
+          {/* Page number */}
+          <div className='flex gap-2 m-3'>
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+          </div>
+
+          {/* Next button */}
+          <div className='flex gap-2 m-3'>
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              className={clsx(
+                'rounded-md border px-3 py-1.5 transition',
+                currentPage === totalPages
+                  ? 'cursor-not-allowed border-swin-charcoal/10 text-swin-charcoal/30'
+                  : 'border-swin-charcoal/20 hover:bg-swin-charcoal/5',
+              )} >
+              Next
+            </button>
+          </div>
+
+        </div>
+
       </div>
 
+      {/* Book Editing */}
       {editingBook ? (
         <ManageBookDialog key={editingBook.id} book={editingBook} onClose={() => setEditingId(null)} />
       ) : null}
@@ -222,8 +279,7 @@ function ManageBookDialog({ book, onClose }: ManageBookDialogProps) {
             type="button"
             onClick={onClose}
             className="rounded-full border border-swin-charcoal/20 p-2 text-swin-charcoal transition hover:bg-swin-charcoal/5"
-            aria-label="Close manage book dialog"
-          >
+            aria-label="Close manage book dialog" >
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
@@ -240,8 +296,7 @@ function ManageBookDialog({ book, onClose }: ManageBookDialogProps) {
               name="title"
               defaultValue={book.title}
               className={inputClass}
-              required
-            />
+              required />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -279,8 +334,7 @@ function ManageBookDialog({ book, onClose }: ManageBookDialogProps) {
                 id="manage-status"
                 name="status"
                 defaultValue={book.status}
-                className={clsx(inputClass, 'pr-8')}
-              >
+                className={clsx(inputClass, 'pr-8')}>
                 {statusOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
