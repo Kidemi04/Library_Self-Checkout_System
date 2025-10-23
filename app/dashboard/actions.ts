@@ -1,4 +1,3 @@
-
 'use server';
 
 import { revalidatePath } from 'next/cache';
@@ -234,6 +233,7 @@ export async function updateBookAction(
   const statusRaw = formData.get('status')?.toString();
   const availableCopiesRaw = formData.get('availableCopies')?.toString();
   const totalCopiesRaw = formData.get('totalCopies')?.toString();
+  const coverImageUrlRaw = formData.get('coverImageUrl')?.toString();
 
   if (!bookId) return failure('Book reference is missing.');
   if (!title) return failure('Book title is required.');
@@ -270,6 +270,7 @@ export async function updateBookAction(
       available_copies: availableCopies,
       total_copies: totalCopies,
       updated_at: new Date().toISOString(),
+      cover_image_url: coverImageUrlRaw?.trim() || null,
     })
     .eq('id', bookId);
 

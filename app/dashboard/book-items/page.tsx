@@ -78,6 +78,7 @@ export default async function BookItemsPage({
           <h2 className="text-lg font-semibold text-white">Catalogue</h2>
           <p className="text-sm text-swin-charcoal/60">Showing {books.length} records</p>
         </div>
+        
         <BookCatalogTable books={books} />
       </section>
     </main>
