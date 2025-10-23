@@ -2,7 +2,6 @@ import CreateBookForm from '@/app/ui/dashboard/create-book-form';
 import BookCatalogTable from '@/app/ui/dashboard/book-catalog-table';
 import SearchForm from '@/app/ui/dashboard/search-form';
 import { fetchBooks } from '@/app/lib/supabase/queries';
-import { Button } from '@/app/ui/button'
 
 export default async function BookItemsPage({
   searchParams,

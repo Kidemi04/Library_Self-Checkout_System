@@ -88,9 +88,10 @@ export default function BookCatalogTable({ books }: BookCatalogTableProps) {
                   {/* Book Cover */}
                   <td className="relative w-[70px] h-[105px] p-1">
                     <img
-                      src={book.cover_image_url ?? ''}
-                      alt={book.title || 'Book cover'}>
-                    </img>
+                      src={book.cover_image_url || undefined} // Return nothing if dont have the image url
+                      alt={book.title || 'Book cover'} // Add the Book Title at the cover image
+                      className={book.cover_image_url ? 'rounded-md border-2' : 'brightness-200'} // If have cover imamge, generate the broder
+                      />
                   </td>
 
                   {/* Book Title */}

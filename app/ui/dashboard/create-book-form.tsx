@@ -6,9 +6,10 @@ import { createBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/action-state';
 import type { ActionState } from '@/app/dashboard/action-state';
 import { ArrowDownCircleIcon, ArrowUpCircleIcon } from "@heroicons/react/24/outline";
+import React from 'react'
 
 export default function CreateBookForm() {
-  const [state, formAction] = useFormState(createBookAction, initialActionState);
+  const [state, formAction] = React.useActionState(createBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
   const [open, setOpen] = useState(false); // Control the form open and close
 
