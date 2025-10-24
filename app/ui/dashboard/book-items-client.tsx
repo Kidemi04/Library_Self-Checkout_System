@@ -91,6 +91,7 @@ export default function BookItemsClient({ initialBooks, initialSearchTerm }: {
           <p className="text-sm text-swin-charcoal/60">Showing {books.length} records</p>
         </div>
 
+        {/* The view type part havent fix yet haha */}
         <BookCatalogTable books={books} viewType={viewType} />
       </section>
     </div>
