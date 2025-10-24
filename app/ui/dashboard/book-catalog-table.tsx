@@ -129,7 +129,6 @@ export default function BookCatalogTable({ books }: BookCatalogTableProps) {
                         {(book.available_copies ?? 0)}/{book.total_copies ?? 0} available
                       </span>
                     </div>
-
                     
                   </td>
 

@@ -151,8 +151,13 @@ export async function fetchAvailableBooks(searchTerm?: string): Promise<Book[]> 
   return data as Book[];
 }
 
-export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
+export async function fetchBooks(
+  searchTerm?: string,
+  options?: { availability?: string; sortField?: string; sortOrder?: 'asc' | 'desc' }
+): Promise<Book[]> {
   const supabase = getSupabaseServerClient();
+
+  // Build a basic query
   let query = supabase
     .from('books')
     .select(
@@ -170,14 +175,33 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
         cover_image_url,
         last_transaction_at
       `
-    )
-    .order('title');
+    );
 
+  // Keyword search
   const search = buildSearchFragments(searchTerm);
   if (search) {
     query = query.or(search.bookFragment);
   }
 
+  // Filter available status
+  if (options?.availability && options.availability !== 'all') {
+    if (options.availability === 'available') {
+      query = query.gt('available_copies', 0);
+    } else if (options.availability === 'onloan') {
+      query = query.eq('available_copies', 0);
+    }
+  }
+
+  // Sorting logic
+  if (options?.sortField) {
+    query = query.order(options.sortField, { ascending: options.sortOrder !== 'desc' });
+  } else {
+
+    // Default sorting is by 'title'
+    query = query.order('title');
+  }
+
+  // Execute query
   const { data, error } = await query;
   if (error) throw error;
 
