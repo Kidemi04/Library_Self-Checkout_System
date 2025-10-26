@@ -88,7 +88,7 @@ export default function BookItemsClient({ initialBooks, initialSearchTerm }: {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">Catalogue</h2>
-          <p className="text-sm text-swin-charcoal/60">Showing {books.length} records</p>
+          <p className="text-sm text-slate-300">Showing {books.length} records</p>
         </div>
 
         {/* The view type part havent fix yet haha */}
