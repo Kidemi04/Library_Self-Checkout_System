@@ -38,15 +38,15 @@ export default async function ReturningBooksPage({
         </p>
       </header>
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-wrap items-center gap-3">
         <SearchForm
           action="/dashboard/check-in"
           placeholder="Search borrowed books by borrower, ID, or title"
           defaultValue={searchTerm}
           aria-label="Search borrowed books"
-          className="w-full lg:flex-1"
+          className="flex-1 min-w-0"
         />
-        {isStaff ? <CameraScanButton /> : null}
+        {isStaff ? <CameraScanButton className="w-full max-w-full md:w-auto" /> : null}
       </div>
 
       {isStaff ? (

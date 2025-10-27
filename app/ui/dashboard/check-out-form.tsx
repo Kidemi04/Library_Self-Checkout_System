@@ -148,6 +148,31 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
         </button>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 md:flex-nowrap">
+        <CameraScannerButton
+          onDetected={(code) => {
+            void handleScanDetected(code);
+          }}
+          modalDescription="Align the book barcode or ISBN within the frame. We will look up the title and select it automatically for borrowing."
+          lastScanPrefix="Latest scan:"
+          className="w-full md:w-auto"
+        />
+      </div>
+      {lookupMessage ? (
+        <p
+          className={clsx(
+            'mt-1 w-full text-xs font-medium text-swin-charcoal md:text-right',
+            lookupMessage.tone === 'success'
+              ? 'text-emerald-600'
+              : lookupMessage.tone === 'error'
+                ? 'text-swin-red'
+                : 'text-swin-charcoal/70',
+          )}
+        >
+          {lookupMessage.text}
+        </p>
+      ) : null}
+
       <div
         id={contentId}
         className={clsx(
@@ -156,32 +181,6 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
           'md:block',
         )}
       >
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <CameraScannerButton
-            onDetected={(code) => {
-              void handleScanDetected(code);
-            }}
-            buttonLabel="Scan with Camera"
-            modalDescription="Align the book barcode or ISBN within the frame. We will look up the title and select it automatically for borrowing."
-            lastScanPrefix="Latest scan:"
-            className="w-full md:w-auto"
-          />
-          {lookupMessage ? (
-            <p
-              className={clsx(
-                'text-xs font-medium md:text-right',
-                lookupMessage.tone === 'success'
-                  ? 'text-emerald-600'
-                  : lookupMessage.tone === 'error'
-                    ? 'text-swin-red'
-                    : 'text-swin-charcoal/70',
-              )}
-            >
-              {lookupMessage.text}
-            </p>
-          ) : null}
-        </div>
-
         <form ref={formRef} action={formAction} className="grid gap-4 lg:grid-cols-2">
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-swin-charcoal" htmlFor="bookId">

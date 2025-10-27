@@ -28,7 +28,7 @@ const buildNextUrl = (
 
 type CameraScannerButtonProps = {
   onDetected?: (value: string) => void;
-  buttonLabel?: string;
+  uploadLabel?: string;
   modalTitle?: string;
   modalDescription?: string;
   lastScanPrefix?: string;
@@ -41,11 +41,11 @@ type DeviceOption = {
 };
 
 const buttonBaseClass =
-  'inline-flex h-[52px] items-center justify-center gap-2 rounded-lg border border-swin-charcoal/20 bg-white px-4 py-3 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-white';
+  'inline-flex h-[48px] items-center justify-center gap-2 rounded-lg border border-swin-charcoal/20 bg-white px-4 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-white';
 
 export default function CameraScannerButton({
   onDetected,
-  buttonLabel = 'Scan with Camera',
+  uploadLabel = 'Scan from Photo',
   modalTitle = 'Scan book barcode',
   modalDescription = 'Align the barcode within the frame. We will auto-fill the details once a match is detected.',
   lastScanPrefix = 'Last scan:',
@@ -65,8 +65,8 @@ export default function CameraScannerButton({
   const [deviceListError, setDeviceListError] = useState<string | null>(null);
   const [enumeratingDevices, setEnumeratingDevices] = useState(false);
 
-  const cameraInputRef = useRef<HTMLInputElement | null>(null);
-  const galleryInputRef = useRef<HTMLInputElement | null>(null);
+  const phoneInputRef = useRef<HTMLInputElement | null>(null);
+  const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const refreshDeviceOptions = useCallback(async () => {
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) {
@@ -106,13 +106,6 @@ export default function CameraScannerButton({
   useEffect(() => {
     if (!open) return;
     void refreshDeviceOptions();
-    const timer = window.setTimeout(() => {
-      void refreshDeviceOptions();
-    }, 1200);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
   }, [open, refreshDeviceOptions]);
 
   const defaultDetectedHandler = useCallback(
@@ -154,10 +147,10 @@ export default function CameraScannerButton({
     setFacingMode((current) => (current === 'environment' ? 'user' : 'environment'));
   };
 
-  const decodeImageFile = async (file: File, source: 'camera' | 'gallery') => {
+  const decodeImageFile = async (file: File) => {
     const reader = new BrowserMultiFormatReader();
     const objectUrl = URL.createObjectURL(file);
-    setStatusMessage(source === 'camera' ? 'Processing camera image…' : 'Processing gallery image…');
+    setStatusMessage('Processing uploaded image…');
     setErrorMessage(null);
 
     try {
@@ -184,10 +177,10 @@ export default function CameraScannerButton({
     }
   };
 
-  const handleFileInput = async (event: React.ChangeEvent<HTMLInputElement>, source: 'camera' | 'gallery') => {
+  const handleUploadChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    await decodeImageFile(file, source);
+    await decodeImageFile(file);
     event.target.value = '';
   };
 
@@ -201,49 +194,82 @@ export default function CameraScannerButton({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={handleOpen}
-        className={clsx(buttonBaseClass, className)}
-      >
-        <CameraIcon className="h-5 w-5" />
-        <span>{buttonLabel}</span>
-      </button>
+      <div className={clsx('flex flex-col gap-2', className)}>
+        <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center">
+          <button
+            type="button"
+            onClick={() => {
+              phoneInputRef.current?.click();
+            }}
+            className={clsx(
+              buttonBaseClass,
+              'w-full justify-center md:hidden xxx-phone-version',
+            )}
+          >
+            <CameraIcon className="h-5 w-5" />
+            <span>Scan with Camera</span>
+          </button>
 
-      {lastScan ? (
-        <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-100/50 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-inner">
-          <CheckBadgeIcon className="h-4 w-4" />
-          <span>
-            {lastScanPrefix} {lastScan}
-          </span>
+          <button
+            type="button"
+            onClick={handleOpen}
+            className={clsx(
+              buttonBaseClass,
+              'hidden justify-center md:inline-flex xxx-dekstop-version',
+            )}
+          >
+            <CameraIcon className="h-5 w-5" />
+            <span>Scan with Camera</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              uploadInputRef.current?.click();
+            }}
+            className={clsx(buttonBaseClass, 'w-full justify-center md:w-auto')}
+          >
+            <PhotoIcon className="h-5 w-5" />
+            <span>{uploadLabel}</span>
+          </button>
         </div>
-      ) : null}
 
-      {statusMessage ? (
-        <p className="mt-2 text-[11px] font-medium text-swin-charcoal/70">{statusMessage}</p>
-      ) : null}
+        {lastScan ? (
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-100/60 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-inner">
+            <CheckBadgeIcon className="h-4 w-4" />
+            <span>
+              {lastScanPrefix} {lastScan}
+            </span>
+          </div>
+        ) : null}
 
-      {errorMessage ? (
-        <p className="mt-1 text-[11px] font-medium text-swin-red">{errorMessage}</p>
-      ) : null}
+        {statusMessage ? (
+          <p className="text-[11px] font-medium text-swin-charcoal/70">{statusMessage}</p>
+        ) : null}
+
+        {errorMessage ? (
+          <p className="text-[11px] font-medium text-swin-red">{errorMessage}</p>
+        ) : null}
+      </div>
 
       <input
-        ref={cameraInputRef}
+        ref={phoneInputRef}
         type="file"
         accept="image/*"
         capture="environment"
         className="hidden"
         onChange={(event) => {
-          void handleFileInput(event, 'camera');
+          void handleUploadChange(event);
         }}
       />
+
       <input
-        ref={galleryInputRef}
+        ref={uploadInputRef}
         type="file"
         accept="image/*"
         className="hidden"
         onChange={(event) => {
-          void handleFileInput(event, 'gallery');
+          void handleUploadChange(event);
         }}
       />
 
@@ -277,91 +303,50 @@ export default function CameraScannerButton({
                 onError={(message) => setErrorMessage(message)}
               />
 
-              <div className="grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/80">
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={toggleFacingMode}
-                    disabled={Boolean(selectedDeviceId)}
-                    className={clsx(
-                      'inline-flex items-center gap-2 rounded-md border border-white/20 px-3 py-2 font-semibold transition',
-                      selectedDeviceId
-                        ? 'cursor-not-allowed text-white/30'
-                        : 'text-white/80 hover:bg-white/10 hover:text-white',
-                    )}
-                  >
-                    <ArrowsRightLeftIcon className="h-4 w-4" />
-                    Switch camera
-                  </button>
-
+              <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/80">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-white/60">
+                    Camera source
+                  </p>
                   <button
                     type="button"
                     onClick={() => {
-                      galleryInputRef.current?.click();
+                      void refreshDeviceOptions();
                     }}
-                    className="inline-flex items-center gap-2 rounded-md border border-white/20 px-3 py-2 font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                    className="inline-flex items-center gap-1 rounded-md border border-white/10 px-2 py-1 text-[11px] font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
                   >
-                    <PhotoIcon className="h-4 w-4" />
-                    Upload photo
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      cameraInputRef.current?.click();
-                    }}
-                    className="inline-flex items-center gap-2 rounded-md border border-white/20 px-3 py-2 font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
-                  >
-                    <CameraIcon className="h-4 w-4" />
-                    Use native camera app
+                    <ArrowPathIcon className={clsx('h-3.5 w-3.5', enumeratingDevices && 'animate-spin')} />
+                    Refresh
                   </button>
                 </div>
 
-                <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-slate-900/40 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-white/60">
-                      Camera source
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        void refreshDeviceOptions();
-                      }}
-                      className="inline-flex items-center gap-1 rounded-md border border-white/10 px-2 py-1 text-[11px] font-medium text-white/70 transition hover:bg-white/10 hover:text-white"
-                    >
-                      <ArrowPathIcon className={clsx('h-3.5 w-3.5', enumeratingDevices && 'animate-spin')} />
-                      Refresh
-                    </button>
-                  </div>
-
-                  {deviceOptions ? (
-                    <select
-                      value={selectedDeviceId}
-                      onChange={(event) => {
-                        setSelectedDeviceId(event.target.value);
-                        setErrorMessage(null);
-                      }}
-                      className="rounded-md border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white focus:border-swin-red focus:outline-none"
-                    >
-                      {deviceOptions.map((device) => (
-                        <option key={device.deviceId} value={device.deviceId}>
-                          {device.label}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <p className="text-[11px] text-white/50">
-                      {deviceListError ??
-                        (enumeratingDevices
-                          ? 'Detecting connected cameras…'
-                          : 'No cameras found yet. Connect a camera or grant permission and refresh.')}
-                    </p>
-                  )}
-                </div>
+                {deviceOptions ? (
+                  <select
+                    value={selectedDeviceId}
+                    onChange={(event) => {
+                      setSelectedDeviceId(event.target.value);
+                      setErrorMessage(null);
+                    }}
+                    className="w-full rounded-md border border-white/20 bg-slate-900/60 px-3 py-2 text-sm text-white focus:border-swin-red focus:outline-none"
+                  >
+                    {deviceOptions.map((device) => (
+                      <option key={device.deviceId} value={device.deviceId}>
+                        {device.label}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p className="text-[11px] text-white/50">
+                    {deviceListError ??
+                      (enumeratingDevices
+                        ? 'Detecting connected cameras…'
+                        : 'No cameras found yet. Connect a camera or grant permission and refresh.')}
+                  </p>
+                )}
 
                 <p className="text-[11px] text-white/50">
-                  Supported formats: QR, EAN-13/8, UPC-A, Code-128, Code-39. For the best results, hold
-                  the device steady and ensure the barcode fills the frame.
+                  Supported formats: QR, EAN-13/8, UPC-A, Code-128, Code-39. If the image is blurry, switch
+                  cameras or move closer to the barcode.
                 </p>
               </div>
 
@@ -371,8 +356,7 @@ export default function CameraScannerButton({
                 </p>
               ) : (
                 <p className="text-[11px] text-white/50">
-                  Tip: If the camera cannot focus, switch cameras or upload a photo captured from another
-                  device.
+                  Tip: If the camera cannot focus, switch cameras or try uploading a photo instead.
                 </p>
               )}
             </div>
