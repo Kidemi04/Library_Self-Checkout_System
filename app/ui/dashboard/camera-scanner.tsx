@@ -7,9 +7,10 @@ type CameraScannerProps = {
   onDetected: (value: string) => void;
   onError?: (message: string) => void;
   facingMode: 'environment' | 'user';
+  deviceId?: string | null;
 };
 
-export default function CameraScanner({ onDetected, onError, facingMode }: CameraScannerProps) {
+export default function CameraScanner({ onDetected, onError, facingMode, deviceId }: CameraScannerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const [status, setStatus] = useState('Requesting camera access…');
@@ -52,11 +53,17 @@ export default function CameraScanner({ onDetected, onError, facingMode }: Camer
 
     const constraints: MediaStreamConstraints = {
       audio: false,
-      video: {
-        facingMode: { ideal: facingMode },
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-      },
+      video: deviceId
+        ? {
+            deviceId: { exact: deviceId },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          }
+        : {
+            facingMode: { ideal: facingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
     };
 
     const handleResult = (result: any, error: any, controls?: IScannerControls | null) => {
@@ -122,7 +129,7 @@ export default function CameraScanner({ onDetected, onError, facingMode }: Camer
       stopped = true;
       controlsRef.current?.stop();
     };
-  }, [facingMode, onDetected, onError]);
+  }, [deviceId, facingMode, onDetected, onError]);
 
   return (
     <div className="space-y-3">

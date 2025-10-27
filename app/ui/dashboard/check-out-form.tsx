@@ -8,7 +8,7 @@ import { checkoutBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/action-state';
 import type { ActionState } from '@/app/dashboard/action-state';
 import type { Book } from '@/app/lib/supabase/types';
-import CheckOutScanPanel from '@/app/ui/dashboard/check-out-scan-panel';
+import CameraScannerButton from '@/app/ui/dashboard/camera-scanner-button';
 
 interface CheckOutFormProps {
   books: Book[];
@@ -24,10 +24,12 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
   const [state, formAction] = useFormState(checkoutBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
   const borrowerIdRef = useRef<HTMLInputElement | null>(null);
+  const [mobileExpanded, setMobileExpanded] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState<string>('');
   const [lookupMessage, setLookupMessage] = useState<{ tone: 'neutral' | 'success' | 'error'; text: string } | null>(null);
   const [bookOptions, setBookOptions] = useState(() => buildBookOptions(books));
   const [bookMap, setBookMap] = useState(() => createBookMap(books));
+  const contentId = 'borrow-form-panel';
 
   useEffect(() => {
     if (state.status === 'success') {
@@ -50,6 +52,18 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
       return next;
     });
   }, [books]);
+
+  useEffect(() => {
+    if (selectedBookId) {
+      setMobileExpanded(true);
+    }
+  }, [selectedBookId]);
+
+  useEffect(() => {
+    if (state.status === 'error') {
+      setMobileExpanded(true);
+    }
+  }, [state.status]);
 
   const handleBookSelection = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
     setSelectedBookId(event.target.value);
@@ -106,50 +120,56 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
   );
 
   const selectedBook = selectedBookId ? bookMap.get(selectedBookId) : null;
+  const mobileToggleLabel = mobileExpanded ? 'Hide form' : 'Borrow a book';
+  const handleMobileToggle = () => {
+    setMobileExpanded((prev) => !prev);
+  };
 
   return (
     <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
+      <div className="mb-3 flex flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1">
           <h2 className="text-lg font-semibold text-swin-charcoal">Borrowed Item Details</h2>
-          <p className="text-sm text-swin-charcoal/60">
+          <p className="hidden text-sm text-swin-charcoal/60 md:block">
             Confirm borrower credentials and title availability before finalising the loan.
           </p>
+          <p className="text-xs text-swin-charcoal/60 md:hidden">
+            Scan or search for a book, then enter who is borrowing it.
+          </p>
         </div>
+        <button
+          type="button"
+          onClick={handleMobileToggle}
+          className="inline-flex h-[44px] w-full items-center justify-center rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-4 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-white md:hidden"
+          aria-expanded={mobileExpanded}
+          aria-controls={contentId}
+        >
+          {mobileToggleLabel}
+        </button>
       </div>
-      <CheckOutScanPanel onDetected={handleScanDetected} />
 
-      <form ref={formRef} action={formAction} className="grid gap-4 lg:grid-cols-2">
-        <div className="lg:col-span-2">
-          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="bookId">
-            Book to borrow
-          </label>
-          <select
-            id="bookId"
-            name="bookId"
-            value={selectedBookId}
-            onChange={handleBookSelection}
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-            required
-          >
-            <option value="" disabled>
-              {bookOptions.length ? 'Select a book' : 'No titles available'}
-            </option>
-            {bookOptions.map((book) => (
-              <option key={book.id} value={book.id}>
-                {book.label}
-              </option>
-            ))}
-          </select>
-          {bookOptions.length > 0 ? (
-            <p className="mt-1 text-xs text-swin-charcoal/60">
-              {bookOptions.length} titles ready for checkout.
-            </p>
-          ) : null}
+      <div
+        id={contentId}
+        className={clsx(
+          'mt-4 space-y-6 md:mt-6',
+          mobileExpanded ? 'block' : 'hidden',
+          'md:block',
+        )}
+      >
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+          <CameraScannerButton
+            onDetected={(code) => {
+              void handleScanDetected(code);
+            }}
+            buttonLabel="Scan with Camera"
+            modalDescription="Align the book barcode or ISBN within the frame. We will look up the title and select it automatically for borrowing."
+            lastScanPrefix="Latest scan:"
+            className="w-full md:w-auto"
+          />
           {lookupMessage ? (
             <p
               className={clsx(
-                'mt-2 text-xs font-medium',
+                'text-xs font-medium md:text-right',
                 lookupMessage.tone === 'success'
                   ? 'text-emerald-600'
                   : lookupMessage.tone === 'error'
@@ -160,119 +180,149 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
               {lookupMessage.text}
             </p>
           ) : null}
-          {selectedBook ? (
-            <div className="mt-3 rounded-xl border border-swin-charcoal/10 bg-swin-ivory p-4 text-xs text-swin-charcoal shadow-inner shadow-swin-charcoal/5">
-              <p className="text-sm font-semibold text-swin-charcoal">Selected title</p>
-              <dl className="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2">
-                <div>
-                  <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Title</dt>
-                  <dd className="text-sm font-medium">{selectedBook.title}</dd>
-                </div>
-                {selectedBook.author ? (
-                  <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Author</dt>
-                    <dd className="text-sm">{selectedBook.author}</dd>
-                  </div>
-                ) : null}
-                <div>
-                  <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Identifiers</dt>
-                  <dd className="text-sm">
-                    {selectedBook.barcode ? `Barcode ${selectedBook.barcode}` : null}
-                    {selectedBook.barcode && selectedBook.isbn ? ' · ' : ''}
-                    {selectedBook.isbn ? `ISBN ${selectedBook.isbn}` : null}
-                    {!selectedBook.barcode && !selectedBook.isbn ? 'Not provided' : null}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Availability</dt>
-                  <dd className="text-sm">
-                    {Math.max(0, selectedBook.available_copies ?? 0)} of {Math.max(1, selectedBook.total_copies ?? 1)} copies available
-                  </dd>
-                </div>
-                {selectedBook.location ? (
-                  <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Location</dt>
-                    <dd className="text-sm">{selectedBook.location}</dd>
-                  </div>
-                ) : null}
-                {selectedBook.classification ? (
-                  <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Classification</dt>
-                    <dd className="text-sm">{selectedBook.classification}</dd>
-                  </div>
-                ) : null}
-              </dl>
-            </div>
-          ) : null}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerIdentifier">
-            Borrower ID
-          </label>
-          <input
-            id="borrowerIdentifier"
-            name="borrowerIdentifier"
-            type="text"
-            required
-            placeholder="Scan or type student/staff ID"
-            ref={borrowerIdRef}
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerName">
-            Borrower name
-          </label>
-          <input
-            id="borrowerName"
-            name="borrowerName"
-            type="text"
-            required
-            placeholder="Full name"
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerType">
-            Borrower type
-          </label>
-          <select
-            id="borrowerType"
-            name="borrowerType"
-            defaultValue="student"
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-            required
-          >
-            {BorrowerTypes.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
+        <form ref={formRef} action={formAction} className="grid gap-4 lg:grid-cols-2">
+          <div className="lg:col-span-2">
+            <label className="block text-sm font-medium text-swin-charcoal" htmlFor="bookId">
+              Book to borrow
+            </label>
+            <select
+              id="bookId"
+              name="bookId"
+              value={selectedBookId}
+              onChange={handleBookSelection}
+              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+              required
+            >
+              <option value="" disabled>
+                {bookOptions.length ? 'Select a book' : 'No titles available'}
               </option>
-            ))}
-          </select>
-        </div>
+              {bookOptions.map((book) => (
+                <option key={book.id} value={book.id}>
+                  {book.label}
+                </option>
+              ))}
+            </select>
+            {bookOptions.length > 0 ? (
+              <p className="mt-1 text-xs text-swin-charcoal/60">
+                {bookOptions.length} titles ready to borrow.
+              </p>
+            ) : null}
+            {selectedBook ? (
+              <div className="mt-3 rounded-xl border border-swin-charcoal/10 bg-swin-ivory p-4 text-xs text-swin-charcoal shadow-inner shadow-swin-charcoal/5">
+                <p className="text-sm font-semibold text-swin-charcoal">Selected title</p>
+                <dl className="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2">
+                  <div>
+                    <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Title</dt>
+                    <dd className="text-sm font-medium">{selectedBook.title}</dd>
+                  </div>
+                  {selectedBook.author ? (
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Author</dt>
+                      <dd className="text-sm">{selectedBook.author}</dd>
+                    </div>
+                  ) : null}
+                  <div>
+                    <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Identifiers</dt>
+                    <dd className="text-sm">
+                      {selectedBook.barcode ? `Barcode ${selectedBook.barcode}` : null}
+                      {selectedBook.barcode && selectedBook.isbn ? ' · ' : ''}
+                      {selectedBook.isbn ? `ISBN ${selectedBook.isbn}` : null}
+                      {!selectedBook.barcode && !selectedBook.isbn ? 'Not provided' : null}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Availability</dt>
+                    <dd className="text-sm">
+                      {Math.max(0, selectedBook.available_copies ?? 0)} of {Math.max(1, selectedBook.total_copies ?? 1)} copies available
+                    </dd>
+                  </div>
+                  {selectedBook.location ? (
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Location</dt>
+                      <dd className="text-sm">{selectedBook.location}</dd>
+                    </div>
+                  ) : null}
+                  {selectedBook.classification ? (
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Classification</dt>
+                      <dd className="text-sm">{selectedBook.classification}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              </div>
+            ) : null}
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="dueDate">
-            Due date
-          </label>
-          <input
-            id="dueDate"
-            name="dueDate"
-            type="date"
-            defaultValue={defaultDueDate}
-            required
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-          />
-        </div>
+          <div>
+            <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerIdentifier">
+              Borrower ID
+            </label>
+            <input
+              id="borrowerIdentifier"
+              name="borrowerIdentifier"
+              type="text"
+              required
+              placeholder="Scan or type student/staff ID"
+              ref={borrowerIdRef}
+              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+            />
+          </div>
 
-        <div className="lg:col-span-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <ActionMessage status={state.status} message={state.message} />
-          <SubmitButton disabled={!bookOptions.length} />
-        </div>
-      </form>
+          <div>
+            <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerName">
+              Borrower name
+            </label>
+            <input
+              id="borrowerName"
+              name="borrowerName"
+              type="text"
+              required
+              placeholder="Full name"
+              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerType">
+              Borrower type
+            </label>
+            <select
+              id="borrowerType"
+              name="borrowerType"
+              defaultValue="student"
+              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+              required
+            >
+              {BorrowerTypes.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-swin-charcoal" htmlFor="dueDate">
+              Due date
+            </label>
+            <input
+              id="dueDate"
+              name="dueDate"
+              type="date"
+              defaultValue={defaultDueDate}
+              required
+              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+            />
+          </div>
+
+          <div className="lg:col-span-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <ActionMessage status={state.status} message={state.message} />
+            <SubmitButton disabled={!bookOptions.length} />
+          </div>
+        </form>
+      </div>
     </section>
   );
 }

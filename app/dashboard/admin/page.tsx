@@ -23,7 +23,7 @@ export default async function AdminDashboardPage() {
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-white">Recent activity</h2>
-          <p className="text-sm text-slate-300">Latest checkouts and returns</p>
+          <p className="text-sm text-slate-300">Latest borrowing and return activity</p>
         </div>
         <RecentLoans loans={recentLoans} />
       </section>
