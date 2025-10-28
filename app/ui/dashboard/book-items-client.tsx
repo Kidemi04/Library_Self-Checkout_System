@@ -4,10 +4,12 @@ import { useState, useEffect } from 'react';
 import BookCatalogTable from '@/app/ui/dashboard/book-catalog-table';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import SearchForm from '@/app/ui/dashboard/search-form';
+import type { DashboardRole } from '@/app/lib/auth/types';
 
-export default function BookItemsClient({ initialBooks, initialSearchTerm }: {
+export default function BookItemsClient({ initialBooks, initialSearchTerm, role }: {
   initialBooks: any[];
   initialSearchTerm: string;
+  role: DashboardRole;
 }) {
   const [books, setBooks] = useState(initialBooks);
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
@@ -81,18 +83,22 @@ export default function BookItemsClient({ initialBooks, initialSearchTerm }: {
           aria-label="Toggle layout"
           title="Toggle layout"
         >
-          {viewType === 'table' ? 'Grid View' : 'Table View'}
+          {viewType === 'table' ? 'Table View' : 'Grid View'}
         </button>
       </div>
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-white">Catalogue</h2>
-          <p className="text-sm text-slate-300">Showing {books.length} records</p>
+
+          {role == 'staff' ? 
+            <p className="text-sm text-slate-300">Showing {books.length} records</p>
+            :
+            <p className="text-sm text-black">Showing {books.length} records</p>
+          }
         </div>
 
-        {/* The view type part havent fix yet haha */}
-        <BookCatalogTable books={books} viewType={viewType} />
+        <BookCatalogTable books={books} viewType={viewType} role={role}/>
       </section>
     </div>
   );

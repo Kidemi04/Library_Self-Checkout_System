@@ -16,7 +16,7 @@ import type { DashboardRole } from '@/app/lib/auth/types';
 
 const studentLinks = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
-  { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },   // + 合并功能：Book List
+  { name: 'Catalogue', href: '/dashboard/book-items', icon: QueueListIcon },   // + 合并功能：Book List
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
 ];
@@ -24,7 +24,6 @@ const studentLinks = [
 const adminLinks = [
   { name: 'Admin Overview', href: '/dashboard/admin', icon: Squares2X2Icon },
   { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
-  { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },   // + 合并功能：Book List
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
   { name: 'Manage Users', href: '/dashboard/admin/users', icon: UserGroupIcon },

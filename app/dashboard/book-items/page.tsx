@@ -1,6 +1,8 @@
 import CreateBookForm from '@/app/ui/dashboard/create-book-form';
 import BookItemsClient from '@/app/ui/dashboard/book-items-client';
 import { fetchBooks } from '@/app/lib/supabase/queries';
+import { getDashboardSession } from '@/app/lib/auth/session'; 
+import type { DashboardRole } from '@/app/lib/auth/types';
 
 export default async function BookItemsPage({
   searchParams,
@@ -11,6 +13,9 @@ export default async function BookItemsPage({
   const raw = params?.q;
   const searchTerm = Array.isArray(raw) ? raw[0]?.trim() ?? '' : raw?.trim() ?? '';
   const books = await fetchBooks(searchTerm);
+
+  const session = await getDashboardSession();
+  const role: DashboardRole = session?.user?.role ?? 'student';
 
   return (
     <main className="space-y-8">
@@ -23,10 +28,10 @@ export default async function BookItemsPage({
       </header>
 
       {/* Create a new book */}
-      <CreateBookForm />
-   
+      {role === 'staff' && <CreateBookForm />}
+
       {/* Search Book */}
-      <BookItemsClient initialBooks={books} initialSearchTerm={searchTerm} />
+      <BookItemsClient initialBooks={books} initialSearchTerm={searchTerm} role={role} />
 
     </main>
   );
