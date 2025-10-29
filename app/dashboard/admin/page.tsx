@@ -20,7 +20,7 @@ export default async function AdminDashboardPage() {
 
       <SummaryCards summary={summary} />
 
-      <section className="space-y-4">
+      <section className="rounded-2xl border border-slate-700/40 bg-slate-900/60 px-8 py-6 shadow-inner shadow-black/20 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-white">Recent activity</h2>
           <p className="text-sm text-slate-300">Latest checkouts and returns</p>
@@ -28,7 +28,7 @@ export default async function AdminDashboardPage() {
         <RecentLoans loans={recentLoans} />
       </section>
 
-      <section className="space-y-4">
+      <section className="rounded-2xl border border-slate-700/40 bg-slate-900/60 px-8 py-6 shadow-inner shadow-black/20 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-white">Active loans</h2>
           <p className="text-sm text-slate-300">
