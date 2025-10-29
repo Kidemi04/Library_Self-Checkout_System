@@ -100,7 +100,7 @@ export default function CreateBookForm() {
             id="location"
             name="location"
             type="text"
-            placeholder="Level 2 · Stack A"
+            placeholder="Level 2 - Stack A"
             className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
           />
         </div>
@@ -113,7 +113,7 @@ export default function CreateBookForm() {
             id="coverImageUrl"
             name="coverImageUrl"
             type="url"
-            placeholder="https://…"
+            placeholder="https://example.com/cover.jpg"
             className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
           />
         </div>
@@ -150,7 +150,7 @@ function SubmitButton() {
       disabled={pending}
       className="inline-flex items-center justify-center rounded-lg bg-swin-red px-5 py-2 text-sm font-semibold text-swin-ivory shadow-sm shadow-swin-red/30 transition hover:bg-swin-red/90 disabled:cursor-not-allowed disabled:bg-swin-charcoal/20"
     >
-      {pending ? 'Saving…' : 'Add book'}
+      {pending ? 'Saving...' : 'Add book'}
     </button>
   );
 }

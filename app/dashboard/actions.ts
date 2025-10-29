@@ -3,8 +3,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
-import type { BorrowerType } from '@/app/lib/supabase/types';
+import type { BorrowerType, BookStatus } from '@/app/lib/supabase/types';
 import type { ActionState } from '@/app/dashboard/action-state';
+
 
 const success = (message: string): ActionState => ({ status: 'success', message });
 const failure = (message: string): ActionState => ({ status: 'error', message });
@@ -218,6 +219,90 @@ export async function checkinBookAction(
   revalidatePath('/dashboard/book-items');
 
   return success(`${bookRecord.title ?? 'Book'} returned successfully.`);
+}
+
+const validBookStatuses: BookStatus[] = ['available', 'checked_out', 'reserved', 'maintenance'];
+
+export async function updateBookAction(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const bookId = formData.get('bookId')?.toString();
+  const title = formData.get('title')?.toString().trim();
+  const classificationRaw = formData.get('classification')?.toString();
+  const locationRaw = formData.get('location')?.toString();
+  const statusRaw = formData.get('status')?.toString();
+  const availableCopiesRaw = formData.get('availableCopies')?.toString();
+  const totalCopiesRaw = formData.get('totalCopies')?.toString();
+
+  if (!bookId) return failure('Book reference is missing.');
+  if (!title) return failure('Book title is required.');
+
+  const status = validBookStatuses.find((value) => value === statusRaw) ?? null;
+  if (!status) {
+    return failure('Choose a valid availability status.');
+  }
+
+  const availableCopies = availableCopiesRaw ? Number.parseInt(availableCopiesRaw, 10) : 0;
+  const totalCopies = totalCopiesRaw ? Number.parseInt(totalCopiesRaw, 10) : 1;
+
+  if (!Number.isFinite(availableCopies) || availableCopies < 0) {
+    return failure('Available copies must be zero or greater.');
+  }
+
+  if (!Number.isFinite(totalCopies) || totalCopies < 1) {
+    return failure('Total copies must be at least 1.');
+  }
+
+  if (availableCopies > totalCopies) {
+    return failure('Available copies cannot exceed total copies.');
+  }
+
+  const supabase = getSupabaseServerClient();
+
+  const { error } = await supabase
+    .from('books')
+    .update({
+      title,
+      classification: classificationRaw?.trim() || null,
+      location: locationRaw?.trim() || null,
+      status,
+      available_copies: availableCopies,
+      total_copies: totalCopies,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', bookId);
+
+  if (error) {
+    console.error('Failed to update book record', error);
+    return failure('Unable to update book details. Try again.');
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/dashboard/book-items');
+  revalidatePath('/dashboard/check-out');
+  revalidatePath('/dashboard/book-list');
+
+  return success('Book details updated.');
+}
+
+export async function deleteBookAction(bookId: string): Promise<ActionState> {
+  const supabase = getSupabaseServerClient();
+
+  try {
+    const { error } = await supabase.from('books').delete().eq('id', bookId);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    
+    revalidatePath('/dashboard');
+
+    return { status: 'success', message: 'Book deleted successfully.' };
+  } catch (err: any) {
+    return { status: 'error', message: `Failed to delete book: ${err.message}` };
+  }
 }
 
 export async function createBookAction(

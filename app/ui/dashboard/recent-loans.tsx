@@ -49,7 +49,7 @@ export default function RecentLoans({ loans }: { loans: Loan[] }) {
   }
 
   return (
-    <div className="rounded-2xl border border-swin-charcoal/10 bg-white shadow-sm shadow-swin-charcoal/5">
+    <div className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white shadow-sm shadow-swin-charcoal/5">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-swin-charcoal/10">
           <thead className="bg-swin-ivory">
