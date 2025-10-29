@@ -126,7 +126,7 @@ export default function CameraScanner({ onDetected, onError, facingMode }: Camer
 
   return (
     <div className="space-y-3">
-      <div className="relative overflow-hidden rounded-2xl border border-white/15 bg-black/80 shadow-lg shadow-black/40">
+      <div className="relative overflow-hidden rounded-2xl border border-swin-charcoal/20 bg-slate-950 shadow-lg shadow-black/40">
         <video
           ref={videoRef}
           className="aspect-[4/3] w-full bg-black object-cover"
@@ -135,13 +135,13 @@ export default function CameraScanner({ onDetected, onError, facingMode }: Camer
           playsInline
         />
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="h-40 w-40 rounded-3xl border-2 border-emerald-300/70 shadow-[0_0_30px_rgba(16,185,129,0.35)]" />
+          <div className="h-40 w-40 rounded-2xl border-2 border-emerald-400/70 shadow-[0_0_30px_rgba(16,185,129,0.35)]" />
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-xs text-white/80">
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-xs text-swin-ivory/80">
           Allow camera access to scan QR codes or barcodes automatically.
         </div>
       </div>
-      <p className="text-xs text-slate-200/80">{status}</p>
+      <p className="text-xs text-swin-ivory/70">{status}</p>
     </div>
   );
 }

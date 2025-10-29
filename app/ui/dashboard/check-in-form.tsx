@@ -53,7 +53,7 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
             required
             placeholder="Loan ID, borrower ID, barcode, or ISBN"
             ref={identifierInputRef}
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/30"
           />
           <p className="mt-2 text-xs text-swin-charcoal/60">{activeLoanCount} books are currently on loan.</p>
         </div>
@@ -83,7 +83,7 @@ function SubmitButton() {
 function ActionMessage({ status, message }: { status: ActionState['status']; message: string }) {
   if (!message) return null;
 
-  const tone = status === 'success' ? 'text-emerald-600' : status === 'error' ? 'text-swin-red' : 'text-swin-charcoal';
+  const tone = status === 'success' ? 'text-emerald-600' : status === 'error' ? 'text-swin-red' : 'text-swin-charcoal/70';
 
   return <p className={`md:col-span-2 text-sm font-medium ${tone}`}>{message}</p>;
 }

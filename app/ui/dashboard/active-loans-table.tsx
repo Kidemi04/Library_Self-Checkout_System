@@ -23,15 +23,15 @@ const isOverdue = (loan: Loan) => {
 export default function ActiveLoansTable({ loans, showActions = true }: { loans: Loan[]; showActions?: boolean }) {
   if (!loans.length) {
     return (
-      <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-center text-sm text-swin-charcoal/60">
+      <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-center text-sm text-swin-charcoal/60 shadow-inner shadow-black/10">
         No books are currently on loan.
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-swin-charcoal/10 bg-white shadow-sm shadow-swin-charcoal/5">
-      <div className="rounded-2xl overflow-hidden">
+    <div className="rounded-2xl border border-swin-charcoal/10 bg-white shadow-inner shadow-black/10">
+      <div className="overflow-hidden rounded-2xl">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-swin-charcoal/10">
           <thead className="bg-swin-ivory">

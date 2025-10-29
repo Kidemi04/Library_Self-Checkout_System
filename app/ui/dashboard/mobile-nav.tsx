@@ -69,7 +69,7 @@ export default function MobileNav({ user, isBypassed }: { user: DashboardUserPro
       <header
         className={clsx(
           'flex items-center justify-between px-4 py-3 text-swin-ivory shadow-md md:hidden',
-          isStaff ? 'bg-slate-950 text-white' : 'bg-swin-charcoal',
+          isStaff ? 'bg-slate-950 text-white' : 'bg-swin-ivory',
         )}
       >
         <button
@@ -112,14 +112,14 @@ export default function MobileNav({ user, isBypassed }: { user: DashboardUserPro
             type="button"
             aria-label="Close navigation menu"
             className={clsx(
-              'absolute inset-0 cursor-pointer bg-black/50 backdrop-blur-sm transition-opacity duration-300 ease-out',
+              'absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ease-out',
               open ? 'opacity-100' : 'opacity-0',
             )}
             onClick={hideMenu}
           />
           <div
             className={clsx(
-              'relative mx-3 mt-16 flex max-h-[80vh] flex-col overflow-y-auto rounded-3xl p-6 shadow-2xl ring-1 transition-all duration-500 ease-out',
+               'relative mx-3 mt-16 max-h-[80vh] flex flex-col overflow-y-auto rounded-3xl p-6 shadow-2xl ring-1 transition-all duration-500 ease-out',
               open ? 'translate-y-0 opacity-100' : '-translate-y-5 opacity-0',
               isStaff
                 ? 'bg-slate-950 text-white ring-white/10'

@@ -16,7 +16,7 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
   return (
     <aside
       className={clsx(
-        'fixed flex h-full flex-col  bg-swin-charcoal px-3 py-5 text-swin-ivory shadow-xl  md:px-4',
+        'fixed flex h-full flex-col px-3 py-5 shadow-xl md:px-4',
         isStaff ? 'bg-slate-900/90 text-slate-100 ring-1 ring-white/10' : 'bg-swin-charcoal text-swin-ivory',
       )}
     >
@@ -34,7 +34,7 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
       <div className="flex grow flex-col justify-between gap-6">
         <nav className="flex flex-col gap-2">
           {isStaff ? (
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-slate-100 shadow-inner">
+            <div className="rounded-x2 border border-white/10 bg-white/5 p-4 text-slate-100 shadow-inner">
               <p className="text-[11px] uppercase tracking-wide text-white/60">Admin access</p>
               <p className="mt-1 text-sm font-semibold">
                 {user.name ?? user.email ?? 'Librarian'}

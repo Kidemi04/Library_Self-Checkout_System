@@ -89,8 +89,7 @@ export default function CameraScannerButton() {
   };
 
   const buttonClass =
-    'inline-flex h-[56px] w-full items-center justify-center gap-2 rounded-lg border border-swin-charcoal/20 bg-white px-4 py-3 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-swin-ivory sm:w-auto';
-
+    'inline-flex h-[56px] w-full items-center justify-center gap-2 rounded-2xl border border-swin-charcoal/20 bg-swin-ivory px-4 py-3 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-swin-ivory sm:w-auto';
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
@@ -149,7 +148,7 @@ export default function CameraScannerButton() {
 
       {lastScan ? (
         <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-emerald-500/40 bg-emerald-100/50 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-inner">
-          <CheckBadgeIcon className="h-4 w-4" />
+        <CheckBadgeIcon className="h-4 w-4" />
           <span>Last scan: {lastScan}</span>
         </div>
       ) : null}
@@ -198,7 +197,7 @@ export default function CameraScannerButton() {
                 <button
                   type="button"
                   onClick={toggleFacingMode}
-                  className="inline-flex items-center gap-2 rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/20 bg-slate-900 px-3 py-2 text-xs font-semibold text-white/80 shadow-sm transition hover:bg-white/10 hover:text-white"
                 >
                   <ArrowsRightLeftIcon className="h-4 w-4" />
                   Switch camera
@@ -212,7 +211,7 @@ export default function CameraScannerButton() {
               </div>
 
               {errorMessage ? (
-                <p className="rounded-md border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-200">
+                <p className="rounded-2xl border border-amber-400/40 bg-amber-500/10 px-3 py-2 text-xs font-medium text-amber-200">
                   {errorMessage}
                 </p>
               ) : (

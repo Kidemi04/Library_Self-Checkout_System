@@ -53,7 +53,7 @@ export default function ManageBookDialog({ book, onClose }: ManageBookDialogProp
 
   const labelClass = 'block text-sm font-medium text-swin-charcoal';
   const inputClass =
-    'mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none focus:ring-0';
+    'mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-black focus:border-swin-red focus:outline-none focus:ring-0';
 
   return (
     // Book Manage Forms

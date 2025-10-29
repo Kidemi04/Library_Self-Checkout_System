@@ -129,8 +129,7 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
             name="bookId"
             value={selectedBookId}
             onChange={handleBookSelection}
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-            required
+            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/30" 
           >
             <option value="" disabled>
               {bookOptions.length ? 'Select a book' : 'No titles available'}
@@ -217,8 +216,7 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
             required
             placeholder="Scan or type student/staff ID"
             ref={borrowerIdRef}
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-          />
+            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/30"          />
         </div>
 
         <div>
@@ -231,7 +229,7 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
             type="text"
             required
             placeholder="Full name"
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none  focus:ring-2 focus:ring-swin-red/30"
           />
         </div>
 
@@ -243,7 +241,7 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
             id="borrowerType"
             name="borrowerType"
             defaultValue="student"
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/30"
             required
           >
             {BorrowerTypes.map((type) => (
@@ -264,8 +262,8 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
             type="date"
             defaultValue={defaultDueDate}
             required
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-          />
+            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/30"          
+            />
         </div>
 
         <div className="lg:col-span-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -299,7 +297,7 @@ function ActionMessage({ status, message }: { status: ActionState['status']; mes
       ? 'text-emerald-600'
       : status === 'error'
         ? 'text-swin-red'
-        : 'text-swin-charcoal';
+        : 'text-swin-charcoal/70';
 
   return <p className={`text-sm font-medium ${tone}`}>{message}</p>;
 }

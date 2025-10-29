@@ -37,8 +37,8 @@ export default async function BorrowBooksPage({
   return (
     <main className="space-y-8">
       <title>Borrow Books | Dashboard</title>
-      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
-        <h1 className="text-2xl font-semibold">Borrow Books</h1>
+      <header className="rounded-2xl border border-swin-charcoal/10 bg-swin-charcoal p-8 text-swin-ivory shadow-inner shadow-black/20">
+        <h1 className="text-2xl font-semibold text-swin-ivory">Borrow Books</h1>
         <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
           {isStaff
             ? 'Lend titles by scanning library cards or selecting items from the catalogue.'
@@ -60,7 +60,7 @@ export default async function BorrowBooksPage({
           <h2
             className={clsx(
               'text-lg font-semibold',
-              isStaff ? 'text-slate-100' : 'text-swin-charcoal',
+              isStaff ? 'text-slate-100' : 'text-swin-ivory',
             )}
           >
             Books currently not available
@@ -68,7 +68,7 @@ export default async function BorrowBooksPage({
           <p
             className={clsx(
               'text-sm',
-              isStaff ? 'text-slate-300' : 'text-swin-charcoal/60',
+              isStaff ? 'text-slate-300' : 'text-swin-ivory/60',
             )}
           >
             {activeLoans.length} books are with borrowers right now

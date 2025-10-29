@@ -16,7 +16,7 @@ export default function LoginPage() {
       />
 
       <div className="absolute inset-0 bg-black/40" />
-      <div className="relative w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
+      <div className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-inner shadow-black/20">
         <Link href="/">
           <img
             className="mx-auto scale-125 shadow-lg"

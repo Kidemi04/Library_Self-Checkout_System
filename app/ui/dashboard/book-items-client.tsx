@@ -39,7 +39,7 @@ export default function BookItemsClient({ initialBooks, initialSearchTerm, role 
       />
 
       {/* Filter + Sort */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-swin-charcoal/20 bg-white p-4 shadow-inner shadow-black/10">
 
         {/* Availability filter */}
         <select

@@ -60,7 +60,7 @@ export default function BookCatalogTable({ books, viewType, role }: BookCatalogT
 
   if (!books.length) {
     return (
-      <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-center text-sm text-swin-charcoal/60 shadow-sm shadow-swin-charcoal/5">
+      <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-center text-sm text-swin-charcoal/60 shadow-inner shadow-black/10">
         No books in the catalogue yet. Add your first title.
       </div>
     );
@@ -68,7 +68,7 @@ export default function BookCatalogTable({ books, viewType, role }: BookCatalogT
 
   return (
     <Fragment>
-      <div className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white shadow-sm shadow-swin-charcoal/5">
+      <div className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white shadow-inner shadow-black/10">
 
       {viewType == 'table' ? (
           <div className="overflow-x-auto">
@@ -222,7 +222,7 @@ export default function BookCatalogTable({ books, viewType, role }: BookCatalogT
           </div>
 
           {/* Page number */}
-          <div className='flex gap-2 m-3'>
+          <div className='mx-4'>
             <span>
               Page {currentPage} of {totalPages}
             </span>
