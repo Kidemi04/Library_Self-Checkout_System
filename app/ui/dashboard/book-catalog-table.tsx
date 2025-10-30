@@ -1,359 +1,372 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
-import clsx from 'clsx';
-import { PencilSquareIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import type { Book, BookStatus } from '@/app/lib/supabase/types';
-import { updateBookAction } from '@/app/dashboard/actions';
-import { deleteBookAction } from '@/app/dashboard/actions';
-import { initialActionState } from '@/app/dashboard/action-state';
-import type { ActionState } from '@/app/dashboard/action-state';
+import React from 'react';
+import ManageBookModal from '@/app/ui/dashboard/manage-book-modal';
+import { updateBook } from '@/app/lib/supabase/updates'; // server action below
 
-type BookCatalogTableProps = {
-  books: Book[];
+export type CatalogBook = {
+  id: string;
+  title: string | null;
+  author: string | null;
+  isbn?: string | null;
+  classification?: string | null;   // call number
+  location?: string | null;         // shelf / branch
+  year?: string | number | null;
+  publisher?: string | null;
+  tags?: string[] | null;
+  available?: boolean | null;
+  cover?: string | null;
+  copies_available?: number | null;
+  total_copies?: number | null;
 };
 
-const statusStyle: Record<BookStatus, string> = {
-  available: 'bg-emerald-500/10 text-emerald-600',
-  checked_out: 'bg-swin-red/10 text-swin-red',
-  reserved: 'bg-amber-500/10 text-amber-600',
-  maintenance: 'bg-slate-400/10 text-slate-600',
-};
+export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
+  const [open, setOpen] = React.useState(false);
+  const [active, setActive] = React.useState<CatalogBook | null>(null);
 
-const statusOptions: Array<{ value: BookStatus; label: string }> = [
-  { value: 'available', label: 'Available' },
-  { value: 'checked_out', label: 'Checked out' },
-  { value: 'reserved', label: 'Reserved' },
-  { value: 'maintenance', label: 'Maintenance' },
-];
+  const [form, setForm] = React.useState({
+    title: '',
+    classification: '',
+    location: '',
+    available: true,
+    copiesAvailable: '1',
+    totalCopies: '1',
+    author: '',
+    isbn: '',
+    year: '',
+    publisher: '',
+    tags: '' as string, // comma-separated
+  });
 
-const dateFormatter = new Intl.DateTimeFormat('en-MY', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-});
+  function onManage(b: CatalogBook) {
+    setActive(b);
+    setForm({
+      title: b.title ?? '',
+      classification: b.classification ?? '',
+      location: b.location ?? '',
+      available: Boolean(b.available ?? true),
+      copiesAvailable: String(b.copies_available ?? 1),
+      totalCopies: String(b.total_copies ?? 1),
+      author: b.author ?? '',
+      isbn: b.isbn ?? '',
+      year: b.year ? String(b.year) : '',
+      publisher: b.publisher ?? '',
+      tags: (b.tags ?? []).join(', '),
+    });
+    setOpen(true);
+  }
 
-const formatDateTime = (value: string | null) => {
-  if (!value) return '--';
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return '--';
-  return dateFormatter.format(date);
-};
+  function onClose() {
+    setOpen(false);
+    setActive(null);
+  }
 
-const formatStatusLabel = (status: BookStatus) =>
-  status
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
+  async function onSave(e: React.FormEvent) {
+    e.preventDefault();
+    if (!active) return;
 
-export default function BookCatalogTable({ books }: BookCatalogTableProps) {
-  const [editingId, setEditingId] = useState<string | null>(null);
+    const copiesAvail = Number(form.copiesAvailable) || 0;
+    const totalCopies = Number(form.totalCopies) || 0;
+    if (copiesAvail > totalCopies) {
+      alert('Copies available cannot exceed total copies');
+      return;
+    }
 
-  const editingBook = useMemo(() => {
-    if (!editingId) return null;
-    return books.find((book) => book.id === editingId) ?? null;
-  }, [books, editingId]);
+    const payload = {
+      id: active.id,
+      title: form.title.trim(),
+      classification: form.classification.trim(),
+      location: form.location.trim(),
+      available: form.available,
+      copies_available: copiesAvail,
+      total_copies: totalCopies,
+      author: form.author.trim(),
+      isbn: form.isbn.trim(),
+      year: form.year.trim(),
+      publisher: form.publisher.trim(),
+      tags: form.tags
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean),
+    };
 
-  if (!books.length) {
-    return (
-      <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-center text-sm text-swin-charcoal/60 shadow-sm shadow-swin-charcoal/5">
-        No books in the catalogue yet. Add your first title.
-      </div>
-    );
+    // Server action – update DB
+    try {
+      await updateBook(payload);
+      onClose();
+      // Optional: toast + refresh list in parent via router.refresh() or SWR mutate
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.message ?? 'Failed to update book');
+    }
   }
 
   return (
-    <Fragment>
-      <div className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white shadow-sm shadow-swin-charcoal/5">
+    <>
+      {/* Table */}
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-swin-charcoal/10 text-sm">
-            <thead className="bg-swin-ivory text-left text-xs font-semibold uppercase tracking-wider text-swin-charcoal/70">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
               <tr>
-                <th className="px-6 py-3">Title</th>
-                <th className="px-6 py-3">Availability</th>
-                <th className="px-6 py-3">Classification</th>
-                <th className="px-6 py-3">Location</th>
-                <th className="px-6 py-3">Last activity</th>
-                <th className="px-6 py-3 text-right">Actions</th>
+                <Th>Title</Th>
+                <Th>Author</Th>
+                <Th className="hidden lg:table-cell">ISBN</Th>
+                <Th className="hidden lg:table-cell">Call No.</Th>
+                <Th className="hidden md:table-cell">Location</Th>
+                <Th className="hidden lg:table-cell">Year</Th>
+                <Th className="hidden xl:table-cell">Publisher</Th>
+                <Th>Status</Th>
+                <Th>Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-swin-charcoal/10 bg-white text-swin-charcoal">
-              {books.map((book) => (
-                <tr key={book.id} className="transition hover:bg-swin-ivory">
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-swin-charcoal">{book.title}</div>
-                    <p className="text-xs text-swin-charcoal/60">
-                      {book.author ?? 'Unknown author'} &bull;{' '}
-                      {book.barcode ?? (book.isbn ? `ISBN ${book.isbn}` : 'No barcode')}
-                    </p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={clsx(
-                          'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold capitalize',
-                          statusStyle[book.status] ?? 'bg-slate-500/10 text-slate-600',
+            <tbody className="divide-y divide-slate-100 bg-white">
+              {books.map((b) => (
+                <tr key={b.id} className="hover:bg-slate-50">
+                  <Td>
+                    <div className="flex items-center gap-3">
+                      {b.cover ? (
+                        <img
+                          src={b.cover}
+                          alt=""
+                          aria-hidden
+                          className="h-12 w-8 rounded object-cover ring-1 ring-slate-200"
+                        />
+                      ) : (
+                        <div className="h-12 w-8 rounded bg-slate-100 ring-1 ring-slate-200" />
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-slate-900">
+                          {b.title ?? 'Untitled'}
+                        </p>
+                        {!!(b.tags && b.tags.length) && (
+                          <p className="truncate text-xs text-slate-500">
+                            {b.tags.slice(0, 3).join(', ')}
+                          </p>
                         )}
-                      >
-                        {formatStatusLabel(book.status)}
-                      </span>
-                      <span className="text-xs text-swin-charcoal/60">
-                        {(book.available_copies ?? 0)}/{book.total_copies ?? 0} available
-                      </span>
+                      </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 text-swin-charcoal/70">{book.classification ?? '--'}</td>
-                  <td className="px-6 py-4 text-swin-charcoal/70">{book.location ?? '--'}</td>
-                  <td className="px-6 py-4 text-swin-charcoal/70">{formatDateTime(book.last_transaction_at)}</td>
-                  <td className="px-6 py-4 text-right">
+                  </Td>
+                  <Td>{b.author ?? <span className="text-slate-400">Unknown</span>}</Td>
+                  <Td className="hidden lg:table-cell">{b.isbn ?? '-'}</Td>
+                  <Td className="hidden lg:table-cell">{b.classification ?? '-'}</Td>
+                  <Td className="hidden md:table-cell">{b.location ?? '-'}</Td>
+                  <Td className="hidden lg:table-cell">{b.year ?? '-'}</Td>
+                  <Td className="hidden xl:table-cell">{b.publisher ?? '-'}</Td>
+                  <Td>
+                    {b.available ? (
+                      <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                        Available
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                        On loan
+                      </span>
+                    )}
+                  </Td>
+                  <Td>
                     <button
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50"
+                      onClick={() => onManage(b)}
                       type="button"
-                      onClick={() => setEditingId(book.id)}
-                      className="inline-flex items-center gap-2 rounded-md border border-swin-charcoal/20 bg-white px-3 py-2 text-xs font-semibold text-swin-charcoal transition hover:border-swin-red hover:text-swin-red focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                     >
-                      <PencilSquareIcon className="h-4 w-4" />
                       Manage
                     </button>
-                  </td>
+                  </Td>
                 </tr>
               ))}
+              {books.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="p-8 text-center text-sm text-slate-600">
+                    No books found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {editingBook ? (
-        <ManageBookDialog key={editingBook.id} book={editingBook} onClose={() => setEditingId(null)} />
-      ) : null}
-    </Fragment>
-  );
-}
-
-type ManageBookDialogProps = {
-  book: Book;
-  onClose: () => void;
-};
-
-function ManageBookDialog({ book, onClose }: ManageBookDialogProps) {
-  const [state, formAction] = useFormState(updateBookAction, initialActionState);
-  const dialogRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [onClose]);
-
-  useEffect(() => {
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (state.status === 'success') {
-      onClose();
-    }
-  }, [state.status, onClose]);
-
-  const labelClass = 'block text-sm font-medium text-swin-charcoal';
-  const inputClass =
-    'mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none focus:ring-0';
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      role="dialog"
-      aria-modal="true"
-      onClick={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <div
-        ref={dialogRef}
-        className="relative w-full max-w-lg rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-swin-charcoal shadow-xl shadow-swin-charcoal/10"
+      {/* Centered modal that follows viewport scroll */}
+      <ManageBookModal
+        open={open}
+        onClose={onClose}
+        title="Manage book"
+        lockScroll={false} // set true if you want to freeze background
       >
-        <div className="flex items-start justify-between gap-4">
+        <form className="space-y-4" onSubmit={onSave}>
           <div>
-            <h2 className="text-lg font-semibold">Manage book</h2>
-            <p className="mt-1 text-sm text-swin-charcoal/60">
-              Update catalogue details to keep the inventory accurate.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full border border-swin-charcoal/20 p-2 text-swin-charcoal transition hover:bg-swin-charcoal/5"
-            aria-label="Close manage book dialog"
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
-        </div>
-
-        <form action={formAction} className="mt-6 space-y-4">
-          <input type="hidden" name="bookId" value={book.id} />
-
-          <div>
-            <label className={labelClass} htmlFor="manage-title">
-              Title
-            </label>
+            <label className="block text-sm font-medium text-slate-700">Title</label>
             <input
-              id="manage-title"
-              name="title"
-              defaultValue={book.title}
-              className={inputClass}
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              value={form.title}
+              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               required
             />
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className={labelClass} htmlFor="manage-classification">
-                Classification
-              </label>
+              <label className="block text-sm font-medium text-slate-700">Classification</label>
               <input
-                id="manage-classification"
-                name="classification"
-                defaultValue={book.classification ?? ''}
-                className={inputClass}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.classification}
+                onChange={(e) => setForm((f) => ({ ...f, classification: e.target.value }))}
               />
             </div>
-
             <div>
-              <label className={labelClass} htmlFor="manage-location">
-                Location
-              </label>
+              <label className="block text-sm font-medium text-slate-700">Location</label>
               <input
-                id="manage-location"
-                name="location"
-                defaultValue={book.location ?? ''}
-                className={inputClass}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.location}
+                onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
               />
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className={labelClass} htmlFor="manage-status">
-                Availability status
-              </label>
+              <label className="block text-sm font-medium text-slate-700">Availability</label>
               <select
-                id="manage-status"
-                name="status"
-                defaultValue={book.status}
-                className={clsx(inputClass, 'pr-8')}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.available ? 'available' : 'on_loan'}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, available: e.target.value === 'available' }))
+                }
               >
-                {statusOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
+                <option value="available">Available</option>
+                <option value="on_loan">On loan</option>
               </select>
             </div>
-
             <div>
-              <label className={labelClass} htmlFor="manage-available">
-                Copies available
-              </label>
+              <label className="block text-sm font-medium text-slate-700">Copies available</label>
               <input
-                id="manage-available"
-                name="availableCopies"
                 type="number"
+                inputMode="numeric"
                 min={0}
-                defaultValue={book.available_copies ?? 0}
-                className={inputClass}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.copiesAvailable}
+                onChange={(e) => setForm((f) => ({ ...f, copiesAvailable: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Total copies</label>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.totalCopies}
+                onChange={(e) => setForm((f) => ({ ...f, totalCopies: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">ISBN</label>
+              <input
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.isbn}
+                onChange={(e) => setForm((f) => ({ ...f, isbn: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Author</label>
+              <input
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.author}
+                onChange={(e) => setForm((f) => ({ ...f, author: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Year</label>
+              <input
+                type="number"
+                inputMode="numeric"
+                className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                value={form.year}
+                onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))}
               />
             </div>
           </div>
 
           <div>
-            <label className={labelClass} htmlFor="manage-total">
-              Total copies
-            </label>
+            <label className="block text-sm font-medium text-slate-700">Publisher</label>
             <input
-              id="manage-total"
-              name="totalCopies"
-              type="number"
-              min={1}
-              defaultValue={book.total_copies ?? 1}
-              className={inputClass}
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              value={form.publisher}
+              onChange={(e) => setForm((f) => ({ ...f, publisher: e.target.value }))}
             />
           </div>
 
-          <ActionFeedback state={state} />
+          <div>
+            <label className="block text-sm font-medium text-slate-700">Tags</label>
+            <input
+              className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              placeholder="programming, typescript, ui"
+              value={form.tags}
+              onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))}
+            />
+            <p className="mt-1 text-xs text-slate-500">Separate with commas</p>
+          </div>
 
-          <div className="flex justify-between items-center pt-4 border-t border-swin-charcoal/10">
-          
-          {/* Delete Button */}
-          <button
-          type="button"
-          onClick={async () => {
-            if (confirm(`Are you sure you want to delete "${book.title}"? This action cannot be undone.`)) {
-              const result = await deleteBookAction(book.id);
-              alert(result.message);
-              if (result.status === 'success') onClose();
-            }
-          }}
-          className="inline-flex items-center justify-center rounded-md border border-swin-red/30 bg-swin-red/10 px-4 py-2 text-sm font-semibold text-swin-red transition hover:bg-swin-red/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
-        >
-          Delete
-        </button>
-
-          {/*Cancel and Save Function */}
-          <div className="flex gap-3">
+          <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex items-center justify-center rounded-md border border-swin-charcoal/20 px-4 py-2 text-sm font-semibold text-swin-charcoal transition hover:bg-swin-charcoal/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-charcoal/30 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50"
             >
               Cancel
             </button>
-            <DialogSubmitButton />
+            <button
+              type="submit"
+              className="rounded-xl bg-swin-charcoal px-4 py-2 text-sm text-swin-ivory hover:opacity-95"
+            >
+              Save changes
+            </button>
           </div>
-        </div>
-
         </form>
-      </div>
-    </div>
+      </ManageBookModal>
+    </>
   );
 }
 
-function ActionFeedback({ state }: { state: ActionState }) {
-  if (!state.message) return null;
+/* ---- tiny table cell helpers ---- */
 
-  const tone =
-    state.status === 'success'
-      ? 'text-emerald-600'
-      : state.status === 'error'
-      ? 'text-swin-red'
-      : 'text-swin-charcoal';
-
-  return <p className={clsx('text-sm font-medium', tone)}>{state.message}</p>;
+function Th({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <th
+      scope="col"
+      className={[
+        'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600',
+        className,
+      ].join(' ')}
+    >
+      {children}
+    </th>
+  );
 }
 
-function DialogSubmitButton() {
-  const { pending } = useFormStatus();
+function Td({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="inline-flex items-center justify-center rounded-md bg-swin-red px-4 py-2 text-sm font-semibold text-swin-ivory transition focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/40 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:bg-swin-charcoal/20"
-    >
-      {pending ? 'Saving...' : 'Save changes'}
-    </button>
+    <td className={['px-4 py-3 align-top text-sm text-slate-700', className].join(' ')}>
+      {children}
+    </td>
   );
 }
