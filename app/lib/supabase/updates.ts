@@ -2,7 +2,8 @@
 
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 
-type UpdatePayload = {
+/** Payload used by the Book Items “Manage” form */
+export type UpdatePayload = {
   id: string;
   title: string;
   author?: string;
@@ -18,10 +19,10 @@ type UpdatePayload = {
 };
 
 export async function updateBook(payload: UpdatePayload) {
-  const supabase = getSupabaseServerClient(); // <-- use your factory
+  const supabase = getSupabaseServerClient();
 
   const { data, error } = await supabase
-    .from('books')
+    .from('books') // adjust if your table name differs
     .update({
       title: payload.title,
       author: payload.author ?? null,
@@ -41,4 +42,11 @@ export async function updateBook(payload: UpdatePayload) {
 
   if (error) throw new Error(error.message);
   return data;
+}
+
+export async function deleteBook(id: string) {
+  const supabase = getSupabaseServerClient();
+  const { error } = await supabase.from('books').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  return { success: true };
 }

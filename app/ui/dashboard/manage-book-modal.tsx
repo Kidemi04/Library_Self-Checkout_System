@@ -1,12 +1,14 @@
 'use client';
-import React, { useEffect, useRef } from 'react';
+
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 type Props = {
   open: boolean;
   onClose: () => void;
   title?: string;
-  lockScroll?: boolean; // true = freeze background scroll
+  /** set true to prevent background scroll while modal is open */
+  lockScroll?: boolean;
   children: React.ReactNode;
 };
 
@@ -17,9 +19,7 @@ export default function ManageBookModal({
   lockScroll = false,
   children,
 }: Props) {
-  const panelRef = useRef<HTMLDivElement | null>(null);
-
-  // (optional) lock background scroll
+  // Optional: lock background scroll when modal is open
   useEffect(() => {
     if (!open || !lockScroll) return;
     const prev = document.body.style.overflow;
@@ -29,44 +29,22 @@ export default function ManageBookModal({
     };
   }, [open, lockScroll]);
 
-  // Close on Esc
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [open, onClose]);
-
-  // Autofocus first focusable control
-  useEffect(() => {
-    if (!open || !panelRef.current) return;
-    const root = panelRef.current;
-    const first =
-      root.querySelector<HTMLElement>('input, select, textarea, button, [tabindex]:not([tabindex="-1"])');
-    first?.focus();
-  }, [open]);
-
   if (!open) return null;
 
+  // Use a portal so the modal always follows the viewport on scroll
   return createPortal(
     <div
       className="fixed inset-0 z-[1000] flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
-      aria-label={title}
       onClick={onClose}
     >
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" />
 
-      {/* Panel */}
+      {/* Modal surface */}
       <div
-        ref={panelRef}
-        className="relative w-full max-w-2xl origin-center rounded-2xl bg-white shadow-xl outline-none
-                   transition-all duration-150 ease-out
-                   data-[state=open]:scale-100 data-[state=open]:opacity-100
-                   data-[state=closed]:scale-95 data-[state=closed]:opacity-0"
-        data-state="open"
+        className="relative w-full max-w-2xl rounded-2xl bg-white shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -81,16 +59,13 @@ export default function ManageBookModal({
             onClick={onClose}
             className="rounded px-2 py-1 text-slate-600 hover:bg-slate-100"
             aria-label="Close"
-            type="button"
           >
             ✕
           </button>
         </div>
 
-        {/* Body (scrolls within modal) */}
-        <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
-          {children}
-        </div>
+        {/* Body (scrollable inside the modal; follows touch scroll) */}
+        <div className="max-h-[70vh] overflow-y-auto px-5 py-4">{children}</div>
       </div>
     </div>,
     document.body

@@ -1,16 +1,17 @@
 'use client';
 
 import React from 'react';
-import ManageBookModal from '@/app/ui/dashboard/manage-book-modal';
-import { updateBook } from '@/app/lib/supabase/updates'; // server action below
+import { useRouter } from 'next/navigation';
+import ManageBookModal from './manage-book-modal';
+import { updateBook, deleteBook } from '@/app/lib/supabase/updates';
 
 export type CatalogBook = {
   id: string;
   title: string | null;
   author: string | null;
   isbn?: string | null;
-  classification?: string | null;   // call number
-  location?: string | null;         // shelf / branch
+  classification?: string | null;
+  location?: string | null;
   year?: string | number | null;
   publisher?: string | null;
   tags?: string[] | null;
@@ -20,9 +21,61 @@ export type CatalogBook = {
   total_copies?: number | null;
 };
 
+type SortKey =
+  | 'title'
+  | 'author'
+  | 'isbn'
+  | 'classification'
+  | 'location'
+  | 'year'
+  | 'publisher'
+  | 'available';
+
+type SortDir = 'asc' | 'desc';
+
 export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
+  const router = useRouter();
+
+  // ---------- sort state (works for both desktop and mobile views) ----------
+  const [sortKey, setSortKey] = React.useState<SortKey>('title');
+  const [sortDir, setSortDir] = React.useState<SortDir>('asc');
+
+  const sorted = React.useMemo(() => {
+    const toStr = (v: unknown) => (v === null || v === undefined ? '' : String(v).toLowerCase());
+    const copy = [...books];
+    copy.sort((a, b) => {
+      let A: string | number = '';
+      let B: string | number = '';
+
+      if (sortKey === 'available') {
+        A = a.available ? 1 : 0;
+        B = b.available ? 1 : 0;
+      } else {
+        A = toStr((a as any)[sortKey]);
+        B = toStr((b as any)[sortKey]);
+      }
+
+      if (A < B) return sortDir === 'asc' ? -1 : 1;
+      if (A > B) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return copy;
+  }, [books, sortKey, sortDir]);
+
+  const toggleSort = (key: SortKey) => {
+    if (key === sortKey) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  };
+
+  // ---------- modal + form state ----------
   const [open, setOpen] = React.useState(false);
   const [active, setActive] = React.useState<CatalogBook | null>(null);
+  const [saving, setSaving] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
 
   const [form, setForm] = React.useState({
     title: '',
@@ -35,7 +88,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
     isbn: '',
     year: '',
     publisher: '',
-    tags: '' as string, // comma-separated
+    tags: '' as string,
   });
 
   function onManage(b: CatalogBook) {
@@ -64,64 +117,254 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
     if (!active) return;
-
-    const copiesAvail = Number(form.copiesAvailable) || 0;
-    const totalCopies = Number(form.totalCopies) || 0;
-    if (copiesAvail > totalCopies) {
-      alert('Copies available cannot exceed total copies');
-      return;
-    }
-
-    const payload = {
-      id: active.id,
-      title: form.title.trim(),
-      classification: form.classification.trim(),
-      location: form.location.trim(),
-      available: form.available,
-      copies_available: copiesAvail,
-      total_copies: totalCopies,
-      author: form.author.trim(),
-      isbn: form.isbn.trim(),
-      year: form.year.trim(),
-      publisher: form.publisher.trim(),
-      tags: form.tags
-        .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean),
-    };
-
-    // Server action – update DB
     try {
-      await updateBook(payload);
+      setSaving(true);
+      await updateBook({
+        id: active.id,
+        title: form.title.trim(),
+        classification: form.classification.trim(),
+        location: form.location.trim(),
+        available: form.available,
+        copies_available: Number(form.copiesAvailable) || 0,
+        total_copies: Number(form.totalCopies) || 0,
+        author: form.author.trim(),
+        isbn: form.isbn.trim(),
+        year: form.year.trim(),
+        publisher: form.publisher.trim(),
+        tags: form.tags
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean),
+      });
       onClose();
-      // Optional: toast + refresh list in parent via router.refresh() or SWR mutate
-    } catch (err: any) {
-      console.error(err);
-      alert(err?.message ?? 'Failed to update book');
+      router.refresh();
+    } finally {
+      setSaving(false);
     }
   }
 
+  async function onDelete() {
+    if (!active) return;
+    const ok = confirm(`Delete "${active.title ?? 'this book'}"? This cannot be undone.`);
+    if (!ok) return;
+    try {
+      setDeleting(true);
+      await deleteBook(active.id);
+      onClose();
+      router.refresh();
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  // ---------- Desktop table header helpers ----------
+  const Arrow = ({ col }: { col: SortKey }) => {
+    if (sortKey !== col) return <span className="text-slate-400">⇅</span>;
+    return <span className="text-slate-700">{sortDir === 'asc' ? '▲' : '▼'}</span>;
+  };
+
+  const ariaSort = (col: SortKey): React.AriaAttributes['aria-sort'] =>
+    sortKey === col ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none';
+
   return (
     <>
-      {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      {/* ---------- Mobile controls (<= md) ---------- */}
+      <div className="mb-3 grid gap-2 md:hidden">
+        <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-sm font-medium text-slate-700">Sort by</label>
+            <select
+              className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-sm text-slate-900"
+              value={sortKey}
+              onChange={(e) => setSortKey(e.target.value as SortKey)}
+            >
+              <option value="title">Title</option>
+              <option value="author">Author</option>
+              <option value="isbn">ISBN</option>
+              <option value="classification">Call No.</option>
+              <option value="location">Location</option>
+              <option value="year">Year</option>
+              <option value="publisher">Publisher</option>
+              <option value="available">Status</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
+              className="rounded-lg border border-slate-300 bg-white px-3 py-1 text-sm text-slate-900 shadow-sm"
+              aria-label="Toggle sort direction"
+            >
+              {sortDir === 'asc' ? '▲ A→Z' : '▼ Z→A'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ---------- Mobile card list (<= md) ---------- */}
+      <ul className="grid gap-3 md:hidden">
+        {sorted.map((b) => (
+          <li key={b.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="flex items-start gap-3">
+              {b.cover ? (
+                <img
+                  src={b.cover}
+                  alt=""
+                  aria-hidden
+                  className="h-16 w-12 shrink-0 rounded object-cover ring-1 ring-slate-200"
+                />
+              ) : (
+                <div className="h-16 w-12 shrink-0 rounded bg-slate-100 ring-1 ring-slate-200" />
+              )}
+
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-slate-500">{b.author ?? 'Unknown'}</p>
+                <h3 className="line-clamp-2 font-semibold text-slate-900">{b.title ?? 'Untitled'}</h3>
+
+                <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600">
+                  <div className="min-w-0">
+                    <dt className="sr-only">ISBN</dt>
+                    <dd className="truncate">{b.isbn ?? '-'}</dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="sr-only">Call No.</dt>
+                    <dd className="truncate">{b.classification ?? '-'}</dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="sr-only">Location</dt>
+                    <dd className="truncate">{b.location ?? '-'}</dd>
+                  </div>
+                  <div className="min-w-0">
+                    <dt className="sr-only">Year</dt>
+                    <dd className="truncate">{b.year ?? '-'}</dd>
+                  </div>
+                </dl>
+
+                <div className="mt-2 flex items-center justify-between">
+                  <span
+                    className={[
+                      'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium',
+                      b.available ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-800',
+                    ].join(' ')}
+                  >
+                    {b.available ? 'Available' : 'On loan'}
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={() => onManage(b)}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50"
+                  >
+                    Manage
+                  </button>
+                </div>
+              </div>
+            </div>
+          </li>
+        ))}
+        {sorted.length === 0 && (
+          <li className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-600">
+            No books found.
+          </li>
+        )}
+      </ul>
+
+      {/* ---------- Desktop table (>= md) ---------- */}
+      <div className="hidden overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:block">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-200">
             <thead className="bg-slate-50">
               <tr>
-                <Th>Title</Th>
-                <Th>Author</Th>
-                <Th className="hidden lg:table-cell">ISBN</Th>
-                <Th className="hidden lg:table-cell">Call No.</Th>
-                <Th className="hidden md:table-cell">Location</Th>
-                <Th className="hidden lg:table-cell">Year</Th>
-                <Th className="hidden xl:table-cell">Publisher</Th>
-                <Th>Status</Th>
+                <SortableTh
+                  activeKey={sortKey}
+                  dir={sortDir}
+                  colKey="title"
+                  onClick={toggleSort}
+                  ariaSort={ariaSort('title')}
+                >
+                  Title <Arrow col="title" />
+                </SortableTh>
+
+                <SortableTh
+                  activeKey={sortKey}
+                  dir={sortDir}
+                  colKey="author"
+                  onClick={toggleSort}
+                  ariaSort={ariaSort('author')}
+                >
+                  Author <Arrow col="author" />
+                </SortableTh>
+
+                <SortableTh
+                  className="hidden lg:table-cell"
+                  activeKey={sortKey}
+                  dir={sortDir}
+                  colKey="isbn"
+                  onClick={toggleSort}
+                  ariaSort={ariaSort('isbn')}
+                >
+                  ISBN <Arrow col="isbn" />
+                </SortableTh>
+
+                <SortableTh
+                  className="hidden lg:table-cell"
+                  activeKey={sortKey}
+                  dir={sortDir}
+                  colKey="classification"
+                  onClick={toggleSort}
+                  ariaSort={ariaSort('classification')}
+                >
+                  Call No. <Arrow col="classification" />
+                </SortableTh>
+
+                <SortableTh
+                  className="hidden md:table-cell"
+                  activeKey={sortKey}
+                  dir={sortDir}
+                  colKey="location"
+                  onClick={toggleSort}
+                  ariaSort={ariaSort('location')}
+                >
+                  Location <Arrow col="location" />
+                </SortableTh>
+
+                <SortableTh
+                  className="hidden lg:table-cell"
+                  activeKey={sortKey}
+                  dir={sortDir}
+                  colKey="year"
+                  onClick={toggleSort}
+                  ariaSort={ariaSort('year')}
+                >
+                  Year <Arrow col="year" />
+                </SortableTh>
+
+                <SortableTh
+                  className="hidden xl:table-cell"
+                  activeKey={sortKey}
+                  dir={sortDir}
+                  colKey="publisher"
+                  onClick={toggleSort}
+                  ariaSort={ariaSort('publisher')}
+                >
+                  Publisher <Arrow col="publisher" />
+                </SortableTh>
+
+                <SortableTh
+                  activeKey={sortKey}
+                  dir={sortDir}
+                  colKey="available"
+                  onClick={toggleSort}
+                  ariaSort={ariaSort('available')}
+                >
+                  Status <Arrow col="available" />
+                </SortableTh>
+
                 <Th>Actions</Th>
               </tr>
             </thead>
+
             <tbody className="divide-y divide-slate-100 bg-white">
-              {books.map((b) => (
+              {sorted.map((b) => (
                 <tr key={b.id} className="hover:bg-slate-50">
                   <Td>
                     <div className="flex items-center gap-3">
@@ -175,7 +418,8 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                   </Td>
                 </tr>
               ))}
-              {books.length === 0 && (
+
+              {sorted.length === 0 && (
                 <tr>
                   <td colSpan={9} className="p-8 text-center text-sm text-slate-600">
                     No books found.
@@ -187,13 +431,8 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
         </div>
       </div>
 
-      {/* Centered modal that follows viewport scroll */}
-      <ManageBookModal
-        open={open}
-        onClose={onClose}
-        title="Manage book"
-        lockScroll={false} // set true if you want to freeze background
-      >
+      {/* ---------- Manage Modal (with Delete inside) ---------- */}
+      <ManageBookModal open={open} onClose={onClose} title="Manage book" lockScroll={false}>
         <form className="space-y-4" onSubmit={onSave}>
           <div>
             <label className="block text-sm font-medium text-slate-700">Title</label>
@@ -241,9 +480,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
             <div>
               <label className="block text-sm font-medium text-slate-700">Copies available</label>
               <input
-                type="number"
-                inputMode="numeric"
-                min={0}
                 className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
                 value={form.copiesAvailable}
                 onChange={(e) => setForm((f) => ({ ...f, copiesAvailable: e.target.value }))}
@@ -255,9 +491,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
             <div>
               <label className="block text-sm font-medium text-slate-700">Total copies</label>
               <input
-                type="number"
-                inputMode="numeric"
-                min={0}
                 className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
                 value={form.totalCopies}
                 onChange={(e) => setForm((f) => ({ ...f, totalCopies: e.target.value }))}
@@ -285,8 +518,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
             <div>
               <label className="block text-sm font-medium text-slate-700">Year</label>
               <input
-                type="number"
-                inputMode="numeric"
                 className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
                 value={form.year}
                 onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))}
@@ -314,20 +545,32 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
             <p className="mt-1 text-xs text-slate-500">Separate with commas</p>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-between gap-2 pt-2">
             <button
               type="button"
-              onClick={onClose}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50"
+              onClick={onDelete}
+              disabled={deleting}
+              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Cancel
+              {deleting ? 'Deleting…' : 'Delete'}
             </button>
-            <button
-              type="submit"
-              className="rounded-xl bg-swin-charcoal px-4 py-2 text-sm text-swin-ivory hover:opacity-95"
-            >
-              Save changes
-            </button>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-xl bg-swin-charcoal px-4 py-2 text-sm text-swin-ivory hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {saving ? 'Saving…' : 'Save changes'}
+              </button>
+            </div>
           </div>
         </form>
       </ManageBookModal>
@@ -335,15 +578,8 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
   );
 }
 
-/* ---- tiny table cell helpers ---- */
-
-function Th({
-  children,
-  className = '',
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
+/* ---------- Table cell helpers ---------- */
+function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
     <th
       scope="col"
@@ -357,16 +593,49 @@ function Th({
   );
 }
 
-function Td({
+function Td({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <td className={['px-4 py-3 align-top text-sm text-slate-700', className].join(' ')}>{children}</td>;
+}
+
+/* Clickable sortable <th> for desktop */
+function SortableTh({
   children,
   className = '',
+  colKey,
+  activeKey,
+  dir,
+  onClick,
+  ariaSort,
 }: {
   children: React.ReactNode;
   className?: string;
+  colKey: SortKey;
+  activeKey: SortKey;
+  dir: SortDir;
+  onClick: (k: SortKey) => void;
+  ariaSort: React.AriaAttributes['aria-sort'];
 }) {
+  const isActive = activeKey === colKey;
   return (
-    <td className={['px-4 py-3 align-top text-sm text-slate-700', className].join(' ')}>
-      {children}
-    </td>
+    <th
+      scope="col"
+      aria-sort={ariaSort}
+      className={[
+        'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-600',
+        className,
+      ].join(' ')}
+    >
+      <button
+        type="button"
+        onClick={() => onClick(colKey)}
+        className={[
+          'inline-flex items-center gap-1 rounded px-1 py-0.5 transition',
+          isActive ? 'bg-slate-200 text-slate-900' : 'hover:bg-slate-100',
+        ].join(' ')}
+        aria-label={`Sort by ${colKey} ${isActive ? (dir === 'asc' ? 'ascending' : 'descending') : ''}`}
+      >
+        {children}
+      </button>
+    </th>
   );
 }

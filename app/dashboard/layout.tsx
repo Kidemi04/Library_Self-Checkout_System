@@ -6,10 +6,7 @@ import { getDashboardSession } from '@/app/lib/auth/session';
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const { user, isBypassed } = await getDashboardSession();
-
-  if (!user) {
-    redirect('/login');
-  }
+  if (!user) redirect('/login');
 
   const isStaff = user.role === 'staff';
 
@@ -17,25 +14,31 @@ export default async function Layout({ children }: { children: React.ReactNode }
     <div
       className={clsx(
         'flex min-h-screen',
-        isStaff
-          ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100'
-          : 'bg-swin-ivory text-swin-charcoal',
+        // Solid backgrounds (no gradient)
+        isStaff ? 'bg-slate-900 text-slate-100' : 'bg-swin-ivory text-swin-charcoal'
       )}
     >
+      {/* Sidebar */}
       <aside className="hidden md:flex md:w-72 md:flex-none md:flex-col md:px-2 md:py-3">
         <SideNav user={user} isBypassed={isBypassed} />
       </aside>
+
+      {/* Main column */}
       <div className="flex min-h-screen w-full flex-col">
         <MobileNav user={user} isBypassed={isBypassed} />
+
+        {/* Page surface */}
         <div
           className={clsx(
             'flex-1 overflow-y-auto px-4 py-6 sm:px-6 md:px-12 md:py-10',
-            isStaff
-              ? 'bg-slate-900/40 text-slate-100 backdrop-blur'
-              : 'bg-transparent text-swin-charcoal',
+            // Use an opaque surface so the outer background never shows through.
+            isStaff ? 'bg-slate-900 text-slate-100' : 'bg-white/0 text-swin-charcoal'
           )}
         >
-          {children}
+          {/* Centered, constrained container (adjust max-w-* to taste) */}
+          <div className="mx-auto w-full max-w-7xl">
+            {children}
+          </div>
         </div>
       </div>
     </div>
