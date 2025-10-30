@@ -236,31 +236,71 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
       {/* Mobile: card list (no horizontal scrolling) */}
       <ul className="md:hidden space-y-3">
         {sorted.map((b) => (
-          <li key={b.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <li
+            key={b.id}
+            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-slate-900"
+          >
             <div className="flex gap-3">
               {b.cover ? (
-                <img src={b.cover} alt="" aria-hidden className="h-16 w-12 rounded object-cover ring-1 ring-slate-200" />
+                <img
+                  src={b.cover}
+                  alt=""
+                  aria-hidden
+                  className="h-16 w-12 rounded object-cover ring-1 ring-slate-200"
+                />
               ) : (
                 <div className="h-16 w-12 rounded bg-slate-100 ring-1 ring-slate-200" />
               )}
 
               <div className="min-w-0 flex-1">
+                {/* Title + Status */}
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <h3 className="truncate font-semibold text-slate-900">{b.title ?? 'Untitled'}</h3>
-                    <p className="truncate text-sm text-slate-700">{b.author ?? 'Unknown'}</p>
+                    <h3 className="truncate font-semibold text-slate-900">
+                      {b.title ?? 'Untitled'}
+                    </h3>
+                    <p className="truncate text-sm text-slate-700">
+                      {b.author ?? 'Unknown'}
+                    </p>
                   </div>
                   {renderStatusBadge(b.status)}
                 </div>
 
-                <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-700">
-                  <Field label="ISBN">{b.isbn ?? '-'}</Field>
-                  <Field label="Call No.">{b.classification ?? '-'}</Field>
-                  <Field label="Location">{b.location ?? '-'}</Field>
-                  <Field label="Year">{b.publication_year ?? '-'}</Field>
-                  <Field label="Publisher">{b.publisher ?? '-'}</Field>
-                </dl>
+                {/* Explicit, readable K/V list */}
+                <div className="mt-3 space-y-1.5 text-sm">
+                  <div className="flex justify-between gap-3">
+                    <span className="text-slate-500">ISBN</span>
+                    <span className="font-medium text-slate-900 truncate">{b.isbn ?? '-'}</span>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-slate-500">Call No.</span>
+                    <span className="font-medium text-slate-900 truncate">{b.classification ?? '-'}</span>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-slate-500">Location</span>
+                    <span className="font-medium text-slate-900 truncate">{b.location ?? '-'}</span>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-slate-500">Year</span>
+                    <span className="font-medium text-slate-900 truncate">
+                      {b.publication_year ?? '-'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between gap-3">
+                    <span className="text-slate-500">Publisher</span>
+                    <span className="font-medium text-slate-900 truncate">{b.publisher ?? '-'}</span>
+                  </div>
+                  {!!(b.tags && b.tags.length) && (
+                    <div className="flex items-start gap-3">
+                      <span className="text-slate-500">Tags</span>
+                      <span className="font-medium text-slate-900 truncate">
+                        {b.tags.slice(0, 3).join(', ')}
+                      </span>
+                    </div>
+                  )}
+                </div>
 
+                {/* Actions */}
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50"
@@ -287,6 +327,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
           </li>
         )}
       </ul>
+
 
       {/* Following viewport on scroll */}
       <ManageBookModal open={open} onClose={onClose} title="Manage book" lockScroll={false}>
