@@ -1,166 +1,138 @@
-// app/dashboard/book-list/page.tsx
-// --- Always fetch fresh data (no static cache) ---
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
-import BookList, { UIBook } from '@/app/ui/dashboard/book-list';
+// app/dashboard/book-items/page.tsx
+import BookList from '@/app/ui/dashboard/book-list'; // student-facing renderer (grid/list)
+import BookItemsFilter from '@/app/ui/dashboard/book-items-filter';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 
-// Helper to safely read a single value from Next's searchParams
-function pickOne(v?: string | string[] | null) {
-  if (Array.isArray(v)) return v[0] ?? '';
-  return v ?? '';
+// Keep this in sync with your Supabase enum and the BookList component
+export type ItemStatus =
+  | 'available'
+  | 'checked_out'
+  | 'on_hold'
+  | 'reserved'
+  | 'maintenance';
+
+type ViewMode = 'grid' | 'list';
+type SortField = 'title' | 'author' | 'year' | 'created_at';
+type SortOrder = 'asc' | 'desc';
+
+// A runtime type guard so TS safely narrows a string into ItemStatus
+function isItemStatus(x: unknown): x is ItemStatus {
+  return (
+    x === 'available' ||
+    x === 'checked_out' ||
+    x === 'on_hold' ||
+    x === 'reserved' ||
+    x === 'maintenance'
+  );
 }
 
-type Params = {
-  searchParams?: Record<string, string | string[]>;
-};
+// Map DB rows -> UI books consumed by <BookList/>
+function toUIBook(db: any) {
+  return {
+    id: db.id,
+    title: db.title ?? 'Untitled',
+    author: db.author ?? 'Unknown',
+    cover: db.cover_image_url ?? null,
+    tags: db.tags ?? null,
+    classification: db.classification ?? null,
+    location: db.location ?? null,
+    isbn: db.isbn ?? null,
+    year: db.publication_year ?? db.year ?? null,
+    publisher: db.publisher ?? null,
+    status: isItemStatus(db.status) ? (db.status as ItemStatus) : null,
+    copies_available: db.available_copies ?? null,
+    total_copies: db.total_copies ?? null,
+  };
+}
 
-export default async function StudentCataloguePage({ searchParams }: Params) {
-  // --- Read query params ---
-  const q = pickOne(searchParams?.q).trim();
-  const status = pickOne(searchParams?.status).trim(); // '', 'available', 'checked_out', 'borrowed', ...
-  const sort = (pickOne(searchParams?.sort) || 'title').trim() as
-    | 'title'
-    | 'author'
-    | 'year';
-  const order = (pickOne(searchParams?.order) || 'asc').trim() as 'asc' | 'desc';
-  const variant = (pickOne(searchParams?.view) || 'grid').trim() as 'grid' | 'list';
+export default async function BookItemsPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[]>>;
+}) {
+  const params = searchParams ? await searchParams : undefined;
 
-  // --- Fetch from Supabase (server-side) ---
-  const dbBooks = await fetchBooks(q || undefined);
+  // ----- read and sanitize query params -----
+  const qp = (key: string) => {
+    const v = params?.[key];
+    return Array.isArray(v) ? v[0] : v;
+  };
 
-  // --- Map DB rows -> UI card props used by <BookList /> ---
-  // Your books table (from queries.ts) exposes:
-  // id, title, author, isbn, barcode, classification, total_copies, available_copies,
-  // status, location, cover_image_url, last_transaction_at
-  const uiBooks: UIBook[] = (dbBooks ?? []).map((b: any) => ({
-    id: b.id,
-    title: b.title ?? 'Untitled',
-    author: b.author ?? 'Unknown',
-    cover: b.cover_image_url ?? undefined,
-    tags: undefined, // if you later join book_tags, map them here
-    available:
-      typeof b.available_copies === 'number'
-        ? b.available_copies > 0
-        : (b.status ?? '') === 'available',
-    classification: b.classification ?? null,
-    location: b.location ?? null,
-    isbn: b.isbn ?? null,
-    year: null, // you can add `publication_year` in SELECT and place it here
-    publisher: null,
-  }));
+  const q = (qp('q') ?? '').trim();
 
-  // --- Filter by status (optional) ---
-  const filtered = !status
-    ? uiBooks
-    : uiBooks.filter((b) => {
-        // map UI "available" to copies/status; the rest come from b.status in DB if you want to expose it
-        if (status === 'available') return b.available === true;
-        if (status === 'checked_out' || status === 'borrowed')
-          return b.available === false;
-        return true;
-      });
+  const rawStatus = (qp('status') ?? '').trim();
+  // ✅ Narrow the string to ItemStatus | undefined
+  const statusFilter: ItemStatus | undefined = isItemStatus(rawStatus) ? rawStatus : undefined;
 
-  // --- Sort (client-side) ---
-  const sorted = [...filtered].sort((a, b) => {
-    const A =
-      (sort === 'year'
-        ? String(a.year ?? '')
-        : sort === 'author'
-        ? a.author
-        : a.title
-      )?.toLowerCase() ?? '';
-    const B =
-      (sort === 'year'
-        ? String(b.year ?? '')
-        : sort === 'author'
-        ? b.author
-        : b.title
-      )?.toLowerCase() ?? '';
+  const sort = (qp('sort') as SortField) || 'title';
+  const order = (qp('order') as SortOrder) === 'desc' ? 'desc' : 'asc';
+  const view = (qp('view') as ViewMode) === 'list' ? 'list' : 'grid';
+
+  // ----- fetch from Supabase (title/author/isbn/barcode search is handled in fetchBooks) -----
+  const dbBooks = await fetchBooks(q);
+  let books = (dbBooks ?? []).map(toUIBook);
+
+  // ----- apply status filter (server component side) -----
+  if (statusFilter) {
+    books = books.filter((b) => b.status === statusFilter);
+  }
+
+  // ----- apply sorting -----
+  const cmp = (a: any, b: any) => {
+    const A = (a ?? '').toString().toLowerCase();
+    const B = (b ?? '').toString().toLowerCase();
     if (A < B) return order === 'asc' ? -1 : 1;
     if (A > B) return order === 'asc' ? 1 : -1;
+    return 0;
+  };
+
+  books.sort((a, b) => {
+    if (sort === 'title') return cmp(a.title, b.title);
+    if (sort === 'author') return cmp(a.author, b.author);
+    if (sort === 'year') return cmp(a.year, b.year);
+    if (sort === 'created_at') return cmp((a as any).created_at, (b as any).created_at);
     return 0;
   });
 
   return (
     <main className="space-y-8">
-      <title>Catalogue</title>
+      <title>Book Items | Dashboard</title>
 
-      {/* Header */}
       <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
-        <h1 className="text-2xl font-semibold">Catalogue</h1>
+        <h1 className="text-2xl font-semibold">Book Items</h1>
         <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
-          Browse the library collection. Use title or author to narrow results.
-          {sorted.length ? ` Showing ${sorted.length} item(s).` : ''}
+          Browse the catalogue and filter by status. Use title or author to narrow results.
         </p>
       </header>
 
-      {/* Toolbar */}
-      <section className="mx-auto max-w-6xl">
-        <form
-          action="/dashboard/book-list"
-          method="get"
-          className="grid gap-3 sm:grid-cols-[1fr,auto,auto,auto] items-center"
-        >
-          {/* Search */}
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Search by title or author"
-            className="w-full rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-swin-red/60"
-          />
+      {/* ✅ This form stays on /dashboard/book-items and submits via GET */}
+      <BookItemsFilter
+        action="/dashboard/book-items"
+        defaults={{
+          q,
+          status: statusFilter, // <-- correctly typed (ItemStatus | undefined)
+          sort,
+          order,
+          view,
+        }}
+      />
 
-          {/* Status filter */}
-          <select
-            name="status"
-            defaultValue={status || ''}
-            className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-swin-red/60"
-          >
-            <option value="">All items</option>
-            <option value="available">Available</option>
-            <option value="checked_out">Checked out</option>
-            <option value="borrowed">Borrowed</option>
-          </select>
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-swin-charcoal">Catalogue</h2>
+          <p className="text-sm text-swin-charcoal/60">
+            Showing {books.length} record{books.length === 1 ? '' : 's'}
+          </p>
+        </div>
 
-          {/* Sort field */}
-          <select
-            name="sort"
-            defaultValue={sort}
-            className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-swin-red/60"
-          >
-            <option value="title">Sort: Title</option>
-            <option value="author">Sort: Author</option>
-            <option value="year">Sort: Year</option>
-          </select>
-
-          {/* Order */}
-          <select
-            name="order"
-            defaultValue={order}
-            className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-swin-red/60"
-          >
-            <option value="asc">A → Z</option>
-            <option value="desc">Z → A</option>
-          </select>
-
-          {/* View toggle (optional) */}
-          <input type="hidden" name="view" value={variant} />
-
-          <div className="sm:col-span-4">
-            <button
-              type="submit"
-              className="mt-2 rounded-xl bg-swin-charcoal px-4 py-2 text-sm font-medium text-swin-ivory shadow hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-swin-red/50 sm:mt-0"
-            >
-              Apply
-            </button>
-          </div>
-        </form>
-      </section>
-
-      {/* Results */}
-      <section className="mx-auto max-w-6xl">
-        <BookList books={sorted} variant={variant} />
+        {/* Student-friendly list/grid view (reuses your existing component) */}
+        <BookList
+          books={books}
+          variant={view}
+          // Optional actions for student page can be passed here if needed:
+          // onDetailsClick={(b) => {/* open a read-only details modal */}}
+          // onBorrowClick={(b) => {/* start borrow flow */}}
+        />
       </section>
     </main>
   );
