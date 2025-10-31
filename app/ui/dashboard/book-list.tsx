@@ -1,7 +1,8 @@
 'use client';
+
 import React from 'react';
 
-/** SIP-aligned item status from your Supabase table */
+/** SIP-aligned item status (match your Supabase column) */
 export type ItemStatus =
   | 'available'
   | 'checked_out'
@@ -19,19 +20,19 @@ export type UIBook = {
   classification?: string | null; // call number
   location?: string | null;       // shelf / branch
   isbn?: string | null;
-  year?: string | number | null;  // or publication_year if you use that name
+  year?: string | number | null;  // or publication_year
   publisher?: string | null;
   // availability
-  status?: ItemStatus | null;     // <-- from Supabase
+  status?: ItemStatus | null;
   copies_available?: number | null;
   total_copies?: number | null;
 };
 
 type Props = {
   books: UIBook[];
-  variant?: 'grid' | 'list'; // card grid or compact list
-  onDetailsClick?: (book: UIBook) => void;      // optional: “View details”
-  onBorrowClick?: (book: UIBook) => void;       // optional: “Borrow / Request”
+  variant?: 'grid' | 'list';               // card grid or compact list
+  onDetailsClick?: (book: UIBook) => void; // optional: “View details”
+  onBorrowClick?: (book: UIBook) => void;  // optional: “Borrow / Request”
 };
 
 const STATUS_META: Record<
@@ -55,9 +56,14 @@ export default function BookList({
 
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     variant === 'grid' ? (
-      <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{children}</ul>
+      // 2 columns on mobile, 3 on md, 4 on xl
+      <ul className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
+        {children}
+      </ul>
     ) : (
-      <ul className="divide-y rounded-2xl border border-slate-200 bg-white shadow-sm">{children}</ul>
+      <ul className="divide-y rounded-2xl border border-slate-200 bg-white shadow-sm">
+        {children}
+      </ul>
     );
 
   return (
@@ -74,27 +80,28 @@ export default function BookList({
             key={b.id}
             className={
               variant === 'grid'
-                ? 'group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md focus-within:ring-2 focus-within:ring-swin-red/50'
+                ? 'group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 shadow-sm transition hover:shadow-md focus-within:ring-2 focus-within:ring-swin-red/50'
                 : 'relative p-4 transition hover:bg-slate-50 focus-within:ring-2 focus-within:ring-swin-red/50'
             }
           >
             {/* status accent stripe */}
             <span aria-hidden className={`absolute left-0 top-0 h-full w-1 ${meta.stripe}`} />
 
-            <article className="flex gap-4 text-slate-900">
-              {/* cover */}
+            <article className="flex gap-3 sm:gap-4 text-slate-900">
+              {/* cover (slightly smaller on tiny screens so 2-up fits nicely) */}
               <figure className="relative shrink-0">
                 {b.cover ? (
                   <img
                     src={b.cover}
                     alt=""
                     aria-hidden
-                    className="h-28 w-20 rounded-lg object-cover ring-1 ring-slate-200"
+                    className="h-24 w-16 sm:h-28 sm:w-20 rounded-lg object-cover ring-1 ring-slate-200"
                   />
                 ) : (
-                  <div className="h-28 w-20 rounded-lg bg-slate-100 ring-1 ring-slate-200" />
+                  <div className="h-24 w-16 sm:h-28 sm:w-20 rounded-lg bg-slate-100 ring-1 ring-slate-200" />
                 )}
-                {/* status chip on image in grid variant */}
+
+                {/* status chip on image for grid variant */}
                 {variant === 'grid' && (
                   <span className={`absolute -right-2 -top-2 rounded-full px-2 py-0.5 text-[10px] font-medium shadow ${meta.chip}`}>
                     {meta.label}
@@ -104,8 +111,8 @@ export default function BookList({
 
               {/* content */}
               <div className="min-w-0 flex-1">
-                <h3 className="line-clamp-2 text-base font-semibold">{b.title}</h3>
-                <p className="truncate text-sm text-slate-700">
+                <h3 className="line-clamp-2 text-sm sm:text-base font-semibold">{b.title}</h3>
+                <p className="truncate text-xs sm:text-sm text-slate-700">
                   {b.author || 'Unknown author'}
                 </p>
 
@@ -120,7 +127,7 @@ export default function BookList({
 
                 {/* copies summary */}
                 {showCopies && (
-                  <p className="mt-1 text-xs text-slate-600">
+                  <p className="mt-1 text-[11px] sm:text-xs text-slate-600">
                     Copies: <span className="font-medium text-slate-800">{b.copies_available}</span> of{' '}
                     <span className="font-medium text-slate-800">{b.total_copies}</span> available
                   </p>
@@ -128,7 +135,7 @@ export default function BookList({
 
                 {/* metadata row */}
                 {(b.classification || b.location || b.isbn || b.year || b.publisher) && (
-                  <dl className="mt-3 grid grid-cols-1 gap-1 text-xs text-slate-700 sm:grid-cols-2">
+                  <dl className="mt-2 grid grid-cols-1 gap-1 text-[11px] sm:text-xs text-slate-700 sm:grid-cols-2">
                     {b.classification && <MetaItem label="Call no.">{b.classification}</MetaItem>}
                     {b.location && <MetaItem label="Location">{b.location}</MetaItem>}
                     {b.isbn && <MetaItem label="ISBN">ISBN {b.isbn}</MetaItem>}
@@ -157,7 +164,7 @@ export default function BookList({
                     {onDetailsClick && (
                       <button
                         type="button"
-                        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
                         onClick={() => onDetailsClick(b)}
                         aria-label={`View details for ${b.title}`}
                       >
@@ -169,7 +176,7 @@ export default function BookList({
                         type="button"
                         disabled={!canBorrow}
                         className={[
-                          'rounded-xl px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2',
+                          'rounded-xl px-3 py-1.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2',
                           !canBorrow
                             ? 'cursor-not-allowed bg-slate-100 text-slate-400'
                             : 'bg-swin-charcoal text-swin-ivory shadow hover:opacity-95 focus:ring-swin-red/50',
@@ -216,7 +223,9 @@ function MetaItem({
 function EmptyState() {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-600 shadow-sm">
-      <p className="text-sm">No books match your search. Try a different keyword or clear filters.</p>
+      <p className="text-sm">
+        No books match your search. Try a different keyword or clear filters.
+      </p>
     </div>
   );
 }
