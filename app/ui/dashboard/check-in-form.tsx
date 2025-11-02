@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import clsx from 'clsx';
 import { useFormState, useFormStatus } from 'react-dom';
 import { checkinBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/action-state';
@@ -15,6 +16,12 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
   const [state, formAction] = useFormState(checkinBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
   const identifierInputRef = useRef<HTMLInputElement | null>(null);
+  const [mobileExpanded, setMobileExpanded] = useState(false);
+  const contentId = 'return-form-panel';
+  const mobileToggleLabel = mobileExpanded ? 'Hide form' : 'Record a return';
+  const handleMobileToggle = () => {
+    setMobileExpanded((prev) => !prev);
+  };
 
   useEffect(() => {
     if (state.status === 'success') {
@@ -28,19 +35,49 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
     }
   }, [defaultIdentifier]);
 
+  useEffect(() => {
+    if (defaultIdentifier) {
+      setMobileExpanded(true);
+    }
+  }, [defaultIdentifier]);
+
+  useEffect(() => {
+    if (state.status === 'error') {
+      setMobileExpanded(true);
+    }
+  }, [state.status]);
+
   return (
     <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5">
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-swin-charcoal">Returning Item Details</h2>
-        <p className="text-sm text-swin-charcoal/60">
-          Use the search above or enter the loan reference to reconcile items being returned.
-        </p>
+      <div className="mb-3 flex flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold text-swin-charcoal">Returning Item Details</h2>
+          <p className="hidden text-sm text-swin-charcoal/60 md:block">
+            Use the search above or enter the loan reference to reconcile items being returned.
+          </p>
+          <p className="text-xs text-swin-charcoal/60 md:hidden">
+            Scan a barcode or enter a loan ID to finish the return.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleMobileToggle}
+          className="inline-flex h-[44px] w-full items-center justify-center rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-4 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-white md:hidden"
+          aria-expanded={mobileExpanded}
+          aria-controls={contentId}
+        >
+          {mobileToggleLabel}
+        </button>
       </div>
 
       <form
         ref={formRef}
+        id={contentId}
         action={formAction}
-        className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-6"
+        className={clsx(
+          'mt-4 gap-4 md:mt-0 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-6',
+          mobileExpanded ? 'grid' : 'hidden',
+        )}
       >
         <div className="flex flex-col">
           <label className="block text-sm font-medium text-swin-charcoal" htmlFor="identifier">
@@ -75,7 +112,7 @@ function SubmitButton() {
       disabled={pending}
       className="inline-flex h-[56px] min-w-[140px] items-center justify-center rounded-lg bg-swin-charcoal px-6 text-sm font-semibold uppercase tracking-wide text-swin-ivory shadow-sm shadow-swin-charcoal/30 transition hover:bg-swin-charcoal/90 disabled:cursor-not-allowed disabled:bg-swin-charcoal/40"
     >
-      {pending ? 'Processing...' : 'Check In'}
+      {pending ? 'Processing...' : 'Return book'}
     </button>
   );
 }

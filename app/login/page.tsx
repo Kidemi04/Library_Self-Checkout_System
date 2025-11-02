@@ -28,7 +28,7 @@ export default function LoginPage() {
           Swinburne Sarawak Library
         </h1>
         <p className="mt-2 text-center text-sm text-swin-charcoal/70">
-          Sign in with your Swinburne Microsoft account to access the self-checkout dashboard.
+          Sign in with your Swinburne Microsoft account to access the borrow-and-return dashboard.
         </p>
 
         <div className="mt-8 space-y-4">

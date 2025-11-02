@@ -44,7 +44,7 @@ export default async function UserDashboardPage() {
             Welcome back{user.name ? `, ${user.name}` : ''}!
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-swin-ivory/70">
-            Quickly process checkouts and returns directly from this dashboard. Use the controls below to
+            Quickly process borrowing and returning directly from this dashboard. Use the controls below to
             assist patrons without leaving the page.
           </p>
         </div>

@@ -1,13 +1,14 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import React, { useActionState, useEffect, useRef } from 'react';
+import { useFormStatus } from 'react-dom';
 import { createBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/action-state';
 import type { ActionState } from '@/app/dashboard/action-state';
 
 export default function CreateBookForm() {
-  const [state, formAction] = useFormState(createBookAction, initialActionState);
+  // ⬇️ useActionState replaces useFormState in Next 15
+  const [state, formAction] = useActionState(createBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
 
   useEffect(() => {
@@ -157,8 +158,9 @@ function SubmitButton() {
 
 function ActionMessage({ status, message }: { status: ActionState['status']; message: string }) {
   if (!message) return null;
-
-  const tone = status === 'success' ? 'text-emerald-600' : status === 'error' ? 'text-swin-red' : 'text-swin-charcoal';
-
+  const tone =
+    status === 'success' ? 'text-emerald-600' :
+    status === 'error'   ? 'text-swin-red'    :
+                           'text-swin-charcoal';
   return <p className={`text-sm font-medium ${tone}`}>{message}</p>;
 }

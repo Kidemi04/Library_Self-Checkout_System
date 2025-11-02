@@ -178,7 +178,7 @@ export async function checkinBookAction(
       .single();
 
     if (error || !data) {
-      console.error('Book lookup during check-in failed', error);
+      console.error('Book lookup during return processing failed', error);
       return failure('Book details missing for this loan.');
     }
 
@@ -209,8 +209,8 @@ export async function checkinBookAction(
     .eq('id', bookRecord.id);
 
   if (bookUpdateError) {
-    console.error('Failed to update book during check-in', bookUpdateError);
-    return failure('Check-in succeeded but inventory update failed. Please verify manually.');
+    console.error('Failed to update book during return processing', bookUpdateError);
+    return failure('Return succeeded but inventory update failed. Please verify manually.');
   }
 
   revalidatePath('/dashboard');
