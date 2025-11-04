@@ -1,12 +1,20 @@
-import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    allowedDevOrigins: ['http://swin-lib.local:3000'],
+  },
   images: {
-    domains: [
-      "aadcdn.msauthimages.net",
-      "www.swinburne.edu.my"
-  ],
-  }
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'www.swinburne.edu.my',
+      },
+      {
+        protocol: 'https',
+        hostname: 'aadcdn.msauthimages.net',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

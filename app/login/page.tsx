@@ -37,12 +37,8 @@ export default function LoginPage() {
             prefetch={false}
             className="flex items-center justify-center gap-3 rounded-lg bg-swin-red px-4 py-3 text-sm font-semibold text-swin-ivory shadow transition hover:bg-swin-red/90"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              className="h-5 w-5"
-              aria-hidden="true"
-            >
+            {/* MS logo */}
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5">
               <path fill="#f25022" d="M11 11H3V3h8z" />
               <path fill="#00a4ef" d="M21 11h-8V3h8z" />
               <path fill="#7fba00" d="M11 21H3v-8h8z" />
@@ -52,8 +48,8 @@ export default function LoginPage() {
           </Link>
 
           <p className="text-center text-xs text-swin-charcoal/60">
-            Local development bypasses authentication automatically. In production you must sign in
-            with your Swinburne Microsoft account.
+            Local development may bypass authentication. In production you must sign in with your
+            Swinburne Microsoft account.
           </p>
         </div>
       </div>
