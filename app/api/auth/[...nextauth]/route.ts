@@ -13,7 +13,7 @@ const DEV_BYPASS_ROLE = (process.env.DEV_BYPASS_ROLE || "student") as DashboardR
 const DEV_BYPASS_EMAIL = process.env.DEV_BYPASS_EMAIL?.toLowerCase();
 const tenantId = process.env.AZURE_AD_TENANT_ID;
 
-// 👉 detect if Azure is actually configured
+// detect if Azure is actually configured (not placeholder)
 const hasAzure =
   !!process.env.AZURE_AD_CLIENT_ID &&
   process.env.AZURE_AD_CLIENT_ID !== "YOUR-AZURE-CLIENT-ID" &&
@@ -22,7 +22,7 @@ const hasAzure =
 
 const providers: NonNullable<NextAuthConfig["providers"]> = [];
 
-// 1) Azure provider (only if env is real)
+// 1) Azure provider (only if real)
 if (hasAzure) {
   providers.push(
     AzureADProvider({
@@ -40,7 +40,7 @@ if (hasAzure) {
   );
 }
 
-// 2) Dev credentials provider (always add, so we never have 0 providers)
+// 2) Credentials fallback for dev
 providers.push(
   Credentials({
     name: "Dev login",
@@ -48,8 +48,8 @@ providers.push(
       email: { label: "Email", type: "text" },
     },
     async authorize(credentials) {
-      // allow any email in dev; in real prod you remove this
-      const email = credentials?.email?.toLowerCase();
+      const raw = credentials?.email;
+      const email = typeof raw === "string" ? raw.toLowerCase() : "";
       if (!email) return null;
       return {
         id: email,
@@ -64,9 +64,11 @@ const authConfig: NextAuthConfig = {
   providers,
 
   callbacks: {
+    // make sure user exists in Supabase
     async signIn({ user }: any) {
-      if (!user?.email) return false;
-      const email = user.email.toLowerCase();
+      const rawEmail: unknown = user?.email ?? user?.id;
+      const email = typeof rawEmail === "string" ? rawEmail.toLowerCase() : null;
+      if (!email) return false;
 
       try {
         const supabase = createClient();
@@ -105,27 +107,32 @@ const authConfig: NextAuthConfig = {
       return true;
     },
 
+    // attach role from Supabase into JWT
     async jwt({ token, user }: any) {
-      if (user?.email) {
-        const email = user.email.toLowerCase();
+      if (user?.email || user?.id) {
+        const rawEmail: unknown = user.email ?? user.id;
+        const email = typeof rawEmail === "string" ? rawEmail.toLowerCase() : null;
 
-        try {
-          const supabase = createClient();
-          const { data: dbUser, error } = await supabase
-            .from(USERS_TABLE)
-            .select("role")
-            .eq("email", email)
-            .maybeSingle();
+        if (email) {
+          try {
+            const supabase = createClient();
+            const { data: dbUser, error } = await supabase
+              .from(USERS_TABLE)
+              .select("role")
+              .eq("email", email)
+              .maybeSingle();
 
-          token.role = !error && dbUser?.role ? (dbUser.role as DashboardRole) : "student";
-        } catch (e) {
-          console.error("[auth][jwt] unexpected:", e);
-          token.role = "student";
+            token.role = !error && dbUser?.role ? (dbUser.role as DashboardRole) : "student";
+          } catch (e) {
+            console.error("[auth][jwt] unexpected:", e);
+            token.role = "student";
+          }
         }
       }
       return token;
     },
 
+    // expose role to client
     async session({ session, token }: any) {
       if (session.user) {
         (session.user as any).role = (token.role as DashboardRole) ?? "student";
@@ -133,11 +140,14 @@ const authConfig: NextAuthConfig = {
       return session;
     },
 
+    // after sign-in, always go to router page
     async redirect({ baseUrl }) {
       return `${baseUrl}/post-login`;
     },
   },
 };
 
-const { GET, POST } = NextAuth(authConfig).handlers;
-export { GET, POST };
+// 👇 this is the correct v5 pattern
+const { handlers, auth } = NextAuth(authConfig);
+export const { GET, POST } = handlers;
+export { auth };
