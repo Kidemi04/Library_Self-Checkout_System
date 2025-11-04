@@ -33,7 +33,7 @@ export default function LoginPage() {
 
         <div className="mt-8 space-y-4">
           <Link
-            href="/api/auth/signin/azure-ad"
+            href="/api/auth/signin?provider=azure-ad"
             prefetch={false}
             className="flex items-center justify-center gap-3 rounded-lg bg-swin-red px-4 py-3 text-sm font-semibold text-swin-ivory shadow transition hover:bg-swin-red/90"
           >

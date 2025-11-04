@@ -160,9 +160,9 @@ export default function MobileNav({ user, isBypassed }: { user: DashboardUserPro
                 {user.email ? <p className="mt-1">{user.email}</p> : null}
               </div>
             )}
-            <nav className="flex flex-col gap-2">
-              <NavLinks role={user.role} onNavigate={hideMenu} showLabels />
-            </nav>
+              <nav className="flex flex-col gap-2">
+                <NavLinks role={user.role} onNavigate={hideMenu} showLabels userEmail={user.email} />
+              </nav>
             <div className="mt-10">
               <Link
                 href="/login"

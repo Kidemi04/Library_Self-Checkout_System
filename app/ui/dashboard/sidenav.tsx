@@ -33,20 +33,22 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
       </Link>
       <div className="flex grow flex-col justify-between gap-6">
         <nav className="flex flex-col gap-2">
-          {isStaff ? (
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-slate-100 shadow-inner">
-              <p className="text-[11px] uppercase tracking-wide text-white/60">Admin access</p>
-              <p className="mt-1 text-sm font-semibold">
-                {user.name ?? user.email ?? 'Librarian'}
-              </p>
-              {user.email ? <p className="text-[11px] text-white/60">{user.email}</p> : null}
-              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-emerald-300/80">
-                {isBypassed ? 'Dev bypass active' : 'Role: Staff'}
-              </p>
-            </div>
-          ) : null}
-          <NavLinks role={user.role} />
-        </nav>
+        {isStaff ? (
+          <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-slate-100 shadow-inner">
+            <p className="text-[11px] uppercase tracking-wide text-white/60">Admin access</p>
+            <p className="mt-1 text-sm font-semibold">
+              {user.name ?? user.email ?? 'Librarian'}
+            </p>
+            {user.email ? <p className="text-[11px] text-white/60">{user.email}</p> : null}
+            <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-emerald-300/80">
+              {isBypassed ? 'Dev bypass active' : 'Role: Staff'}
+            </p>
+          </div>
+        ) : null}
+
+        {/* 👇 pass user.email into NavLinks */}
+        <NavLinks role={user.role} userEmail={user.email} />
+      </nav>
         <Link
           href="/login"
           className={clsx(
