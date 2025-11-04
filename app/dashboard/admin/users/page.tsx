@@ -12,10 +12,17 @@ export default function UserManagementPage() {
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 🧩 Expose Supabase client to window for debugging
+  useEffect(() => {
+    (window as any).supabaseBrowserClient = supabaseBrowserClient;
+    console.log("🧠 Supabase client exposed to window for console testing.");
+  }, []);
+
   const [formData, setFormData] = useState({
     email: "",
     display_name: "",
     role: "student",
+    password: "", // ✅ new field
   });
 
   const [currentUser, setCurrentUser] = useState<{
@@ -36,8 +43,8 @@ export default function UserManagementPage() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      console.log("✅ Users fetched successfully:", data);
       setUsers(data || []);
+      console.log("✅ Users fetched successfully:", data);
     } catch (err: any) {
       console.error("❌ Error fetching users:", err);
       setError("Failed to load users.");
@@ -46,27 +53,25 @@ export default function UserManagementPage() {
     }
   };
 
-  // 🔹 Fetch current logged-in user's email and role
+  // 🔹 Fetch logged-in user's role
   const fetchCurrentUser = async () => {
     try {
-      const { data: sessionData } = await supabaseBrowserClient.auth.getSession();
+      const { data: sessionData, error: sessionError } =
+        await supabaseBrowserClient.auth.getSession();
+
+      if (sessionError) {
+        console.error("Supabase getSession error:", sessionError);
+        setCurrentUser({ email: null, role: null });
+        return;
+      }
+
       const userEmail = sessionData.session?.user?.email || null;
-
-      // 🧩 DEV BYPASS (for local development)
       if (!userEmail) {
-        console.warn("⚠️ No Supabase session found — using dev bypass account");
-        setCurrentUser({ email: "dev.staff@example.com", role: "staff" });
+        console.warn("No logged-in user found");
+        setCurrentUser({ email: null, role: null });
         return;
       }
 
-      // 🧠 Example.com emails treated as staff automatically
-      if (userEmail.endsWith("@example.com")) {
-        console.log("🧩 Example.com email detected — assigning staff role.");
-        setCurrentUser({ email: userEmail, role: "staff" });
-        return;
-      }
-
-      // 🗃️ Otherwise, get user's role from the table
       const { data: userData, error } = await supabaseBrowserClient
         .from("users")
         .select("role")
@@ -74,14 +79,14 @@ export default function UserManagementPage() {
         .single();
 
       if (error) {
-        console.warn("⚠️ User not found in 'users' table:", error);
+        console.warn("User entry not found in users table:", error);
         setCurrentUser({ email: userEmail, role: null });
       } else {
-        console.log("✅ User role fetched:", userData.role);
         setCurrentUser({ email: userEmail, role: userData?.role || null });
       }
     } catch (err) {
-      console.error("🔥 Fatal error fetching session:", err);
+      console.error("Fatal error fetching session:", err);
+      setCurrentUser({ email: null, role: null });
     }
   };
 
@@ -93,8 +98,8 @@ export default function UserManagementPage() {
   // 🔹 Add user handler
   const addUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email.trim()) {
-      alert("Email is required!");
+    if (!formData.email.trim() || !formData.password.trim()) {
+      alert("Email and password are required!");
       return;
     }
 
@@ -108,23 +113,24 @@ export default function UserManagementPage() {
       alert("❌ Failed to add user: " + result.error);
     } else {
       alert("✅ User added successfully!");
-      setFormData({ email: "", display_name: "", role: "student" });
+      // Reset form after successful add
+      setFormData({ email: "", display_name: "", role: "student", password: "" });
       fetchUsers();
     }
   };
 
-  // 🔹 Edit user handler (update)
+  // 🔹 Edit user handler
   const handleEditUser = async (user: any) => {
     const newDisplayName = prompt("Enter new display name:", user.display_name || "");
     const newRole = prompt("Enter new role (student/staff):", user.role || "student");
 
     if (!newDisplayName && !newRole) return alert("No changes made.");
 
-  const result = await updateUserAction({
-    id: user.id,
-    display_name: newDisplayName ?? user.display_name, // convert null → existing name
-    role: newRole ?? user.role,                        // convert null → existing role
-  });
+    const result = await updateUserAction({
+      id: user.id,
+      display_name: newDisplayName ?? user.display_name,
+      role: newRole ?? user.role,
+    });
 
     if (!result.success) {
       alert("❌ Failed to update user: " + result.error);
@@ -157,7 +163,6 @@ export default function UserManagementPage() {
     <main className="p-8 space-y-8 text-swin-ivory">
       <h1 className="text-2xl font-bold">User Management</h1>
 
-      {/* Logged in user info */}
       {currentUser.email && (
         <p className="text-swin-ivory/70 text-sm">
           Logged in as: <span className="font-semibold">{currentUser.email}</span> (
@@ -171,7 +176,8 @@ export default function UserManagementPage() {
           onSubmit={addUser}
           className="flex flex-col md:flex-row items-start md:items-end gap-3 bg-swin-charcoal/60 p-4 rounded-md shadow-md border border-swin-ivory/20"
         >
-          <div className="flex flex-col w-full md:w-1/3">
+          {/* Email */}
+          <div className="flex flex-col w-full md:w-1/4">
             <label className="text-sm font-semibold mb-1 text-swin-ivory">Email</label>
             <input
               type="email"
@@ -183,6 +189,7 @@ export default function UserManagementPage() {
             />
           </div>
 
+          {/* Display name */}
           <div className="flex flex-col w-full md:w-1/4">
             <label className="text-sm font-semibold mb-1 text-swin-ivory">Display Name</label>
             <input
@@ -194,6 +201,7 @@ export default function UserManagementPage() {
             />
           </div>
 
+          {/* Role */}
           <div className="flex flex-col w-full md:w-1/4">
             <label className="text-sm font-semibold mb-1 text-swin-ivory">Role</label>
             <select
@@ -210,6 +218,19 @@ export default function UserManagementPage() {
             </select>
           </div>
 
+          {/* Password */}
+          <div className="flex flex-col w-full md:w-1/4">
+            <label className="text-sm font-semibold mb-1 text-swin-ivory">Password</label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              placeholder="Enter password"
+              className="border border-swin-ivory/30 bg-transparent text-swin-ivory rounded px-3 py-2 text-sm placeholder-swin-ivory/50 focus:border-swin-red outline-none"
+              required
+            />
+          </div>
+
           <button
             type="submit"
             disabled={adding}
@@ -220,7 +241,7 @@ export default function UserManagementPage() {
         </form>
       )}
 
-      {/* 📋 Users Table */}
+      {/* Users Table */}
       <table className="w-full border-collapse border border-swin-ivory/30 text-swin-ivory">
         <thead className="bg-swin-charcoal/80">
           <tr>
