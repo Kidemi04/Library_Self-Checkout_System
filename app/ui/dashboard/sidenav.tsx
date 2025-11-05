@@ -58,7 +58,7 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
           />
           <SwitchAccountButton
             className={clsx(
-              'flex h-[44px] w-full items-center justify-center gap-2 rounded-md text-sm font-medium md:justify-start md:px-3',
+              'flex h-[44px] w-full items-center justify-center gap-2 rounded-md bg-transparent text-sm font-medium md:justify-start md:px-3',
               isPrivileged
                 ? 'border border-white/20 text-slate-100/70 hover:bg-white/5 hover:text-white'
                 : 'border border-swin-ivory/30 text-swin-ivory/70 hover:bg-swin-ivory/10 hover:text-swin-ivory',
@@ -70,4 +70,3 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
     </aside>
   );
 }
-
