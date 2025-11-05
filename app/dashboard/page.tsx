@@ -5,6 +5,12 @@ import ActiveLoansTable from '@/app/ui/dashboard/active-loans-table';
 import { fetchActiveLoans, fetchAvailableBooks, fetchDashboardSummary } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
 
+const roleLabel = (role: string): string => {
+  if (role === 'admin') return 'Admin';
+  if (role === 'staff') return 'Staff';
+  return 'User';
+};
+
 const defaultLoanDurationDays = 14;
 
 const buildDefaultDueDate = () => {
@@ -21,7 +27,7 @@ export default async function UserDashboardPage() {
     redirect('/login');
   }
 
-  if (user.role === 'staff') {
+  if (user.role === 'staff' || user.role === 'admin') {
     redirect('/dashboard/admin');
   }
 
@@ -52,7 +58,7 @@ export default async function UserDashboardPage() {
           <p className="text-xs uppercase tracking-wide text-swin-ivory/60">Signed in</p>
           {user.email ? <p className="mt-1 text-base font-semibold text-swin-ivory">{user.email}</p> : null}
           <p className="mt-2 inline-flex items-center gap-2 rounded-full border border-swin-ivory/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-swin-ivory/80">
-            Role: Student
+            Role: {roleLabel(user.role)}
           </p>
           {isBypassed ? (
             <p className="mt-3 rounded-md bg-amber-400/20 px-3 py-2 text-[11px] font-medium text-amber-200 shadow-inner shadow-amber-500/10">

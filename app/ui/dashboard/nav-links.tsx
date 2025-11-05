@@ -9,24 +9,28 @@ import {
   BookOpenIcon,
   Squares2X2Icon,
   UserGroupIcon,
-  QueueListIcon,              // + 新增：用于 Book List
+  QueueListIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import type { DashboardRole } from '@/app/lib/auth/types';
 
-const studentLinks = [
+const userLinks = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
-  { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },   // + 合并功能：Book List
+  { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
+  { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
+  { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
+];
+
+const staffLinks = [
+  { name: 'Staff Overview', href: '/dashboard/admin', icon: Squares2X2Icon },
+  { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
+  { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
 ];
 
 const adminLinks = [
-  { name: 'Admin Overview', href: '/dashboard/admin', icon: Squares2X2Icon },
-  { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
-  { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },   // + 合并功能：Book List
-  { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
-  { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
+  ...staffLinks,
   { name: 'Manage Users', href: '/dashboard/admin/users', icon: UserGroupIcon },
 ];
 
@@ -34,9 +38,13 @@ export default function NavLinks({
   role,
   onNavigate,
   showLabels,
-}: { role: DashboardRole; onNavigate?: () => void; showLabels?: boolean }) {
+}: {
+  role: DashboardRole;
+  onNavigate?: () => void;
+  showLabels?: boolean;
+}) {
   const pathname = usePathname();
-  const links = role === 'staff' ? adminLinks : studentLinks;
+  const links = role === 'admin' ? adminLinks : role === 'staff' ? staffLinks : userLinks;
 
   const activeHref = links.reduce<string | null>((current, { href }) => {
     const isExactMatch = pathname === href;
@@ -53,15 +61,15 @@ export default function NavLinks({
     return href.length > current.length ? href : current;
   }, null);
 
-  const activeVariant =
-    role === 'staff'
-      ? 'bg-white/15 text-white shadow-lg shadow-slate-900/40'
-      : 'bg-swin-red text-swin-ivory shadow-lg shadow-swin-red/30';
+  const isPrivileged = role === 'staff' || role === 'admin';
 
-  const inactiveVariant =
-    role === 'staff'
-      ? 'bg-transparent text-slate-200/80 hover:bg-white/10 hover:text-white border-white/20'
-      : 'bg-swin-charcoal text-swin-ivory/80 hover:bg-swin-red hover:text-swin-ivory border-transparent';
+  const activeVariant = isPrivileged
+    ? 'bg-white/15 text-white shadow-lg shadow-slate-900/40'
+    : 'bg-swin-red text-swin-ivory shadow-lg shadow-swin-red/30';
+
+  const inactiveVariant = isPrivileged
+    ? 'bg-transparent text-slate-200/80 hover:bg-white/10 hover:text-white border-white/20'
+    : 'bg-swin-charcoal text-swin-ivory/80 hover:bg-swin-red hover:text-swin-ivory border-transparent';
 
   return (
     <>

@@ -1,7 +1,21 @@
-import Link from 'next/link';
+'use client';
+
+import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 
 export default function LoginPage() {
+  const [pending, setPending] = useState(false);
+
+  const handleSignIn = () => {
+    if (pending) return;
+    setPending(true);
+    void signIn('azure-ad', { callbackUrl: '/dashboard' }).finally(() => {
+      setPending(false);
+    });
+  };
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-100 p-6">
       <title>Login</title>
@@ -32,10 +46,11 @@ export default function LoginPage() {
         </p>
 
         <div className="mt-8 space-y-4">
-          <Link
-            href="/api/auth/signin/azure-ad"
-            prefetch={false}
-            className="flex items-center justify-center gap-3 rounded-lg bg-swin-red px-4 py-3 text-sm font-semibold text-swin-ivory shadow transition hover:bg-swin-red/90"
+          <button
+            type="button"
+            onClick={handleSignIn}
+            disabled={pending}
+            className="flex w-full items-center justify-center gap-3 rounded-lg bg-swin-red px-4 py-3 text-sm font-semibold text-swin-ivory shadow transition hover:bg-swin-red/90 disabled:cursor-not-allowed disabled:opacity-80"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -48,11 +63,11 @@ export default function LoginPage() {
               <path fill="#7fba00" d="M11 21H3v-8h8z" />
               <path fill="#ffb900" d="M21 21h-8v-8h8z" />
             </svg>
-            <span>Sign in with Microsoft</span>
-          </Link>
+            <span>{pending ? 'Signing in…' : 'Sign in with Microsoft'}</span>
+          </button>
 
           <p className="text-center text-xs text-swin-charcoal/60">
-            Local development bypasses authentication automatically. In production you must sign in
+            Local development can bypass authentication when enabled. In production you must sign in
             with your Swinburne Microsoft account.
           </p>
         </div>

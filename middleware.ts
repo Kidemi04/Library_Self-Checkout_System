@@ -2,8 +2,37 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { auth } from './auth';
 import { isDevAuthBypassed } from '@/app/lib/auth/env';
+import type { DashboardRole } from '@/app/lib/auth/types';
 
-const protectedPaths = ['/dashboard', '/api/checkin', '/api/checkout', '/api/sip2', '/api/books'];
+const protectedPrefixes = [
+  '/dashboard',
+  '/admin',
+  '/staff',
+  '/user',
+  '/api/checkin',
+  '/api/checkout',
+  '/api/sip2',
+  '/api/books',
+];
+
+const roleGuardRules: Array<{ prefix: string; allowed: Set<DashboardRole> }> = [
+  { prefix: '/admin', allowed: new Set<DashboardRole>(['admin']) },
+  { prefix: '/staff', allowed: new Set<DashboardRole>(['staff', 'admin']) },
+  { prefix: '/user', allowed: new Set<DashboardRole>(['user', 'staff', 'admin']) },
+  { prefix: '/dashboard/admin', allowed: new Set<DashboardRole>(['admin']) },
+  { prefix: '/dashboard/staff', allowed: new Set<DashboardRole>(['staff', 'admin']) },
+];
+
+const matchesPrefix = (pathname: string, prefix: string) =>
+  pathname === prefix || pathname.startsWith(`${prefix}/`);
+
+const resolveRole = (value: unknown): DashboardRole => {
+  if (typeof value !== 'string') return 'user';
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'admin') return 'admin';
+  if (normalized === 'staff' || normalized === 'librarian') return 'staff';
+  return 'user';
+};
 
 export async function middleware(request: NextRequest) {
   if (isDevAuthBypassed) {
@@ -11,9 +40,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
-  const isProtected = protectedPaths.some((path) =>
-    pathname === path || pathname.startsWith(`${path}/`),
-  );
+  const isProtected = protectedPrefixes.some((prefix) => matchesPrefix(pathname, prefix));
 
   if (!isProtected) {
     return NextResponse.next();
@@ -21,7 +48,7 @@ export async function middleware(request: NextRequest) {
 
   let session;
   try {
-    session = await auth();
+    session = await auth(request);
   } catch (error) {
     console.error('Authentication check failed in middleware', error);
   }
@@ -35,10 +62,15 @@ export async function middleware(request: NextRequest) {
   const rawRole =
     (session.user as { role?: string | null; roles?: string[] | null })?.role ??
     ((session.user as { roles?: string[] | null })?.roles?.[0] ?? null);
-  const isStaff = typeof rawRole === 'string' ? rawRole.trim().toLowerCase() === 'staff' : false;
+  const role = resolveRole(rawRole);
 
-  if (pathname.startsWith('/dashboard/admin') && !isStaff) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  const violatedRule = roleGuardRules.find(
+    ({ prefix, allowed }) => matchesPrefix(pathname, prefix) && !allowed.has(role),
+  );
+
+  if (violatedRule) {
+    const fallbackPath = role === 'admin' ? '/dashboard/admin' : '/dashboard';
+    return NextResponse.redirect(new URL(fallbackPath, request.url));
   }
 
   return NextResponse.next();
@@ -47,6 +79,9 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/dashboard/:path*',
+    '/admin/:path*',
+    '/staff/:path*',
+    '/user/:path*',
     '/api/checkin/:path*',
     '/api/checkout/:path*',
     '/api/sip2/:path*',

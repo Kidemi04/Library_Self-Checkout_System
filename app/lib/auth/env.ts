@@ -13,7 +13,11 @@ export const isDevAuthBypassed = isDevelopment && parseEnvBoolean(process.env.DE
 
 export const getDevBypassRole = (): DashboardRole => {
   const role = (process.env.DEV_BYPASS_ROLE ?? '').trim().toLowerCase();
-  return role === 'staff' ? 'staff' : 'student';
+  if (role === 'admin') return 'admin';
+  if (role === 'staff' || role === 'librarian') return 'staff';
+  // Accept both historical "student" and new "user" labels.
+  if (role === 'student' || role === 'user') return 'user';
+  return 'user';
 };
 
 export const getDevBypassEmail = () =>

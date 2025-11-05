@@ -1,53 +1,91 @@
-"use server";
+'use server';
 
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 
-/**
- * ✅ Server-side Supabase client (bypasses RLS using the Service Role Key)
- * Note: Never expose the service role key on the client!
- */
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!, // Must exist in your .env.local
-  {
-    auth: { persistSession: false },
-  }
-);
+const normalizeRole = (value: string): 'user' | 'staff' | 'admin' => {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'admin') return 'admin';
+  if (normalized === 'staff' || normalized === 'librarian') return 'staff';
+  return 'user';
+};
 
-export async function addUserAction(formData: {
+type AddUserPayload = {
   email: string;
-  display_name: string;
+  display_name?: string;
   role: string;
-}) {
+};
+
+export async function addUserAction(formData: AddUserPayload) {
   try {
-    if (!formData.email || !formData.role) {
-      return { success: false, error: "Missing required fields (email or role)." };
+    const email = formData.email?.trim().toLowerCase();
+    if (!email) {
+      return { success: false, error: 'Email is required.' };
     }
 
-    // ✅ Perform insert
-    const { data, error } = await supabase
-      .from("users")
-      .insert([
-        {
-          email: formData.email.trim().toLowerCase(),
-          display_name: formData.display_name || null,
-          role: formData.role,
-        },
-      ])
-      .select();
+    const role = normalizeRole(formData.role ?? 'user');
+    const supabase = getSupabaseServerClient();
 
-    if (error) {
-      console.error("❌ Supabase insert error:", error);
-      return {
-        success: false,
-        error: `${error.message} (code: ${error.code || "unknown"})`,
+    const { data: existingUser, error: lookupError } = await supabase
+      .from('users')
+      .select('id, role')
+      .eq('email', email)
+      .maybeSingle<{ id: string; role: string }>();
+
+    if (lookupError) {
+      console.error('Failed to lookup user before insert', lookupError);
+      return { success: false, error: 'Unable to verify existing users.' };
+    }
+
+    let userId: string;
+
+    if (existingUser) {
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ role })
+        .eq('id', existingUser.id);
+
+      if (updateError) {
+        console.error('Failed to update existing user role', updateError);
+        return { success: false, error: 'Unable to update user role.' };
+      }
+
+      userId = existingUser.id;
+    } else {
+      const { data: inserted, error: insertError } = await supabase
+        .from('users')
+        .insert({ email, role })
+        .select('id')
+        .single<{ id: string }>();
+
+      if (insertError || !inserted) {
+        console.error('Failed to create user', insertError);
+        return {
+          success: false,
+          error: insertError?.message ?? 'Unable to create user.',
+        };
+      }
+
+      userId = inserted.id;
+    }
+
+    if (formData.display_name) {
+      const profilePayload = {
+        user_id: userId,
+        display_name: formData.display_name,
       };
+
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert(profilePayload, { onConflict: 'user_id' });
+
+      if (profileError) {
+        console.warn('User created but profile upsert failed', profileError);
+      }
     }
 
-    console.log(`✅ User added: ${formData.email}`);
-    return { success: true, data };
+    return { success: true };
   } catch (err: any) {
-    console.error("🔥 Unexpected server error:", err);
-    return { success: false, error: err.message || "Unexpected error" };
+    console.error('Unexpected error while adding user', err);
+    return { success: false, error: err.message ?? 'Unexpected server error' };
   }
 }

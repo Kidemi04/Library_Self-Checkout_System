@@ -79,3 +79,7 @@ create table loans (
 ```
 
 Add row-level security policies that allow the service role key to perform inserts/updates, and expose read access to the anon key as required by your deployment.
+
+
+### Azure AD test note
+If you set DEV_AZURE_EMAIL_SUFFIX in .env.local to allow a non-Swinburne Azure tenant during local testing, remember to remove or change it back to the production domain before deploying.

@@ -75,8 +75,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
     publisher: '',
     tags: '' as string, // comma-separated
     status: 'available' as ItemStatus,
-    copiesAvailable: '',
-    totalCopies: '',
   });
 
   function onManage(b: CatalogBook) {
@@ -91,8 +89,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
       publisher: b.publisher ?? '',
       tags: (b.tags ?? []).join(', '),
       status: (b.status as ItemStatus) ?? 'available',
-      copiesAvailable: b.copies_available != null ? String(b.copies_available) : '',
-      totalCopies: b.total_copies != null ? String(b.total_copies) : '',
     });
     setOpen(true);
   }
@@ -118,14 +114,10 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
       publication_year: form.publication_year.trim() || null,
       tags: form.tags
         .split(',')
-        .map((t) => t.trim())
-        .filter(Boolean),
-      status: form.status,
-      // available derived on server if not explicitly provided
-      available: form.status === 'available',
-      copies_available: form.copiesAvailable ? Number(form.copiesAvailable) : null,
-      total_copies: form.totalCopies ? Number(form.totalCopies) : null,
-    };
+    .map((t) => t.trim())
+    .filter(Boolean),
+  status: form.status,
+};
 
     await updateBook(payload);
     onClose();
@@ -418,27 +410,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
               <option value="missing">Missing</option>
               <option value="maintenance">Maintenance</option>
             </select>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-sm font-medium text-slate-900">Copies available</label>
-              <input
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-                value={form.copiesAvailable}
-                onChange={(e) => setForm((f) => ({ ...f, copiesAvailable: e.target.value }))}
-                inputMode="numeric"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-900">Total copies</label>
-              <input
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-                value={form.totalCopies}
-                onChange={(e) => setForm((f) => ({ ...f, totalCopies: e.target.value }))}
-                inputMode="numeric"
-              />
-            </div>
           </div>
 
           <div>

@@ -28,20 +28,24 @@ function isItemStatus(x: unknown): x is ItemStatus {
 
 // Map DB rows -> UI books consumed by <BookList/>
 function toUIBook(db: any) {
+  const available = db.availableCopies ?? db.available_copies ?? 0;
+  const total = db.totalCopies ?? db.total_copies ?? db.copies?.length ?? 0;
+  const derivedStatus: ItemStatus = available > 0 ? 'available' : 'checked_out';
+
   return {
     id: db.id,
     title: db.title ?? 'Untitled',
     author: db.author ?? 'Unknown',
-    cover: db.cover_image_url ?? null,
+    cover: db.coverImageUrl ?? db.cover_image_url ?? null,
     tags: db.tags ?? null,
     classification: db.classification ?? null,
     location: db.location ?? null,
     isbn: db.isbn ?? null,
-    year: db.publication_year ?? db.year ?? null,
+    year: db.publicationYear ?? db.publication_year ?? db.year ?? null,
     publisher: db.publisher ?? null,
-    status: isItemStatus(db.status) ? (db.status as ItemStatus) : null,
-    copies_available: db.available_copies ?? null,
-    total_copies: db.total_copies ?? null,
+    status: isItemStatus(db.status) ? (db.status as ItemStatus) : derivedStatus,
+    copies_available: available,
+    total_copies: total,
   };
 }
 

@@ -15,17 +15,14 @@ interface CheckOutFormProps {
   defaultDueDate: string;
 }
 
-const BorrowerTypes = [
-  { value: 'student', label: 'Student' },
-  { value: 'staff', label: 'Staff' },
-] as const;
-
 export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProps) {
   const [state, formAction] = useFormState(checkoutBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
   const borrowerIdRef = useRef<HTMLInputElement | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState<string>('');
+  const [selectedCopyId, setSelectedCopyId] = useState<string>('');
+  const [selectedCopyBarcode, setSelectedCopyBarcode] = useState<string | null>(null);
   const [lookupMessage, setLookupMessage] = useState<{ tone: 'neutral' | 'success' | 'error'; text: string } | null>(null);
   const [bookOptions, setBookOptions] = useState(() => buildBookOptions(books));
   const [bookMap, setBookMap] = useState(() => createBookMap(books));
@@ -35,6 +32,8 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
     if (state.status === 'success') {
       formRef.current?.reset();
       setSelectedBookId('');
+       setSelectedCopyId('');
+       setSelectedCopyBarcode(null);
       setLookupMessage(null);
       borrowerIdRef.current?.focus();
     }
@@ -58,6 +57,25 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
       setMobileExpanded(true);
     }
   }, [selectedBookId]);
+
+  useEffect(() => {
+    if (!selectedBookId) {
+      setSelectedCopyId('');
+      setSelectedCopyBarcode(null);
+      return;
+    }
+
+    const book = bookMap.get(selectedBookId);
+    if (!book) {
+      setSelectedCopyId('');
+      setSelectedCopyBarcode(null);
+      return;
+    }
+
+    const copy = pickPreferredCopy(book);
+    setSelectedCopyId(copy?.id ?? '');
+    setSelectedCopyBarcode(copy?.barcode ?? null);
+  }, [selectedBookId, bookMap]);
 
   useEffect(() => {
     if (state.status === 'error') {
@@ -86,8 +104,11 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
           return;
         }
 
-        const payload = (await response.json()) as { book: Book };
-        const book = payload.book;
+        const payload = (await response.json()) as LookupResponse;
+        const book = mapApiBookToBook(payload.book);
+        const explicitCopy = payload.copy
+          ? { id: payload.copy.id, barcode: payload.copy.barcode ?? null }
+          : null;
 
         setBookOptions((prev) => {
           if (prev.some((option) => option.id === book.id)) {
@@ -102,10 +123,15 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
           return next;
         });
 
+        const preferredCopy = explicitCopy ?? pickPreferredCopy(book);
         setSelectedBookId(book.id);
+        setSelectedCopyId(preferredCopy?.id ?? '');
+        setSelectedCopyBarcode(preferredCopy?.barcode ?? null);
         setLookupMessage({
           tone: 'success',
-          text: `Ready to borrow “${book.title}”.`,
+          text: preferredCopy?.barcode
+            ? `Copy ${preferredCopy.barcode} of "${book.title}" is ready to loan.`
+            : `Ready to borrow "${book.title}".`,
         });
         borrowerIdRef.current?.focus();
       } catch (error) {
@@ -182,6 +208,7 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
         )}
       >
         <form ref={formRef} action={formAction} className="grid gap-4 lg:grid-cols-2">
+          <input type="hidden" name="copyId" value={selectedCopyId} />
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-swin-charcoal" htmlFor="bookId">
               Book to borrow
@@ -226,7 +253,7 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
                     <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Identifiers</dt>
                     <dd className="text-sm">
                       {selectedBook.barcode ? `Barcode ${selectedBook.barcode}` : null}
-                      {selectedBook.barcode && selectedBook.isbn ? ' · ' : ''}
+                      {selectedBook.barcode && selectedBook.isbn ? ' — ' : ''}
                       {selectedBook.isbn ? `ISBN ${selectedBook.isbn}` : null}
                       {!selectedBook.barcode && !selectedBook.isbn ? 'Not provided' : null}
                     </dd>
@@ -234,9 +261,15 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
                   <div>
                     <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Availability</dt>
                     <dd className="text-sm">
-                      {Math.max(0, selectedBook.available_copies ?? 0)} of {Math.max(1, selectedBook.total_copies ?? 1)} copies available
+                      {selectedBook.availableCopies} of {selectedBook.totalCopies} copies available
                     </dd>
                   </div>
+                  {selectedCopyBarcode ? (
+                    <div>
+                      <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Selected copy</dt>
+                      <dd className="text-sm">{selectedCopyBarcode}</dd>
+                    </div>
+                  ) : null}
                   {selectedBook.location ? (
                     <div>
                       <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Location</dt>
@@ -258,16 +291,16 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
             <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerIdentifier">
               Borrower ID
             </label>
-            <input
-              id="borrowerIdentifier"
-              name="borrowerIdentifier"
-              type="text"
-              required
-              placeholder="Scan or type student/staff ID"
-              ref={borrowerIdRef}
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-            />
-          </div>
+          <input
+            id="borrowerIdentifier"
+            name="borrowerIdentifier"
+            type="text"
+            required
+            placeholder="Scan or type borrower ID"
+            ref={borrowerIdRef}
+            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+          />
+        </div>
 
           <div>
             <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerName">
@@ -281,25 +314,6 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
               placeholder="Full name"
               className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
             />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerType">
-              Borrower type
-            </label>
-            <select
-              id="borrowerType"
-              name="borrowerType"
-              defaultValue="student"
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-              required
-            >
-              {BorrowerTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
           </div>
 
           <div>
@@ -318,7 +332,7 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
 
           <div className="lg:col-span-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <ActionMessage status={state.status} message={state.message} />
-            <SubmitButton disabled={!bookOptions.length} />
+            <SubmitButton disabled={!selectedCopyId} />
           </div>
         </form>
       </div>
@@ -353,6 +367,96 @@ function ActionMessage({ status, message }: { status: ActionState['status']; mes
   return <p className={`text-sm font-medium ${tone}`}>{message}</p>;
 }
 
+type LookupResponse = {
+  book: ApiBook;
+  copy?: {
+    id: string;
+    barcode: string | null;
+  };
+};
+
+type ApiBookCopy = {
+  id: string;
+  book_id: string;
+  barcode: string | null;
+  status: string | null;
+  loans?: Array<{ id: string; returned_at: string | null }> | null;
+};
+
+type ApiBook = {
+  id: string;
+  title: string;
+  author: string | null;
+  isbn: string | null;
+  classification: string | null;
+  location: string | null;
+  cover_image_url: string | null;
+  available_copies?: number | null;
+  total_copies?: number | null;
+  last_transaction_at: string | null;
+  copies: ApiBookCopy[] | null;
+};
+
+const isCopyAvailable = (copy: Book['copies'][number]): boolean => {
+  if (copy.status !== 'available') {
+    return false;
+  }
+  return !(copy.loans ?? []).some((loan) => loan.returnedAt == null);
+};
+
+const pickPreferredCopy = (book: Book) => {
+  const copy = book.copies.find((candidate) => isCopyAvailable(candidate));
+  if (!copy) return null;
+  return {
+    id: copy.id,
+    barcode: copy.barcode || null,
+  };
+};
+
+const mapApiBookToBook = (apiBook: ApiBook): Book => {
+  const copies =
+    apiBook.copies?.map((copy) => ({
+      id: copy.id,
+      bookId: copy.book_id,
+      barcode: copy.barcode ?? '',
+      status: (copy.status ?? 'available') as Book['copies'][number]['status'],
+      location: null,
+      lastInventoryAt: null,
+      loans: (copy.loans ?? []).map((loan) => ({
+        id: loan.id,
+        returnedAt: loan.returned_at ?? null,
+      })),
+    })) ?? [];
+
+  const availableCopies =
+    typeof apiBook.available_copies === 'number'
+      ? apiBook.available_copies
+      : copies.filter((copy) => isCopyAvailable(copy)).length;
+
+  const totalCopies =
+    typeof apiBook.total_copies === 'number' ? apiBook.total_copies : copies.length;
+
+  return {
+    id: apiBook.id,
+    title: apiBook.title,
+    author: apiBook.author ?? null,
+    isbn: apiBook.isbn ?? null,
+    classification: apiBook.classification ?? null,
+    location: apiBook.location ?? null,
+    coverImageUrl: apiBook.cover_image_url ?? null,
+    description: null,
+    publisher: null,
+    publicationYear: null,
+    tags: [],
+    copies,
+    totalCopies,
+    availableCopies,
+    lastTransactionAt: apiBook.last_transaction_at ?? null,
+    createdAt: null,
+    updatedAt: null,
+  };
+};
+
 type BookOption = {
   id: string;
   label: string;
@@ -360,7 +464,7 @@ type BookOption = {
 
 const buildBookOption = (book: Book): BookOption => ({
   id: book.id,
-  label: `${book.title}${book.author ? ` · ${book.author}` : ''}`,
+  label: `${book.title}${book.author ? ` — ${book.author}` : ''}`,
 });
 
 const buildBookOptions = (bookList: Book[]): BookOption[] => bookList.map(buildBookOption);

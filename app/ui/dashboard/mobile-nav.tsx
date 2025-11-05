@@ -4,15 +4,23 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import NavLinks from '@/app/ui/dashboard/nav-links';
+import SignOutButton from '@/app/ui/dashboard/sign-out-button';
 import AcmeLogo from '@/app/ui/acme-logo';
-import { PowerIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 
 export default function MobileNav({ user, isBypassed }: { user: DashboardUserProfile; isBypassed: boolean }) {
   const [open, setOpen] = useState(false);
   const [renderMenu, setRenderMenu] = useState(false);
-  const isStaff = user.role === 'staff';
+  const isPrivileged = user.role === 'staff' || user.role === 'admin';
+  const roleLabel = user.role === 'admin' ? 'Admin' : user.role === 'staff' ? 'Staff' : 'User';
+  const headerSignOutClass = 'inline-flex items-center justify-center gap-2 rounded-md border border-swin-ivory/20 px-3 py-1 text-xs font-semibold text-swin-ivory transition hover:bg-swin-ivory hover:text-swin-red';
+const drawerSignOutClass = clsx(
+    'flex h-[46px] w-full items-center justify-center gap-2 rounded-md border text-sm font-medium transition',
+    isPrivileged
+      ? 'border-white/20 text-white/80 hover:bg-white/10 hover:text-white'
+      : 'border-swin-red/40 text-swin-ivory/80 hover:bg-swin-red hover:text-swin-ivory',
+  );
 
   const showMenu = () => {
     setRenderMenu(true);
@@ -69,7 +77,7 @@ export default function MobileNav({ user, isBypassed }: { user: DashboardUserPro
       <header
         className={clsx(
           'flex items-center justify-between px-4 py-3 text-swin-ivory shadow-md md:hidden',
-          isStaff ? 'bg-slate-950 text-white' : 'bg-swin-charcoal',
+          isPrivileged ? 'bg-slate-950 text-white' : 'bg-swin-charcoal',
         )}
       >
         <button
@@ -77,7 +85,7 @@ export default function MobileNav({ user, isBypassed }: { user: DashboardUserPro
           onClick={showMenu}
           className={clsx(
             'inline-flex items-center justify-center rounded-md border p-2 transition',
-            isStaff
+            isPrivileged
               ? 'border-white/20 text-white hover:bg-white/10'
               : 'border-swin-ivory/20 text-swin-ivory hover:bg-swin-ivory/10',
           )}
@@ -89,13 +97,7 @@ export default function MobileNav({ user, isBypassed }: { user: DashboardUserPro
           <AcmeLogo />
           <span className="text-sm font-semibold uppercase tracking-wide">Self-Checkout</span>
         </Link>
-        <Link
-          href="/login"
-          className="inline-flex items-center justify-center gap-2 rounded-md border border-swin-ivory/20 px-3 py-1 text-xs font-semibold text-swin-ivory transition hover:bg-swin-ivory hover:text-swin-red"
-        >
-          <PowerIcon className="h-4 w-4" />
-          <span>Sign Out</span>
-        </Link>
+        <SignOutButton className={headerSignOutClass} />
       </header>
 
       {renderMenu ? (
@@ -121,7 +123,7 @@ export default function MobileNav({ user, isBypassed }: { user: DashboardUserPro
             className={clsx(
               'relative mx-3 mt-16 flex max-h-[80vh] flex-col overflow-y-auto rounded-3xl p-6 shadow-2xl ring-1 transition-all duration-500 ease-out',
               open ? 'translate-y-0 opacity-100' : '-translate-y-5 opacity-0',
-              isStaff
+              isPrivileged
                 ? 'bg-slate-950 text-white ring-white/10'
                 : 'bg-swin-charcoal text-swin-ivory ring-swin-ivory/10',
             )}
@@ -136,7 +138,7 @@ export default function MobileNav({ user, isBypassed }: { user: DashboardUserPro
                 onClick={hideMenu}
                 className={clsx(
                   'rounded-full border p-2 transition',
-                  isStaff
+                  isPrivileged
                     ? 'border-white/15 text-white hover:bg-white/10'
                     : 'border-swin-ivory/20 text-swin-ivory hover:bg-swin-ivory/10',
                 )}
@@ -145,13 +147,13 @@ export default function MobileNav({ user, isBypassed }: { user: DashboardUserPro
                 <XMarkIcon className="h-5 w-5" />
               </button>
             </div>
-            {isStaff ? (
+            {isPrivileged ? (
               <div className="mb-6 rounded-xl border border-white/15 bg-white/5 p-4 shadow-inner shadow-black/10">
-                <p className="text-[11px] uppercase tracking-wide text-white/60">Admin access</p>
+                <p className="text-[11px] uppercase tracking-wide text-white/60">{`${roleLabel} access`}</p>
                 <p className="mt-1 text-sm font-semibold">{user.name ?? user.email ?? 'Librarian'}</p>
                 {user.email ? <p className="text-[11px] text-white/60">{user.email}</p> : null}
                 <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-emerald-300/80">
-                  {isBypassed ? 'Dev bypass active' : 'Role: Staff'}
+                  {isBypassed ? 'Dev bypass active' : `Role: ${roleLabel}`}
                 </p>
               </div>
             ) : (
@@ -164,19 +166,7 @@ export default function MobileNav({ user, isBypassed }: { user: DashboardUserPro
               <NavLinks role={user.role} onNavigate={hideMenu} showLabels />
             </nav>
             <div className="mt-10">
-              <Link
-                href="/login"
-                onClick={hideMenu}
-                className={clsx(
-                  'flex h-[46px] items-center justify-center gap-2 rounded-md border text-sm font-medium transition',
-                  isStaff
-                    ? 'border-white/20 text-white/80 hover:bg-white/10 hover:text-white'
-                    : 'border-swin-red/40 text-swin-ivory/80 hover:bg-swin-red hover:text-swin-ivory',
-                )}
-              >
-                <PowerIcon className="h-5 w-5" />
-                <span>Sign Out</span>
-              </Link>
+              <SignOutButton className="flex h-[46px] w-full items-center justify-center gap-2 rounded-md border text-sm font-medium transition" />
             </div>
           </div>
         </div>
@@ -184,3 +174,9 @@ export default function MobileNav({ user, isBypassed }: { user: DashboardUserPro
     </>
   );
 }
+
+
+
+
+
+

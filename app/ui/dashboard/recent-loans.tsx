@@ -15,11 +15,11 @@ const formatDate = (value: string | null) => {
 
 const resolveStatus = (loan: Loan) => {
   const now = Date.now();
-  const dueDate = new Date(loan.due_at);
+  const dueDate = new Date(loan.dueAt);
   const dueTime = dueDate.valueOf();
 
   if (loan.status === 'returned') {
-    const returned = loan.returned_at ?? loan.updated_at ?? loan.due_at;
+    const returned = loan.returnedAt ?? loan.updatedAt ?? loan.dueAt;
     return {
       label: `Returned ${formatDate(returned)}`,
       className: 'bg-emerald-500/10 text-emerald-600',
@@ -28,15 +28,21 @@ const resolveStatus = (loan: Loan) => {
 
   if (loan.status === 'overdue' || (Number.isFinite(dueTime) && dueTime < now)) {
     return {
-      label: `Overdue since ${formatDate(loan.due_at)}`,
+      label: `Overdue since ${formatDate(loan.dueAt)}`,
       className: 'bg-swin-red/10 text-swin-red',
     };
   }
 
   return {
-    label: `Due ${formatDate(loan.due_at)}`,
+    label: `Due ${formatDate(loan.dueAt)}`,
     className: 'bg-swin-charcoal/10 text-swin-charcoal',
   };
+};
+
+const roleLabel = (role: Loan['borrowerRole']) => {
+  if (role === 'admin') return 'Admin';
+  if (role === 'staff') return 'Staff';
+  return 'User';
 };
 
 export default function RecentLoans({ loans }: { loans: Loan[] }) {
@@ -61,33 +67,37 @@ export default function RecentLoans({ loans }: { loans: Loan[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-swin-charcoal/10 bg-white text-sm">
-          {loans.map((loan) => {
-            const status = resolveStatus(loan);
-            return (
-              <tr key={loan.id} className="transition hover:bg-swin-ivory">
-                <td className="px-6 py-4">
-                  <div className="font-medium text-swin-charcoal">{loan.borrower_name}</div>
-                  <p className="text-xs capitalize text-swin-charcoal/60">
-                    {loan.borrower_type} · ID {loan.borrower_identifier}
-                  </p>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="font-medium text-swin-charcoal">
-                    {loan.book?.title ?? 'Untitled'}
-                  </div>
-                  <p className="text-xs text-swin-charcoal/60">
-                    {loan.book?.barcode ? `Barcode ${loan.book.barcode}` : loan.book?.isbn ? `ISBN ${loan.book.isbn}` : '—'}
-                  </p>
-                </td>
-                <td className="px-6 py-4 text-swin-charcoal/70">{formatDate(loan.borrowed_at)}</td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${status.className}`}>
-                    {status.label}
-                  </span>
-                </td>
-              </tr>
-            );
-          })}
+            {loans.map((loan) => {
+              const status = resolveStatus(loan);
+              return (
+                <tr key={loan.id} className="transition hover:bg-swin-ivory">
+                  <td className="px-6 py-4">
+                    <div className="font-medium text-swin-charcoal">{loan.borrowerName ?? 'Unknown borrower'}</div>
+                    <p className="text-xs capitalize text-swin-charcoal/60">
+                      {roleLabel(loan.borrowerRole)} · ID {loan.borrowerIdentifier ?? '—'}
+                    </p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="font-medium text-swin-charcoal">
+                      {loan.book?.title ?? 'Untitled'}
+                    </div>
+                    <p className="text-xs text-swin-charcoal/60">
+                      {loan.copy?.barcode
+                        ? `Barcode ${loan.copy.barcode}`
+                        : loan.book?.isbn
+                          ? `ISBN ${loan.book.isbn}`
+                          : '—'}
+                    </p>
+                  </td>
+                  <td className="px-6 py-4 text-swin-charcoal/70">{formatDate(loan.borrowedAt)}</td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${status.className}`}>
+                      {status.label}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

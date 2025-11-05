@@ -1,38 +1,31 @@
-'use server'
+'use server';
 
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 
 export async function deleteUserAction(id: string) {
   try {
-    // 🧩 Access the cookies (required for SSR auth)
-    const cookieStore = await cookies()
-
-    // 🧠 Create Supabase client with cookie-based session
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get: (name: string) => cookieStore.get(name)?.value,
-          set: () => {},
-          remove: () => {},
-        },
-      }
-    )
-
-    // 🗑️ Perform delete
-    const { error } = await supabase.from('users').delete().eq('id', id)
-
-    if (error) {
-      console.error('❌ Server delete error:', error)
-      return { success: false, error: error.message }
+    if (!id) {
+      return { success: false, error: 'User ID is required.' };
     }
 
-    console.log(`✅ User deleted successfully: ID = ${id}`)
-    return { success: true }
+    const supabase = getSupabaseServerClient();
+
+    const { error: profileError } = await supabase.from('user_profiles').delete().eq('user_id', id);
+    if (profileError) {
+      console.error('Failed to remove user profile', profileError);
+      return { success: false, error: profileError.message };
+    }
+
+    const { error } = await supabase.from('users').delete().eq('id', id);
+
+    if (error) {
+      console.error('Failed to delete user', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
   } catch (err: any) {
-    console.error('🔥 Unexpected server error:', err)
-    return { success: false, error: err.message || 'Unknown error' }
+    console.error('Unexpected server error while deleting user', err);
+    return { success: false, error: err.message ?? 'Unknown error' };
   }
 }

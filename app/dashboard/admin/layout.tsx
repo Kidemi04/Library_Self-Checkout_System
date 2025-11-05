@@ -8,9 +8,11 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
     redirect('/login');
   }
 
-  if (user.role !== 'staff') {
+  if (user.role !== 'staff' && user.role !== 'admin') {
     redirect('/dashboard');
   }
+
+  const roleLabel = user.role === 'admin' ? 'Admin' : 'Staff';
 
   return (
     <div className="space-y-8">
@@ -25,7 +27,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
           </div>
           <div className="flex flex-col items-start gap-3 rounded-2xl border border-white/20 bg-white/10 px-5 py-4 text-xs text-white/80 shadow-inner shadow-black/20">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
-              Role: Staff
+              Role: {roleLabel}
             </span>
             <p className="text-xs leading-relaxed text-white/80">
               Full catalogue and circulation access enabled for this session.

@@ -20,8 +20,8 @@ export default async function BorrowBooksPage({
   searchParams?: Promise<Record<string, string | string[]>>;
 }) {
   const { user } = await getDashboardSession();
-  const role = user?.role ?? 'student';
-  const isStaff = role === 'staff';
+  const role = user?.role ?? 'user';
+  const canProcessLoans = role === 'staff' || role === 'admin';
 
   const params = searchParams ? await searchParams : undefined;
   const raw = params?.q;
@@ -40,9 +40,9 @@ export default async function BorrowBooksPage({
       <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
         <h1 className="text-2xl font-semibold">Borrow Books</h1>
         <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
-          {isStaff
-            ? 'Lend titles by scanning library cards or selecting items from the catalogue.'
-            : 'Reserve a title by providing your borrower details to the library team.'}
+          {canProcessLoans
+            ? 'Lend titles by scanning barcodes or selecting items from the catalogue.'
+            : 'Borrow a title by scanning your copy or searching the catalogue, then confirm your details.'}
         </p>
       </header>
 
@@ -60,7 +60,7 @@ export default async function BorrowBooksPage({
           <h2
             className={clsx(
               'text-lg font-semibold',
-              isStaff ? 'text-slate-100' : 'text-swin-charcoal',
+              canProcessLoans ? 'text-slate-100' : 'text-swin-charcoal',
             )}
           >
             Books currently not available
@@ -68,13 +68,13 @@ export default async function BorrowBooksPage({
           <p
             className={clsx(
               'text-sm',
-              isStaff ? 'text-slate-300' : 'text-swin-charcoal/60',
+              canProcessLoans ? 'text-slate-300' : 'text-swin-charcoal/60',
             )}
           >
             {activeLoans.length} books are with borrowers right now
           </p>
         </div>
-        <ActiveLoansTable loans={activeLoans} showActions={isStaff} />
+        <ActiveLoansTable loans={activeLoans} showActions={canProcessLoans} />
       </section>
     </main>
   );

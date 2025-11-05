@@ -1,283 +1,276 @@
-"use client";
+'use client';
 
-import { addUserAction } from "@/app/actions/addUser";
-import { updateUserAction } from "@/app/actions/updateUser";
-import { deleteUserAction } from "@/app/actions/deleteUser";
-import { useEffect, useState } from "react";
-import { supabaseBrowserClient } from "@/app/lib/supabase/client";
+import { useEffect, useState, useTransition } from 'react';
+import clsx from 'clsx';
+import { supabaseBrowserClient } from '@/app/lib/supabase/client';
+import { addUserAction } from '@/app/actions/addUser';
+import { updateUserAction } from '@/app/actions/updateUser';
+import { deleteUserAction } from '@/app/actions/deleteUser';
+
+type ManagedUser = {
+  id: string;
+  email: string;
+  role: 'user' | 'staff' | 'admin';
+  fullName: string;
+};
+
+const roleOptions: ManagedUser['role'][] = ['user', 'staff', 'admin'];
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<ManagedUser[]>([]);
   const [loading, setLoading] = useState(true);
-  const [adding, setAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [newUser, setNewUser] = useState({ email: '', fullName: '', role: 'staff' as ManagedUser['role'] });
 
-  const [formData, setFormData] = useState({
-    email: "",
-    display_name: "",
-    role: "student",
-  });
-
-  const [currentUser, setCurrentUser] = useState<{
-    email: string | null;
-    role: string | null;
-  }>({ email: null, role: null });
-
-  // 🔹 Fetch all users
-  const fetchUsers = async () => {
+  const loadUsers = async () => {
     setLoading(true);
-    setError(null);
-    console.log("🧪 Fetching users from Supabase...");
+    setErrorMessage(null);
 
-    try {
-      const { data, error } = await supabaseBrowserClient
-        .from("users")
-        .select("id, email, display_name, role, created_at")
-        .order("created_at", { ascending: false });
+    const { data, error } = await supabaseBrowserClient
+      .from('users')
+      .select('id, email, role, profile:user_profiles(display_name)')
+      .order('email');
 
-      if (error) throw error;
-      console.log("✅ Users fetched successfully:", data);
-      setUsers(data || []);
-    } catch (err: any) {
-      console.error("❌ Error fetching users:", err);
-      setError("Failed to load users.");
-    } finally {
+    if (error) {
+      setErrorMessage('Unable to load users.');
       setLoading(false);
-    }
-  };
-
-  // 🔹 Fetch current logged-in user's email and role
-  const fetchCurrentUser = async () => {
-    try {
-      const { data: sessionData } = await supabaseBrowserClient.auth.getSession();
-      const userEmail = sessionData.session?.user?.email || null;
-
-      // 🧩 DEV BYPASS (for local development)
-      if (!userEmail) {
-        console.warn("⚠️ No Supabase session found — using dev bypass account");
-        setCurrentUser({ email: "dev.staff@example.com", role: "staff" });
-        return;
-      }
-
-      // 🧠 Example.com emails treated as staff automatically
-      if (userEmail.endsWith("@example.com")) {
-        console.log("🧩 Example.com email detected — assigning staff role.");
-        setCurrentUser({ email: userEmail, role: "staff" });
-        return;
-      }
-
-      // 🗃️ Otherwise, get user's role from the table
-      const { data: userData, error } = await supabaseBrowserClient
-        .from("users")
-        .select("role")
-        .eq("email", userEmail)
-        .single();
-
-      if (error) {
-        console.warn("⚠️ User not found in 'users' table:", error);
-        setCurrentUser({ email: userEmail, role: null });
-      } else {
-        console.log("✅ User role fetched:", userData.role);
-        setCurrentUser({ email: userEmail, role: userData?.role || null });
-      }
-    } catch (err) {
-      console.error("🔥 Fatal error fetching session:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-    fetchCurrentUser();
-  }, []);
-
-  // 🔹 Add user handler
-  const addUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.email.trim()) {
-      alert("Email is required!");
       return;
     }
 
-    setAdding(true);
-    console.log("📤 Adding new user:", formData);
+    const mapped: ManagedUser[] = (data ?? []).map((row) => ({
+      id: row.id,
+      email: row.email,
+      role: (row.role ?? 'user') as ManagedUser['role'],
+      fullName: row.profile?.display_name ?? '',
+    }));
 
-    const result = await addUserAction(formData);
-    setAdding(false);
-
-    if (!result.success) {
-      alert("❌ Failed to add user: " + result.error);
-    } else {
-      alert("✅ User added successfully!");
-      setFormData({ email: "", display_name: "", role: "student" });
-      fetchUsers();
-    }
+    setUsers(mapped);
+    setLoading(false);
   };
 
-  // 🔹 Edit user handler (update)
-  const handleEditUser = async (user: any) => {
-    const newDisplayName = prompt("Enter new display name:", user.display_name || "");
-    const newRole = prompt("Enter new role (student/staff):", user.role || "student");
+  useEffect(() => {
+    loadUsers();
+  }, []);
 
-    if (!newDisplayName && !newRole) return alert("No changes made.");
+  const handleAddUser = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setStatusMessage(null);
+    setErrorMessage(null);
 
-  const result = await updateUserAction({
-    id: user.id,
-    display_name: newDisplayName ?? user.display_name, // convert null → existing name
-    role: newRole ?? user.role,                        // convert null → existing role
-  });
+    startTransition(async () => {
+      const result = await addUserAction({
+        email: newUser.email,
+        display_name: newUser.fullName,
+        role: newUser.role,
+      });
 
-    if (!result.success) {
-      alert("❌ Failed to update user: " + result.error);
-    } else {
-      alert("✅ User updated successfully!");
-      fetchUsers();
-    }
+      if (!result?.success) {
+        setErrorMessage(result?.error ?? 'Failed to add user.');
+        return;
+      }
+
+      setStatusMessage('User added successfully.');
+      setNewUser({ email: '', fullName: '', role: 'staff' });
+      await loadUsers();
+    });
   };
 
-  // 🔹 Delete user handler
-  const deleteUser = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
-
-    const result = await deleteUserAction(id);
-
-    if (!result.success) {
-      alert("❌ Failed to delete user: " + result.error);
-    } else {
-      alert("✅ User deleted successfully!");
-      fetchUsers();
-    }
+  const updateLocalUser = (id: string, updates: Partial<ManagedUser>) => {
+    setUsers((prev) => prev.map((user) => (user.id === id ? { ...user, ...updates } : user)));
   };
 
-  // 🕒 Loading / error handling
-  if (loading) return <p className="p-8 text-swin-ivory">Loading users...</p>;
-  if (error) return <p className="p-8 text-red-400">❌ {error}</p>;
+  const handleSave = (user: ManagedUser) => {
+    setStatusMessage(null);
+    setErrorMessage(null);
 
-  // ⚙️ Main render
+    startTransition(async () => {
+      const result = await updateUserAction({
+        id: user.id,
+        display_name: user.fullName,
+        role: user.role,
+      });
+
+      if (!result?.success) {
+        setErrorMessage(result?.error ?? 'Failed to update user.');
+        await loadUsers();
+        return;
+      }
+
+      setStatusMessage('User updated successfully.');
+      await loadUsers();
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    if (!window.confirm('Delete this user account?')) return;
+
+    setStatusMessage(null);
+    setErrorMessage(null);
+
+    startTransition(async () => {
+      const result = await deleteUserAction(id);
+
+      if (!result?.success) {
+        setErrorMessage(result?.error ?? 'Failed to delete user.');
+        return;
+      }
+
+      setStatusMessage('User deleted successfully.');
+      setUsers((prev) => prev.filter((user) => user.id !== id));
+    });
+  };
+
   return (
-    <main className="p-8 space-y-8 text-swin-ivory">
-      <h1 className="text-2xl font-bold">User Management</h1>
+    <main className="space-y-8">
+      <title>Manage Users | Admin</title>
 
-      {/* Logged in user info */}
-      {currentUser.email && (
-        <p className="text-swin-ivory/70 text-sm">
-          Logged in as: <span className="font-semibold">{currentUser.email}</span> (
-          {currentUser.role || "unknown"})
+      <header className="rounded-2xl bg-slate-900 p-8 text-white shadow-lg shadow-slate-900/30">
+        <h1 className="text-2xl font-semibold">User Management</h1>
+        <p className="mt-2 max-w-2xl text-sm text-white/70">
+          Invite staff or administrators and maintain their roles for the library checkout system.
         </p>
-      )}
+      </header>
 
-      {/* ➕ Add User Form — only for staff */}
-      {currentUser.role === "staff" && (
-        <form
-          onSubmit={addUser}
-          className="flex flex-col md:flex-row items-start md:items-end gap-3 bg-swin-charcoal/60 p-4 rounded-md shadow-md border border-swin-ivory/20"
-        >
-          <div className="flex flex-col w-full md:w-1/3">
-            <label className="text-sm font-semibold mb-1 text-swin-ivory">Email</label>
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="student@swinburne.edu.my"
-              className="border border-swin-ivory/30 bg-transparent text-swin-ivory rounded px-3 py-2 text-sm placeholder-swin-ivory/50 focus:border-swin-red outline-none"
-              required
-            />
-          </div>
-
-          <div className="flex flex-col w-full md:w-1/4">
-            <label className="text-sm font-semibold mb-1 text-swin-ivory">Display Name</label>
-            <input
-              type="text"
-              value={formData.display_name}
-              onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
-              placeholder="Full name"
-              className="border border-swin-ivory/30 bg-transparent text-swin-ivory rounded px-3 py-2 text-sm placeholder-swin-ivory/50 focus:border-swin-red outline-none"
-            />
-          </div>
-
-          <div className="flex flex-col w-full md:w-1/4">
-            <label className="text-sm font-semibold mb-1 text-swin-ivory">Role</label>
-            <select
-              value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-              className="border border-swin-ivory/30 bg-transparent text-swin-ivory rounded px-3 py-2 text-sm focus:border-swin-red outline-none"
-            >
-              <option value="student" className="text-black">
-                Student
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/50">
+        <h2 className="text-lg font-semibold text-slate-900">Add staff member</h2>
+        <form onSubmit={handleAddUser} className="mt-4 grid gap-4 md:grid-cols-[2fr_2fr_1fr_auto]">
+          <input
+            type="email"
+            required
+            placeholder="person@swinburne.edu.my"
+            value={newUser.email}
+            onChange={(event) => setNewUser((prev) => ({ ...prev, email: event.target.value }))}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+          />
+          <input
+            type="text"
+            placeholder="Full name"
+            value={newUser.fullName}
+            onChange={(event) => setNewUser((prev) => ({ ...prev, fullName: event.target.value }))}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+          />
+          <select
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+            value={newUser.role}
+            onChange={(event) => setNewUser((prev) => ({ ...prev, role: event.target.value as ManagedUser['role'] }))}
+          >
+            {roleOptions.map((role) => (
+              <option key={role} value={role}>
+                {role.charAt(0).toUpperCase() + role.slice(1)}
               </option>
-              <option value="staff" className="text-black">
-                Staff
-              </option>
-            </select>
-          </div>
-
+            ))}
+          </select>
           <button
             type="submit"
-            disabled={adding}
-            className="bg-swin-red text-white px-5 py-2 rounded-md text-sm font-semibold hover:bg-swin-red/90"
+            disabled={isPending}
+            className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-600"
           >
-            {adding ? "Adding..." : "Add User"}
+            {isPending ? 'Adding…' : 'Add user'}
           </button>
         </form>
+        <p className="mt-2 text-xs text-slate-500">
+          Staff and admin must use their Swinburne Outlook email addresses.
+        </p>
+      </section>
+
+      {(errorMessage || statusMessage) && (
+        <div
+          className={clsx(
+            'rounded-lg border px-4 py-3 text-sm',
+            errorMessage
+              ? 'border-rose-300 bg-rose-50 text-rose-600'
+              : 'border-emerald-200 bg-emerald-50 text-emerald-700',
+          )}
+        >
+          {errorMessage ?? statusMessage}
+        </div>
       )}
 
-      {/* 📋 Users Table */}
-      <table className="w-full border-collapse border border-swin-ivory/30 text-swin-ivory">
-        <thead className="bg-swin-charcoal/80">
-          <tr>
-            <th className="border border-swin-ivory/20 p-2 text-left">Email</th>
-            <th className="border border-swin-ivory/20 p-2 text-left">Display Name</th>
-            <th className="border border-swin-ivory/20 p-2 text-left">Role</th>
-            <th className="border border-swin-ivory/20 p-2 text-left">Created At</th>
-            <th className="border border-swin-ivory/20 p-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.length > 0 ? (
-            users.map((u) => (
-              <tr key={u.id} className="hover:bg-swin-charcoal/50 transition">
-                <td className="border border-swin-ivory/20 p-2">{u.email}</td>
-                <td className="border border-swin-ivory/20 p-2">{u.display_name || "—"}</td>
-                <td
-                  className={`border border-swin-ivory/20 p-2 font-semibold ${
-                    u.role === "staff" ? "text-red-400" : "text-blue-400"
-                  }`}
-                >
-                  {u.role}
-                </td>
-                <td className="border border-swin-ivory/20 p-2">
-                  {new Date(u.created_at).toLocaleDateString()}
-                </td>
-                <td className="border border-swin-ivory/20 p-2 space-x-2">
-                  {currentUser.role === "staff" ? (
-                    <>
-                      <button
-                        onClick={() => handleEditUser(u)}
-                        className="bg-blue-500 text-white px-2 py-1 rounded text-sm"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteUser(u.id)}
-                        className="bg-red-500 text-white px-2 py-1 rounded text-sm"
-                      >
-                        Delete
-                      </button>
-                    </>
-                  ) : (
-                    <span className="text-gray-400 italic">View only</span>
-                  )}
-                </td>
+      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/50">
+        <header className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <h2 className="text-lg font-semibold text-slate-900">Current users</h2>
+          <span className="text-sm text-slate-500">
+            {loading ? 'Loading…' : `${users.length} account${users.length === 1 ? '' : 's'}`}
+          </span>
+        </header>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-slate-100">
+            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-6 py-3 text-left">Email</th>
+                <th className="px-6 py-3 text-left">Full name</th>
+                <th className="px-6 py-3 text-left">Role</th>
+                <th className="px-6 py-3 text-right">Actions</th>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={5} className="text-center text-swin-ivory/70 py-6 italic">
-                No users found.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-sm">
+              {loading ? (
+                <tr>
+                  <td className="px-6 py-4 text-slate-500" colSpan={4}>
+                    Loading users…
+                  </td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td className="px-6 py-4 text-slate-500" colSpan={4}>
+                    No users found.
+                  </td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.id}>
+                    <td className="px-6 py-4 font-medium text-slate-900">{user.email}</td>
+                    <td className="px-6 py-4">
+                      <input
+                        type="text"
+                        value={user.fullName}
+                        onChange={(event) => updateLocalUser(user.id, { fullName: event.target.value })}
+                        className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <select
+                        value={user.role}
+                        onChange={(event) => updateLocalUser(user.id, { role: event.target.value as ManagedUser['role'] })}
+                        className="rounded-md border border-slate-200 px-3 py-2 text-sm focus:border-slate-500 focus:outline-none"
+                      >
+                        {roleOptions.map((role) => (
+                          <option key={role} value={role}>
+                            {role.charAt(0).toUpperCase() + role.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="inline-flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleSave(user)}
+                          disabled={isPending}
+                          className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(user.id)}
+                          disabled={isPending}
+                          className="rounded-md border border-rose-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
     </main>
   );
 }
