@@ -10,7 +10,6 @@ export type CatalogBook = {
   author: string | null;
   isbn?: string | null;
   classification?: string | null;
-  location?: string | null;
   publication_year?: string | number | null;
   publisher?: string | null;
   tags?: string[] | null;
@@ -29,7 +28,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
   const [open, setOpen] = React.useState(false);
   const [active, setActive] = React.useState<CatalogBook | null>(null);
   const [sortKey, setSortKey] = React.useState<
-    'title' | 'author' | 'isbn' | 'classification' | 'location' | 'publication_year' | 'publisher' | 'status'
+    'title' | 'author' | 'isbn' | 'classification' | 'publication_year' | 'publisher' | 'status'
   >('title');
   const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('asc');
 
@@ -70,7 +69,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
     author: '',
     isbn: '',
     classification: '',
-    location: '',
     publication_year: '',
     publisher: '',
     tags: '' as string, // comma-separated
@@ -84,7 +82,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
       author: b.author ?? '',
       isbn: b.isbn ?? '',
       classification: b.classification ?? '',
-      location: b.location ?? '',
       publication_year: b.publication_year ? String(b.publication_year) : '',
       publisher: b.publisher ?? '',
       tags: (b.tags ?? []).join(', '),
@@ -109,15 +106,13 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
       author: form.author.trim() || null,
       isbn: form.isbn.trim() || null,
       classification: form.classification.trim() || null,
-      location: form.location.trim() || null,
       publisher: form.publisher.trim() || null,
       publication_year: form.publication_year.trim() || null,
       tags: form.tags
         .split(',')
-    .map((t) => t.trim())
-    .filter(Boolean),
-  status: form.status,
-};
+        .map((t) => t.trim())
+        .filter(Boolean),
+    };
 
     await updateBook(payload);
     onClose();
@@ -147,9 +142,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                 </Th>
                 <Th className="hidden lg:table-cell" onClick={() => toggleSort('classification')}>
                   <HeaderLabel label="Call No." icon={sortIcon('classification')} />
-                </Th>
-                <Th className="hidden md:table-cell" onClick={() => toggleSort('location')}>
-                  <HeaderLabel label="Location" icon={sortIcon('location')} />
                 </Th>
                 <Th className="hidden lg:table-cell" onClick={() => toggleSort('publication_year')}>
                   <HeaderLabel label="Year" icon={sortIcon('publication_year')} />
@@ -189,7 +181,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                   <Td className="text-slate-900">{b.author ?? <span className="text-slate-400">Unknown</span>}</Td>
                   <Td className="hidden lg:table-cell text-slate-900">{b.isbn ?? '-'}</Td>
                   <Td className="hidden lg:table-cell text-slate-900">{b.classification ?? '-'}</Td>
-                  <Td className="hidden md:table-cell text-slate-900">{b.location ?? '-'}</Td>
                   <Td className="hidden lg:table-cell text-slate-900">{b.publication_year ?? '-'}</Td>
                   <Td className="hidden xl:table-cell text-slate-900">{b.publisher ?? '-'}</Td>
                   <Td>{renderStatusBadge(b.status)}</Td>
@@ -267,10 +258,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                   <div className="flex justify-between gap-3">
                     <span className="text-slate-500">Call No.</span>
                     <span className="font-medium text-slate-900 truncate">{b.classification ?? '-'}</span>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <span className="text-slate-500">Location</span>
-                    <span className="font-medium text-slate-900 truncate">{b.location ?? '-'}</span>
                   </div>
                   <div className="flex justify-between gap-3">
                     <span className="text-slate-500">Year</span>
@@ -361,14 +348,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                 className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
                 value={form.classification}
                 onChange={(e) => setForm((f) => ({ ...f, classification: e.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-900">Location</label>
-              <input
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-                value={form.location}
-                onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
               />
             </div>
           </div>

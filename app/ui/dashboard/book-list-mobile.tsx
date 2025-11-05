@@ -13,7 +13,6 @@ type Book = {
 	description?: string
 	classification?: string
 	barcode?: string
-	location?: string
 }
 
 export default function BookList({ books }: { books?: Book[] }) {
@@ -81,10 +80,6 @@ export default function BookList({ books }: { books?: Book[] }) {
 										<div className="text-xs">{b.barcode ?? 'Internal barcode'}</div>
 									</div>
 
-									<div>
-										<div className="font-semibold text-swin-charcoal/80 text-xs">Location</div>
-										<div className="text-xs">{b.location ?? 'Main Library – Stack A3'}</div>
-									</div>
 								</div>
 
 								<div className="mt-3 flex flex-wrap gap-2">

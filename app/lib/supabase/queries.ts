@@ -19,11 +19,31 @@ const toDashboardRole = (value: unknown): DashboardRole | null => {
   return 'user';
 };
 
-const toLoanStatus = (value: unknown): LoanStatus => {
-  if (typeof value !== 'string') return 'borrowed';
-  const normalized = value.trim().toLowerCase();
-  if (normalized === 'returned') return 'returned';
-  if (normalized === 'overdue') return 'overdue';
+const normalizeCopyStatus = (value: unknown): Copy['status'] => {
+  if (typeof value !== 'string') return 'available';
+  switch (value.trim().toUpperCase()) {
+    case 'ON_LOAN':
+      return 'on_loan';
+    case 'LOST':
+      return 'lost';
+    case 'DAMAGED':
+      return 'damaged';
+    case 'PROCESSING':
+      return 'processing';
+    case 'HOLD_SHELF':
+      return 'hold_shelf';
+    case 'AVAILABLE':
+    default:
+      return 'available';
+  }
+};
+
+const deriveLoanStatus = (dueAt: string, returnedAt: string | null): LoanStatus => {
+  if (returnedAt) return 'returned';
+  const due = new Date(dueAt);
+  if (!Number.isNaN(due.valueOf()) && due.getTime() < Date.now()) {
+    return 'overdue';
+  }
   return 'borrowed';
 };
 
@@ -43,8 +63,8 @@ type RawCopyRow = {
   book_id: string;
   barcode: string;
   status: string | null;
-  location: string | null;
-  last_inventory_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
   loans?: RawCopyLoanRow[] | null;
 };
 
@@ -54,12 +74,9 @@ type RawBookRow = {
   author: string | null;
   isbn: string | null;
   classification: string | null;
-  location: string | null;
-  description?: string | null;
-  publisher?: string | null;
-  publication_year?: string | null;
+  publisher: string | null;
+  publication_year: string | null;
   cover_image_url: string | null;
-  last_transaction_at: string | null;
   created_at: string | null;
   updated_at: string | null;
   copies: RawCopyRow[] | null;
@@ -73,20 +90,17 @@ type RawBookRow = {
 type RawLoanRow = {
   id: string;
   copy_id: string;
-  book_id?: string | null;
-  borrower_id?: string | null;
-  borrower_identifier?: string | null;
-  borrower_name?: string | null;
-  status: string | null;
+  user_id: string | null;
   borrowed_at: string;
   due_at: string;
   returned_at: string | null;
+  renewed_count: number | null;
   handled_by: string | null;
   created_at: string | null;
   updated_at: string | null;
   copy?: {
     id: string;
-    barcode: string;
+    barcode: string | null;
     book?: {
       id: string;
       title: string;
@@ -94,16 +108,22 @@ type RawLoanRow = {
       isbn: string | null;
     } | null;
   } | null;
-  book?: {
-    id: string;
-    title: string;
-    author: string | null;
-    isbn: string | null;
-  } | null;
   borrower?: {
     id: string;
     email: string | null;
     role: string | null;
+    profile?: {
+      display_name: string | null;
+      student_id: string | null;
+    } | null;
+  } | null;
+  handler?: {
+    id: string;
+    email: string | null;
+    role: string | null;
+    profile?: {
+      display_name: string | null;
+    } | null;
   } | null;
 };
 
@@ -111,13 +131,13 @@ const mapCopyRow = (row: RawCopyRow): Copy => ({
   id: row.id,
   bookId: row.book_id,
   barcode: row.barcode,
-  status: ((row.status ?? 'available').trim().toLowerCase() as Copy['status']),
-  location: row.location ?? null,
-  lastInventoryAt: row.last_inventory_at ?? null,
+  status: normalizeCopyStatus(row.status),
   loans: (row.loans ?? []).map((loan) => ({
     id: loan.id,
     returnedAt: loan.returned_at ?? null,
   })),
+  createdAt: row.created_at ?? null,
+  updatedAt: row.updated_at ?? null,
 });
 
 const mapBookRow = (row: RawBookRow): Book => {
@@ -133,48 +153,46 @@ const mapBookRow = (row: RawBookRow): Book => {
     author: row.author ?? null,
     isbn: row.isbn ?? null,
     classification: row.classification ?? null,
-    location: row.location ?? null,
     coverImageUrl: row.cover_image_url ?? null,
-    description: row.description ?? null,
     publisher: row.publisher ?? null,
     publicationYear: row.publication_year ?? null,
     tags,
     copies,
     totalCopies: copies.length,
     availableCopies,
-    lastTransactionAt: row.last_transaction_at ?? null,
     createdAt: row.created_at ?? null,
     updatedAt: row.updated_at ?? null,
   };
 };
 
 const mapLoanRow = (row: RawLoanRow): Loan => {
-  const copy = row.copy
-    ? {
-        id: row.copy.id,
-        barcode: row.copy.barcode,
-      }
-    : null;
-
-  const bookSource = row.copy?.book ?? row.book ?? null;
+  const borrowerProfile = row.borrower?.profile ?? null;
+  const handlerProfile = row.handler?.profile ?? null;
+  const bookSource = row.copy?.book ?? null;
 
   return {
     id: row.id,
     copyId: row.copy_id,
-    bookId: row.book_id ?? bookSource?.id ?? null,
-    borrowerId: row.borrower_id ?? null,
-    borrowerIdentifier: row.borrower_identifier ?? null,
-    borrowerName: row.borrower_name ?? null,
+    bookId: bookSource?.id ?? null,
+    borrowerId: row.user_id,
+    borrowerName: borrowerProfile?.display_name ?? row.borrower?.email ?? null,
     borrowerEmail: row.borrower?.email ?? null,
+    borrowerIdentifier: borrowerProfile?.student_id ?? row.borrower?.email ?? null,
     borrowerRole: toDashboardRole(row.borrower?.role ?? null),
     handledBy: row.handled_by ?? null,
-    status: toLoanStatus(row.status),
+    status: deriveLoanStatus(row.due_at, row.returned_at),
     borrowedAt: row.borrowed_at,
     dueAt: row.due_at,
     returnedAt: row.returned_at ?? null,
+    renewedCount: row.renewed_count ?? 0,
     createdAt: row.created_at ?? null,
     updatedAt: row.updated_at ?? null,
-    copy,
+    copy: row.copy
+      ? {
+          id: row.copy.id,
+          barcode: row.copy.barcode ?? null,
+        }
+      : null,
     book: bookSource
       ? {
           id: bookSource.id,
@@ -183,7 +201,13 @@ const mapLoanRow = (row: RawLoanRow): Loan => {
           isbn: bookSource.isbn ?? null,
         }
       : null,
-    handler: null,
+    handler: row.handler
+      ? {
+          id: row.handler.id,
+          name: handlerProfile?.display_name ?? row.handler.email ?? null,
+          email: row.handler.email ?? null,
+        }
+      : null,
   };
 };
 
@@ -226,7 +250,7 @@ export async function fetchDashboardSummary(): Promise<DashboardSummary> {
 
   const availableBookIds = new Set<string>();
   for (const copy of (copies.data ?? []) as CopySummaryRow[]) {
-    const status = typeof copy.status === 'string' ? copy.status.trim().toLowerCase() : 'available';
+    const status = normalizeCopyStatus(copy.status);
     if (status !== 'available') continue;
 
     const hasActiveLoan = (copy.loans ?? []).some((loan) => loan.returned_at == null);
@@ -252,14 +276,11 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
       `
         id,
         copy_id,
-        book_id,
-        borrower_id,
-        borrower_identifier,
-        borrower_name,
-        status,
+        user_id,
         borrowed_at,
         due_at,
         returned_at,
+        renewed_count,
         handled_by,
         created_at,
         updated_at,
@@ -273,16 +294,22 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
             isbn
           )
         ),
-        book:books(
-          id,
-          title,
-          author,
-          isbn
-        ),
-        borrower:users(
+        borrower:users!loans_user_id_fkey(
           id,
           email,
-          role
+          role,
+          profile:user_profiles(
+            display_name,
+            student_id
+          )
+        ),
+        handler:users!loans_handled_by_fkey(
+          id,
+          email,
+          role,
+          profile:user_profiles(
+            display_name
+          )
         )
       `,
     )
@@ -291,7 +318,8 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
 
   if (error) throw error;
 
-  return (data ?? []).map(mapLoanRow);
+  const rawRows = ((data ?? []) as unknown) as RawLoanRow[];
+  return rawRows.map(mapLoanRow);
 }
 
 export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
@@ -303,14 +331,11 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
       `
         id,
         copy_id,
-        book_id,
-        borrower_id,
-        borrower_identifier,
-        borrower_name,
-        status,
+        user_id,
         borrowed_at,
         due_at,
         returned_at,
+        renewed_count,
         handled_by,
         created_at,
         updated_at,
@@ -324,16 +349,22 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
             isbn
           )
         ),
-        book:books(
-          id,
-          title,
-          author,
-          isbn
-        ),
-        borrower:users(
+        borrower:users!loans_user_id_fkey(
           id,
           email,
-          role
+          role,
+          profile:user_profiles(
+            display_name,
+            student_id
+          )
+        ),
+        handler:users!loans_handled_by_fkey(
+          id,
+          email,
+          role,
+          profile:user_profiles(
+            display_name
+          )
         )
       `,
     )
@@ -342,7 +373,7 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
 
   if (error) throw error;
 
-  const loans = (data ?? []).map(mapLoanRow);
+  const loans = (((data ?? []) as unknown) as RawLoanRow[]).map(mapLoanRow);
   const sanitized = sanitizeSearchTerm(searchTerm);
 
   if (!sanitized) return loans;
@@ -353,9 +384,9 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
     const fields = [
       loan.borrowerName,
       loan.borrowerIdentifier,
-      loan.copy?.barcode,
-      loan.book?.title,
-      loan.book?.isbn,
+      loan.copy?.barcode ?? null,
+      loan.book?.title ?? null,
+      loan.book?.isbn ?? null,
     ];
 
     return fields.some((field) => field?.toLowerCase().includes(lowered));
@@ -375,12 +406,9 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
         author,
         isbn,
         classification,
-        location,
-        description,
         publisher,
         publication_year,
         cover_image_url,
-        last_transaction_at,
         created_at,
         updated_at,
         copies:copies(
@@ -388,8 +416,8 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
           book_id,
           barcode,
           status,
-          location,
-          last_inventory_at,
+          created_at,
+          updated_at,
           loans:loans(
             id,
             returned_at
@@ -413,6 +441,7 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
         `author.ilike.${pattern}`,
         `isbn.ilike.${pattern}`,
         `classification.ilike.${pattern}`,
+        `publisher.ilike.${pattern}`,
       ].join(','),
     );
   }
@@ -420,7 +449,7 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
   const { data, error } = await query;
   if (error) throw error;
 
-  const mapped = (data ?? []).map(mapBookRow);
+  const mapped = (((data ?? []) as unknown) as RawBookRow[]).map(mapBookRow);
 
   if (!sanitized) {
     return mapped;
@@ -433,7 +462,8 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
       (book.title?.toLowerCase().includes(lowered) ?? false) ||
       (book.author?.toLowerCase().includes(lowered) ?? false) ||
       (book.isbn?.toLowerCase().includes(lowered) ?? false) ||
-      (book.classification?.toLowerCase().includes(lowered) ?? false);
+      (book.classification?.toLowerCase().includes(lowered) ?? false) ||
+      (book.publisher?.toLowerCase().includes(lowered) ?? false);
 
     if (matchesBook) return true;
 

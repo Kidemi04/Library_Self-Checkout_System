@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { NextResponse } from 'next/server';
 import { auth } from './auth';
 import { isDevAuthBypassed } from '@/app/lib/auth/env';

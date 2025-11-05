@@ -97,14 +97,27 @@ export default function CreateBookForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="location">
-            Location
+          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="publisher">
+            Publisher
           </label>
           <input
-            id="location"
-            name="location"
+            id="publisher"
+            name="publisher"
             type="text"
-            placeholder="Level 2 - Stack A"
+            placeholder="Publisher name"
+            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="publicationYear">
+            Publication year
+          </label>
+          <input
+            id="publicationYear"
+            name="publicationYear"
+            type="text"
+            placeholder="e.g. 2024"
             className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
           />
         </div>

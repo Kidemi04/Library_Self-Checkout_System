@@ -22,12 +22,9 @@ export type UpdatePayload = {
   author?: string | null;
   isbn?: string | null;
   classification?: string | null;
-  location?: string | null;
   publisher?: string | null;
   publication_year?: string | number | null;
   tags?: string[] | null;
-  status?: ItemStatus | null;
-  description?: string | null;
   cover_image_url?: string | null;
 };
 
@@ -129,18 +126,12 @@ export async function updateBook(payload: UpdatePayload) {
     author: payload.author ?? null,
     isbn: payload.isbn ?? null,
     classification: payload.classification ?? null,
-    location: payload.location ?? null,
     publisher: payload.publisher ?? null,
     publication_year:
       payload.publication_year == null ? null : String(payload.publication_year),
-    description: payload.description ?? null,
     cover_image_url: payload.cover_image_url ?? null,
     updated_at: new Date().toISOString(),
   };
-
-  if (payload.status) {
-    update.status = payload.status;
-  }
 
   const { error } = await supabase.from('books').update(update).eq('id', payload.id);
   if (error) throw new Error(error.message);

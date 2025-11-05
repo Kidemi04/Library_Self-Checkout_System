@@ -39,7 +39,6 @@ function toUIBook(db: any) {
     cover: db.coverImageUrl ?? db.cover_image_url ?? null,
     tags: db.tags ?? null,
     classification: db.classification ?? null,
-    location: db.location ?? null,
     isbn: db.isbn ?? null,
     year: db.publicationYear ?? db.publication_year ?? db.year ?? null,
     publisher: db.publisher ?? null,

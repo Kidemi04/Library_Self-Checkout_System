@@ -65,7 +65,6 @@ export default async function BookItemsPage({
       author: book.author ?? null,
       isbn: book.isbn ?? null,
       classification: book.classification ?? null,
-      location: book.location ?? null,
       publisher: book.publisher ?? null,
       publication_year: book.publicationYear ?? null,
       tags: book.tags ?? null,

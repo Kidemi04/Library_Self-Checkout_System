@@ -19,16 +19,35 @@ type BookRow = {
   author: string | null;
   isbn: string | null;
   classification: string | null;
-  location: string | null;
+  publisher: string | null;
+  publication_year: string | null;
   cover_image_url: string | null;
-  last_transaction_at: string | null;
   copies: CopyRow[] | null;
+};
+
+const normalizeCopyStatus = (value: string | null | undefined) => {
+  if (typeof value !== 'string') return 'available';
+  switch (value.trim().toUpperCase()) {
+    case 'ON_LOAN':
+      return 'on_loan';
+    case 'LOST':
+      return 'lost';
+    case 'DAMAGED':
+      return 'damaged';
+    case 'PROCESSING':
+      return 'processing';
+    case 'HOLD_SHELF':
+      return 'hold_shelf';
+    case 'AVAILABLE':
+    default:
+      return 'available';
+  }
 };
 
 const countAvailableCopies = (copies: CopyRow[] | null | undefined): number => {
   if (!copies || copies.length === 0) return 0;
   return copies.filter((copy) => {
-    const status = typeof copy.status === 'string' ? copy.status.trim().toLowerCase() : 'available';
+    const status = normalizeCopyStatus(copy.status);
     if (status !== 'available') return false;
     const hasActiveLoan = Array.isArray(copy.loans)
       ? copy.loans.some((loan) => loan.returned_at == null)
@@ -41,7 +60,7 @@ const findFirstAvailableCopy = (copies: CopyRow[] | null | undefined): CopyRow |
   if (!copies) return null;
   return (
     copies.find((copy) => {
-      const status = typeof copy.status === 'string' ? copy.status.trim().toLowerCase() : 'available';
+      const status = normalizeCopyStatus(copy.status);
       if (status !== 'available') return false;
       const hasActiveLoan = Array.isArray(copy.loans)
         ? copy.loans.some((loan) => loan.returned_at == null)
@@ -61,9 +80,9 @@ const mapBookResponse = (book: BookRow) => {
     author: book.author,
     isbn: book.isbn,
     classification: book.classification,
-    location: book.location,
+    publisher: book.publisher,
+    publication_year: book.publication_year,
     cover_image_url: book.cover_image_url,
-    last_transaction_at: book.last_transaction_at,
     available_copies: availableCopies,
     total_copies: totalCopies,
     status: availableCopies > 0 ? 'available' : 'checked_out',
@@ -121,9 +140,9 @@ export async function GET(request: Request) {
           author,
           isbn,
           classification,
-          location,
+          publisher,
+          publication_year,
           cover_image_url,
-          last_transaction_at,
           copies:copies(
             id,
             book_id,
@@ -161,9 +180,9 @@ export async function GET(request: Request) {
           author,
           isbn,
           classification,
-          location,
+          publisher,
+          publication_year,
           cover_image_url,
-          last_transaction_at,
           copies:copies(
             id,
             book_id,

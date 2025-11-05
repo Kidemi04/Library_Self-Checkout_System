@@ -252,10 +252,10 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
                   <div>
                     <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Identifiers</dt>
                     <dd className="text-sm">
-                      {selectedBook.barcode ? `Barcode ${selectedBook.barcode}` : null}
-                      {selectedBook.barcode && selectedBook.isbn ? ' — ' : ''}
+                      {selectedCopyBarcode ? `Barcode ${selectedCopyBarcode}` : null}
+                      {selectedCopyBarcode && selectedBook.isbn ? ' – ' : ''}
                       {selectedBook.isbn ? `ISBN ${selectedBook.isbn}` : null}
-                      {!selectedBook.barcode && !selectedBook.isbn ? 'Not provided' : null}
+                      {!selectedCopyBarcode && !selectedBook.isbn ? 'Not provided' : null}
                     </dd>
                   </div>
                   <div>
@@ -270,10 +270,10 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
                       <dd className="text-sm">{selectedCopyBarcode}</dd>
                     </div>
                   ) : null}
-                  {selectedBook.location ? (
+                  {selectedBook.publisher ? (
                     <div>
-                      <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Location</dt>
-                      <dd className="text-sm">{selectedBook.location}</dd>
+                      <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Publisher</dt>
+                      <dd className="text-sm">{selectedBook.publisher}</dd>
                     </div>
                   ) : null}
                   {selectedBook.classification ? (
@@ -389,12 +389,31 @@ type ApiBook = {
   author: string | null;
   isbn: string | null;
   classification: string | null;
-  location: string | null;
+  publisher: string | null;
+  publication_year: string | null;
   cover_image_url: string | null;
   available_copies?: number | null;
   total_copies?: number | null;
-  last_transaction_at: string | null;
   copies: ApiBookCopy[] | null;
+};
+
+const normalizeCopyStatus = (value: string | null | undefined): Book['copies'][number]['status'] => {
+  if (typeof value !== 'string') return 'available';
+  switch (value.trim().toUpperCase()) {
+    case 'ON_LOAN':
+      return 'on_loan';
+    case 'LOST':
+      return 'lost';
+    case 'DAMAGED':
+      return 'damaged';
+    case 'PROCESSING':
+      return 'processing';
+    case 'HOLD_SHELF':
+      return 'hold_shelf';
+    case 'AVAILABLE':
+    default:
+      return 'available';
+  }
 };
 
 const isCopyAvailable = (copy: Book['copies'][number]): boolean => {
@@ -419,9 +438,7 @@ const mapApiBookToBook = (apiBook: ApiBook): Book => {
       id: copy.id,
       bookId: copy.book_id,
       barcode: copy.barcode ?? '',
-      status: (copy.status ?? 'available') as Book['copies'][number]['status'],
-      location: null,
-      lastInventoryAt: null,
+      status: normalizeCopyStatus(copy.status),
       loans: (copy.loans ?? []).map((loan) => ({
         id: loan.id,
         returnedAt: loan.returned_at ?? null,
@@ -442,16 +459,13 @@ const mapApiBookToBook = (apiBook: ApiBook): Book => {
     author: apiBook.author ?? null,
     isbn: apiBook.isbn ?? null,
     classification: apiBook.classification ?? null,
-    location: apiBook.location ?? null,
     coverImageUrl: apiBook.cover_image_url ?? null,
-    description: null,
-    publisher: null,
-    publicationYear: null,
+    publisher: apiBook.publisher ?? null,
+    publicationYear: apiBook.publication_year ?? null,
     tags: [],
     copies,
     totalCopies,
     availableCopies,
-    lastTransactionAt: apiBook.last_transaction_at ?? null,
     createdAt: null,
     updatedAt: null,
   };

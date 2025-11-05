@@ -2,13 +2,11 @@ import type { DashboardRole } from '@/app/lib/auth/types';
 
 export type CopyStatus =
   | 'available'
-  | 'loaned'
-  | 'checked_out'
-  | 'reserved'
-  | 'on_hold'
-  | 'maintenance'
+  | 'on_loan'
   | 'lost'
-  | 'missing';
+  | 'damaged'
+  | 'processing'
+  | 'hold_shelf';
 
 export interface BookTag {
   id: string;
@@ -25,9 +23,9 @@ export interface Copy {
   bookId: string;
   barcode: string;
   status: CopyStatus;
-  location: string | null;
-  lastInventoryAt: string | null;
   loans?: CopyLoanSnapshot[];
+  createdAt?: string | null;
+  updatedAt?: string | null;
 }
 
 export interface Book {
@@ -36,16 +34,13 @@ export interface Book {
   author: string | null;
   isbn: string | null;
   classification: string | null;
-  location: string | null;
   coverImageUrl: string | null;
-  description?: string | null;
-  publisher?: string | null;
-  publicationYear?: string | null;
+  publisher: string | null;
+  publicationYear: string | null;
   tags: string[];
   copies: Copy[];
   totalCopies: number;
   availableCopies: number;
-  lastTransactionAt: string | null;
   createdAt: string | null;
   updatedAt: string | null;
 }
@@ -57,20 +52,21 @@ export interface Loan {
   copyId: string;
   bookId: string | null;
   borrowerId: string | null;
-  borrowerIdentifier: string | null;
   borrowerName: string | null;
   borrowerEmail: string | null;
+  borrowerIdentifier: string | null;
   borrowerRole: DashboardRole | null;
   handledBy: string | null;
   status: LoanStatus;
   borrowedAt: string;
   dueAt: string;
   returnedAt: string | null;
+  renewedCount: number;
   createdAt: string | null;
   updatedAt: string | null;
   copy?: {
     id: string;
-    barcode: string;
+    barcode: string | null;
   } | null;
   book?: {
     id: string;

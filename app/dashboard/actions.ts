@@ -40,11 +40,15 @@ const logAuditEvent = async (
 ) => {
   try {
     await supabase.from('audit_log').insert({
-      table_name: table,
-      record_id: recordId,
-      action,
-      changed_data: payload ?? null,
-      performed_by: performedBy ?? null,
+      event_type: action,
+      entity: table,
+      entity_id: recordId,
+      actor_id: performedBy ?? null,
+      actor_role: null,
+      source: 'ui',
+      success: true,
+      diff: payload ?? null,
+      context: null,
     });
   } catch (error) {
     console.error('Audit log insert failed', error);
@@ -55,6 +59,171 @@ type AvailableCopy = {
   id: string;
   bookId: string;
   barcode: string | null;
+};
+
+const normalizeCopyStatus = (value: string | null | undefined) => {
+  if (typeof value !== 'string') return 'available';
+  switch (value.trim().toUpperCase()) {
+    case 'ON_LOAN':
+      return 'on_loan';
+    case 'LOST':
+      return 'lost';
+    case 'DAMAGED':
+      return 'damaged';
+    case 'PROCESSING':
+      return 'processing';
+    case 'HOLD_SHELF':
+      return 'hold_shelf';
+    case 'AVAILABLE':
+    default:
+      return 'available';
+  }
+};
+
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+const isUuid = (value: string) => UUID_REGEX.test(value);
+
+const isEmail = (value: string) => value.includes('@');
+
+type BorrowerRecord = {
+  id: string;
+  email: string | null;
+  role: string | null;
+  profile: {
+    display_name: string | null;
+    student_id: string | null;
+  } | null;
+};
+
+const fetchUserWithProfile = async (supabase: SupabaseClient, filters: Record<string, string>) => {
+  const query = supabase
+    .from('users')
+    .select(
+      `
+        id,
+        email,
+        role,
+        profile:user_profiles(
+          display_name,
+          student_id
+        )
+      `,
+    )
+    .limit(1);
+
+  Object.entries(filters).forEach(([column, value]) => {
+    query.eq(column, value);
+  });
+
+  const { data, error } = await query.maybeSingle<BorrowerRecord>();
+  if (error || !data) {
+    return null;
+  }
+  return data;
+};
+
+const loadBorrowerByIdentifier = async (
+  supabase: SupabaseClient,
+  rawIdentifier: string,
+): Promise<BorrowerRecord | null> => {
+  const identifier = rawIdentifier.trim();
+  if (!identifier) return null;
+
+  if (isUuid(identifier)) {
+    const user = await fetchUserWithProfile(supabase, { id: identifier });
+    if (user) return user;
+  }
+
+  if (isEmail(identifier)) {
+    const user = await fetchUserWithProfile(supabase, { email: identifier.toLowerCase() });
+    if (user) return user;
+  }
+
+  const { data: studentMatch } = await supabase
+    .from('user_profiles')
+    .select('user_id')
+    .eq('student_id', identifier)
+    .maybeSingle<{ user_id: string }>();
+
+  if (studentMatch?.user_id) {
+    const user = await fetchUserWithProfile(supabase, { id: studentMatch.user_id });
+    if (user) return user;
+  }
+
+  const { data: usernameMatch } = await supabase
+    .from('user_profiles')
+    .select('user_id')
+    .eq('username', identifier)
+    .maybeSingle<{ user_id: string }>();
+
+  if (usernameMatch?.user_id) {
+    const user = await fetchUserWithProfile(supabase, { id: usernameMatch.user_id });
+    if (user) return user;
+  }
+
+  return null;
+};
+
+const upsertProfileFields = async (
+  supabase: SupabaseClient,
+  userId: string,
+  updates: { display_name?: string | null; student_id?: string | null },
+) => {
+  const payload: Record<string, string | null> = { user_id: userId };
+  if (typeof updates.display_name === 'string') {
+    payload.display_name = updates.display_name;
+  }
+  if (typeof updates.student_id === 'string') {
+    payload.student_id = updates.student_id;
+  }
+
+  if (Object.keys(payload).length > 1) {
+    await supabase.from('user_profiles').upsert(payload, { onConflict: 'user_id' });
+  }
+};
+
+const activeLoanSelect = `
+  id,
+  copy_id,
+  user_id,
+  borrowed_at,
+  due_at,
+  returned_at,
+  handled_by,
+  copy:copies(
+    id,
+    book_id,
+    barcode
+  ),
+  borrower:users!loans_user_id_fkey(
+    id,
+    email,
+    profile:user_profiles(
+      display_name,
+      student_id
+    )
+  )
+`;
+
+type ActiveLoanRow = {
+  id: string;
+  copy_id: string;
+  user_id: string | null;
+  borrowed_at: string;
+  due_at: string;
+  returned_at: string | null;
+  handled_by: string | null;
+  copy: { id: string; book_id: string | null; barcode: string | null } | null;
+  borrower?: {
+    id: string;
+    email: string | null;
+    profile?: {
+      display_name: string | null;
+      student_id: string | null;
+    } | null;
+  } | null;
 };
 
 const findAvailableCopyForBook = async (
@@ -86,7 +255,7 @@ const findAvailableCopyForBook = async (
   }
 
   const candidate = data.find((copy) => {
-    const status = typeof copy.status === 'string' ? copy.status.trim().toLowerCase() : 'available';
+    const status = normalizeCopyStatus(copy.status);
     if (status !== 'available') return false;
     const hasActiveLoan = Array.isArray(copy.loans)
       ? copy.loans.some((loan) => loan.returned_at == null)
@@ -103,56 +272,6 @@ const findAvailableCopyForBook = async (
   };
 };
 
-const loanSelection = `
-  id,
-  copy_id,
-  book_id,
-  borrower_name,
-  borrower_identifier,
-  status,
-  returned_at,
-  borrowed_at,
-  copy:copies(
-    id,
-    barcode,
-    book_id
-  )
-`;
-
-type RawActiveLoan = {
-  id: string;
-  copy_id: string;
-  book_id: string | null;
-  borrower_name: string | null;
-  borrower_identifier: string | null;
-  status: string | null;
-  returned_at: string | null;
-  borrowed_at: string;
-  copy: { id: string; barcode: string | null; book_id: string | null } | null;
-};
-
-type ActiveLoan = {
-  id: string;
-  copyId: string;
-  bookId: string | null;
-  borrowerName: string | null;
-  borrowerIdentifier: string | null;
-  status: string;
-  copyBarcode: string | null;
-  borrowedAt: string;
-};
-
-const mapLoan = (row: RawActiveLoan): ActiveLoan => ({
-  id: row.id,
-  copyId: row.copy_id,
-  bookId: row.book_id ?? row.copy?.book_id ?? null,
-  borrowerName: row.borrower_name ?? null,
-  borrowerIdentifier: row.borrower_identifier ?? null,
-  status: row.status ? row.status.trim().toLowerCase() : 'borrowed',
-  copyBarcode: row.copy?.barcode ?? null,
-  borrowedAt: row.borrowed_at,
-});
-
 export async function checkoutBookAction(
   _prevState: ActionState,
   formData: FormData,
@@ -160,12 +279,11 @@ export async function checkoutBookAction(
   const bookId = formData.get('bookId')?.toString();
   const copyId = formData.get('copyId')?.toString();
   const borrowerIdentifier = formData.get('borrowerIdentifier')?.toString().trim();
-  const borrowerName = formData.get('borrowerName')?.toString().trim();
+  const borrowerName = formData.get('borrowerName')?.toString().trim() || null;
   const dueDateInput = formData.get('dueDate')?.toString();
 
   if (!bookId) return failure('Select a book to borrow.');
   if (!borrowerIdentifier) return failure('Borrower ID is required.');
-  if (!borrowerName) return failure('Borrower name is required.');
   if (!dueDateInput) return failure('Provide a due date.');
 
   const dueDate = new Date(dueDateInput);
@@ -177,6 +295,11 @@ export async function checkoutBookAction(
   const handlerId = await getCurrentUserId();
   const borrowedAt = new Date().toISOString();
   const dueAt = dueDate.toISOString();
+
+  const borrower = await loadBorrowerByIdentifier(supabase, borrowerIdentifier);
+  if (!borrower) {
+    return failure('No patron matches that ID or email.');
+  }
 
   let copy: AvailableCopy | null = null;
 
@@ -217,7 +340,7 @@ export async function checkoutBookAction(
       return failure('Selected copy does not belong to the chosen book.');
     }
 
-    const status = copyRow.status ? copyRow.status.trim().toLowerCase() : 'available';
+    const status = normalizeCopyStatus(copyRow.status);
     const hasActiveLoan = Array.isArray(copyRow.loans)
       ? copyRow.loans.some((loan) => loan.returned_at == null)
       : false;
@@ -247,11 +370,8 @@ export async function checkoutBookAction(
   const { data: loanRow, error: insertLoanError } = await supabase
     .from('loans')
     .insert({
-      book_id: bookId,
       copy_id: copy.id,
-      borrower_identifier: borrowerIdentifier,
-      borrower_name: borrowerName,
-      status: 'borrowed',
+      user_id: borrower.id,
       borrowed_at: borrowedAt,
       due_at: dueAt,
       handled_by: handlerId,
@@ -269,8 +389,7 @@ export async function checkoutBookAction(
   const { error: copyUpdateError } = await supabase
     .from('copies')
     .update({
-      status: 'loaned',
-      last_inventory_at: borrowedAt,
+      status: 'ON_LOAN',
     })
     .eq('id', copy.id);
 
@@ -282,13 +401,21 @@ export async function checkoutBookAction(
     return failure('Loan cancelled because the copy status could not be updated.');
   }
 
-  const { error: bookUpdateError } = await supabase
-    .from('books')
-    .update({ last_transaction_at: borrowedAt })
-    .eq('id', bookId);
-
-  if (bookUpdateError) {
-    console.error('Failed to update book transaction timestamp', bookUpdateError);
+  if (borrowerName || (!isEmail(borrowerIdentifier) && !isUuid(borrowerIdentifier))) {
+    const profileUpdates: { display_name?: string | null; student_id?: string | null } = {};
+    if (!borrower.profile?.display_name && borrowerName) {
+      profileUpdates.display_name = borrowerName;
+    }
+    if (
+      !borrower.profile?.student_id &&
+      !isEmail(borrowerIdentifier) &&
+      !isUuid(borrowerIdentifier)
+    ) {
+      profileUpdates.student_id = borrowerIdentifier;
+    }
+    if (Object.keys(profileUpdates).length > 0) {
+      await upsertProfileFields(supabase, borrower.id, profileUpdates);
+    }
   }
 
   if (loanId) {
@@ -299,8 +426,9 @@ export async function checkoutBookAction(
       performedBy: handlerId,
       payload: {
         copy_id: copy.id,
-        borrower_identifier: borrowerIdentifier,
+        user_id: borrower.id,
         due_at: dueAt,
+        borrowed_at: borrowedAt,
       },
     });
   }
@@ -309,7 +437,8 @@ export async function checkoutBookAction(
   revalidatePath('/dashboard/check-out');
   revalidatePath('/dashboard/book-items');
 
-  return success(`Loan recorded for ${borrowerName}.`);
+  const borrowerLabel = borrowerName ?? borrower.profile?.display_name ?? borrower.email ?? 'borrower';
+  return success(`Loan recorded for ${borrowerLabel}.`);
 }
 
 export async function checkinBookAction(
@@ -317,36 +446,41 @@ export async function checkinBookAction(
   formData: FormData,
 ): Promise<ActionState> {
   const loanId = formData.get('loanId')?.toString();
-  const identifier = formData.get('identifier')?.toString().trim();
+  const identifierRaw = formData.get('identifier')?.toString().trim();
 
-  if (!loanId && !identifier) {
+  if (!loanId && !identifierRaw) {
     return failure('Provide a loan reference, borrower ID, or copy barcode.');
   }
 
   const supabase = getSupabaseServerClient();
+  const handlerId = await getCurrentUserId();
+  const nowIso = new Date().toISOString();
 
-  let rawLoan: RawActiveLoan | null = null;
+  let loan: ActiveLoanRow | null = null;
 
   if (loanId) {
     const { data, error } = await supabase
       .from('loans')
-      .select(loanSelection)
+      .select(activeLoanSelect)
       .eq('id', loanId)
-      .maybeSingle<RawActiveLoan>();
+      .is('returned_at', null)
+      .maybeSingle();
 
     if (error) {
       console.error('Loan lookup by id failed', error);
       return failure('Unable to locate that loan.');
     }
 
-    if (!data) {
-      return failure('No loan matches that reference.');
+    if (data) {
+      loan = (data as unknown) as ActiveLoanRow;
+    } else {
+      return failure('No active loan matches that reference.');
     }
-
-    rawLoan = data;
   }
 
-  if (!rawLoan && identifier) {
+  const identifier = identifierRaw ?? '';
+
+  if (!loan && identifier) {
     const { data: copyMatch, error: copyError } = await supabase
       .from('copies')
       .select('id, book_id, barcode')
@@ -359,63 +493,59 @@ export async function checkinBookAction(
     }
 
     if (copyMatch) {
-      const { data: loanByCopy, error: loanByCopyError } = await supabase
+      const { data, error } = await supabase
         .from('loans')
-        .select(loanSelection)
+        .select(activeLoanSelect)
         .eq('copy_id', copyMatch.id)
         .is('returned_at', null)
-        .maybeSingle<RawActiveLoan>();
+        .maybeSingle();
 
-      if (loanByCopyError) {
-        console.error('Loan lookup by copy failed', loanByCopyError);
+      if (error) {
+        console.error('Loan lookup by copy failed', error);
         return failure('Unable to locate an active loan for that copy.');
       }
 
-      if (loanByCopy) {
-        rawLoan = loanByCopy;
+      if (data) {
+        loan = (data as unknown) as ActiveLoanRow;
       }
     }
   }
 
-  if (!rawLoan && identifier) {
-    const { data: loanByBorrower, error: loanByBorrowerError } = await supabase
-      .from('loans')
-      .select(loanSelection)
-      .eq('borrower_identifier', identifier)
-      .is('returned_at', null)
-      .order('borrowed_at', { ascending: false })
-      .limit(1)
-      .maybeSingle<RawActiveLoan>();
+  if (!loan && identifier) {
+    const borrower = await loadBorrowerByIdentifier(supabase, identifier);
+    if (borrower) {
+      const { data, error } = await supabase
+        .from('loans')
+        .select(activeLoanSelect)
+        .eq('user_id', borrower.id)
+        .is('returned_at', null)
+        .order('borrowed_at', { ascending: true })
+        .limit(2);
 
-    if (loanByBorrowerError) {
-      console.error('Loan lookup by borrower failed', loanByBorrowerError);
-      return failure('Unable to locate an active loan for that borrower.');
-    }
+      if (error) {
+        console.error('Loan lookup by borrower failed', error);
+        return failure('Unable to locate active loans for that borrower.');
+      }
 
-    if (loanByBorrower) {
-      rawLoan = loanByBorrower;
+      const rows = ((data ?? []) as unknown) as ActiveLoanRow[];
+
+      if (rows.length === 0) {
+        return failure('That borrower has no active loans.');
+      }
+
+      if (rows.length > 1) {
+        return failure('Multiple active loans found. Scan the barcode or enter the specific loan ID.');
+      }
+
+      loan = rows[0] ?? null;
     }
   }
 
-  if (!rawLoan) {
+  if (!loan) {
     return failure('No active loan matched the provided reference.');
   }
 
-  if (rawLoan.returned_at) {
-    return failure('This loan has already been returned.');
-  }
-
-  const normalizedStatus = rawLoan.status ? rawLoan.status.trim().toLowerCase() : 'borrowed';
-  if (normalizedStatus !== 'borrowed' && normalizedStatus !== 'overdue') {
-    return failure('This loan is not currently active.');
-  }
-
-  const loan = mapLoan(rawLoan);
-  const handlerId = await getCurrentUserId();
-  const nowIso = new Date().toISOString();
-
   const loanUpdatePayload: Record<string, unknown> = {
-    status: 'returned',
     returned_at: nowIso,
   };
 
@@ -435,30 +565,16 @@ export async function checkinBookAction(
 
   const { error: copyUpdateError } = await supabase
     .from('copies')
-    .update({
-      status: 'available',
-      last_inventory_at: nowIso,
-    })
-    .eq('id', loan.copyId);
+    .update({ status: 'AVAILABLE' })
+    .eq('id', loan.copy_id);
 
   if (copyUpdateError) {
     console.error('Failed to update copy during return processing', copyUpdateError);
     await supabase
       .from('loans')
-      .update({ status: normalizedStatus, returned_at: null })
+      .update({ returned_at: null, handled_by: loan.handled_by ?? null })
       .eq('id', loan.id);
     return failure('Copy status update failed; the loan remains active.');
-  }
-
-  if (loan.bookId) {
-    const { error: bookUpdateError } = await supabase
-      .from('books')
-      .update({ last_transaction_at: nowIso })
-      .eq('id', loan.bookId);
-
-    if (bookUpdateError) {
-      console.error('Failed to update book transaction timestamp', bookUpdateError);
-    }
   }
 
   await logAuditEvent(supabase, {
@@ -467,31 +583,20 @@ export async function checkinBookAction(
     action: 'update',
     performedBy: handlerId,
     payload: {
-      status: 'returned',
       returned_at: nowIso,
     },
   });
 
-  let bookTitle = 'Book';
-  if (loan.bookId) {
-    const { data: bookRow, error: bookLookupError } = await supabase
-      .from('books')
-      .select('title')
-      .eq('id', loan.bookId)
-      .maybeSingle<{ title: string | null }>();
-    if (!bookLookupError && bookRow?.title) {
-      bookTitle = bookRow.title;
-    }
-  } else if (loan.copyBarcode) {
-    bookTitle = `Copy ${loan.copyBarcode}`;
-  }
+  const borrowerLabel =
+    loan.borrower?.profile?.display_name ?? loan.borrower?.email ?? 'borrower';
+  const copyLabel = loan.copy?.barcode ? `copy ${loan.copy.barcode}` : 'the item';
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/check-in');
   revalidatePath('/dashboard/check-out');
   revalidatePath('/dashboard/book-items');
 
-  return success(`${bookTitle} returned successfully.`);
+  return success(`Marked ${copyLabel} as returned for ${borrowerLabel}.`);
 }
 
 export async function updateBookAction(
@@ -500,9 +605,12 @@ export async function updateBookAction(
 ): Promise<ActionState> {
   const bookId = formData.get('bookId')?.toString();
   const title = formData.get('title')?.toString().trim();
+  const author = formData.get('author')?.toString().trim() || null;
+  const isbn = formData.get('isbn')?.toString().trim() || null;
   const classificationRaw = formData.get('classification')?.toString();
-  const locationRaw = formData.get('location')?.toString();
-  const statusRaw = formData.get('status')?.toString();
+  const publisherRaw = formData.get('publisher')?.toString();
+  const publicationYearRaw = formData.get('publicationYear')?.toString();
+  const coverImageUrl = formData.get('coverImageUrl')?.toString().trim() || null;
 
   if (!bookId) return failure('Book reference is missing.');
   if (!title) return failure('Book title is required.');
@@ -511,14 +619,14 @@ export async function updateBookAction(
 
   const updatePayload: Record<string, unknown> = {
     title,
+    author,
+    isbn,
     classification: classificationRaw?.trim() || null,
-    location: locationRaw?.trim() || null,
+    publisher: publisherRaw?.trim() || null,
+    publication_year: publicationYearRaw?.trim() || null,
+    cover_image_url: coverImageUrl,
     updated_at: new Date().toISOString(),
   };
-
-  if (statusRaw) {
-    updatePayload.status = statusRaw.trim();
-  }
 
   const { error } = await supabase.from('books').update(updatePayload).eq('id', bookId);
 
@@ -588,8 +696,9 @@ export async function createBookAction(
   const author = formData.get('author')?.toString().trim() || null;
   const isbn = formData.get('isbn')?.toString().trim() || null;
   const classification = formData.get('classification')?.toString().trim() || null;
-  const location = formData.get('location')?.toString().trim() || null;
   const coverImageUrl = formData.get('coverImageUrl')?.toString().trim() || null;
+  const publisher = formData.get('publisher')?.toString().trim() || null;
+  const publicationYear = formData.get('publicationYear')?.toString().trim() || null;
   const copyBarcodeSingle = formData.get('barcode')?.toString().trim() || null;
   const copyBarcodeList = formData.get('copyBarcodes')?.toString() ?? null;
 
@@ -643,9 +752,10 @@ export async function createBookAction(
       author,
       isbn,
       classification,
-      location,
+      publisher,
+      publication_year: publicationYear,
       cover_image_url: coverImageUrl,
-      last_transaction_at: nowIso,
+      updated_at: nowIso,
     })
     .select('id')
     .single();
@@ -658,7 +768,7 @@ export async function createBookAction(
   const copyRows = barcodes.map((barcode) => ({
     book_id: bookRow.id,
     barcode,
-    status: 'available',
+    status: 'AVAILABLE',
   }));
 
   const { error: copyInsertError } = await supabase.from('copies').insert(copyRows);

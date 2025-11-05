@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import type { Session } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';

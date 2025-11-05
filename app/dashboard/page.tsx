@@ -27,7 +27,7 @@ export default async function UserDashboardPage() {
     redirect('/login');
   }
 
-  if (user.role === 'staff' || user.role === 'admin') {
+  if (user.role === 'admin') {
     redirect('/dashboard/admin');
   }
 

@@ -39,7 +39,14 @@ export default function UserManagementPage() {
       return;
     }
 
-    const mapped: ManagedUser[] = (data ?? []).map((row) => ({
+    const rows = (data ?? []) as Array<{
+      id: string;
+      email: string;
+      role: string | null;
+      profile?: { display_name?: string | null } | null;
+    }>;
+
+    const mapped: ManagedUser[] = rows.map((row) => ({
       id: row.id,
       email: row.email,
       role: (row.role ?? 'user') as ManagedUser['role'],

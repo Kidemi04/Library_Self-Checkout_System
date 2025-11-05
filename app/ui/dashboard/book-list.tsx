@@ -18,7 +18,6 @@ export type UIBook = {
   tags?: string[] | null;
   // catalogue metadata (optional)
   classification?: string | null; // call number
-  location?: string | null;       // shelf / branch
   isbn?: string | null;
   year?: string | number | null;  // or publication_year
   publisher?: string | null;
@@ -134,10 +133,9 @@ export default function BookList({
                 )}
 
                 {/* metadata row */}
-                {(b.classification || b.location || b.isbn || b.year || b.publisher) && (
+                {(b.classification || b.isbn || b.year || b.publisher) && (
                   <dl className="mt-2 grid grid-cols-1 gap-1 text-[11px] sm:text-xs text-slate-700 sm:grid-cols-2">
                     {b.classification && <MetaItem label="Call no.">{b.classification}</MetaItem>}
-                    {b.location && <MetaItem label="Location">{b.location}</MetaItem>}
                     {b.isbn && <MetaItem label="ISBN">ISBN {b.isbn}</MetaItem>}
                     {b.publisher && <MetaItem label="Publisher">{b.publisher}</MetaItem>}
                     {b.year && <MetaItem label="Year">{String(b.year)}</MetaItem>}
