@@ -34,7 +34,7 @@ export default async function UserDashboardPage() {
     redirect('/dashboard/admin');
   }
 
-  const isPrivileged = user.role === 'staff' || user.role === 'admin';
+  const isPrivileged = ['staff', 'admin'].includes(user.role);
   const headerClasses = clsx(
     'grid gap-4 rounded-xl p-5 shadow-md md:grid-cols-[1fr_minmax(0,260px)] md:items-center md:gap-6 md:rounded-2xl md:p-8',
     isPrivileged
@@ -92,7 +92,7 @@ export default async function UserDashboardPage() {
         <div>
           <p className="text-sm uppercase tracking-wide text-swin-ivory/60">Self-Service Desk</p>
           <h1 className="mt-2 text-2xl font-semibold">
-            Welcome back{user.name ? `, ${user.name}` : ''}!
+            Welcome back, <span className="md:inline hidden">{user.name || 'Library Member'}</span><span className="inline md:hidden">{user.username || user.name || 'Library Member'}</span>!
           </h1>
           <p className="mt-3 max-w-2xl text-sm text-swin-ivory/70">
             Quickly process borrowing and returning directly from this dashboard. Use the controls below to
@@ -101,7 +101,15 @@ export default async function UserDashboardPage() {
         </div>
         <div className="rounded-2xl border border-swin-ivory/15 bg-swin-ivory/10 p-5 text-sm text-swin-ivory/90 shadow-inner shadow-black/10">
           <p className="text-xs uppercase tracking-wide text-swin-ivory/60">Signed in</p>
-          {user.email ? <p className="mt-1 text-base font-semibold text-swin-ivory">{user.email}</p> : null}
+          {user.email ? (
+            <p className={clsx(
+              "mt-1 font-semibold text-swin-ivory break-words",
+              user.email.length > 30 ? "text-sm md:text-base" : "text-base",
+              user.email.length > 40 ? "text-xs md:text-base" : "text-base"
+            )}>
+              {user.email}
+            </p>
+          ) : null}
           <p className="mt-2 inline-flex items-center gap-2 rounded-full border border-swin-ivory/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-swin-ivory/80">
             Role: {roleLabel(user.role)}
           </p>
