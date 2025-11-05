@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import clsx from 'clsx';
 import { checkoutBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/action-state';
@@ -16,7 +16,7 @@ interface CheckOutFormProps {
 }
 
 export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProps) {
-  const [state, formAction] = useFormState(checkoutBookAction, initialActionState);
+  const [state, formAction] = useActionState(checkoutBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
   const borrowerIdRef = useRef<HTMLInputElement | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState(false);

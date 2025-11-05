@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import NavLinks from '@/app/ui/dashboard/nav-links';
-import SignOutButton, { SwitchAccountButton } from '@/app/ui/dashboard/sign-out-button';
+import SignOutButton from '@/app/ui/dashboard/sign-out-button';
 import AcmeLogo from '@/app/ui/acme-logo';
 import clsx from 'clsx';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
@@ -165,9 +165,8 @@ const drawerSignOutClass = clsx(
             <nav className="flex flex-col gap-2">
               <NavLinks role={user.role} onNavigate={hideMenu} showLabels />
             </nav>
-            <div className="mt-10 flex flex-col gap-2">
+            <div className="mt-10">
               <SignOutButton className="flex h-[46px] w-full items-center justify-center gap-2 rounded-md border text-sm font-medium transition" />
-              <SwitchAccountButton className="flex h-[46px] w-full items-center justify-center gap-2 rounded-md border border-dashed text-sm font-medium transition" />
             </div>
           </div>
         </div>

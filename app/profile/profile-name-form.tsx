@@ -1,6 +1,7 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import clsx from 'clsx';
 import { updateProfileNamesAction, type ProfileNameFormState } from '@/app/profile/actions';
 
@@ -70,7 +71,7 @@ export default function ProfileNameForm({
   studentId,
   isPrivileged,
 }: ProfileNameFormProps) {
-  const [state, formAction] = useFormState(updateProfileNamesAction, {
+  const [state, formAction] = useActionState(updateProfileNamesAction, {
     status: 'idle',
     message: undefined,
   } satisfies ProfileNameFormState);

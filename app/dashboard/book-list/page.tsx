@@ -28,15 +28,21 @@ function pick(v?: string | string[] | null) {
   return v ?? '';
 }
 
+type SearchParams =
+  | Record<string, string | string[] | undefined>
+  | Promise<Record<string, string | string[] | undefined>>;
+
 export default async function BookItemsPage({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[]>;
+  searchParams?: SearchParams;
 }) {
   noStore();
 
   // Read search (optional)
-  const q = pick(searchParams?.q).trim();
+  const params: Record<string, string | string[] | undefined> =
+    (await searchParams) ?? {};
+  const q = pick(params?.q).trim();
 
   // 1) Fetch from Supabase (server)
   const dbBooks = await fetchBooks(q || undefined);
