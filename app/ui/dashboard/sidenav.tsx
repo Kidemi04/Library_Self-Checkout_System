@@ -2,7 +2,7 @@ import Link from 'next/link';
 import clsx from 'clsx';
 import NavLinks from '@/app/ui/dashboard/nav-links';
 import AcmeLogo from '@/app/ui/acme-logo';
-import SignOutButton from '@/app/ui/dashboard/sign-out-button';
+import SignOutButton, { SwitchAccountButton } from '@/app/ui/dashboard/sign-out-button';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 
 type SideNavProps = {
@@ -46,15 +46,26 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
           ) : null}
           <NavLinks role={user.role} />
         </nav>
-        <SignOutButton
-          className={clsx(
-            'flex h-[48px] w-full items-center justify-center gap-2 rounded-md bg-transparent text-sm font-medium md:justify-start md:px-3',
-            isPrivileged
-              ? 'border border-white/20 text-slate-100/80 hover:bg-white/10 hover:text-white'
-              : 'border border-swin-red/40 text-swin-ivory/80 hover:bg-swin-red hover:text-swin-ivory',
-          )}
-          labelClassName="hidden md:block"
-        />
+        <div className="flex flex-col gap-2">
+          <SignOutButton
+            className={clsx(
+              'flex h-[44px] w-full items-center justify-center gap-2 rounded-md bg-transparent text-sm font-medium md:justify-start md:px-3',
+              isPrivileged
+                ? 'border border-white/20 text-slate-100/80 hover:bg-white/10 hover:text-white'
+                : 'border border-swin-red/40 text-swin-ivory/80 hover:bg-swin-red hover:text-swin-ivory',
+            )}
+            labelClassName="hidden md:block"
+          />
+          <SwitchAccountButton
+            className={clsx(
+              'flex h-[44px] w-full items-center justify-center gap-2 rounded-md text-sm font-medium md:justify-start md:px-3',
+              isPrivileged
+                ? 'border border-white/20 text-slate-100/70 hover:bg-white/5 hover:text-white'
+                : 'border border-swin-ivory/30 text-swin-ivory/70 hover:bg-swin-ivory/10 hover:text-swin-ivory',
+            )}
+            labelClassName="hidden md:block"
+          />
+        </div>
       </div>
     </aside>
   );
