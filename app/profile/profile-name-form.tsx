@@ -53,11 +53,11 @@ function SubmitButton({ isPrivileged }: { isPrivileged: boolean }) {
       type="submit"
       disabled={pending}
       className={clsx(
-        'inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2',
+        'w-full sm:w-auto inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2',
         pending ? 'opacity-80' : '',
         isPrivileged
           ? 'bg-slate-800 text-slate-100 focus:ring-slate-500 focus:ring-offset-slate-900 hover:bg-slate-700'
-          : 'bg-slate-900 text-white focus:ring-slate-500 hover:bg-slate-800',
+          : 'bg-swin-red text-white focus:ring-swin-red hover:bg-swin-red/90',
       )}
     >
       {pending ? 'Saving…' : 'Save changes'}
@@ -77,60 +77,27 @@ export default function ProfileNameForm({
   } satisfies ProfileNameFormState);
 
   return (
-    <form action={formAction} className={containerClass(isPrivileged)}>
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="display_name" className={labelClass(isPrivileged)}>
-            Display name
-          </label>
-          <input
-            id="display_name"
-            name="display_name"
-            type="text"
-            defaultValue={displayName ?? ''}
-            placeholder="Preferred name"
-            className={fieldClass(isPrivileged)}
-            maxLength={120}
-          />
-          <p className={helperClass(isPrivileged)}>Shown across the application.</p>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="username" className={labelClass(isPrivileged)}>
-            Username
-          </label>
-          <input
-            id="username"
-            name="username"
-            type="text"
-            defaultValue={username ?? ''}
-            placeholder="Unique username"
-            className={fieldClass(isPrivileged)}
-            maxLength={60}
-          />
-          <p className={helperClass(isPrivileged)}>Letters, numbers, and underscores only.</p>
-        </div>
-
-        <div className="flex flex-col gap-1.5 md:col-span-2">
-          <label htmlFor="student_id" className={labelClass(isPrivileged)}>
-            Student ID
-          </label>
-          <input
-            id="student_id"
-            name="student_id"
-            type="text"
-            value={studentId ?? ''}
-            readOnly
-            className={clsx(fieldClass(isPrivileged), 'cursor-not-allowed opacity-70')}
-          />
-          <p className={helperClass(isPrivileged)}>Student ID can only be updated by library staff.</p>
-        </div>
+    <form action={formAction} className="flex flex-col sm:flex-row gap-3">
+      <div className="flex-1">
+        <input
+          id="display_name"
+          name="display_name"
+          type="text"
+          defaultValue={displayName ?? ''}
+          placeholder="Enter your display name"
+          className={clsx(
+            fieldClass(isPrivileged),
+            'w-full'
+          )}
+          maxLength={120}
+        />
+        {state.status !== 'idle' && (
+          <p className={clsx(messageClass(state, isPrivileged), 'mt-1 text-xs')}>
+            {state.message}
+          </p>
+        )}
       </div>
-
-      <div className="mt-4 flex items-center justify-between">
-        <p className={messageClass(state, isPrivileged)}>
-          {state.status === 'idle' ? 'Update your public details.' : state.message}
-        </p>
+      <div className="w-full sm:w-auto">
         <SubmitButton isPrivileged={isPrivileged} />
       </div>
     </form>

@@ -14,6 +14,11 @@ export type ProfileAvatarFormState = {
   message: string;
 };
 
+export type ProfileUpdateFormState = {
+  status: 'idle' | 'submitting' | 'success' | 'error';
+  message?: string;
+};
+
 export async function updateProfileNamesAction(
   _prevState: ProfileNameFormState,
   formData: FormData,
@@ -158,5 +163,86 @@ export async function updateProfileAvatar(
   } catch (error) {
     console.error('Error in updateProfileAvatar:', error);
     return { status: 'error', message: 'An unexpected error occurred.' };
+  }
+}
+
+export async function updateProfileAction(
+  prevState: ProfileUpdateFormState,
+  formData: FormData,
+): Promise<ProfileUpdateFormState> {
+  try {
+    const session = await getDashboardSession();
+    if (!session.user) {
+      return {
+        status: 'error',
+        message: 'You must be logged in to update your profile.',
+      };
+    }
+
+    const phoneNumber = formData.get('phone')?.toString().trim();
+
+    const updateData = {
+      username: formData.get('username')?.toString().trim() || null,
+      phone: phoneNumber || null,
+      preferred_language: formData.get('preferred_language')?.toString().trim() || null,
+      faculty: formData.get('faculty')?.toString().trim() || null,
+      department: formData.get('department')?.toString().trim() || null,
+      bio: formData.get('bio')?.toString().trim() || null,
+    };
+
+    // Validate fields
+    if (updateData.username && updateData.username.length > 60) {
+      return {
+        status: 'error',
+        message: 'Username is too long. Please keep it under 60 characters.',
+      };
+    }
+
+    if (updateData.bio && updateData.bio.length > 500) {
+      return {
+        status: 'error',
+        message: 'Bio is too long. Please keep it under 500 characters.',
+      };
+    }
+
+    const supabase = getSupabaseServerClient();
+    const { error } = await supabase
+      .from('user_profiles')
+      .upsert(
+        {
+          user_id: session.user.id,
+          ...updateData,
+        },
+        { onConflict: 'user_id' },
+      );
+
+    if (error) {
+      if (error.code === '23505') {
+        return {
+          status: 'error',
+          message: 'That username is already taken. Please choose another one.',
+        };
+      }
+
+      console.error('Failed to update profile:', error);
+      return {
+        status: 'error',
+        message: 'Unable to update your profile right now. Please try again later.',
+      };
+    }
+
+    revalidatePath('/profile');
+    revalidatePath('/dashboard/profile');
+
+    return {
+      status: 'success',
+      message: 'Profile updated successfully.',
+    };
+  } catch (error) {
+    console.error('Failed to update profile:', error);
+    return {
+      status: 'error',
+      message: 'An unexpected error occurred. Please try again.',
+    };
   }
 }

@@ -5,6 +5,7 @@ import { getDashboardSession } from '@/app/lib/auth/session';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import ProfileNameForm from '@/app/profile/profile-name-form';
 import ProfileAvatarForm from '@/app/profile/profile-avatar-form';
+import ProfileEditForm from '@/app/profile/profile-edit-form';
 
 type ProfileRow = {
   display_name?: string | null;
@@ -224,9 +225,16 @@ export default async function ProfilePage() {
       <div className={wrapperClass}>
         <div className={cardClass}>
           <div className={headerClass}>
+            {/* Mobile Back Button - Only visible on mobile */}
+            <div className="mb-6 sm:hidden">
+              <Link href="/dashboard" className={backButtonClass}>
+                Back to dashboard
+              </Link>
+            </div>
+
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <div className="flex items-center gap-4 sm:block">
+              <div className="flex flex-col items-center text-center sm:flex-row sm:items-start sm:text-left gap-4">
+                <div className="flex justify-center sm:block">
                   <ProfileAvatarForm 
                     avatarUrl={profile.avatar_url ?? null}
                     displayName={preferredName}
@@ -238,10 +246,12 @@ export default async function ProfilePage() {
                   <h1 className={headingClass}>
                     {preferredName ?? user.email ?? 'My Profile'}
                   </h1>
-                  <p className={subheadingClass}>{user.email ?? 'Email unavailable'}</p>
+                  <p className={clsx(subheadingClass, "break-words mt-1")}>
+                    {user.email ?? 'Email unavailable'}
+                  </p>
                   <div
                     className={clsx(
-                      'mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-medium',
+                      'mt-3 flex flex-wrap justify-center sm:justify-start items-center gap-x-3 gap-y-2 text-xs font-medium',
                       isPrivileged ? 'text-slate-300' : 'text-slate-600',
                     )}
                   >
@@ -254,73 +264,134 @@ export default async function ProfilePage() {
                 </div>
               </div>
 
-              <Link
-                href="/dashboard"
-                className={backButtonClass}
-              >
-                Back to dashboard
-              </Link>
+              {/* Desktop Back Button - Hidden on mobile */}
+              <div className="hidden sm:block">
+                <Link href="/dashboard" className={backButtonClass}>
+                  Back to dashboard
+                </Link>
+              </div>
             </div>
           </div>
 
-          <div className="px-6 py-8 sm:px-10">
-            <section className="grid gap-8 lg:grid-cols-2">
-              <div className="space-y-6">
-                <h2 className={sectionHeadingClass}>Account</h2>
-                <ProfileNameForm
-                  displayName={profile.display_name ?? user.name ?? null}
-                  username={profile.username ?? null}
-                  studentId={profile.student_id ?? null}
-                  isPrivileged={isPrivileged}
-                />
-                <dl className="space-y-3">
-                  <div>
-                    <dt className={labelClass}>Email</dt>
-                    <dd className="text-base font-medium">
-                      <ProfileValue value={user.email ?? null} isPrivileged={isPrivileged} />
-                    </dd>
+          <div className="px-3 py-4 sm:px-10 sm:py-8">
+            <section className="grid gap-6 sm:gap-8 lg:grid-cols-2">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className={sectionHeadingClass}>Account</h2>
+                </div>
+                
+                {/* Mobile Account Info */}
+                <div className="block sm:hidden">
+                  <div className={clsx(
+                    'divide-y rounded-xl overflow-hidden max-w-full',
+                    isPrivileged ? 'divide-white/10 bg-slate-900/60' : 'divide-slate-100 bg-slate-50'
+                  )}>
+                    <div className="p-4">
+                      <span className={labelClass}>Display name</span>
+                      <div className="mt-2">
+                        <ProfileNameForm
+                          displayName={profile.display_name ?? user.name ?? null}
+                          username={profile.username ?? null}
+                          studentId={profile.student_id ?? null}
+                          isPrivileged={isPrivileged}
+                        />
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <span className={labelClass}>Email</span>
+                      <div className="mt-1 text-base font-medium break-all">
+                        <ProfileValue value={user.email ?? null} isPrivileged={isPrivileged} />
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <span className={labelClass}>Username</span>
+                      <div className="mt-1 text-base font-medium">
+                        <ProfileValue value={profile.username ?? null} isPrivileged={isPrivileged} />
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <span className={labelClass}>Student ID</span>
+                      <div className="mt-1 text-base font-medium">
+                        <ProfileValue value={profile.student_id ?? null} isPrivileged={isPrivileged} />
+                        {!isPrivileged && (
+                          <p className="mt-1 text-xs text-slate-500">
+                            Student ID can only be edited by staff or admin
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </dl>
+                </div>
+
+                {/* Desktop Account Info */}
+                <div className="hidden sm:block">
+                  <div className={clsx(
+                    'rounded-xl p-4 sm:p-5',
+                    isPrivileged ? 'bg-slate-900/60' : 'bg-slate-50'
+                  )}>
+                    <dl className="grid gap-4">
+                      <div>
+                        <dt className={labelClass}>Display name</dt>
+                        <dd className="mt-1.5">
+                          <ProfileNameForm
+                            displayName={profile.display_name ?? user.name ?? null}
+                            username={profile.username ?? null}
+                            studentId={profile.student_id ?? null}
+                            isPrivileged={isPrivileged}
+                          />
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className={labelClass}>Email</dt>
+                        <dd className="mt-1.5 text-base font-medium break-words">
+                          <ProfileValue value={user.email ?? null} isPrivileged={isPrivileged} />
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className={labelClass}>Username</dt>
+                        <dd className="mt-1.5 text-base font-medium">
+                          <ProfileValue value={profile.username ?? null} isPrivileged={isPrivileged} />
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className={labelClass}>Student ID</dt>
+                        <dd className="mt-1.5 text-base font-medium">
+                          <ProfileValue value={profile.student_id ?? null} isPrivileged={isPrivileged} />
+                          {!isPrivileged && (
+                            <p className="mt-1 text-xs text-slate-500">
+                              Student ID can only be edited by staff or admin
+                            </p>
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
               </div>
 
-              <div>
-                <h2 className={sectionHeadingClass}>Contact</h2>
-                <dl className="mt-4 space-y-3">
-                  <div>
-                    <dt className={labelClass}>Phone</dt>
-                    <dd className="text-base font-medium">
-                      <ProfileValue value={profile.phone ?? null} isPrivileged={isPrivileged} />
-                    </dd>
+                <div className="space-y-6">
+                  <h2 className={sectionHeadingClass}>Contact & Details</h2>
+                  <div className={clsx(
+                    'rounded-xl p-4 sm:p-5',
+                    isPrivileged ? 'bg-slate-900/60' : 'bg-slate-50'
+                  )}>
+                    <ProfileEditForm
+                      username={profile.username ?? null}
+                      phone={profile.phone ?? null}
+                      preferredLanguage={profile.preferred_language ?? null}
+                      faculty={profile.faculty ?? null}
+                      department={profile.department ?? null}
+                      bio={profile.bio ?? null}
+                      isPrivileged={isPrivileged}
+                    />
                   </div>
-                  <div>
-                    <dt className={labelClass}>Preferred language</dt>
-                    <dd className="text-base font-medium">
-                      <ProfileValue
-                        value={profile.preferred_language ?? null}
-                        isPrivileged={isPrivileged}
-                      />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className={labelClass}>Faculty</dt>
-                    <dd className="text-base font-medium">
-                      <ProfileValue value={profile.faculty ?? null} isPrivileged={isPrivileged} />
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className={labelClass}>Department</dt>
-                    <dd className="text-base font-medium">
-                      <ProfileValue value={profile.department ?? null} isPrivileged={isPrivileged} />
-                    </dd>
-                  </div>
-                </dl>
-              </div>
+                </div>
             </section>
 
-            <section className="mt-10 grid gap-8 lg:grid-cols-2">
+            <section className="mt-8 sm:mt-10 grid gap-6 sm:gap-8 lg:grid-cols-2">
               <div>
                 <h2 className={sectionHeadingClass}>Academic</h2>
-                <dl className="mt-4 space-y-3">
+                <dl className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
                   <div>
                     <dt className={labelClass}>Intake year</dt>
                     <dd className="text-base font-medium">
@@ -333,22 +404,26 @@ export default async function ProfilePage() {
                 </dl>
               </div>
 
-              <div>
-                <h2 className={sectionHeadingClass}>About</h2>
-                <div className={bioBoxClass}>
-                  {profile.bio && profile.bio.trim().length > 0 ? (
-                    <p className="whitespace-pre-line">{profile.bio}</p>
-                  ) : (
-                    <p className={bioPlaceholderClass}>No bio provided yet.</p>
-                  )}
-                </div>
+              <div className="space-y-6">
+                <h2 className={sectionHeadingClass}>Academic</h2>
+                <dl className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
+                  <div>
+                    <dt className={labelClass}>Intake year</dt>
+                    <dd className="text-base font-medium">
+                      <ProfileNumberValue
+                        value={profile.intake_year ?? null}
+                        isPrivileged={isPrivileged}
+                      />
+                    </dd>
+                  </div>
+                </dl>
               </div>
             </section>
 
-            <section className="mt-10">
+            <section className="mt-8 sm:mt-10">
               <h2 className={sectionHeadingClass}>Links</h2>
               {links.length > 0 ? (
-                <ul className="mt-4 space-y-2">
+                <ul className="mt-3 sm:mt-4 space-y-2">
                   {links.map((link) => (
                     <li key={`${link.label}-${link.url}`}>
                       <Link
