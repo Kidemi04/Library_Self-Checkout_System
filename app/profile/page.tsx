@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import ProfileNameForm from '@/app/profile/profile-name-form';
+import ProfileAvatarForm from '@/app/profile/profile-avatar-form';
 
 type ProfileRow = {
   display_name?: string | null;
@@ -224,18 +225,14 @@ export default async function ProfilePage() {
         <div className={cardClass}>
           <div className={headerClass}>
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-4">
-                {profile.avatar_url ? (
-                  <img
-                    src={profile.avatar_url}
-                    alt={`${preferredName ?? 'User'} avatar`}
-                    className="h-16 w-16 rounded-full object-cover"
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <div className="flex items-center gap-4 sm:block">
+                  <ProfileAvatarForm 
+                    avatarUrl={profile.avatar_url ?? null}
+                    displayName={preferredName}
+                    isPrivileged={isPrivileged}
                   />
-                ) : (
-                  <div className={initialsClass}>
-                    {initials}
-                  </div>
-                )}
+                </div>
 
                 <div>
                   <h1 className={headingClass}>

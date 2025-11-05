@@ -9,6 +9,11 @@ export type ProfileNameFormState = {
   message?: string;
 };
 
+export type ProfileAvatarFormState = {
+  status: 'idle' | 'success' | 'error';
+  message: string;
+};
+
 export async function updateProfileNamesAction(
   _prevState: ProfileNameFormState,
   formData: FormData,
@@ -83,5 +88,75 @@ export async function updateProfileNamesAction(
       status: 'error',
       message: 'An unexpected error occurred.',
     };
+  }
+}
+
+export async function updateProfileAvatar(
+  prevState: ProfileAvatarFormState,
+  formData: FormData,
+): Promise<ProfileAvatarFormState> {
+  try {
+    const session = await getDashboardSession();
+    if (!session.user) {
+      return { status: 'error', message: 'You must be logged in to update your profile.' };
+    }
+
+    const avatarFile = formData.get('avatar') as File;
+    if (!avatarFile) {
+      return { status: 'error', message: 'No file selected.' };
+    }
+
+    // Check file size (max 2MB)
+    if (avatarFile.size > 2 * 1024 * 1024) {
+      return { status: 'error', message: 'File size must be less than 2MB.' };
+    }
+
+    // Check file type
+    if (!avatarFile.type.startsWith('image/')) {
+      return { status: 'error', message: 'File must be an image.' };
+    }
+
+    const supabase = getSupabaseServerClient();
+
+    // Upload file to Supabase Storage
+    const fileExt = avatarFile.name.split('.').pop();
+    const fileName = `${session.user.id}-${Date.now()}.${fileExt}`;
+    const { error: uploadError, data } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, avatarFile, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (uploadError) {
+      console.error('Error uploading file:', uploadError);
+      return { status: 'error', message: 'Error uploading file.' };
+    }
+
+    // Get public URL for the uploaded file
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(fileName);
+
+    // Update user profile with new avatar URL
+    const { error: updateError } = await supabase
+      .from('user_profiles')
+      .upsert({
+        user_id: session.user.id,
+        avatar_url: publicUrl
+      }, { onConflict: 'user_id' });
+
+    if (updateError) {
+      console.error('Error updating profile:', updateError);
+      return { status: 'error', message: 'Error updating profile.' };
+    }
+
+    revalidatePath('/profile');
+    revalidatePath('/dashboard/profile');
+    return { status: 'success', message: 'Profile picture updated successfully.' };
+
+  } catch (error) {
+    console.error('Error in updateProfileAvatar:', error);
+    return { status: 'error', message: 'An unexpected error occurred.' };
   }
 }
