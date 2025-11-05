@@ -5,7 +5,14 @@ import { ArrowUpTrayIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 import CheckOutForm from '@/app/ui/dashboard/check-out-form';
 import CheckInForm from '@/app/ui/dashboard/check-in-form';
 import ActiveLoansTable from '@/app/ui/dashboard/active-loans-table';
-import { fetchActiveLoans, fetchAvailableBooks, fetchDashboardSummary } from '@/app/lib/supabase/queries';
+import SummaryCards from '@/app/ui/dashboard/summary-cards';
+import RecentLoans from '@/app/ui/dashboard/recent-loans';
+import { 
+  fetchActiveLoans, 
+  fetchAvailableBooks, 
+  fetchDashboardSummary,
+  fetchRecentLoans 
+} from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
 
 const roleLabel = (role: string): string => {
@@ -76,10 +83,11 @@ export default async function UserDashboardPage() {
     isPrivileged ? 'text-slate-100' : 'text-swin-charcoal',
   );
 
-  const [books, activeLoans, summary] = await Promise.all([
+  const [books, activeLoans, summary, recentLoans] = await Promise.all([
     fetchAvailableBooks(),
     fetchActiveLoans(),
     fetchDashboardSummary(),
+    fetchRecentLoans(6),
   ]);
 
   const defaultDueDate = buildDefaultDueDate();
@@ -121,7 +129,7 @@ export default async function UserDashboardPage() {
         </div>
       </header>
 
-      {/* Mobile quick actions */}
+      {/* Mobile quick actions - Only visible on mobile */}
       <section className="grid gap-3 md:hidden">
         <Link
           href="/dashboard/check-out"
@@ -149,11 +157,27 @@ export default async function UserDashboardPage() {
         </Link>
       </section>
 
-      <div className="grid gap-6 xl:grid-cols-2">
+      {/* Desktop view - Hidden on mobile */}
+      <div className="hidden md:block">
+        <SummaryCards summary={summary} />
+      </div>
+
+      {/* Mobile view - Forms */}
+      <div className="grid gap-6 md:hidden xl:grid-cols-2">
         <CheckOutForm books={books} defaultDueDate={defaultDueDate} />
         <CheckInForm activeLoanCount={summary.activeLoans} />
       </div>
 
+      {/* Desktop view - Recent Activity */}
+      <section className="hidden space-y-4 md:block">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold text-swin-charcoal">Recent activity</h2>
+          <p className="text-sm text-swin-charcoal/60">Latest borrowing and return activity</p>
+        </div>
+        <RecentLoans loans={recentLoans} />
+      </section>
+
+      {/* Active Loans Section - Visible on all views */}
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-swin-charcoal">Active loans</h2>
