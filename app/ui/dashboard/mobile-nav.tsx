@@ -1,6 +1,6 @@
 'use client';
 
-import type { ComponentProps } from 'react';
+import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -19,7 +19,7 @@ type NavItem = {
   key: string;
   label: string;
   href: string;
-  icon: (props: ComponentProps<'svg'>) => JSX.Element;
+  icon: React.ForwardRefExoticComponent<React.PropsWithoutRef<React.SVGProps<SVGSVGElement>> & { title?: string; titleId?: string } & React.RefAttributes<SVGSVGElement>>;
 };
 
 const navItems: NavItem[] = [

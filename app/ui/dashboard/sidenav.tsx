@@ -37,8 +37,8 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
           {isPrivileged ? (
             <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-slate-100 shadow-inner">
               <p className="text-[11px] uppercase tracking-wide text-white/60">{`${roleLabel} access`}</p>
-              <p className="mt-1 text-sm font-semibold">{user.name ?? user.email ?? 'Librarian'}</p>
-              {user.email ? <p className="text-[11px] text-white/60">{user.email}</p> : null}
+              <p className="mt-1 text-sm font-semibold truncate">{user.name ?? user.email ?? 'Librarian'}</p>
+              {user.email ? <p className="text-[11px] text-white/60 break-words">{user.email}</p> : null}
               <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-emerald-300/80">
                 {isBypassed ? 'Dev bypass active' : `Role: ${roleLabel}`}
               </p>

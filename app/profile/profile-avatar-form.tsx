@@ -1,7 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
-import { useFormState } from 'react-dom';
+import { useRef, useState, useActionState } from 'react';
 import { ArrowPathIcon, CameraIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { updateProfileAvatar } from './actions';
@@ -26,7 +25,7 @@ export default function ProfileAvatarForm({
   displayName: string | null;
   isPrivileged: boolean;
 }) {
-  const [state, formAction] = useFormState(updateProfileAvatar, initialState);
+  const [state, formAction] = useActionState(updateProfileAvatar, initialState);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const defaultAvatar = avatarUrl || getRandomDefaultAvatar();
