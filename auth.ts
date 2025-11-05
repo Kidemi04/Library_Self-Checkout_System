@@ -33,8 +33,6 @@ if (isProduction) {
   }
 }
 
-const DEV_AZURE_EMAIL_SUFFIX = process.env.DEV_AZURE_EMAIL_SUFFIX?.toLowerCase() ?? null;
-
 const toDashboardRole = (value: unknown): DashboardRole => {
   if (typeof value !== 'string') return 'user';
   const normalized = value.trim().toLowerCase();
@@ -129,14 +127,6 @@ const ensureProfile = async (userId: string) => {
   }
 };
 
-const updateUserRole = async (userId: string, role: DashboardRole) => {
-  const supabase = getSupabaseServerClient();
-  const { error } = await supabase.from('users').update({ role }).eq('id', userId);
-  if (error) {
-    console.error('Failed to update user role after sign-in', error);
-  }
-};
-
 export const authOptions: NextAuthOptions = {
   providers: [
     AzureADProvider({
@@ -206,16 +196,9 @@ export const authOptions: NextAuthOptions = {
         enhanced.id = record.id;
         enhanced.role = record.role;
 
-        if (DEV_AZURE_EMAIL_SUFFIX && email.endsWith(DEV_AZURE_EMAIL_SUFFIX)) {
-          enhanced.role = 'staff';
-          if (enhanced.role !== record.role) {
-            await updateUserRole(record.id, enhanced.role);
-          }
-        }
-
-        return true;
-      } catch (error) {
-        console.error('Failed to sync user record during sign-in', error);
+          return true;
+        } catch (error) {
+          console.error('Failed to sync user record during sign-in', error);
         return false;
       }
     },

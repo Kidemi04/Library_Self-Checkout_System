@@ -1,4 +1,3 @@
-import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { auth } from './auth';
 import { isDevAuthBypassed } from '@/app/lib/auth/env';
@@ -9,6 +8,7 @@ const protectedPrefixes = [
   '/admin',
   '/staff',
   '/user',
+  '/profile',
   '/api/checkin',
   '/api/checkout',
   '/api/sip2',
@@ -34,7 +34,9 @@ const resolveRole = (value: unknown): DashboardRole => {
   return 'user';
 };
 
-export async function middleware(request: NextRequest) {
+const buildCallbackUrl = (url: { pathname: string; search: string }) => url.pathname + url.search;
+
+export default auth((request) => {
   if (isDevAuthBypassed) {
     return NextResponse.next();
   }
@@ -46,22 +48,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  let session;
-  try {
-    session = await auth(request);
-  } catch (error) {
-    console.error('Authentication check failed in middleware', error);
-  }
+  const sessionUser = request.auth?.user as
+    | { role?: string | null; roles?: string[] | null }
+    | undefined;
 
-  if (!session?.user) {
+  if (!sessionUser) {
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('callbackUrl', request.nextUrl.pathname + request.nextUrl.search);
+    loginUrl.searchParams.set('callbackUrl', buildCallbackUrl(request.nextUrl));
     return NextResponse.redirect(loginUrl);
   }
 
-  const rawRole =
-    (session.user as { role?: string | null; roles?: string[] | null })?.role ??
-    ((session.user as { roles?: string[] | null })?.roles?.[0] ?? null);
+  const rawRole = sessionUser.role ?? sessionUser.roles?.[0] ?? null;
   const role = resolveRole(rawRole);
 
   const violatedRule = roleGuardRules.find(
@@ -74,7 +71,7 @@ export async function middleware(request: NextRequest) {
   }
 
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: [
@@ -82,6 +79,7 @@ export const config = {
     '/admin/:path*',
     '/staff/:path*',
     '/user/:path*',
+    '/profile/:path*',
     '/api/checkin/:path*',
     '/api/checkout/:path*',
     '/api/sip2/:path*',
