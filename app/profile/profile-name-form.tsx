@@ -8,7 +8,6 @@ import { updateProfileNamesAction, type ProfileNameFormState } from '@/app/profi
 type ProfileNameFormProps = {
   displayName: string | null;
   username: string | null;
-  studentId: string | null;
   isPrivileged: boolean;
 };
 
@@ -68,7 +67,6 @@ function SubmitButton({ isPrivileged }: { isPrivileged: boolean }) {
 export default function ProfileNameForm({
   displayName,
   username,
-  studentId,
   isPrivileged,
 }: ProfileNameFormProps) {
   const [state, formAction] = useActionState(updateProfileNamesAction, {

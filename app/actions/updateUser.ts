@@ -12,8 +12,8 @@ const normalizeRole = (value: string | undefined): 'user' | 'staff' | 'admin' | 
 
 type UpdateUserInput = {
   id: string;
-  display_name?: string | null;
-  role?: string | null;
+  user?: Record<string, unknown> | null;
+  profile?: Record<string, unknown> | null;
 };
 
 export async function updateUserAction(updateData: UpdateUserInput) {
@@ -24,17 +24,57 @@ export async function updateUserAction(updateData: UpdateUserInput) {
 
     const supabase = getSupabaseServerClient();
 
-    const updatePayload: Record<string, unknown> = {};
-    const normalizedRole = normalizeRole(updateData.role ?? undefined);
+    const userUpdates = updateData.user ?? {};
+    const profileUpdates = updateData.profile ?? {};
 
-    if (normalizedRole) {
-      updatePayload.role = normalizedRole;
+    const userPayload: Record<string, unknown> = {};
+
+    if ('email' in userUpdates) {
+      const rawEmail = userUpdates.email;
+      if (typeof rawEmail === 'string') {
+        const normalizedEmail = rawEmail.trim().toLowerCase();
+        if (!normalizedEmail) {
+          return { success: false, error: 'Email cannot be empty.' };
+        }
+        userPayload.email = normalizedEmail;
+      } else if (rawEmail === null) {
+        return { success: false, error: 'Email cannot be null.' };
+      }
     }
 
-    if (Object.keys(updatePayload).length > 0) {
+    if ('role' in userUpdates) {
+      const normalizedRole = normalizeRole(
+        typeof userUpdates.role === 'string' ? userUpdates.role : undefined,
+      );
+      if (normalizedRole) {
+        userPayload.role = normalizedRole;
+      }
+    }
+
+    if ('display_name' in userUpdates) {
+      const displayNameValue = userUpdates.display_name;
+      if (typeof displayNameValue === 'string') {
+        const trimmed = displayNameValue.trim();
+        userPayload.display_name = trimmed.length > 0 ? trimmed : null;
+      } else if (displayNameValue === null) {
+        userPayload.display_name = null;
+      }
+    }
+
+    Object.entries(userUpdates).forEach(([key, value]) => {
+      if (['email', 'role', 'display_name', 'id'].includes(key)) {
+        return;
+      }
+      if (value === undefined) {
+        return;
+      }
+      userPayload[key] = value;
+    });
+
+    if (Object.keys(userPayload).length > 0) {
       const { error: updateError } = await supabase
         .from('users')
-        .update(updatePayload)
+        .update(userPayload)
         .eq('id', updateData.id);
 
       if (updateError) {
@@ -43,15 +83,23 @@ export async function updateUserAction(updateData: UpdateUserInput) {
       }
     }
 
-    if (typeof updateData.display_name === 'string') {
-      const profilePayload = {
-        user_id: updateData.id,
-        display_name: updateData.display_name,
-      };
+    const profilePayload: Record<string, unknown> = {};
+    Object.entries(profileUpdates).forEach(([key, value]) => {
+      if (key === 'user_id') return;
+      if (value === undefined) return;
+      profilePayload[key] = value;
+    });
 
+    if (Object.keys(profilePayload).length > 0) {
       const { error: profileError } = await supabase
         .from('user_profiles')
-        .upsert(profilePayload, { onConflict: 'user_id' });
+        .upsert(
+          {
+            user_id: updateData.id,
+            ...profilePayload,
+          },
+          { onConflict: 'user_id' },
+        );
 
       if (profileError) {
         console.error('Failed to update user profile', profileError);

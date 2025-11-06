@@ -104,21 +104,6 @@ const ProfileValue = ({ value, isPrivileged }: { value?: string | null; isPrivil
   );
 };
 
-const ProfileNumberValue = ({
-  value,
-  isPrivileged,
-}: {
-  value?: number | null;
-  isPrivileged: boolean;
-}) => {
-  if (typeof value === 'number') {
-    return <span className={isPrivileged ? 'text-slate-100' : 'text-slate-900'}>{value}</span>;
-  }
-  return (
-    <span className={isPrivileged ? 'text-sm text-slate-500' : 'text-sm text-slate-400'}>Not provided</span>
-  );
-};
-
 export default async function ProfilePage() {
   const session = await getDashboardSession();
   const user = session.user;
@@ -292,7 +277,6 @@ export default async function ProfilePage() {
                         <ProfileNameForm
                           displayName={profile.display_name ?? user.name ?? null}
                           username={profile.username ?? null}
-                          studentId={profile.student_id ?? null}
                           isPrivileged={isPrivileged}
                         />
                       </div>
@@ -315,7 +299,7 @@ export default async function ProfilePage() {
                         <ProfileValue value={profile.student_id ?? null} isPrivileged={isPrivileged} />
                         {!isPrivileged && (
                           <p className="mt-1 text-xs text-slate-500">
-                            Student ID can only be edited by staff or admin
+                            Student ID can only be edited by staff or admin.
                           </p>
                         )}
                       </div>
@@ -336,7 +320,6 @@ export default async function ProfilePage() {
                           <ProfileNameForm
                             displayName={profile.display_name ?? user.name ?? null}
                             username={profile.username ?? null}
-                            studentId={profile.student_id ?? null}
                             isPrivileged={isPrivileged}
                           />
                         </dd>
@@ -359,7 +342,7 @@ export default async function ProfilePage() {
                           <ProfileValue value={profile.student_id ?? null} isPrivileged={isPrivileged} />
                           {!isPrivileged && (
                             <p className="mt-1 text-xs text-slate-500">
-                              Student ID can only be edited by staff or admin
+                              Student ID can only be edited by staff or admin.
                             </p>
                           )}
                         </dd>
@@ -386,38 +369,6 @@ export default async function ProfilePage() {
                     />
                   </div>
                 </div>
-            </section>
-
-            <section className="mt-8 sm:mt-10 grid gap-6 sm:gap-8 lg:grid-cols-2">
-              <div>
-                <h2 className={sectionHeadingClass}>Academic</h2>
-                <dl className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
-                  <div>
-                    <dt className={labelClass}>Intake year</dt>
-                    <dd className="text-base font-medium">
-                      <ProfileNumberValue
-                        value={profile.intake_year ?? null}
-                        isPrivileged={isPrivileged}
-                      />
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              <div className="space-y-6">
-                <h2 className={sectionHeadingClass}>Academic</h2>
-                <dl className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
-                  <div>
-                    <dt className={labelClass}>Intake year</dt>
-                    <dd className="text-base font-medium">
-                      <ProfileNumberValue
-                        value={profile.intake_year ?? null}
-                        isPrivileged={isPrivileged}
-                      />
-                    </dd>
-                  </div>
-                </dl>
-              </div>
             </section>
 
             <section className="mt-8 sm:mt-10">
