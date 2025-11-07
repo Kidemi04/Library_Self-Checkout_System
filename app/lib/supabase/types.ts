@@ -87,3 +87,32 @@ export interface DashboardSummary {
   activeLoans: number;
   overdueLoans: number;
 }
+
+export type FriendStatus = 'pending' | 'accepted' | 'declined';
+
+export interface Friend {
+  id: string;
+  user_id: string;
+  friend_id: string;
+  status: FriendStatus;
+  friend_username?: string;
+  friend_display_name?: string;
+  friend_avatar_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BookRecommendation {
+  id: string;
+  from_user_id: string;
+  to_user_id: string;
+  book_id: string;
+  message?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FriendSuggestion {
+  user_id: string;
+  common_books: number;
+}

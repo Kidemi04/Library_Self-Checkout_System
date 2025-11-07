@@ -156,6 +156,10 @@ export default async function ProfilePage() {
   const memberSince = formatMemberSince(userRow?.created_at ?? null);
   const visibilityLabel = formatVisibility(profile.visibility);
   const links = normalizeLinks(profile.links);
+  const editableLinks =
+    profile.links && typeof profile.links === 'object' && !Array.isArray(profile.links)
+      ? (profile.links as Record<string, string>)
+      : null;
   const preferredName = profile.display_name ?? user.name ?? null;
   const initials = getInitials(preferredName, user.email ?? null);
   const pageBgClass = clsx('min-h-screen py-10', isPrivileged ? 'bg-slate-900' : 'bg-swin-ivory/80');
@@ -364,7 +368,10 @@ export default async function ProfilePage() {
                       preferredLanguage={profile.preferred_language ?? null}
                       faculty={profile.faculty ?? null}
                       department={profile.department ?? null}
+                      intakeYear={profile.intake_year ?? null}
                       bio={profile.bio ?? null}
+                      links={editableLinks}
+                      visibility={(profile.visibility as 'PUBLIC' | 'CAMPUS' | 'PRIVATE') ?? 'CAMPUS'}
                       isPrivileged={isPrivileged}
                     />
                   </div>

@@ -14,4 +14,5 @@ export interface DashboardSessionResult {
   user: DashboardUserProfile | null;
   isBypassed: boolean;
   profileLoaded?: boolean;
+  role: DashboardRole;
 }

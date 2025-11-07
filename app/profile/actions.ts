@@ -181,13 +181,28 @@ export async function updateProfileAction(
 
     const phoneNumber = formData.get('phone')?.toString().trim();
 
+    const intakeYearStr = formData.get('intake_year')?.toString().trim();
+    const intakeYear = intakeYearStr ? parseInt(intakeYearStr, 10) : null;
+    
+    // Build links object from form data
+    const links: Record<string, string> = {};
+    ['linkedin', 'github', 'academic', 'website'].forEach(platform => {
+      const value = formData.get(`link_${platform}`)?.toString().trim();
+      if (value) {
+        links[platform] = value;
+      }
+    });
+
     const updateData = {
       username: formData.get('username')?.toString().trim() || null,
       phone: phoneNumber || null,
       preferred_language: formData.get('preferred_language')?.toString().trim() || null,
       faculty: formData.get('faculty')?.toString().trim() || null,
       department: formData.get('department')?.toString().trim() || null,
+      intake_year: intakeYear,
       bio: formData.get('bio')?.toString().trim() || null,
+      links: Object.keys(links).length > 0 ? links : null,
+      visibility: formData.get('visibility')?.toString() || 'PRIVATE',
     };
 
     // Validate fields

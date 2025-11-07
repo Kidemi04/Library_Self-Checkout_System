@@ -82,14 +82,16 @@ const loadProfileFromView = async (
 
 export const getDashboardSession = async (): Promise<DashboardSessionResult> => {
   if (isDevAuthBypassed) {
+    const role = getDevBypassRole();
     return {
       isBypassed: true,
       profileLoaded: true,
+      role,
       user: {
         id: getDevBypassUserId(),
         name: getDevBypassName(),
         email: getDevBypassEmail(),
-        role: getDevBypassRole(),
+        role,
       },
     };
   }
@@ -102,6 +104,7 @@ export const getDashboardSession = async (): Promise<DashboardSessionResult> => 
       return {
         isBypassed: false,
         profileLoaded,
+        role: baseUser.role,
         user: {
           id: baseUser.id,
           name: null,
@@ -111,14 +114,16 @@ export const getDashboardSession = async (): Promise<DashboardSessionResult> => 
       };
     }
 
+    const role = profile.role ?? baseUser.role;
     return {
       isBypassed: false,
       profileLoaded,
+      role,
       user: {
         id: profile.id,
         name: profile.name ?? null,
         email: profile.email ?? baseUser.email,
-        role: profile.role ?? baseUser.role,
+        role,
         username: profile.username,
         faculty: profile.faculty,
         department: profile.department,
@@ -132,6 +137,7 @@ export const getDashboardSession = async (): Promise<DashboardSessionResult> => 
       isBypassed: false,
       user: null,
       profileLoaded: false,
+      role: 'user', // Default to user role when not authenticated
     };
   }
 };

@@ -11,6 +11,8 @@ import {
   UserGroupIcon,
   QueueListIcon,
   UserCircleIcon,
+  ClockIcon,
+  ClipboardDocumentListIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import type { DashboardRole } from '@/app/lib/auth/types';
@@ -18,7 +20,9 @@ import type { DashboardRole } from '@/app/lib/auth/types';
 const userLinks = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
+  { name: 'Friends', href: '/dashboard/friends', icon: UserGroupIcon },
   { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
+  { name: 'My Holds', href: '/dashboard/holds', icon: ClockIcon },
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
 ];
@@ -27,6 +31,7 @@ const staffLinks = [
   { name: 'Staff Overview', href: '/dashboard/admin', icon: Squares2X2Icon },
   { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
+  { name: 'Friends', href: '/dashboard/friends', icon: UserGroupIcon },
   { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
@@ -35,6 +40,7 @@ const staffLinks = [
 const adminLinks = [
   ...staffLinks,
   { name: 'Manage Users', href: '/dashboard/admin/users', icon: UserGroupIcon },
+  { name: 'Audit Log', href: '/dashboard/admin/audit', icon: ClipboardDocumentListIcon },
 ];
 
 export default function NavLinks({

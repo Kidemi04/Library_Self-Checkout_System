@@ -11,7 +11,10 @@ type ProfileEditFormProps = {
   preferredLanguage: string | null;
   faculty: string | null;
   department: string | null;
+  intakeYear: number | null;
   bio: string | null;
+  links: Record<string, string> | null;
+  visibility: 'PUBLIC' | 'CAMPUS' | 'PRIVATE';
   isPrivileged: boolean;
 };
 
@@ -65,7 +68,10 @@ export default function ProfileEditForm({
   preferredLanguage,
   faculty,
   department,
+  intakeYear,
   bio,
+  links,
+  visibility,
   isPrivileged,
 }: ProfileEditFormProps) {
   const [state, formAction] = useActionState(updateProfileAction, {
@@ -163,6 +169,60 @@ export default function ProfileEditForm({
             className={fieldClass(isPrivileged)}
             maxLength={100}
           />
+        </div>
+
+        {/* Intake Year */}
+        <div>
+          <label htmlFor="intake_year" className={labelClass(isPrivileged)}>
+            Intake Year
+          </label>
+          <input
+            id="intake_year"
+            name="intake_year"
+            type="number"
+            defaultValue={intakeYear ?? ''}
+            placeholder="Your intake year"
+            className={fieldClass(isPrivileged)}
+            min={1990}
+            max={new Date().getFullYear() + 1}
+          />
+        </div>
+
+        {/* Profile Visibility */}
+        <div className="sm:col-span-2">
+          <label htmlFor="visibility" className={labelClass(isPrivileged)}>
+            Profile Visibility
+          </label>
+          <select
+            id="visibility"
+            name="visibility"
+            defaultValue={visibility}
+            className={fieldClass(isPrivileged)}
+          >
+            <option value="PRIVATE">Private - Only you</option>
+            <option value="CAMPUS">Campus - All university members</option>
+            <option value="PUBLIC">Public - Everyone</option>
+          </select>
+        </div>
+
+        {/* Social/Academic Links */}
+        <div className="sm:col-span-2">
+          <label className={labelClass(isPrivileged)}>
+            Links
+          </label>
+          <div className="space-y-2">
+            {['LinkedIn', 'GitHub', 'Academic', 'Website'].map((platform) => (
+              <div key={platform} className="flex gap-2">
+                <input
+                  type="text"
+                  name={`link_${platform.toLowerCase()}`}
+                  defaultValue={links?.[platform.toLowerCase()] ?? ''}
+                  placeholder={`Your ${platform} URL`}
+                  className={fieldClass(isPrivileged)}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
