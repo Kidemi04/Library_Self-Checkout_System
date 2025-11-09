@@ -31,12 +31,14 @@ function pick(v?: string | string[] | null) {
 export default async function BookItemsPage({
   searchParams,
 }: {
-  searchParams?: Record<string, string | string[]>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   noStore();
 
   // Read search (optional)
-  const q = pick(searchParams?.q).trim();
+  const params =
+    (searchParams ? await searchParams : {}) as Record<string, string | string[] | undefined>;
+  const q = pick(params?.q).trim();
 
   // 1) Fetch from Supabase (server)
   const dbBooks = await fetchBooks(q || undefined);
@@ -55,36 +57,24 @@ export default async function BookItemsPage({
     'maintenance',
   ]);
 
-  const uiBooks: CatalogBook[] = (dbBooks ?? []).map((b: any) => {
-    const rawStatus: string | null = b.status ?? null;
-    const status = allowed.has(rawStatus as ItemStatus)
-      ? (rawStatus as ItemStatus)
-      : null;
+  const uiBooks: CatalogBook[] = (dbBooks ?? []).map((book) => {
+    const status: ItemStatus =
+      book.availableCopies > 0 ? 'available' : 'checked_out';
 
     return {
-      id: b.id,
-      title: b.title ?? null,
-      author: b.author ?? null,
-      isbn: b.isbn ?? null,
-      classification: b.classification ?? null,
-      location: b.location ?? null,
-      publisher: b.publisher ?? null,
-      // Prefer publication_year; fall back to year
-      publication_year: b.publication_year ?? b.year ?? null,
-      tags: b.tags ?? null,
-      status, // SIP-aligned status used by the table badges
-      // Copy counts (support either naming in DB)
-      copies_available: b.available_copies ?? b.copies_available ?? null,
-      total_copies: b.total_copies ?? null,
-      // Optional cover field names
-      cover: b.cover_image_url ?? b.cover ?? null,
-      // (If your BookCatalogTable also reads `available`, keep it coherent)
-      available:
-        typeof b.available === 'boolean'
-          ? b.available
-          : status === 'available' ||
-            (typeof (b.available_copies ?? b.copies_available) === 'number' &&
-              (b.available_copies ?? b.copies_available) > 0),
+      id: book.id,
+      title: book.title ?? null,
+      author: book.author ?? null,
+      isbn: book.isbn ?? null,
+      classification: book.classification ?? null,
+      publisher: book.publisher ?? null,
+      publication_year: book.publicationYear ?? null,
+      tags: book.tags ?? null,
+      status: allowed.has(status) ? status : null,
+      copies_available: book.availableCopies,
+      total_copies: book.totalCopies,
+      cover: book.coverImageUrl ?? null,
+      available: book.availableCopies > 0,
     };
   });
 

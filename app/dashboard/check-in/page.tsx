@@ -12,8 +12,8 @@ export default async function ReturningBooksPage({
   searchParams?: Promise<Record<string, string | string[]>>;
 }) {
   const { user } = await getDashboardSession();
-  const role = user?.role ?? 'student';
-  const isStaff = role === 'staff';
+  const role = user?.role ?? 'user';
+  const canProcessReturns = role === 'staff' || role === 'admin';
 
   const params = searchParams ? await searchParams : undefined;
   const raw = params?.q;
@@ -32,7 +32,7 @@ export default async function ReturningBooksPage({
       <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
         <h1 className="text-2xl font-semibold">Returning Books</h1>
         <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
-          {isStaff
+          {canProcessReturns
             ? 'Record completed loans and reconcile returned items with the inventory.'
             : 'Review which books are currently on loan before speaking with library staff.'}
         </p>
@@ -46,10 +46,10 @@ export default async function ReturningBooksPage({
           aria-label="Search borrowed books"
           className="flex-1 min-w-0"
         />
-        {isStaff ? <CameraScanButton className="w-full max-w-full md:w-auto" /> : null}
+        {canProcessReturns ? <CameraScanButton className="w-full max-w-full md:w-auto" /> : null}
       </div>
 
-      {isStaff ? (
+      {canProcessReturns ? (
         <CheckInForm activeLoanCount={totalBorrowed} defaultIdentifier={searchTerm} />
       ) : (
         <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-sm text-swin-charcoal/70 shadow-sm shadow-swin-charcoal/5">
@@ -63,7 +63,7 @@ export default async function ReturningBooksPage({
           <h2
             className={clsx(
               'text-lg font-semibold',
-              isStaff ? 'text-slate-100' : 'text-swin-charcoal',
+              canProcessReturns ? 'text-slate-100' : 'text-swin-charcoal',
             )}
           >
             Books currently not available
@@ -71,14 +71,15 @@ export default async function ReturningBooksPage({
           <p
             className={clsx(
               'text-sm',
-              isStaff ? 'text-slate-300' : 'text-swin-charcoal/60',
+              canProcessReturns ? 'text-slate-300' : 'text-swin-charcoal/60',
             )}
           >
             Showing {activeLoans.length} of {totalBorrowed} borrowed books
           </p>
         </div>
-        <ActiveLoansTable loans={activeLoans} showActions={isStaff} />
+        <ActiveLoansTable loans={activeLoans} showActions={canProcessReturns} />
       </section>
     </main>
   );
 }
+

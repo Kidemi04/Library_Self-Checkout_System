@@ -7,7 +7,6 @@ import { initialActionState } from '@/app/dashboard/action-state';
 import type { ActionState } from '@/app/dashboard/action-state';
 
 export default function CreateBookForm() {
-  // ⬇️ useActionState replaces useFormState in Next 15
   const [state, formAction] = useActionState(createBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
 
@@ -22,7 +21,7 @@ export default function CreateBookForm() {
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-swin-charcoal">Add Book Item</h2>
         <p className="text-sm text-swin-charcoal/60">
-          Register a new physical or digital item in the library catalogue.
+          Register a new library resource and assign individual copy barcodes for circulation tracking.
         </p>
       </div>
 
@@ -80,28 +79,45 @@ export default function CreateBookForm() {
           />
         </div>
 
+        <div className="md:col-span-2">
+          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="copyBarcodes">
+            Copy barcodes
+          </label>
+          <textarea
+            id="copyBarcodes"
+            name="copyBarcodes"
+            rows={3}
+            required
+            placeholder="Scan or type one barcode per line"
+            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
+          />
+          <p className="mt-1 text-xs text-swin-charcoal/60">
+            Provide at least one barcode. Separate multiple barcodes with new lines or commas.
+          </p>
+        </div>
+
         <div>
-          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="barcode">
-            Barcode
+          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="publisher">
+            Publisher
           </label>
           <input
-            id="barcode"
-            name="barcode"
+            id="publisher"
+            name="publisher"
             type="text"
-            placeholder="Internal barcode"
+            placeholder="Publisher name"
             className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="location">
-            Location
+          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="publicationYear">
+            Publication year
           </label>
           <input
-            id="location"
-            name="location"
+            id="publicationYear"
+            name="publicationYear"
             type="text"
-            placeholder="Level 2 - Stack A"
+            placeholder="e.g. 2024"
             className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
           />
         </div>
@@ -116,21 +132,6 @@ export default function CreateBookForm() {
             type="url"
             placeholder="https://example.com/cover.jpg"
             className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="totalCopies">
-            Total copies
-          </label>
-          <input
-            id="totalCopies"
-            name="totalCopies"
-            type="number"
-            min={1}
-            defaultValue={1}
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
-            required
           />
         </div>
 

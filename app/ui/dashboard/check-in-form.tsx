@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { checkinBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/action-state';
 import type { ActionState } from '@/app/dashboard/action-state';
@@ -13,7 +13,7 @@ type CheckInFormProps = {
 };
 
 export default function CheckInForm({ activeLoanCount, defaultIdentifier }: CheckInFormProps) {
-  const [state, formAction] = useFormState(checkinBookAction, initialActionState);
+  const [state, formAction] = useActionState(checkinBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
   const identifierInputRef = useRef<HTMLInputElement | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState(false);

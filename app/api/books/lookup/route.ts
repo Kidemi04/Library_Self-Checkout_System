@@ -3,6 +3,103 @@ import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 
 const sanitizeCode = (value: string) => value.trim().replace(/[^0-9A-Za-z-]/g, '');
 
+type CopyLoanRow = { id: string; returned_at: string | null };
+
+type CopyRow = {
+  id: string;
+  book_id: string;
+  barcode: string | null;
+  status: string | null;
+  loans?: CopyLoanRow[] | null;
+};
+
+type BookRow = {
+  id: string;
+  title: string;
+  author: string | null;
+  isbn: string | null;
+  classification: string | null;
+  publisher: string | null;
+  publication_year: string | null;
+  cover_image_url: string | null;
+  copies: CopyRow[] | null;
+};
+
+const normalizeCopyStatus = (value: string | null | undefined) => {
+  if (typeof value !== 'string') return 'available';
+  switch (value.trim().toUpperCase()) {
+    case 'ON_LOAN':
+      return 'on_loan';
+    case 'LOST':
+      return 'lost';
+    case 'DAMAGED':
+      return 'damaged';
+    case 'PROCESSING':
+      return 'processing';
+    case 'HOLD_SHELF':
+      return 'hold_shelf';
+    case 'AVAILABLE':
+    default:
+      return 'available';
+  }
+};
+
+const countAvailableCopies = (copies: CopyRow[] | null | undefined): number => {
+  if (!copies || copies.length === 0) return 0;
+  return copies.filter((copy) => {
+    const status = normalizeCopyStatus(copy.status);
+    if (status !== 'available') return false;
+    const hasActiveLoan = Array.isArray(copy.loans)
+      ? copy.loans.some((loan) => loan.returned_at == null)
+      : false;
+    return !hasActiveLoan;
+  }).length;
+};
+
+const findFirstAvailableCopy = (copies: CopyRow[] | null | undefined): CopyRow | null => {
+  if (!copies) return null;
+  return (
+    copies.find((copy) => {
+      const status = normalizeCopyStatus(copy.status);
+      if (status !== 'available') return false;
+      const hasActiveLoan = Array.isArray(copy.loans)
+        ? copy.loans.some((loan) => loan.returned_at == null)
+        : false;
+      return !hasActiveLoan;
+    }) ?? null
+  );
+};
+
+const mapBookResponse = (book: BookRow) => {
+  const totalCopies = book.copies?.length ?? 0;
+  const availableCopies = countAvailableCopies(book.copies);
+
+  return {
+    id: book.id,
+    title: book.title,
+    author: book.author,
+    isbn: book.isbn,
+    classification: book.classification,
+    publisher: book.publisher,
+    publication_year: book.publication_year,
+    cover_image_url: book.cover_image_url,
+    available_copies: availableCopies,
+    total_copies: totalCopies,
+    status: availableCopies > 0 ? 'available' : 'checked_out',
+    copies:
+      book.copies?.map((copy) => ({
+        id: copy.id,
+        book_id: copy.book_id,
+        barcode: copy.barcode,
+        status: copy.status,
+        loans: (copy.loans ?? []).map((loan) => ({
+          id: loan.id,
+          returned_at: loan.returned_at,
+        })),
+      })) ?? [],
+  };
+};
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get('code')?.trim();
@@ -19,34 +116,122 @@ export async function GET(request: Request) {
 
   const supabase = getSupabaseServerClient();
 
-  const { data, error } = await supabase
-    .from('books')
-    .select(
-      `
-        id,
-        title,
-        author,
-        isbn,
-        barcode,
-        classification,
-        available_copies,
-        total_copies,
-        status
-      `
-    )
-    .or(`barcode.eq.${sanitized},isbn.eq.${sanitized}`)
-    .eq('status', 'available')
-    .gte('available_copies', 1)
+  const { data: copyMatch, error: copyError } = await supabase
+    .from('copies')
+    .select('id, book_id, barcode')
+    .eq('barcode', sanitized)
     .maybeSingle();
 
-  if (error) {
-    console.error('Book lookup failed', error);
-    return NextResponse.json({ error: 'Unable to lookup book at the moment.' }, { status: 500 });
+  if (copyError) {
+    console.error('Copy lookup failed', copyError);
+    return NextResponse.json({ error: 'Unable to lookup copy.' }, { status: 500 });
   }
 
-  if (!data) {
-    return NextResponse.json({ error: 'No available book matches that code.' }, { status: 404 });
+  let bookRow: BookRow | null = null;
+  let activeCopy: CopyRow | null = null;
+
+  if (copyMatch?.book_id) {
+    const { data, error } = await supabase
+      .from('books')
+      .select(
+        `
+          id,
+          title,
+          author,
+          isbn,
+          classification,
+          publisher,
+          publication_year,
+          cover_image_url,
+          copies:copies(
+            id,
+            book_id,
+            barcode,
+            status,
+            loans:loans(
+              id,
+              returned_at
+            )
+          )
+        `,
+      )
+      .eq('id', copyMatch.book_id)
+      .maybeSingle<BookRow>();
+
+    if (error) {
+      console.error('Book lookup for copy failed', error);
+      return NextResponse.json({ error: 'Unable to load book information.' }, { status: 500 });
+    }
+
+    if (!data) {
+      return NextResponse.json({ error: 'Book not found for that copy.' }, { status: 404 });
+    }
+
+    bookRow = data;
+    activeCopy =
+      bookRow.copies?.find((copy) => copy.id === copyMatch.id) ?? findFirstAvailableCopy(bookRow.copies);
+  } else {
+    const { data, error } = await supabase
+      .from('books')
+      .select(
+        `
+          id,
+          title,
+          author,
+          isbn,
+          classification,
+          publisher,
+          publication_year,
+          cover_image_url,
+          copies:copies(
+            id,
+            book_id,
+            barcode,
+            status,
+            loans:loans(
+              id,
+              returned_at
+            )
+          )
+        `,
+      )
+      .eq('isbn', sanitized)
+      .maybeSingle<BookRow>();
+
+    if (error) {
+      console.error('Book lookup by ISBN failed', error);
+      return NextResponse.json({ error: 'Unable to lookup book at the moment.' }, { status: 500 });
+    }
+
+    if (!data) {
+      return NextResponse.json({ error: 'No book matches that code.' }, { status: 404 });
+    }
+
+    bookRow = data;
+    activeCopy = findFirstAvailableCopy(bookRow.copies);
   }
 
-  return NextResponse.json({ book: data, code: sanitized });
+  if (!bookRow) {
+    return NextResponse.json({ error: 'Book could not be loaded.' }, { status: 404 });
+  }
+
+  if (!activeCopy) {
+    return NextResponse.json(
+      {
+        error: 'All copies of this title are currently unavailable.',
+        book: mapBookResponse(bookRow),
+      },
+      { status: 409 },
+    );
+  }
+
+  return NextResponse.json({
+    code: sanitized,
+    book: mapBookResponse(bookRow),
+    copy: {
+      id: activeCopy.id,
+      barcode: activeCopy.barcode,
+      status: activeCopy.status,
+    },
+  });
 }

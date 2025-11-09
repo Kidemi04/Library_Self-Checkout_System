@@ -1,38 +1,84 @@
-export type BookStatus = 'available' | 'checked_out' | 'reserved' | 'maintenance';
+import type { DashboardRole } from '@/app/lib/auth/types';
+
+export type CopyStatus =
+  | 'available'
+  | 'on_loan'
+  | 'lost'
+  | 'damaged'
+  | 'processing'
+  | 'hold_shelf';
+
+export interface BookTag {
+  id: string;
+  name: string;
+}
+
+export interface CopyLoanSnapshot {
+  id: string;
+  returnedAt: string | null;
+}
+
+export interface Copy {
+  id: string;
+  bookId: string;
+  barcode: string;
+  status: CopyStatus;
+  loans?: CopyLoanSnapshot[];
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
 
 export interface Book {
   id: string;
   title: string;
   author: string | null;
   isbn: string | null;
-  barcode: string | null;
   classification: string | null;
-  total_copies: number;
-  available_copies: number;
-  status: BookStatus;
-  location: string | null;
-  cover_image_url: string | null;
-  last_transaction_at: string | null;
-  created_at: string | null;
-  updated_at: string | null;
+  coverImageUrl: string | null;
+  publisher: string | null;
+  publicationYear: string | null;
+  tags: string[];
+  copies: Copy[];
+  totalCopies: number;
+  availableCopies: number;
+  createdAt: string | null;
+  updatedAt: string | null;
 }
 
-export type BorrowerType = 'student' | 'staff';
+export type LoanStatus = 'borrowed' | 'returned' | 'overdue';
 
 export interface Loan {
   id: string;
-  book_id: string;
-  book_title?: string | null;
-  borrower_identifier: string;
-  borrower_name: string;
-  borrower_type: BorrowerType;
-  status: 'borrowed' | 'returned' | 'overdue';
-  borrowed_at: string;
-  due_at: string;
-  returned_at: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-  book?: Pick<Book, 'title' | 'barcode' | 'isbn'> | null;
+  copyId: string;
+  bookId: string | null;
+  borrowerId: string | null;
+  borrowerName: string | null;
+  borrowerEmail: string | null;
+  borrowerIdentifier: string | null;
+  borrowerRole: DashboardRole | null;
+  handledBy: string | null;
+  status: LoanStatus;
+  borrowedAt: string;
+  dueAt: string;
+  returnedAt: string | null;
+  renewedCount: number;
+  createdAt: string | null;
+  updatedAt: string | null;
+  copy?: {
+    id: string;
+    barcode: string | null;
+  } | null;
+  book?: {
+    id: string;
+    title: string;
+    author: string | null;
+    isbn: string | null;
+  } | null;
+  handler?: {
+    id: string;
+    name: string | null;
+    email: string | null;
+  } | null;
 }
 
 export interface DashboardSummary {

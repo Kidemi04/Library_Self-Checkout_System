@@ -1,51 +1,115 @@
-'use server'
+'use server';
 
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 
-export async function updateUserAction(updateData: {
-  id: string
-  display_name?: string
-  role?: string
-}) {
+const normalizeRole = (value: string | undefined): 'user' | 'staff' | 'admin' | undefined => {
+  if (!value) return undefined;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'admin') return 'admin';
+  if (normalized === 'staff' || normalized === 'librarian') return 'staff';
+  return 'user';
+};
+
+type UpdateUserInput = {
+  id: string;
+  user?: Record<string, unknown> | null;
+  profile?: Record<string, unknown> | null;
+};
+
+export async function updateUserAction(updateData: UpdateUserInput) {
   try {
-    const cookieStore = await cookies()
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get: (name: string) => cookieStore.get(name)?.value,
-          set: () => {},
-          remove: () => {},
-        },
-      }
-    )
-
-    // 🧠 Sanity check
     if (!updateData.id) {
-      return { success: false, error: 'User ID is required.' }
+      return { success: false, error: 'User ID is required.' };
     }
 
-    // ⚙️ Perform update
-    const { error } = await supabase
-      .from('users')
-      .update({
-        display_name: updateData.display_name || null,
-        role: updateData.role || undefined,
-      })
-      .eq('id', updateData.id)
+    const supabase = getSupabaseServerClient();
 
-    if (error) {
-      console.error('❌ Update error:', error)
-      return { success: false, error: error.message }
+    const userUpdates = updateData.user ?? {};
+    const profileUpdates = updateData.profile ?? {};
+
+    const userPayload: Record<string, unknown> = {};
+
+    if ('email' in userUpdates) {
+      const rawEmail = userUpdates.email;
+      if (typeof rawEmail === 'string') {
+        const normalizedEmail = rawEmail.trim().toLowerCase();
+        if (!normalizedEmail) {
+          return { success: false, error: 'Email cannot be empty.' };
+        }
+        userPayload.email = normalizedEmail;
+      } else if (rawEmail === null) {
+        return { success: false, error: 'Email cannot be null.' };
+      }
     }
 
-    console.log(`✅ User updated: ID=${updateData.id}`)
-    return { success: true }
+    if ('role' in userUpdates) {
+      const normalizedRole = normalizeRole(
+        typeof userUpdates.role === 'string' ? userUpdates.role : undefined,
+      );
+      if (normalizedRole) {
+        userPayload.role = normalizedRole;
+      }
+    }
+
+    if ('display_name' in userUpdates) {
+      const displayNameValue = userUpdates.display_name;
+      if (typeof displayNameValue === 'string') {
+        const trimmed = displayNameValue.trim();
+        userPayload.display_name = trimmed.length > 0 ? trimmed : null;
+      } else if (displayNameValue === null) {
+        userPayload.display_name = null;
+      }
+    }
+
+    Object.entries(userUpdates).forEach(([key, value]) => {
+      if (['email', 'role', 'display_name', 'id'].includes(key)) {
+        return;
+      }
+      if (value === undefined) {
+        return;
+      }
+      userPayload[key] = value;
+    });
+
+    if (Object.keys(userPayload).length > 0) {
+      const { error: updateError } = await supabase
+        .from('users')
+        .update(userPayload)
+        .eq('id', updateData.id);
+
+      if (updateError) {
+        console.error('Failed to update user record', updateError);
+        return { success: false, error: updateError.message };
+      }
+    }
+
+    const profilePayload: Record<string, unknown> = {};
+    Object.entries(profileUpdates).forEach(([key, value]) => {
+      if (key === 'user_id') return;
+      if (value === undefined) return;
+      profilePayload[key] = value;
+    });
+
+    if (Object.keys(profilePayload).length > 0) {
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert(
+          {
+            user_id: updateData.id,
+            ...profilePayload,
+          },
+          { onConflict: 'user_id' },
+        );
+
+      if (profileError) {
+        console.error('Failed to update user profile', profileError);
+        return { success: false, error: profileError.message };
+      }
+    }
+
+    return { success: true };
   } catch (err: any) {
-    console.error('🔥 Unexpected server error:', err)
-    return { success: false, error: err.message || 'Unknown server error' }
+    console.error('Unexpected server error while updating user', err);
+    return { success: false, error: err.message ?? 'Unknown server error' };
   }
 }

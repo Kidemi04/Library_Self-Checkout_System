@@ -1,7 +1,6 @@
 'use server';
 
-import type { Session } from 'next-auth';
-import { auth } from '@/auth';
+import { getSessionUser, UnauthorizedError } from '@/auth';
 import {
   getDevBypassEmail,
   getDevBypassName,
@@ -9,42 +8,83 @@ import {
   getDevBypassUserId,
   isDevAuthBypassed,
 } from '@/app/lib/auth/env';
-import type { DashboardSessionResult, DashboardUserProfile, DashboardRole } from '@/app/lib/auth/types';
+import { getSupabaseServerClient } from '@/app/lib/supabase/server';
+import type { DashboardRole, DashboardSessionResult, DashboardUserProfile } from '@/app/lib/auth/types';
 
 const toDashboardRole = (value: unknown): DashboardRole => {
-  if (typeof value !== 'string') return 'student';
-  return value.trim().toLowerCase() === 'staff' ? 'staff' : 'student';
+  if (typeof value !== 'string') return 'user';
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'admin') return 'admin';
+  if (normalized === 'staff' || normalized === 'librarian') return 'staff';
+  return 'user';
 };
 
-const normalizeSessionUser = (session: Session | null): DashboardUserProfile | null => {
-  if (!session?.user) return null;
-  const user = session.user as Session['user'] & {
-    role?: string | null;
-    roles?: string[] | null;
-    staff?: boolean;
-  };
+type MyProfileRow = {
+  user_id: string;
+  email?: string | null;
+  role?: string | null;
+  display_name?: string | null;
+  username?: string | null;
+  faculty?: string | null;
+  department?: string | null;
+};
 
-  const roleFromUser =
-    typeof user.role === 'string'
-      ? user.role
-      : Array.isArray(user.roles) && user.roles.length > 0
-        ? user.roles[0]
-        : user.staff
-          ? 'staff'
-          : null;
+const loadProfileFromView = async (
+  userId: string,
+): Promise<{ profile: DashboardUserProfile | null; profileLoaded: boolean }> => {
+  const supabase = getSupabaseServerClient();
 
-  return {
-    id: (user as { id?: string }).id ?? '',
-    name: user.name ?? null,
-    email: user.email ?? null,
-    role: toDashboardRole(roleFromUser),
-  };
+  try {
+    const { data, error } = await supabase
+      .from('my_profile')
+      .select(
+        `
+          user_id,
+          email,
+          role,
+          display_name,
+          username,
+          faculty,
+          department
+        `,
+      )
+      .eq('user_id', userId)
+      .maybeSingle<MyProfileRow>();
+
+    if (error) {
+      console.error('Failed to load profile view for user', error);
+      return { profile: null, profileLoaded: false };
+    }
+
+    if (!data) {
+      return { profile: null, profileLoaded: true };
+    }
+
+    const displayName = data.display_name ?? null;
+
+    return {
+      profile: {
+        id: data.user_id ?? userId,
+        email: data.email ?? null,
+        name: displayName,
+        role: toDashboardRole(data.role),
+        username: data.username ?? null,
+        faculty: data.faculty ?? null,
+        department: data.department ?? null,
+      },
+      profileLoaded: true,
+    };
+  } catch (error) {
+    console.error('Unexpected failure while reading profile view', error);
+    return { profile: null, profileLoaded: false };
+  }
 };
 
 export const getDashboardSession = async (): Promise<DashboardSessionResult> => {
   if (isDevAuthBypassed) {
     return {
       isBypassed: true,
+      profileLoaded: true,
       user: {
         id: getDevBypassUserId(),
         name: getDevBypassName(),
@@ -55,16 +95,43 @@ export const getDashboardSession = async (): Promise<DashboardSessionResult> => 
   }
 
   try {
-    const session = await auth();
+    const baseUser = await getSessionUser();
+    const { profile, profileLoaded } = await loadProfileFromView(baseUser.id);
+
+    if (!profile) {
+      return {
+        isBypassed: false,
+        profileLoaded,
+        user: {
+          id: baseUser.id,
+          name: null,
+          email: baseUser.email,
+          role: baseUser.role,
+        },
+      };
+    }
+
     return {
       isBypassed: false,
-      user: normalizeSessionUser(session),
+      profileLoaded,
+      user: {
+        id: profile.id,
+        name: profile.name ?? null,
+        email: profile.email ?? baseUser.email,
+        role: profile.role ?? baseUser.role,
+        username: profile.username,
+        faculty: profile.faculty,
+        department: profile.department,
+      },
     };
   } catch (error) {
-    console.error('Failed to read authentication session', error);
+    if (!(error instanceof UnauthorizedError)) {
+      console.error('Failed to read authentication session', error);
+    }
     return {
       isBypassed: false,
       user: null,
+      profileLoaded: false,
     };
   }
 };
@@ -73,3 +140,4 @@ export const getDashboardUser = async (): Promise<DashboardUserProfile | null> =
   const { user } = await getDashboardSession();
   return user;
 };
+
