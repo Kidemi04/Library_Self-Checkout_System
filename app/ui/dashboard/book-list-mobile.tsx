@@ -33,14 +33,14 @@ export default function BookList({ books }: { books?: Book[] }) {
 							key={b.id}
 							className="flex flex-col sm:flex-row gap-4 px-6 py-4 items-start hover:bg-swin-ivory transition"
 						>
-							{/* 封面图片 */}
+							{/* Cover Page */}
 							<img
 								src={b.cover ?? '/a.txt'}
 								alt={`Cover of ${b.title}`}
 								className="h-48 w-full sm:h-40 sm:w-28 flex-none rounded object-cover border border-gray-100"
 							/>
 
-							{/* 详情区域 */}
+							{/* Details Area */}
 							<div className="flex-1 w-full">
 								<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
 									<div>
