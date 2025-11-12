@@ -26,7 +26,7 @@ const navItems: NavItem[] = [
   { key: 'home', label: 'Home', href: '/dashboard', icon: HomeIcon },
   { key: 'notifications', label: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
   { key: 'scan', label: 'Scan', href: '/dashboard/qr-scan', icon: CameraIcon },
-  { key: 'catalog', label: 'Catalog', href: '/dashboard/book-list', icon: BookOpenIcon },
+  { key: 'catalog', label: 'Catalog', href: '/dashboard/book-items', icon: BookOpenIcon },
   { key: 'profile', label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];
 
