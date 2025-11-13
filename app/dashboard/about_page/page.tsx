@@ -1,71 +1,90 @@
 export default function AboutPage() {
-  const teamMembers = [
-    {
-      id: 1,
-      name: "Alice Tan",
-      bachelor: "Bachelor of Computer Science (Software Development)",
-      email: "alice.tan@student.swinburne.edu.my",
-    },
-    {
-      id: 2,
-      name: "Benjamin Wong",
-      bachelor: "Bachelor of Information and Communication Technology",
-      email: "benjamin.wong@student.swinburne.edu.my",
-    },
-    {
-      id: 3,
-      name: "Chloe Lim",
-      bachelor: "Bachelor of Design (Multimedia Design)",
-      email: "chloe.lim@student.swinburne.edu.my",
-    },
-    {
-      id: 4,
-      name: "Daniel Lee",
-      bachelor: "Bachelor of Computer Science (Cybersecurity)",
-      email: "daniel.lee@student.swinburne.edu.my",
-    },
-  ];
-
   return (
     <main className="space-y-8">
       <title>About Us | Dashboard</title>
 
-      {/* ----- Header Section ----- */}
+      {/* ----- Header ----- */}
       <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
         <h1 className="text-2xl font-semibold">About Us</h1>
         <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
-          Meet the development team behind the Swinburne Library Dashboard. Our
-          mission is to enhance accessibility and improve user experience for
-          all library users.
+          This page represents the members who have contributed to the
+          development of the Swinburne Library Website project. Each member
+          played a vital role in building the system that supports the digital
+          library experience, focusing on accessibility, usability, and
+          efficiency.
         </p>
       </header>
 
-      {/* ----- Team Section ----- */}
-      <section className="space-y-4">
+      {/* ----- Team Members ----- */}
+      <section className="space-y-6">
         <h2 className="text-lg font-semibold text-swin-charcoal">Our Team</h2>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {teamMembers.map((member) => (
-            <div
-              key={member.id}
-              className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md transition hover:shadow-lg"
+
+        {/* Member 1 */}
+        <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
+          <h3 className="text-lg font-semibold text-swin-charcoal">Alice Tan</h3>
+          <p className="text-sm text-swin-charcoal/80 mt-1">
+            Bachelor of Computer Science (Software Development)
+          </p>
+          <p className="text-sm text-swin-charcoal/60 mt-2">
+            <span className="font-medium">Email:</span>{" "}
+            <a
+              href="mailto:alice.tan@student.swinburne.edu.my"
+              className="text-swin-red hover:underline"
             >
-              <h3 className="text-lg font-semibold text-swin-charcoal">
-                {member.name}
-              </h3>
-              <p className="text-sm text-swin-charcoal/80 mt-1">
-                {member.bachelor}
-              </p>
-              <p className="text-sm text-swin-charcoal/60 mt-2">
-                <span className="font-medium">Email:</span>{" "}
-                <a
-                  href={`mailto:${member.email}`}
-                  className="text-swin-red hover:underline"
-                >
-                  {member.email}
-                </a>
-              </p>
-            </div>
-          ))}
+              alice.tan@student.swinburne.edu.my
+            </a>
+          </p>
+        </div>
+
+        {/* Member 2 */}
+        <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
+          <h3 className="text-lg font-semibold text-swin-charcoal">Benjamin Wong</h3>
+          <p className="text-sm text-swin-charcoal/80 mt-1">
+            Bachelor of Information and Communication Technology
+          </p>
+          <p className="text-sm text-swin-charcoal/60 mt-2">
+            <span className="font-medium">Email:</span>{" "}
+            <a
+              href="mailto:benjamin.wong@student.swinburne.edu.my"
+              className="text-swin-red hover:underline"
+            >
+              benjamin.wong@student.swinburne.edu.my
+            </a>
+          </p>
+        </div>
+
+        {/* Member 3 */}
+        <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
+          <h3 className="text-lg font-semibold text-swin-charcoal">Chloe Lim</h3>
+          <p className="text-sm text-swin-charcoal/80 mt-1">
+            Bachelor of Design (Multimedia Design)
+          </p>
+          <p className="text-sm text-swin-charcoal/60 mt-2">
+            <span className="font-medium">Email:</span>{" "}
+            <a
+              href="mailto:chloe.lim@student.swinburne.edu.my"
+              className="text-swin-red hover:underline"
+            >
+              chloe.lim@student.swinburne.edu.my
+            </a>
+          </p>
+        </div>
+
+        {/* Member 4 */}
+        <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
+          <h3 className="text-lg font-semibold text-swin-charcoal">Daniel Lee</h3>
+          <p className="text-sm text-swin-charcoal/80 mt-1">
+            Bachelor of Computer Science (Cybersecurity)
+          </p>
+          <p className="text-sm text-swin-charcoal/60 mt-2">
+            <span className="font-medium">Email:</span>{" "}
+            <a
+              href="mailto:daniel.lee@student.swinburne.edu.my"
+              className="text-swin-red hover:underline"
+            >
+              daniel.lee@student.swinburne.edu.my
+            </a>
+          </p>
         </div>
       </section>
 
@@ -76,7 +95,7 @@ export default function AboutPage() {
         <div className="rounded-2xl bg-swin-ivory p-6 shadow-md border border-swin-charcoal/10">
           <p className="text-swin-charcoal/80">
             For any library queries, please get in touch with library staff or
-            through:
+            reach out through the following channels:
           </p>
 
           <ul className="mt-4 space-y-2 text-swin-charcoal/80">
