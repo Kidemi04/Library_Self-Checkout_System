@@ -21,73 +21,105 @@ export default function AboutPage() {
 
         {/* Member 1 */}
         <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
-          <h3 className="text-lg font-semibold text-swin-charcoal">Alice Tan</h3>
+          <h3 className="text-lg font-semibold text-swin-charcoal">Kenneth Hui Hong CHUA</h3>
           <p className="text-sm text-swin-charcoal/80 mt-1">
-            Bachelor of Computer Science (Software Development)
+            Bachelor of Computer Science (Artificial Intelligence)
+          </p>
+          <p className="text-sm text-swin-charcoal/80 mt-1">
+            Student ID: 102782494
           </p>
           <p className="text-sm text-swin-charcoal/60 mt-2">
             <span className="font-medium">Email:</span>{" "}
             <a
-              href="mailto:alice.tan@student.swinburne.edu.my"
+              href="mailto:102782494@students.swinburne.edu.my"
               className="text-swin-red hover:underline"
             >
-              alice.tan@student.swinburne.edu.my
+              102782494@students.swinburne.edu.my
             </a>
           </p>
         </div>
 
         {/* Member 2 */}
-        <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
-          <h3 className="text-lg font-semibold text-swin-charcoal">Benjamin Wong</h3>
+       <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
+          <h3 className="text-lg font-semibold text-swin-charcoal">Kelvin Wen Kiong FONG</h3>
           <p className="text-sm text-swin-charcoal/80 mt-1">
-            Bachelor of Information and Communication Technology
+            Bachelor of Computer Science (Artificial Intelligence)
+          </p>
+          <p className="text-sm text-swin-charcoal/80 mt-1">
+            Student ID: 102782287
           </p>
           <p className="text-sm text-swin-charcoal/60 mt-2">
             <span className="font-medium">Email:</span>{" "}
             <a
-              href="mailto:benjamin.wong@student.swinburne.edu.my"
+              href="mailto:102782287@students.swinburne.edu.my"
               className="text-swin-red hover:underline"
             >
-              benjamin.wong@student.swinburne.edu.my
+              102782287@students.swinburne.edu.my
             </a>
           </p>
         </div>
 
         {/* Member 3 */}
         <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
-          <h3 className="text-lg font-semibold text-swin-charcoal">Chloe Lim</h3>
+          <h3 className="text-lg font-semibold text-swin-charcoal">Nigel Zi Jun LING</h3>
           <p className="text-sm text-swin-charcoal/80 mt-1">
-            Bachelor of Design (Multimedia Design)
+            Bachelor of Computer Science (Artificial Intelligence)
+          </p>
+          <p className="text-sm text-swin-charcoal/80 mt-1">
+            Student ID: 102779140
           </p>
           <p className="text-sm text-swin-charcoal/60 mt-2">
             <span className="font-medium">Email:</span>{" "}
             <a
-              href="mailto:chloe.lim@student.swinburne.edu.my"
+              href="mailto:102779140@students.swinburne.edu.my"
               className="text-swin-red hover:underline"
             >
-              chloe.lim@student.swinburne.edu.my
+              102779140@students.swinburne.edu.my
             </a>
           </p>
         </div>
 
         {/* Member 4 */}
         <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
-          <h3 className="text-lg font-semibold text-swin-charcoal">Daniel Lee</h3>
+          <h3 className="text-lg font-semibold text-swin-charcoal">Enoch Eren CHUA</h3>
           <p className="text-sm text-swin-charcoal/80 mt-1">
-            Bachelor of Computer Science (Cybersecurity)
+            Bachelor of Computer Science (Artificial Intelligence)
+          </p>
+          <p className="text-sm text-swin-charcoal/80 mt-1">
+            Student ID: 104401704
           </p>
           <p className="text-sm text-swin-charcoal/60 mt-2">
             <span className="font-medium">Email:</span>{" "}
             <a
-              href="mailto:daniel.lee@student.swinburne.edu.my"
+              href="mailto:104401704@students.swinburne.edu.my"
               className="text-swin-red hover:underline"
             >
-              daniel.lee@student.swinburne.edu.my
+              104401704@students.swinburne.edu.my
             </a>
           </p>
         </div>
-      </section>
 
+        {/* Member 5 */}
+        <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
+          <h3 className="text-lg font-semibold text-swin-charcoal">Ivan Jia Wei HOAN</h3>
+          <p className="text-sm text-swin-charcoal/80 mt-1">
+            Bachelor of Computer Science (Software Development)
+          </p>
+          <p className="text-sm text-swin-charcoal/80 mt-1">
+            Student ID: 102786580
+          </p>
+          <p className="text-sm text-swin-charcoal/60 mt-2">
+            <span className="font-medium">Email:</span>{" "}
+            <a
+              href="mailto:102786580@students.swinburne.edu.my"
+              className="text-swin-red hover:underline"
+            >
+              102786580@students.swinburne.edu.my
+            </a>
+          </p>
+        </div>
+
+</section>
       {/* ----- Contact Section ----- */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-swin-charcoal">Contact Us</h2>
@@ -130,30 +162,51 @@ export default function AboutPage() {
           <div className="mt-6">
             <p className="font-semibold text-swin-charcoal">Follow us:</p>
             <div className="flex gap-4 mt-2">
-              <a
-                href="https://www.facebook.com/SwinburneSarawakLibrary"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-swin-red hover:underline"
-              >
-                Facebook
-              </a>
+                <a
+                  href="https://www.facebook.com/SwinburneSarawakLibrary"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                 >
+                 <img
+                 src="/public/image/facebook.png"
+                 alt="Facebook"
+                className="w-6 h-6 hover:opacity-80 transition"
+                />
+                 </a>
+
               <a
                 href="https://www.instagram.com/swinburnesarawak"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-swin-red hover:underline"
               >
-                Instagram
-              </a>
+              <img
+                 src="/public/image/instagram.png"
+                 alt="Instagram"
+                className="w-6 h-6 hover:opacity-80 transition"
+                />
+                 </a>
               <a
                 href="https://x.com/SwinburneSarawak"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-swin-red hover:underline"
               >
-                X (Twitter)
-              </a>
+              <img
+                 src="/public/image/x.png"
+                 alt="Twitter"
+                className="w-6 h-6 hover:opacity-80 transition"
+                />
+                 </a>
+                 <a
+                href="https://www.tiktok.com/@swinsarawaklib"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+              <img
+                 src="/public/image/tiktok.png"
+                 alt="TikTok"
+                className="w-6 h-6 hover:opacity-80 transition"
+                />
+                 </a>
             </div>
           </div>
         </div>
