@@ -157,7 +157,6 @@ export default function MobileNav({
         </div>
 
 
-
         {/* Main Navigation */}
         <div className="mx-auto flex max-w-4xl items-end justify-between gap-1 px-5 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-4">
           {navItems.map((item) => {

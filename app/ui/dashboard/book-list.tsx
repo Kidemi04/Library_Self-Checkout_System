@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
 
 /** SIP-aligned item status (match your Supabase column) */
 export type ItemStatus =
@@ -32,6 +33,7 @@ type Props = {
   variant?: 'grid' | 'list';               // card grid or compact list
   onDetailsClick?: (book: UIBook) => void; // optional: “View details”
   onBorrowClick?: (book: UIBook) => void;  // optional: “Borrow / Request”
+  pageSize?: number; // optional: number of books per page
 };
 
 const STATUS_META: Record<
@@ -50,7 +52,22 @@ export default function BookList({
   variant = 'grid',
   onDetailsClick,
   onBorrowClick,
+  pageSize, // new prop
 }: Props) {
+  const [currentPage, setCurrentPage] = React.useState(1);
+
+  // Determine number of books per page based on variant or prop
+  const booksPerPage =
+    pageSize ?? (variant === 'grid' ? 4 * 4 : 5); // 4 rows of 4 = 16 for grid, 5 for list
+
+  const totalPages = Math.ceil(books.length / booksPerPage);
+
+  // Slice books for current page
+  const paginatedBooks = books.slice(
+    (currentPage - 1) * booksPerPage,
+    currentPage * booksPerPage
+  );
+
   if (!books?.length) return <EmptyState />;
 
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
@@ -66,8 +83,9 @@ export default function BookList({
     );
 
   return (
+    <>
     <Wrapper>
-      {books.map((b) => {
+      {paginatedBooks.map((b) => {
         const status = (b.status ?? 'available') as ItemStatus;
         const meta = STATUS_META[status] ?? STATUS_META.available;
         const canBorrow = meta.canBorrow && (b.copies_available ?? 1) > 0;
@@ -197,6 +215,32 @@ export default function BookList({
         );
       })}
     </Wrapper>
+
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="mt-4 flex items-center justify-center gap-6 text-sm">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+            className="rounded border px-4 py-1 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <ChevronDoubleLeftIcon className='h-6 w-6'></ChevronDoubleLeftIcon>
+          </button>
+
+          <span className="text-center">
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className="rounded border px-4 py-1 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <ChevronDoubleRightIcon className='h-6 w-6'></ChevronDoubleRightIcon>
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 
