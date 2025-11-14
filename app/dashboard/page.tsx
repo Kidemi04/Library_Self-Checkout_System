@@ -41,48 +41,6 @@ export default async function UserDashboardPage() {
     redirect('/dashboard/admin');
   }
 
-  const isPrivileged = ['staff', 'admin'].includes(user.role);
-  const headerClasses = clsx(
-    'grid gap-4 rounded-xl p-5 shadow-md md:grid-cols-[1fr_minmax(0,260px)] md:items-center md:gap-6 md:rounded-2xl md:p-8',
-    isPrivileged
-      ? 'bg-slate-950 text-white shadow-slate-900/30'
-      : 'bg-swin-charcoal text-swin-ivory shadow-swin-charcoal/25',
-  );
-  const summaryCardClasses = clsx(
-    'rounded-xl border p-4 text-sm shadow-inner md:rounded-2xl md:p-5',
-    isPrivileged
-      ? 'border-white/15 bg-white/5 text-white/90 shadow-black/20'
-      : 'border-swin-ivory/15 bg-swin-ivory/10 text-swin-ivory/90 shadow-black/10',
-  );
-  const summaryPillClasses = clsx(
-    'mt-2 inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide',
-    isPrivileged ? 'border border-white/20 text-emerald-200/90' : 'border border-swin-ivory/30 text-swin-ivory/80',
-  );
-  const bypassBannerClasses = clsx(
-    'mt-3 rounded-md px-3 py-2 text-[11px] font-medium shadow-inner',
-    isPrivileged
-      ? 'bg-amber-400/20 text-amber-100 shadow-amber-600/10'
-      : 'bg-amber-400/20 text-amber-200 shadow-amber-500/10',
-  );
-  const mobileCardClasses = clsx(
-    'flex items-center justify-between rounded-2xl px-5 py-4 shadow-sm transition',
-    isPrivileged
-      ? 'border border-white/10 bg-slate-900/70 text-white hover:border-emerald-300/40 hover:shadow-emerald-400/20'
-      : 'border border-swin-charcoal/10 bg-white text-swin-charcoal hover:border-swin-red/60 hover:shadow-swin-red/20',
-  );
-  const pillClasses = clsx(
-    'flex h-11 w-11 items-center justify-center rounded-full shadow-md',
-    isPrivileged ? 'bg-emerald-400/10 text-emerald-200 shadow-emerald-500/10' : 'bg-swin-charcoal/90 text-swin-ivory shadow-swin-charcoal/40',
-  );
-  const helperTextClass = clsx(
-    'text-xs',
-    isPrivileged ? 'text-slate-300/70' : 'text-swin-charcoal/60',
-  );
-  const titleTextClass = clsx(
-    'text-sm font-semibold',
-    isPrivileged ? 'text-slate-100' : 'text-swin-charcoal',
-  );
-
   const [books, activeLoans, summary, recentLoans] = await Promise.all([
     fetchAvailableBooks(),
     fetchActiveLoans(),
@@ -96,34 +54,35 @@ export default async function UserDashboardPage() {
     <main className="space-y-8">
       <title>Dashboard | Quick Actions</title>
 
-      <header className="grid gap-6 rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30 md:grid-cols-[1fr_minmax(0,260px)] md:items-center">
+      <header className="grid gap-6 rounded-3xl border border-slate-800/60 bg-gradient-to-br from-[#141827] via-[#1f2235] to-[#0f111c] p-8 text-white shadow-2xl shadow-slate-950/50 transition md:grid-cols-[1fr_minmax(0,260px)] md:items-center">
         <div>
-          <p className="text-sm uppercase tracking-wide text-swin-ivory/60">Self-Service Desk</p>
-          <h1 className="mt-2 text-2xl font-semibold">
-            Welcome back, <span className="md:inline hidden">{user.name || 'Library Member'}</span><span className="inline md:hidden">{user.username || user.name || 'Library Member'}</span>!
+          <p className="text-sm uppercase tracking-[0.35em] text-white/60">Self-Service Desk</p>
+          <h1 className="mt-3 text-2xl font-semibold text-white">
+            Welcome back, <span className="hidden md:inline">{user.name || 'Library Member'}</span>
+            <span className="inline md:hidden">{user.username || user.name || 'Library Member'}</span>!
           </h1>
-          <p className="mt-3 max-w-2xl text-sm text-swin-ivory/70">
+          <p className="mt-3 max-w-2xl text-sm text-white/75">
             Quickly process borrowing and returning directly from this dashboard. Use the controls below to
             assist patrons without leaving the page.
           </p>
         </div>
-        <div className="rounded-2xl border border-swin-ivory/15 bg-swin-ivory/10 p-5 text-sm text-swin-ivory/90 shadow-inner shadow-black/10">
-          <p className="text-xs uppercase tracking-wide text-swin-ivory/60">Signed in</p>
+        <div className="rounded-3xl border border-white/20 bg-white/10 p-5 text-sm text-white/90 shadow-inner shadow-black/20 backdrop-blur-sm">
+          <p className="text-xs uppercase tracking-wide text-white/60">Signed in</p>
           {user.email ? (
             <p className={clsx(
-              "mt-1 font-semibold text-swin-ivory break-words",
+              "mt-1 break-words font-semibold text-white",
               user.email.length > 30 ? "text-sm md:text-base" : "text-base",
               user.email.length > 40 ? "text-xs md:text-base" : "text-base"
             )}>
               {user.email}
             </p>
           ) : null}
-          <p className="mt-2 inline-flex items-center gap-2 rounded-full border border-swin-ivory/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-swin-ivory/80">
+          <p className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white/80">
             Role: {roleLabel(user.role)}
           </p>
           {isBypassed ? (
-            <p className="mt-3 rounded-md bg-amber-400/20 px-3 py-2 text-[11px] font-medium text-amber-200 shadow-inner shadow-amber-500/10">
-              Development bypass active — authentication skipped.
+            <p className="mt-3 rounded-md bg-amber-400/20 px-3 py-2 text-[11px] font-medium text-amber-100 shadow-inner shadow-amber-700/10">
+              Development bypass active - authentication skipped.
             </p>
           ) : null}
         </div>
@@ -133,25 +92,31 @@ export default async function UserDashboardPage() {
       <section className="grid gap-3 md:hidden">
         <Link
           href="/dashboard/check-out"
-          className={mobileCardClasses}
+          className={clsx(
+            'flex items-center justify-between rounded-2xl border border-swin-charcoal/10 bg-white px-5 py-4 text-swin-charcoal shadow-sm transition hover:border-swin-red/60 hover:shadow-swin-red/20',
+            'dark:border-white/10 dark:bg-slate-900/70 dark:text-white dark:hover:border-emerald-300/40 dark:hover:shadow-emerald-400/20',
+          )}
         >
           <div className="flex flex-col">
-            <span className={titleTextClass}>Borrow books</span>
-            <span className={helperTextClass}>Scan or search to start a new loan</span>
+            <span className="text-sm font-semibold text-swin-charcoal dark:text-white">Borrow books</span>
+            <span className="text-xs text-swin-charcoal/60 dark:text-slate-300/80">Scan or search to start a new loan</span>
           </div>
-          <span className={pillClasses}>
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-swin-charcoal/90 text-swin-ivory shadow-swin-charcoal/40 shadow-md dark:bg-emerald-400/10 dark:text-emerald-200 dark:shadow-emerald-500/10">
             <ArrowUpTrayIcon className="h-5 w-5" />
           </span>
         </Link>
         <Link
           href="/dashboard/check-in"
-          className={mobileCardClasses}
+          className={clsx(
+            'flex items-center justify-between rounded-2xl border border-swin-charcoal/10 bg-white px-5 py-4 text-swin-charcoal shadow-sm transition hover:border-swin-red/60 hover:shadow-swin-red/20',
+            'dark:border-white/10 dark:bg-slate-900/70 dark:text-white dark:hover:border-emerald-300/40 dark:hover:shadow-emerald-400/20',
+          )}
         >
           <div className="flex flex-col">
-            <span className={titleTextClass}>Return books</span>
-            <span className={helperTextClass}>Record a check-in by scan or ID</span>
+            <span className="text-sm font-semibold text-swin-charcoal dark:text-white">Return books</span>
+            <span className="text-xs text-swin-charcoal/60 dark:text-slate-300/80">Record a check-in by scan or ID</span>
           </div>
-          <span className={pillClasses}>
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-swin-charcoal/90 text-swin-ivory shadow-swin-charcoal/40 shadow-md dark:bg-emerald-400/10 dark:text-emerald-200 dark:shadow-emerald-500/10">
             <ArrowDownTrayIcon className="h-5 w-5" />
           </span>
         </Link>
@@ -171,8 +136,8 @@ export default async function UserDashboardPage() {
       {/* Desktop view - Recent Activity */}
       <section className="hidden space-y-4 md:block">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-swin-charcoal">Recent activity</h2>
-          <p className="text-sm text-swin-charcoal/60">Latest borrowing and return activity</p>
+          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Recent activity</h2>
+          <p className="text-sm text-swin-charcoal/60 dark:text-slate-300/80">Latest borrowing and return activity</p>
         </div>
         <RecentLoans loans={recentLoans} />
       </section>
@@ -180,8 +145,8 @@ export default async function UserDashboardPage() {
       {/* Active Loans Section - Visible on all views */}
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-swin-charcoal">Active loans</h2>
-          <p className="text-sm text-swin-charcoal/60">
+          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Active loans</h2>
+          <p className="text-sm text-swin-charcoal/60 dark:text-slate-300/80">
             {activeLoans.length} items currently outside the library
           </p>
         </div>

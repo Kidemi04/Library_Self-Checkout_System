@@ -1,8 +1,12 @@
+'use client';
+
 import Link from 'next/link';
 import clsx from 'clsx';
 import NavLinks from '@/app/ui/dashboard/nav-links';
 import AcmeLogo from '@/app/ui/acme-logo';
 import SignOutButton from '@/app/ui/dashboard/sign-out-button';
+import ThemeToggle from '@/app/ui/theme/theme-toggle';
+import { useTheme } from '@/app/ui/theme/theme-provider';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 
 type SideNavProps = {
@@ -13,13 +17,14 @@ type SideNavProps = {
 export default function SideNav({ user, isBypassed }: SideNavProps) {
   const isPrivileged = user.role === 'staff' || user.role === 'admin';
   const roleLabel = user.role === 'admin' ? 'Admin' : user.role === 'staff' ? 'Staff' : 'User';
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   return (
     <aside
       className={clsx(
-        'fixed left-0 top-0 flex h-screen w-64 flex-col px-3 py-5 shadow-xl md:px-4',
-        'overflow-y-auto',
-        isPrivileged ? 'bg-slate-900/90 text-slate-100 ring-1 ring-white/10' : 'bg-swin-charcoal text-swin-ivory',
+        'fixed left-0 top-0 flex h-screen w-64 flex-col overflow-y-auto px-3 py-5 shadow-xl transition-colors duration-300 md:px-4',
+        isDark ? 'bg-slate-950/95 text-slate-100 ring-1 ring-white/10' : 'bg-white text-swin-charcoal ring-1 ring-slate-100',
       )}
     >
       <Link
@@ -36,24 +41,25 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
       <div className="flex grow flex-col justify-between gap-6">
         <nav className="flex flex-col gap-2">
           {isPrivileged ? (
-            <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-slate-100 shadow-inner">
-              <p className="text-[11px] uppercase tracking-wide text-white/60">{`${roleLabel} access`}</p>
-              <p className="mt-1 text-sm font-semibold truncate">{user.name ?? user.email ?? 'Librarian'}</p>
-              {user.email ? <p className="text-[11px] text-white/60 break-words">{user.email}</p> : null}
-              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-emerald-300/80">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-slate-900 shadow-inner transition-colors duration-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-100">
+              <p className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-white/60">{`${roleLabel} access`}</p>
+              <p className="mt-1 truncate text-sm font-semibold">{user.name ?? user.email ?? 'Librarian'}</p>
+              {user.email ? <p className="break-words text-[11px] text-slate-500 dark:text-white/60">{user.email}</p> : null}
+              <p className="mt-2 text-[11px] font-medium uppercase tracking-wide text-swin-red dark:text-emerald-300/80">
                 {isBypassed ? 'Dev bypass active' : `Role: ${roleLabel}`}
               </p>
             </div>
           ) : null}
           <NavLinks role={user.role} />
         </nav>
-        <div className="flex">
+        <div className="flex flex-col gap-3">
+          <ThemeToggle />
           <SignOutButton
             className={clsx(
-              'flex h-[44px] w-full items-center justify-center gap-2 rounded-md bg-transparent text-sm font-medium md:justify-start md:px-3',
-              isPrivileged
-                ? 'border border-white/20 text-slate-100/80 hover:bg-white/10 hover:text-white'
-                : 'border border-swin-red/40 text-swin-ivory/80 hover:bg-swin-red hover:text-swin-ivory',
+              'flex h-[44px] w-full items-center justify-center gap-2 rounded-md border text-sm font-medium transition-colors md:justify-start md:px-3',
+              isDark
+                ? 'border-white/20 text-slate-200 hover:bg-white/10 hover:text-white'
+                : 'border-slate-200 bg-white text-swin-charcoal hover:bg-swin-red hover:text-white',
             )}
             labelClassName="hidden md:block"
           />
