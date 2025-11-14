@@ -3,7 +3,6 @@ export default function AboutPage() {
     <main className="space-y-8">
       <title>About Us | Dashboard</title>
 
-      {/* ----- Header ----- */}
       <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
         <h1 className="text-2xl font-semibold">About Us</h1>
         <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
@@ -15,11 +14,9 @@ export default function AboutPage() {
         </p>
       </header>
 
-      {/* ----- Team Members ----- */}
       <section className="space-y-6">
         <h2 className="text-lg font-semibold text-swin-charcoal">Our Team</h2>
 
-        {/* Member 1 */}
         <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
           <h3 className="text-lg font-semibold text-swin-charcoal">Kenneth Hui Hong CHUA</h3>
           <p className="text-sm text-swin-charcoal/80 mt-1">
@@ -39,7 +36,6 @@ export default function AboutPage() {
           </p>
         </div>
 
-        {/* Member 2 */}
        <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
           <h3 className="text-lg font-semibold text-swin-charcoal">Kelvin Wen Kiong FONG</h3>
           <p className="text-sm text-swin-charcoal/80 mt-1">
@@ -59,7 +55,6 @@ export default function AboutPage() {
           </p>
         </div>
 
-        {/* Member 3 */}
         <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
           <h3 className="text-lg font-semibold text-swin-charcoal">Nigel Zi Jun LING</h3>
           <p className="text-sm text-swin-charcoal/80 mt-1">
@@ -79,7 +74,6 @@ export default function AboutPage() {
           </p>
         </div>
 
-        {/* Member 4 */}
         <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
           <h3 className="text-lg font-semibold text-swin-charcoal">Enoch Eren CHUA</h3>
           <p className="text-sm text-swin-charcoal/80 mt-1">
@@ -99,7 +93,6 @@ export default function AboutPage() {
           </p>
         </div>
 
-        {/* Member 5 */}
         <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
           <h3 className="text-lg font-semibold text-swin-charcoal">Ivan Jia Wei HOAN</h3>
           <p className="text-sm text-swin-charcoal/80 mt-1">
@@ -120,7 +113,6 @@ export default function AboutPage() {
         </div>
 
 </section>
-      {/* ----- Contact Section ----- */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-swin-charcoal">Contact Us</h2>
 
@@ -132,7 +124,7 @@ export default function AboutPage() {
 
           <ul className="mt-4 space-y-2 text-swin-charcoal/80">
             <li>
-              📧 <strong>Email:</strong>{" "}
+              <strong>Email:</strong>{" "}
               <a
                 href="mailto:library@swinburne.edu.my"
                 className="text-swin-red hover:underline"
@@ -140,13 +132,13 @@ export default function AboutPage() {
                 library@swinburne.edu.my
               </a>
             </li>
-            <li>📞 <strong>Phone:</strong> +6082 260936</li>
+            <li><strong>Phone:</strong> +6082 260936</li>
             <li>
-              💬 <strong>Live Chat:</strong> Available via Library App (during
+              <strong>Live Chat:</strong> Available via Library App (during
               operating hours)
             </li>
             <li>
-              📘 <strong>Facebook PM:</strong>{" "}
+              <strong>Facebook PM:</strong>{" "}
               <a
                 href="https://www.facebook.com/SwinburneSarawakLibrary"
                 target="_blank"
@@ -156,7 +148,7 @@ export default function AboutPage() {
                 Swinburne Sarawak Library
               </a>
             </li>
-            <li>👩‍🏫 <strong>Find a Library Liaison</strong></li>
+            <li> <strong>Find a Library Liaison</strong></li>
           </ul>
 
           <div className="mt-6">
