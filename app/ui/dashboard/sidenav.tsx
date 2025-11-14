@@ -17,7 +17,8 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
   return (
     <aside
       className={clsx(
-        'flex h-full flex-col bg-swin-charcoal px-3 py-5 text-swin-ivory shadow-xl md:px-4',
+        'fixed left-0 top-0 flex h-screen w-64 flex-col px-3 py-5 shadow-xl md:px-4',
+        'overflow-y-auto',
         isPrivileged ? 'bg-slate-900/90 text-slate-100 ring-1 ring-white/10' : 'bg-swin-charcoal text-swin-ivory',
       )}
     >

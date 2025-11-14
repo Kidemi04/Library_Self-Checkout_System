@@ -29,12 +29,6 @@ export default function HomePageMobile() {
           Log In
         </Link>
 
-        <Link
-          href="/register"
-          className="rounded bg-white px-5 py-3 text-md font-medium text-swin-red " >
-          Sign Up
-        </Link>
-
       </header>
 
 

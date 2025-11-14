@@ -18,7 +18,7 @@ import type { DashboardRole } from '@/app/lib/auth/types';
 const userLinks = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
-  { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
+  { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
 ];

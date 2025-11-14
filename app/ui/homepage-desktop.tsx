@@ -34,12 +34,6 @@ export default function HomePageDesktop() {
                         className="rounded-md bg-swin-red px-6 py-3 text-lg font-medium text-white shadow" >
                     Log In
                     </Link>
-
-                    <Link
-                        href="/register"
-                        className="rounded bg-white px-6 py-3 text-lg font-medium text-swin-red " >
-                    Sign Up
-                    </Link>
                 </nav>
             </header>
 

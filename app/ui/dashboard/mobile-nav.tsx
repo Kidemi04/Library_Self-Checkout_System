@@ -9,6 +9,8 @@ import {
   CameraIcon,
   BookOpenIcon,
   UserCircleIcon,
+  ArrowUturnLeftIcon,
+  BookmarkIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import AcmeLogo from '@/app/ui/acme-logo';
@@ -24,9 +26,9 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { key: 'home', label: 'Home', href: '/dashboard', icon: HomeIcon },
-  { key: 'notifications', label: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
+  { key: 'catalog', label: 'Catalog', href: '/dashboard/book-items', icon: BookOpenIcon },
   { key: 'scan', label: 'Scan', href: '/dashboard/qr-scan', icon: CameraIcon },
-  { key: 'catalog', label: 'Catalog', href: '/dashboard/book-list', icon: BookOpenIcon },
+  { key: 'notifications', label: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
   { key: 'profile', label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];
 
@@ -95,7 +97,69 @@ export default function MobileNav({
       </header>
 
       <nav className={navClasses} aria-label="Primary">
-        <div className="mx-auto flex max-w-4xl items-end justify-between gap-1 px-5 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-2">
+        {/* Action Buttons Container */}
+        <div className="fixed inset-x-0 bottom-[68px] z-[60] flex items-center justify-between px-8 p-3">
+          <Link
+            href="/dashboard/check-out"
+            className="flex items-center gap-1 transition-opacity hover:opacity-70"
+          >
+            <BookmarkIcon
+              className={clsx(
+                'h-5 w-5',
+                isItemActive('/dashboard/check-out')
+                  ? activeTextClass
+                  : isPrivileged
+                    ? 'text-slate-300/80'
+                    : 'text-swin-charcoal'
+              )}
+            />
+            <span
+              className={clsx(
+                'text-xs font-medium',
+                isItemActive('/dashboard/check-out')
+                  ? activeTextClass
+                  : isPrivileged
+                    ? 'text-slate-300/80'
+                    : 'text-swin-charcoal'
+              )}
+            >
+              Borrow Book
+            </span>
+          </Link>
+
+          <Link
+            href="/dashboard/check-in"
+            className="flex items-center gap-1 transition-opacity hover:opacity-70"
+          >
+            <ArrowUturnLeftIcon
+              className={clsx(
+                'h-5 w-5',
+                isItemActive('/dashboard/check-in')
+                  ? activeTextClass
+                  : isPrivileged
+                    ? 'text-slate-300/80'
+                    : 'text-swin-charcoal'
+              )}
+            />
+            <span
+              className={clsx(
+                'text-xs font-medium',
+                isItemActive('/dashboard/check-in')
+                  ? activeTextClass
+                  : isPrivileged
+                    ? 'text-slate-300/80'
+                    : 'text-swin-charcoal'
+              )}
+            >
+              Return Book
+            </span>
+          </Link>
+        </div>
+
+
+
+        {/* Main Navigation */}
+        <div className="mx-auto flex max-w-4xl items-end justify-between gap-1 px-5 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-4">
           {navItems.map((item) => {
             const Icon = item.icon;
             if (item.key === 'scan') {
