@@ -13,6 +13,7 @@ import {
   ArrowUturnLeftIcon,
   BookmarkIcon,
   UserGroupIcon,
+  InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import AcmeLogo from '@/app/ui/acme-logo';
@@ -186,6 +187,10 @@ export default function MobileNav({
           
             // Detect current page
             const isOnBookItems = pathname.startsWith('/dashboard/book-items');
+            const isOnBookList = pathname.startsWith('/dashboard/book-list');
+
+            // Reset to default when not on catalog-related pages
+            const isOnCatalogPages = isOnBookItems || isOnBookList;
           
             // Determine next route based on current route
             const nextCatalogHref = isPrivileged
@@ -193,18 +198,19 @@ export default function MobileNav({
                 ? '/dashboard/book-list'
                 : '/dashboard/book-items'
               : item.href;
-          
+
             // Dynamically switch icon & label
             const DynamicIcon = isPrivileged
-              ? isOnBookItems
-                ? BookOpenIcon // book-items → book-list
-                : QueueListIcon // book-list → book-items
-              : item.icon;
-          
+            ? isOnCatalogPages
+              ? (isOnBookItems ? QueueListIcon : BookOpenIcon) // Toggle icon only on catalog pages
+              : QueueListIcon // Reset to Book List icon when on other pages
+            : item.icon;
+        
+            // Dynamic label based on current page
             const dynamicLabel = isPrivileged
-              ? isOnBookItems
-                ? 'Catalog'
-                : 'Book List'
+              ? isOnCatalogPages
+                ? (isOnBookItems ? 'Book List' : 'Catalog') // Toggle label only on catalog pages
+                : 'Book List' // Reset label when on other pages
               : item.label;
           
             return (
@@ -227,7 +233,54 @@ export default function MobileNav({
               </Link>
             );
           }
+
+          if (item.key === 'profile'){
+            const isActive =
+              pathname.startsWith('/dashboard/profile') ||
+              pathname.startsWith('/dashboard/about-page');
+        
+            // Detect current page
+            const isOnProfilePage = pathname.startsWith('/dashboard/profile');
+            const isOnAboutPage = pathname.startsWith('/dashboard/about-page');
+
+            // Reset to default when not on catalog-related pages
+            const isOnProfileandAboutPage = isOnProfilePage || isOnAboutPage;
           
+            // Determine next route based on current route
+            const nextCatalogHref = isOnProfilePage
+                ? '/dashboard/about-page'
+                : '/dashboard/profile'
+
+            // Dynamically switch icon & label
+            const DynamicIcon = isOnProfileandAboutPage
+              ? (isOnProfilePage ? UserCircleIcon : InformationCircleIcon)
+              : UserCircleIcon
+
+            // Dynamic label based on current page
+            const dynamicLabel = isOnProfileandAboutPage
+                ? (isOnProfilePage ? 'Profile' : 'About Us') 
+                : 'Profile'
+          
+            return (
+              <Link
+                key={item.key}
+                href={nextCatalogHref}
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = nextCatalogHref;
+                }}
+                className={clsx(
+                  'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors',
+                  isActive ? activeTextClass : inactiveTextClass,
+                )}
+                aria-current={isActive ? 'page' : undefined}
+              >
+                <DynamicIcon className="h-6 w-6" />
+                <span>{dynamicLabel}</span>
+              </Link>
+            );
+          }
+
 
           // --- Existing special Scan button (keep unchanged) ---
           if (item.key === 'scan') {
