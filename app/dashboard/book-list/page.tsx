@@ -9,6 +9,7 @@ import BookCatalogTable, {
 } from '@/app/ui/dashboard/book-catalog-table';
 import SearchForm from '@/app/ui/dashboard/search-form';
 import { fetchBooks } from '@/app/lib/supabase/queries';
+import type { Book, CopyStatus } from '@/app/lib/supabase/types';
 
 // Keep this list in sync with your SIP / Supabase enum
 type ItemStatus =
@@ -22,6 +23,25 @@ type ItemStatus =
   | 'lost'
   | 'missing'
   | 'maintenance';
+
+const SIP_STATUS_PRIORITY: CopyStatus[] = [
+  'on_loan',
+  'available',
+  'hold_shelf',
+  'processing',
+  'lost',
+  'damaged',
+];
+
+function deriveSipStatus(copies: Book['copies']): CopyStatus | null {
+  if (!copies.length) return null;
+  for (const status of SIP_STATUS_PRIORITY) {
+    if (copies.some((copy) => copy.status === status)) {
+      return status;
+    }
+  }
+  return copies[0]?.status ?? null;
+}
 
 function pick(v?: string | string[] | null) {
   if (Array.isArray(v)) return v[0] ?? '';
@@ -75,6 +95,7 @@ export default async function BookItemsPage({
       total_copies: book.totalCopies,
       cover: book.coverImageUrl ?? null,
       available: book.availableCopies > 0,
+      sip_status: deriveSipStatus(book.copies),
     };
   });
 

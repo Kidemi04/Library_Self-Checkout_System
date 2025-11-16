@@ -3,6 +3,7 @@
 import React from 'react';
 import ManageBookModal from './manage-book-modal';
 import { updateBook, deleteBook, type ItemStatus } from '@/app/lib/supabase/updates';
+import type { CopyStatus } from '@/app/lib/supabase/types';
 
 export type CatalogBook = {
   id: string;
@@ -20,6 +21,7 @@ export type CatalogBook = {
   cover?: string | null;
   copies_available?: number | null;
   total_copies?: number | null;
+  sip_status?: CopyStatus | null;
 };
 
 /* -------------------- Main component -------------------- */
@@ -28,7 +30,14 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
   const [open, setOpen] = React.useState(false);
   const [active, setActive] = React.useState<CatalogBook | null>(null);
   const [sortKey, setSortKey] = React.useState<
-    'title' | 'author' | 'isbn' | 'classification' | 'publication_year' | 'publisher' | 'status'
+    | 'title'
+    | 'author'
+    | 'isbn'
+    | 'classification'
+    | 'publication_year'
+    | 'publisher'
+    | 'status'
+    | 'sip_status'
   >('title');
   const [sortDir, setSortDir] = React.useState<'asc' | 'desc'>('asc');
 
@@ -72,7 +81,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
     publication_year: '',
     publisher: '',
     tags: '' as string, // comma-separated
-    status: 'available' as ItemStatus,
+    sip_status: 'available' as CopyStatus,
   });
 
   function onManage(b: CatalogBook) {
@@ -85,7 +94,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
       publication_year: b.publication_year ? String(b.publication_year) : '',
       publisher: b.publisher ?? '',
       tags: (b.tags ?? []).join(', '),
-      status: (b.status as ItemStatus) ?? 'available',
+      sip_status: (b.sip_status as CopyStatus) ?? 'available',
     });
     setOpen(true);
   }
@@ -112,6 +121,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean),
+      sip_status: form.sip_status,
     };
 
     await updateBook(payload);
@@ -152,6 +162,9 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                 <Th onClick={() => toggleSort('status')}>
                   <HeaderLabel label="Status" icon={sortIcon('status')} />
                 </Th>
+                <Th onClick={() => toggleSort('sip_status')}>
+                  <HeaderLabel label="SIP Status" icon={sortIcon('sip_status')} />
+                </Th>
                 <Th>Actions</Th>
               </tr>
             </thead>
@@ -184,6 +197,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                   <Td className="hidden lg:table-cell text-slate-900">{b.publication_year ?? '-'}</Td>
                   <Td className="hidden xl:table-cell text-slate-900">{b.publisher ?? '-'}</Td>
                   <Td>{renderStatusBadge(b.status)}</Td>
+                  <Td>{renderSipStatusBadge(b.sip_status)}</Td>
                   <Td>
                     <div className="flex flex-wrap gap-2">
                       <button
@@ -246,7 +260,10 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                       {b.author ?? 'Unknown'}
                     </p>
                   </div>
-                  {renderStatusBadge(b.status)}
+                  <div className="flex flex-col items-end gap-1">
+                    {renderStatusBadge(b.status)}
+                    {renderSipStatusBadge(b.sip_status)}
+                  </div>
                 </div>
 
                 {/* Explicit, readable K/V list */}
@@ -372,23 +389,24 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-900">Status (SIP aligned)</label>
+            <label className="block text-sm font-medium text-slate-900">SIP status</label>
             <select
               className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-              value={form.status}
-              onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as ItemStatus }))}
+              value={form.sip_status}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, sip_status: e.target.value as CopyStatus }))
+              }
             >
               <option value="available">Available</option>
-              <option value="checked_out">Checked out</option>
-              <option value="borrowed">Borrowed</option>
-              <option value="reserved">On hold</option>
-              <option value="in_transit">In transit</option>
-              <option value="on_hold">On hold</option>
-              <option value="in_process">In process</option>
+              <option value="on_loan">On loan</option>
+              <option value="hold_shelf">On hold shelf</option>
+              <option value="processing">Processing</option>
               <option value="lost">Lost</option>
-              <option value="missing">Missing</option>
-              <option value="maintenance">Maintenance</option>
+              <option value="damaged">Damaged</option>
             </select>
+            <p className="mt-1 text-xs text-slate-600">
+              Applies to all copies of this book; mirrors the SIP/ILS status.
+            </p>
           </div>
 
           <div>
@@ -454,6 +472,32 @@ function renderStatusBadge(status?: ItemStatus | null) {
   const badge = map[s];
   return (
     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badge.cls}`}>
+      {badge.text}
+    </span>
+  );
+}
+
+function renderSipStatusBadge(status?: CopyStatus | null) {
+  if (!status) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+        Unknown
+      </span>
+    );
+  }
+
+  const map: Record<CopyStatus, { text: string; cls: string }> = {
+    available: { text: 'SIP: Available', cls: 'bg-green-50 text-green-700 border border-green-200' },
+    on_loan: { text: 'SIP: On loan', cls: 'bg-amber-50 text-amber-800 border border-amber-200' },
+    hold_shelf: { text: 'SIP: On hold shelf', cls: 'bg-violet-50 text-violet-800 border border-violet-200' },
+    processing: { text: 'SIP: Processing', cls: 'bg-slate-50 text-slate-700 border border-slate-200' },
+    lost: { text: 'SIP: Lost', cls: 'bg-rose-50 text-rose-700 border border-rose-200' },
+    damaged: { text: 'SIP: Damaged', cls: 'bg-orange-50 text-orange-800 border border-orange-200' },
+  };
+
+  const badge = map[status];
+  return (
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${badge.cls}`}>
       {badge.text}
     </span>
   );
