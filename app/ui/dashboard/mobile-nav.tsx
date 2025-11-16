@@ -11,6 +11,7 @@ import {
   UserCircleIcon,
   ArrowUturnLeftIcon,
   BookmarkIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import AcmeLogo from '@/app/ui/acme-logo';
@@ -97,6 +98,20 @@ export default function MobileNav({
       </header>
 
       <nav className={navClasses} aria-label="Primary">
+        {/* Admin-only Manage User Button */}
+        {user.role === 'admin' && (
+          <Link
+            href="/dashboard/admin/users"
+            className={clsx(
+              'absolute right-3 top-[-62px] z-[70] grid h-14 w-14 place-items-center rounded-full shadow-lg',
+              'bg-swin-red text-white' // Swinburne red circular button
+            )}
+            aria-label="Manage Users"
+          >
+            <UserGroupIcon className="h-6 w-6" />
+          </Link>
+        )}
+
         {/* Action Buttons Container */}
         <div className="fixed inset-x-0 bottom-[68px] z-[60] flex items-center justify-between px-8 p-3">
           <Link
