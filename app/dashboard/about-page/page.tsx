@@ -1,4 +1,70 @@
-export default function AboutPage() {
+import clsx from 'clsx';
+import type { DashboardUserProfile } from '@/app/lib/auth/types';
+
+type AboutUsList = {
+  name: string;
+  major: string;
+  id: number;
+}
+
+// Team People details
+const aboutUsList : AboutUsList[] = [
+  {name: 'Kenneth Hui Hong CHUA', major: 'Artificial Intelligence', id: 102782494},
+  {name: 'Kelvin Wen Kiong FONG', major: 'Artificial Intelligence', id: 102782287},
+  {name: 'Nigel Zi Jun LING', major: 'Artificial Intelligence', id: 102779140},
+  {name: 'Enoch Eren CHUA', major: 'Artificial Intelligence', id: 104401704},
+  {name: 'Ivan Jia Wei HOAN', major: 'Software Development', id: 102786580},
+];
+
+export default function AboutPage({
+  user,
+}: {
+  user: DashboardUserProfile;
+}) {
+  const isPrivileged = user?.role === 'staff' || user?.role === 'admin';
+
+  const subtitleClasses = clsx(
+    'text-xl font-semibold',
+    isPrivileged
+      ? 'text-swin-charcoal'
+      : 'text-white/90'
+  );
+
+  const tableClass = clsx(
+    'rounded-2xl border border-swin-charcoal/10 p-6 shadow-md',
+    isPrivileged
+      ? 'bg-white'
+      : 'bg-swin-charcoal'
+  );
+
+  const tableTitleClass = clsx(
+    'text-lg font-semibold',
+    isPrivileged
+      ? 'text-swin-charcoal'
+      : 'text-white/90'
+  )
+
+  const tableContentClass = clsx(
+    'text-sm mt-1',
+    isPrivileged
+      ? 'text-swin-charcoal/80'
+      : 'text-white/80'
+  );
+
+  const contactTableClass = clsx(
+    'rounded-2xl p-6 shadow-md border border-swin-charcoal/10',
+    isPrivileged
+      ? 'bg-swin-ivory'
+      : 'bg-swin-charcoal'
+  );
+
+  const contactTitleClass = clsx(
+    'mt-4 space-y-2',
+    isPrivileged
+      ? 'text-swin-charcoal/80'
+      : 'text-white-90'
+  )
+
   return (
     <main className="space-y-8">
       <title>About Us | Dashboard</title>
@@ -15,118 +81,50 @@ export default function AboutPage() {
       </header>
 
       <section className="space-y-6">
-        <h2 className="text-lg font-semibold text-swin-charcoal">Our Team</h2>
+        <h2 className={subtitleClasses}>Our Team</h2>
 
-        <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
-          <h3 className="text-lg font-semibold text-swin-charcoal">Kenneth Hui Hong CHUA</h3>
-          <p className="text-sm text-swin-charcoal/80 mt-1">
-            Bachelor of Computer Science (Artificial Intelligence)
-          </p>
-          <p className="text-sm text-swin-charcoal/80 mt-1">
-            Student ID: 102782494
-          </p>
-          <p className="text-sm text-swin-charcoal/60 mt-2">
-            <span className="font-medium">Email:</span>{" "}
-            <a
-              href="mailto:102782494@students.swinburne.edu.my"
-              className="text-swin-red hover:underline"
-            >
-              102782494@students.swinburne.edu.my
-            </a>
-          </p>
-        </div>
+        {/* Shorter the team list */}
+        {aboutUsList.map((p) => {
+          return (
+            <div className={tableClass}>
+            <h3 className={tableTitleClass}>{p.name}</h3>
+            <p className={tableContentClass}>
+              Bachelor of Computer Science ({p.major})
+            </p>
+            <p className={tableContentClass}>
+              Student ID: {p.id}
+            </p>
+            <p className={tableContentClass}>
+              <span className="font-medium">Email:</span>{" "}
+              {/* Will open your */}
+              <a
+                href="https://outlook.office.com/mail/deeplink/compose?to=${p.id}@students.swinburne.edu.my"
+                className="text-swin-red hover:underline"
+                target="_blank"
+              >
+                {p.id}@students.swinburne.edu.my
+              </a>
+            </p>
+          </div>
+          );
+        })}
 
-       <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
-          <h3 className="text-lg font-semibold text-swin-charcoal">Kelvin Wen Kiong FONG</h3>
-          <p className="text-sm text-swin-charcoal/80 mt-1">
-            Bachelor of Computer Science (Artificial Intelligence)
-          </p>
-          <p className="text-sm text-swin-charcoal/80 mt-1">
-            Student ID: 102782287
-          </p>
-          <p className="text-sm text-swin-charcoal/60 mt-2">
-            <span className="font-medium">Email:</span>{" "}
-            <a
-              href="mailto:102782287@students.swinburne.edu.my"
-              className="text-swin-red hover:underline"
-            >
-              102782287@students.swinburne.edu.my
-            </a>
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
-          <h3 className="text-lg font-semibold text-swin-charcoal">Nigel Zi Jun LING</h3>
-          <p className="text-sm text-swin-charcoal/80 mt-1">
-            Bachelor of Computer Science (Artificial Intelligence)
-          </p>
-          <p className="text-sm text-swin-charcoal/80 mt-1">
-            Student ID: 102779140
-          </p>
-          <p className="text-sm text-swin-charcoal/60 mt-2">
-            <span className="font-medium">Email:</span>{" "}
-            <a
-              href="mailto:102779140@students.swinburne.edu.my"
-              className="text-swin-red hover:underline"
-            >
-              102779140@students.swinburne.edu.my
-            </a>
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
-          <h3 className="text-lg font-semibold text-swin-charcoal">Enoch Eren CHUA</h3>
-          <p className="text-sm text-swin-charcoal/80 mt-1">
-            Bachelor of Computer Science (Artificial Intelligence)
-          </p>
-          <p className="text-sm text-swin-charcoal/80 mt-1">
-            Student ID: 104401704
-          </p>
-          <p className="text-sm text-swin-charcoal/60 mt-2">
-            <span className="font-medium">Email:</span>{" "}
-            <a
-              href="mailto:104401704@students.swinburne.edu.my"
-              className="text-swin-red hover:underline"
-            >
-              104401704@students.swinburne.edu.my
-            </a>
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-md">
-          <h3 className="text-lg font-semibold text-swin-charcoal">Ivan Jia Wei HOAN</h3>
-          <p className="text-sm text-swin-charcoal/80 mt-1">
-            Bachelor of Computer Science (Software Development)
-          </p>
-          <p className="text-sm text-swin-charcoal/80 mt-1">
-            Student ID: 102786580
-          </p>
-          <p className="text-sm text-swin-charcoal/60 mt-2">
-            <span className="font-medium">Email:</span>{" "}
-            <a
-              href="mailto:102786580@students.swinburne.edu.my"
-              className="text-swin-red hover:underline"
-            >
-              102786580@students.swinburne.edu.my
-            </a>
-          </p>
-        </div>
-
-</section>
+      </section>
       <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-swin-charcoal">Contact Us</h2>
+        <h2 className={subtitleClasses}>Contact Us</h2>
 
-        <div className="rounded-2xl bg-swin-ivory p-6 shadow-md border border-swin-charcoal/10">
-          <p className="text-swin-charcoal/80">
+        <div className={contactTableClass}>
+          <p className={tableContentClass}>
             For any library queries, please get in touch with library staff or
             reach out through the following channels:
           </p>
 
-          <ul className="mt-4 space-y-2 text-swin-charcoal/80">
+          <ul className={contactTitleClass}>
             <li>
-              <strong>Email:</strong>{" "}
+              <strong>Email:</strong>{"   "}
+              {/* Will directly open the OutLook email */}
               <a
-                href="mailto:library@swinburne.edu.my"
+                href="https://outlook.office.com/mail/deeplink/compose?to=library@swinburne.edu.my"
                 className="text-swin-red hover:underline"
               >
                 library@swinburne.edu.my
@@ -152,7 +150,7 @@ export default function AboutPage() {
           </ul>
 
           <div className="mt-6">
-            <p className="font-semibold text-swin-charcoal">Follow us:</p>
+            <p className={contactTitleClass}>Follow us:</p>
             <div className="flex gap-4 mt-2">
                 <a
                   href="https://www.facebook.com/SwinburneSarawakLibrary"
