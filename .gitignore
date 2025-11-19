@@ -44,3 +44,4 @@ pnpm-debug.log*
 .idea/
 .vscode/
 *.ts
+!app/lib/linkedin/*.ts

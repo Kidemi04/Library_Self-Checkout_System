@@ -12,6 +12,7 @@ import {
   QueueListIcon,
   UserCircleIcon,
   InformationCircleIcon,
+  AcademicCapIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/theme-provider';
@@ -23,6 +24,7 @@ const userLinks = [
   { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
+  { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
   { name: 'About Us', href: '/dashboard/about-page', icon: InformationCircleIcon },
 ];
 
@@ -33,6 +35,7 @@ const staffLinks = [
   { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
+  { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
   { name: 'About Us', href: '/dashboard/about-page', icon: InformationCircleIcon },
 ];
 
