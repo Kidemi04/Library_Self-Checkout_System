@@ -68,17 +68,13 @@ export default function NavLinks({
     return href.length > current.length ? href : current;
   }, null);
 
-  const activeVariant = isPrivileged
-    ? isDarkTheme
-      ? 'bg-white/15 text-white shadow-lg shadow-slate-900/40'
-      : 'bg-swin-red text-swin-ivory shadow-lg shadow-swin-red/30'
-    : 'bg-swin-red text-swin-ivory shadow-lg shadow-swin-red/30';
+  const activeVariant = isDarkTheme
+    ? 'bg-white/15 text-white shadow-lg shadow-slate-900/40'
+    : 'bg-swin-red text-[#FEFDFD] shadow-lg shadow-swin-red/30';
 
-  const inactiveVariant = isPrivileged
-    ? isDarkTheme
-      ? 'bg-transparent text-slate-200/80 hover:bg-white/10 hover:text-white border-white/20'
-      : 'bg-swin-charcoal text-swin-ivory/80 hover:bg-swin-red hover:text-swin-ivory border-transparent shadow-inner shadow-swin-charcoal/20'
-    : 'bg-swin-charcoal text-swin-ivory/80 hover:bg-swin-red hover:text-swin-ivory border-transparent';
+  const inactiveVariant = isDarkTheme
+    ? 'bg-transparent text-slate-200/80 hover:bg-white/10 hover:text-white border-white/20'
+    : 'bg-[#2a2d38] text-[#FEFDFD]/80 hover:bg-swin-red hover:text-white border-transparent shadow-inner shadow-black/30';
 
   return (
     <>

@@ -19,14 +19,14 @@ const fieldClass = (isPrivileged: boolean) =>
   clsx(
     'w-full rounded-md border px-3 py-2 text-sm shadow-sm transition focus:outline-none focus:ring-2',
     isPrivileged
-      ? 'border-slate-700 bg-slate-900 text-slate-100 focus:ring-slate-300 focus:ring-offset-1 focus:ring-offset-slate-900'
+      ? 'border-slate-300 bg-white text-slate-900 focus:ring-slate-400 focus:ring-offset-1 focus:ring-offset-white dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-slate-300 dark:focus:ring-offset-slate-900'
       : 'border-slate-300 bg-white text-slate-900 focus:ring-slate-400 focus:ring-offset-1 focus:ring-offset-white',
   );
 
 const labelClass = (isPrivileged: boolean) =>
   clsx(
     'block text-xs uppercase mb-1',
-    isPrivileged ? 'text-slate-400' : 'text-slate-500',
+    isPrivileged ? 'text-slate-600 dark:text-slate-400' : 'text-slate-500',
   );
 
 const messageClass = (state: ProfileUpdateFormState, isPrivileged: boolean) => {
@@ -49,9 +49,9 @@ function SubmitButton({ isPrivileged }: { isPrivileged: boolean }) {
       className={clsx(
         'w-full sm:w-auto inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-2',
         pending ? 'opacity-80' : '',
-        isPrivileged
-          ? 'bg-slate-800 text-slate-100 focus:ring-slate-500 focus:ring-offset-slate-900 hover:bg-slate-700'
-          : 'bg-swin-red text-white focus:ring-swin-red hover:bg-swin-red/90',
+    isPrivileged
+      ? 'bg-slate-900 text-white focus:ring-slate-500 focus:ring-offset-slate-900 hover:bg-slate-800'
+      : 'bg-swin-red text-white focus:ring-swin-red hover:bg-swin-red/90',
       )}
     >
       {pending ? 'Saving…' : 'Save changes'}

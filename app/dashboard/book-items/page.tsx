@@ -101,9 +101,9 @@ export default async function BookItemsPage({
     <main className="space-y-8">
       <title>Book Items | Dashboard</title>
 
-      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
+      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/40">
         <h1 className="text-2xl font-semibold">Book Items</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
+        <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300">
           Browse the catalogue and filter by status. Use title or author to narrow results.
         </p>
       </header>
@@ -122,8 +122,8 @@ export default async function BookItemsPage({
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-swin-charcoal">Catalogue</h2>
-          <p className="text-sm text-swin-charcoal/60">
+          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Catalogue</h2>
+          <p className="text-sm text-swin-charcoal/60 dark:text-slate-300">
             Showing {books.length} record{books.length === 1 ? '' : 's'}
           </p>
         </div>

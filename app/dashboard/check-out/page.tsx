@@ -37,9 +37,9 @@ export default async function BorrowBooksPage({
   return (
     <main className="space-y-8">
       <title>Borrow Books | Dashboard</title>
-      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
+      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/40">
         <h1 className="text-2xl font-semibold">Borrow Books</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
+        <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300">
           {canProcessLoans
             ? 'Lend titles by scanning barcodes or selecting items from the catalogue.'
             : 'Borrow a title by scanning your copy or searching the catalogue, then confirm your details.'}
@@ -57,20 +57,10 @@ export default async function BorrowBooksPage({
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2
-            className={clsx(
-              'text-lg font-semibold',
-              canProcessLoans ? 'text-slate-100' : 'text-swin-charcoal',
-            )}
-          >
+          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">
             Books currently not available
           </h2>
-          <p
-            className={clsx(
-              'text-sm',
-              canProcessLoans ? 'text-slate-300' : 'text-swin-charcoal/60',
-            )}
-          >
+          <p className="text-sm text-swin-charcoal/60 dark:text-slate-300">
             {activeLoans.length} books are with borrowers right now
           </p>
         </div>
