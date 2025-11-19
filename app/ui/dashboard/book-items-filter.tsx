@@ -6,7 +6,14 @@ import clsx from 'clsx';
 type SortField = 'title' | 'author' | 'year' | 'created_at';
 type SortOrder = 'asc' | 'desc';
 type ViewMode  = 'grid' | 'list';
-type ItemStatus = '' | 'available' | 'checked_out' | 'on_hold' | 'reserved' | 'maintenance';
+
+// ✅ Keep this in sync with page.tsx and book-list.tsx
+export type ItemStatus =
+  | 'available'
+  | 'checked_out'
+  | 'on_hold'
+  | 'reserved'
+  | 'maintenance';
 
 type Props = {
   /** Where to submit the filter (defaults to /dashboard/book-items) */
@@ -14,7 +21,7 @@ type Props = {
   /** Initial values coming from searchParams */
   defaults?: {
     q?: string;
-    status?: ItemStatus;
+    status?: ItemStatus;      // no empty string here
     sort?: SortField;
     order?: SortOrder;
     view?: ViewMode;
@@ -29,7 +36,7 @@ export default function BookItemsFilter({
   className,
 }: Props) {
   const q      = defaults?.q ?? '';
-  const status = (defaults?.status ?? '') as ItemStatus;
+  const status = defaults?.status ?? '';          // '' means “Any status”
   const sort   = (defaults?.sort ?? 'title') as SortField;
   const order  = (defaults?.order ?? 'asc') as SortOrder;
   const view   = (defaults?.view ?? 'grid') as ViewMode;
