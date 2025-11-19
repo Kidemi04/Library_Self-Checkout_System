@@ -7,6 +7,7 @@ import CheckInForm from '@/app/ui/dashboard/check-in-form';
 import ActiveLoansTable from '@/app/ui/dashboard/active-loans-table';
 import SummaryCards from '@/app/ui/dashboard/summary-cards';
 import RecentLoans from '@/app/ui/dashboard/recent-loans';
+import TextType from '@/app/ui/components/text-type';
 import { 
   fetchActiveLoans, 
   fetchAvailableBooks, 
@@ -49,6 +50,17 @@ export default async function UserDashboardPage() {
   ]);
 
   const defaultDueDate = buildDefaultDueDate();
+  const desktopName = user.name || 'Library Member';
+  const mobileName = user.username || user.name || 'Library Member';
+  const desktopGreetings = [
+    `Welcome back, ${desktopName}!`,
+    'Ready to guide the next checkout?',
+    'Returns and renewals are a scan away.',
+  ];
+  const mobileGreetings = [
+    `Welcome back, ${mobileName}!`,
+    'Need a lightning-fast checkout?',
+  ];
 
   return (
     <main className="space-y-8">
@@ -62,10 +74,36 @@ export default async function UserDashboardPage() {
         </div>
         <div className="relative z-10">
           <p className="text-sm uppercase tracking-[0.35em] text-white/70">Self-Service Desk</p>
-          <h1 className="mt-3 text-2xl font-semibold">
-            Welcome back, <span className="hidden md:inline">{user.name || 'Library Member'}</span>
-            <span className="inline md:hidden">{user.username || user.name || 'Library Member'}</span>!
-          </h1>
+          <TextType
+            as="h1"
+            className="mt-3 hidden text-2xl font-semibold leading-snug md:block"
+            text={desktopGreetings}
+            typingSpeed={60}
+            deletingSpeed={35}
+            pauseDuration={2200}
+            initialDelay={300}
+            variableSpeed={{ min: 35, max: 70 }}
+            hideCursorWhileTyping
+            cursorCharacter="_"
+            cursorClassName="text-white/70"
+            textColors={['#ffffff', '#ffe6ef', '#ffdbe5']}
+            startOnVisible
+          />
+          <TextType
+            as="h1"
+            className="mt-3 text-2xl font-semibold leading-snug md:hidden"
+            text={mobileGreetings}
+            typingSpeed={60}
+            deletingSpeed={35}
+            pauseDuration={2200}
+            initialDelay={300}
+            variableSpeed={{ min: 35, max: 70 }}
+            hideCursorWhileTyping
+            cursorCharacter="_"
+            cursorClassName="text-white/70"
+            textColors={['#ffffff', '#ffe6ef']}
+            startOnVisible
+          />
           <p className="mt-3 max-w-2xl text-sm text-white/80">
             Quickly process borrowing and returning directly from this dashboard. Use the controls below to
             assist patrons without leaving the page.

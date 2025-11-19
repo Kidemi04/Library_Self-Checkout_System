@@ -26,3 +26,22 @@ input[type='number']::-webkit-outer-spin-button {
 .scrollbar-none::-webkit-scrollbar {
   display: none; /* Safari and Chrome */
 }
+
+.text-type {
+  display: inline-block;
+  white-space: pre-wrap;
+}
+
+.text-type__content {
+  display: inline;
+}
+
+.text-type__cursor {
+  margin-left: 0.25rem;
+  display: inline-block;
+  opacity: 1;
+}
+
+.text-type__cursor--hidden {
+  display: none;
+}
