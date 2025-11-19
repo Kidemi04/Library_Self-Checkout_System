@@ -17,11 +17,6 @@ export default function ThemeToggle({ className, size = 'default', context = 'de
   const containerClasses = size === 'sm' ? 'h-8 w-16' : 'h-10 w-[5.5rem]';
   const knobSize = size === 'sm' ? 'h-6 w-6' : 'h-8 w-8';
   const iconSize = size === 'sm' ? 'h-3.5 w-3.5' : 'h-4 w-4';
-  const horizontalPadding = 4;
-  const trackWidth = size === 'sm' ? 64 : 88;
-  const knobWidth = size === 'sm' ? 24 : 32;
-  const maxTranslate = trackWidth - knobWidth - horizontalPadding * 2;
-  const targetX = isDark ? maxTranslate : 0;
 
   return (
     <button
@@ -54,16 +49,16 @@ export default function ThemeToggle({ className, size = 'default', context = 'de
             'absolute inset-y-[6px] w-[calc(50%-6px)] rounded-full shadow-lg transition-transform duration-300 ease-out',
             isDark ? 'left-[6px] bg-slate-950' : 'left-[6px] bg-[#FEFDFD]',
           )}
-          style={{ transform: isDark ? 'translateX(0)' : 'translateX(calc(100% + 12px))' }}
+          style={{ transform: isDark ? 'translateX(0)' : 'translateX(calc(100%))' }}
         />
       ) : (
         <span
           className={clsx(
-            'absolute left-1 top-1 rounded-full bg-white shadow-lg transition-transform duration-300 ease-out',
+            'absolute top-1 rounded-full bg-white shadow-lg transition-all duration-300 ease-out',
             'dark:bg-slate-900',
             knobSize,
+            isDark ? 'right-1 left-auto' : 'left-1 right-auto',
           )}
-          style={{ transform: `translateX(${targetX}px)` }}
         />
       )}
     </button>
