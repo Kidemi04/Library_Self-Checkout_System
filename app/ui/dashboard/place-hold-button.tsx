@@ -26,6 +26,7 @@ export default function PlaceHoldButton({ bookId, patronId }: PlaceHoldButtonPro
         .select('id, status')
         .eq('patron_id', patronId)
         .eq('book_id', bookId)
+        .in('status', ['QUEUED', 'READY'])
         .order('placed_at', { ascending: true })
         .limit(1);
 

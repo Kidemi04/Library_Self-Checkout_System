@@ -23,6 +23,7 @@ const userLinks = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
   { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
+  { name: 'My Reservations', href: '/dashboard/reservations', icon: BellAlertIcon },
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
   { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },

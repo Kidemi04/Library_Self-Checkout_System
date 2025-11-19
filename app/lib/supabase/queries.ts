@@ -496,6 +496,20 @@ type RawHoldRow = {
   expires_at: string | null;
 };
 
+export type PatronHold = {
+  id: string;
+  bookId: string;
+  patronId: string;
+  status: HoldStatus;
+  placedAt: string | null;
+  readyAt: string | null;
+  expiresAt: string | null;
+  title: string;
+  author: string | null;
+  isbn: string | null;
+  coverImage: string | null;
+};
+
 /**
  * Basic fetch for holds table for staff/admin pages.
  * (You can later extend this to join books/users if you want.)
@@ -568,4 +582,81 @@ export async function updateHoldStatus(
     .eq('id', holdId);
 
   if (error) throw error;
+}
+
+/**
+ * Returns active holds (queued or ready) for the signed-in patron.
+ */
+export async function fetchActiveHoldsForPatron(patronId: string): Promise<PatronHold[]> {
+  if (!patronId) return [];
+
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('holds')
+    .select(
+      `
+      id,
+      patron_id,
+      book_id,
+      status,
+      placed_at,
+      ready_at,
+      expires_at,
+      book:books (
+        title,
+        author,
+        isbn,
+        cover_image_url
+      )
+      `,
+    )
+    .eq('patron_id', patronId)
+    .in('status', ['QUEUED', 'READY'])
+    .order('placed_at', { ascending: true });
+
+  if (error) throw error;
+
+  return (data ?? [])
+    .map((row: any) => ({
+      id: row.id,
+      bookId: row.book_id,
+      patronId: row.patron_id,
+      status: row.status as HoldStatus,
+      placedAt: row.placed_at,
+      readyAt: row.ready_at,
+      expiresAt: row.expires_at,
+      title: row.book?.title ?? 'Untitled',
+      author: row.book?.author ?? null,
+      isbn: row.book?.isbn ?? null,
+      coverImage: row.book?.cover_image_url ?? null,
+    }))
+    .sort((a, b) => {
+      if (a.status === 'READY' && b.status !== 'READY') return -1;
+      if (b.status === 'READY' && a.status !== 'READY') return 1;
+      const aTime = a.placedAt ? new Date(a.placedAt).getTime() : 0;
+      const bTime = b.placedAt ? new Date(b.placedAt).getTime() : 0;
+      return aTime - bTime;
+    });
+}
+
+export async function cancelHoldForPatron(holdId: string, patronId: string): Promise<boolean> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('holds')
+    .update({
+      status: 'CANCELED',
+      ready_at: null,
+      expires_at: null,
+      fulfilled_by_copy_id: null,
+    })
+    .eq('id', holdId)
+    .eq('patron_id', patronId)
+    .in('status', ['QUEUED', 'READY'])
+    .select('id');
+
+  if (error) throw error;
+
+  return Array.isArray(data) && data.length > 0;
 }
