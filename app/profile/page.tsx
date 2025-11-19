@@ -95,13 +95,11 @@ const getInitials = (name?: string | null, email?: string | null) => {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
 
-const ProfileValue = ({ value, isPrivileged }: { value?: string | null; isPrivileged: boolean }) => {
+const ProfileValue = ({ value }: { value?: string | null; isPrivileged: boolean }) => {
   if (value && value.trim().length > 0) {
-    return <span className={isPrivileged ? 'text-slate-100' : 'text-slate-900'}>{value}</span>;
+    return <span className="text-slate-900 dark:text-slate-100">{value}</span>;
   }
-  return (
-    <span className={isPrivileged ? 'text-sm text-slate-500' : 'text-sm text-slate-400'}>Not provided</span>
-  );
+  return <span className="text-sm text-slate-500 dark:text-slate-400">Not provided</span>;
 };
 
 export default async function ProfilePage() {
@@ -158,52 +156,35 @@ export default async function ProfilePage() {
   const links = normalizeLinks(profile.links);
   const preferredName = profile.display_name ?? user.name ?? null;
   const initials = getInitials(preferredName, user.email ?? null);
-  const pageBgClass = clsx('min-h-screen py-10', isPrivileged ? 'bg-slate-900' : 'bg-swin-ivory/80');
+  const pageBgClass = clsx(
+    'min-h-screen py-10 transition-colors',
+    'bg-swin-ivory text-swin-charcoal dark:bg-[#050b1a] dark:text-slate-100',
+  );
   const wrapperClass = 'mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8';
-  const cardClass = clsx(
-    'overflow-hidden rounded-2xl',
-    isPrivileged
-      ? 'border border-white/10 bg-slate-900/70 text-slate-100 shadow-2xl shadow-slate-900/60 backdrop-blur'
-      : 'bg-white text-slate-900 shadow',
-  );
-  const headerClass = clsx(
-    'px-6 py-8 sm:px-8 border-b',
-    isPrivileged ? 'border-white/10 bg-slate-900/40' : 'border-slate-200 bg-slate-50',
-  );
-  const headingClass = clsx('text-2xl font-semibold', isPrivileged ? 'text-white' : 'text-slate-900');
-  const subheadingClass = clsx('text-sm', isPrivileged ? 'text-slate-300' : 'text-slate-600');
-  const sectionHeadingClass = clsx(
-    'text-sm font-semibold uppercase tracking-wide',
-    isPrivileged ? 'text-slate-300' : 'text-slate-500',
-  );
-  const labelClass = clsx('text-xs uppercase', isPrivileged ? 'text-slate-400' : 'text-slate-500');
+  const cardClass =
+    'overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow transition-colors dark:border-white/10 dark:bg-white/[0.02] dark:text-slate-100 dark:shadow-black/40';
+  const headerClass = 'border-b border-slate-200 bg-white px-6 py-8 sm:px-8 dark:border-white/10 dark:bg-transparent';
+  const headingClass = 'text-2xl font-semibold text-slate-900 dark:text-white';
+  const subheadingClass = 'text-sm text-slate-600 dark:text-slate-300';
+  const sectionHeadingClass = 'text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300';
+  const labelClass = 'text-xs uppercase text-slate-500 dark:text-slate-400';
   const pillRoleClass = clsx(
     'rounded-full px-2.5 py-1 text-xs font-semibold',
-    isPrivileged ? 'bg-white/10 text-white' : 'bg-swin-red/10 text-swin-red',
-  );
-  const pillSecondaryClass = clsx(
-    'rounded-full px-2.5 py-1 text-xs font-semibold',
-    isPrivileged ? 'bg-white/10 text-slate-200' : 'bg-slate-200 text-slate-600',
-  );
-  const initialsClass = clsx(
-    'flex h-16 w-16 items-center justify-center rounded-full text-lg font-semibold',
-    isPrivileged ? 'bg-slate-800 text-slate-200' : 'bg-swin-charcoal/10 text-swin-charcoal',
-  );
-  const bioBoxClass = clsx(
-    'mt-4 rounded-lg border p-4 text-sm leading-relaxed',
     isPrivileged
-      ? 'border-white/10 bg-white/5 text-slate-100/90'
-      : 'border-slate-200 bg-slate-50 text-slate-700',
+      ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/20 dark:text-emerald-100'
+      : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-200',
   );
-  const bioPlaceholderClass = isPrivileged ? 'text-slate-500' : 'text-slate-400';
-  const linksListClass = clsx('text-sm font-medium hover:underline', isPrivileged ? 'text-emerald-300' : 'text-swin-red');
-  const linksEmptyClass = isPrivileged ? 'mt-4 text-sm text-slate-500' : 'mt-4 text-sm text-slate-400';
-  const backButtonClass = clsx(
-    'inline-flex w-full items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition shadow sm:w-auto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
-    isPrivileged
-      ? 'border border-white/20 bg-white/10 text-white hover:bg-white/20 focus-visible:outline-white'
-      : 'bg-swin-red text-white hover:bg-swin-red/90 focus-visible:outline-swin-red',
-  );
+  const pillSecondaryClass =
+    'rounded-full px-2.5 py-1 text-xs font-semibold bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-200';
+  const initialsClass =
+    'flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-lg font-semibold text-slate-700 dark:bg-slate-800 dark:text-white';
+  const bioBoxClass =
+    'mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-700 dark:border-white/10 dark:bg-slate-900 dark:text-slate-100';
+  const bioPlaceholderClass = 'text-slate-400 dark:text-slate-500';
+  const linksListClass = clsx('text-sm font-medium hover:underline', isPrivileged ? 'text-emerald-500 dark:text-emerald-300' : 'text-swin-red dark:text-emerald-300');
+  const linksEmptyClass = 'mt-4 text-sm text-slate-500 dark:text-slate-400';
+  const backButtonClass =
+    'inline-flex w-full items-center justify-center rounded-lg border border-transparent px-4 py-2 text-sm font-semibold text-white shadow transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:w-auto bg-swin-red hover:bg-swin-red/90 focus-visible:outline-swin-red dark:border-white/20 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800 dark:focus-visible:outline-white';
 
   return (
     <main className={pageBgClass}>
@@ -234,12 +215,7 @@ export default async function ProfilePage() {
                   <p className={clsx(subheadingClass, "break-words mt-1")}>
                     {user.email ?? 'Email unavailable'}
                   </p>
-                  <div
-                    className={clsx(
-                      'mt-3 flex flex-wrap justify-center sm:justify-start items-center gap-x-3 gap-y-2 text-xs font-medium',
-                      isPrivileged ? 'text-slate-300' : 'text-slate-600',
-                    )}
-                  >
+                  <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-medium text-slate-600 dark:text-slate-300 sm:justify-start justify-center">
                     <span className={pillRoleClass}>{roleLabel}</span>
                     <span className={pillSecondaryClass}>Visibility: {visibilityLabel}</span>
                     {memberSince ? (
@@ -267,10 +243,7 @@ export default async function ProfilePage() {
                 
                 {/* Mobile Account Info */}
                 <div className="block sm:hidden">
-                  <div className={clsx(
-                    'divide-y rounded-xl overflow-hidden max-w-full',
-                    isPrivileged ? 'divide-white/10 bg-slate-900/60' : 'divide-slate-100 bg-slate-50'
-                  )}>
+                  <div className="max-w-full divide-y divide-slate-100 overflow-hidden rounded-xl bg-white dark:divide-slate-800 dark:bg-slate-900">
                     <div className="p-4">
                       <span className={labelClass}>Display name</span>
                       <div className="mt-2">
@@ -298,7 +271,7 @@ export default async function ProfilePage() {
                       <div className="mt-1 text-base font-medium">
                         <ProfileValue value={profile.student_id ?? null} isPrivileged={isPrivileged} />
                         {!isPrivileged && (
-                          <p className="mt-1 text-xs text-slate-500">
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                             Student ID can only be edited by staff or admin.
                           </p>
                         )}
@@ -309,10 +282,7 @@ export default async function ProfilePage() {
 
                 {/* Desktop Account Info */}
                 <div className="hidden sm:block">
-                  <div className={clsx(
-                    'rounded-xl p-4 sm:p-5',
-                    isPrivileged ? 'bg-slate-900/60' : 'bg-slate-50'
-                  )}>
+                  <div className="rounded-xl bg-white p-4 sm:p-5 dark:bg-slate-900">
                     <dl className="grid gap-4">
                       <div>
                         <dt className={labelClass}>Display name</dt>
@@ -341,7 +311,7 @@ export default async function ProfilePage() {
                         <dd className="mt-1.5 text-base font-medium">
                           <ProfileValue value={profile.student_id ?? null} isPrivileged={isPrivileged} />
                           {!isPrivileged && (
-                            <p className="mt-1 text-xs text-slate-500">
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                               Student ID can only be edited by staff or admin.
                             </p>
                           )}
@@ -354,10 +324,7 @@ export default async function ProfilePage() {
 
                 <div className="space-y-6">
                   <h2 className={sectionHeadingClass}>Contact & Details</h2>
-                  <div className={clsx(
-                    'rounded-xl p-4 sm:p-5',
-                    isPrivileged ? 'bg-slate-900/60' : 'bg-slate-50'
-                  )}>
+                  <div className="rounded-xl bg-white p-4 sm:p-5 dark:bg-slate-900">
                     <ProfileEditForm
                       username={profile.username ?? null}
                       phone={profile.phone ?? null}

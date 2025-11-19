@@ -21,7 +21,7 @@ export default function LoginClient({ callbackUrl }: LoginClientProps) {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-100 p-6">
+    <main className="flex min-h-screen items-center justify-center bg-swin-ivory p-6 dark:bg-slate-950">
       <title>Login</title>
 
       <Image
@@ -34,7 +34,7 @@ export default function LoginClient({ callbackUrl }: LoginClientProps) {
       />
 
       <div className="absolute inset-0 bg-black/40" />
-      <div className="relative w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
+      <div className="relative w-full max-w-md rounded-xl bg-white/95 p-8 text-swin-charcoal shadow-2xl shadow-black/20 backdrop-blur-sm dark:bg-slate-900/90 dark:text-slate-100">
         <Link href="/">
           <img
             className="mx-auto scale-125 shadow-lg"
@@ -42,10 +42,10 @@ export default function LoginClient({ callbackUrl }: LoginClientProps) {
             alt="Swinburne logo"
           />
         </Link>
-        <h1 className="mt-6 text-center text-2xl font-bold text-swin-charcoal">
+        <h1 className="mt-6 text-center text-2xl font-bold text-swin-charcoal dark:text-white">
           Swinburne Sarawak Library
         </h1>
-        <p className="mt-2 text-center text-sm text-swin-charcoal/70">
+        <p className="mt-2 text-center text-sm text-swin-charcoal/70 dark:text-slate-300">
           Sign in with your Swinburne Microsoft account to access the borrow-and-return dashboard.
         </p>
 
@@ -70,7 +70,7 @@ export default function LoginClient({ callbackUrl }: LoginClientProps) {
             <span>{pending ? 'Signing in...' : 'Sign in with Microsoft'}</span>
           </button>
 
-          <p className="text-center text-xs text-swin-charcoal/60">
+          <p className="text-center text-xs text-swin-charcoal/60 dark:text-slate-400">
             Local development can bypass authentication when enabled. In production you must sign in
             with your Swinburne Microsoft account.
           </p>
