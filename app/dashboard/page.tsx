@@ -31,6 +31,23 @@ const buildDefaultDueDate = () => {
   return iso.split('T')[0] ?? iso;
 };
 
+const formatStatValue = (value?: number) =>
+  new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value ?? 0);
+
+const buildInitials = (input?: string | null) => {
+  if (!input) return 'LM';
+  const segments = input
+    .split(' ')
+    .map(segment => segment.trim())
+    .filter(Boolean);
+  const letters = segments
+    .map(segment => segment.charAt(0))
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('');
+  return letters.toUpperCase() || 'LM';
+};
+
 export default async function UserDashboardPage() {
   const { user, isBypassed } = await getDashboardSession();
 
@@ -50,86 +67,151 @@ export default async function UserDashboardPage() {
   ]);
 
   const defaultDueDate = buildDefaultDueDate();
-  const desktopName = user.name || 'Library Member';
-  const mobileName = user.username || user.name || 'Library Member';
-  const desktopGreetings = [
-    `Welcome back, ${desktopName}!`,
-    'Ready to guide the next checkout?',
-    'Returns and renewals are a scan away.',
+  const displayName = user.name || 'Library Member';
+  const username = user.username || 'Unassigned member';
+  const userInitials = buildInitials(user.name || user.username || displayName);
+  const heroPhrases = [
+    `Currently guiding ${formatStatValue(summary.activeLoans)} active loans.`,
+    `Keeping ${formatStatValue(summary.availableBooks)} titles ready for the next reader.`,
+    `Flagging ${formatStatValue(summary.overdueLoans)} overdue reminders before close.`,
+    'Delivering lightning-fast check-ins right from this panel.',
   ];
-  const mobileGreetings = [
-    `Welcome back, ${mobileName}!`,
-    'Need a lightning-fast checkout?',
+  const heroStats = [
+    {
+      label: 'Active loans',
+      helper: 'waiting for return',
+      value: formatStatValue(summary.activeLoans),
+    },
+    {
+      label: 'Available titles',
+      helper: 'ready to lend',
+      value: formatStatValue(summary.availableBooks),
+    },
+    {
+      label: 'Overdue items',
+      helper: 'needs follow-up',
+      value: formatStatValue(summary.overdueLoans),
+    },
+  ];
+  const heroActionLinks = [
+    {
+      href: '/dashboard/check-out',
+      label: 'Borrow queue',
+      detail: 'Scan IDs & confirm due dates',
+      icon: ArrowUpTrayIcon,
+    },
+    {
+      href: '/dashboard/check-in',
+      label: 'Return desk',
+      detail: 'Log check-ins & restock shelves',
+      icon: ArrowDownTrayIcon,
+    },
   ];
 
   return (
     <main className="space-y-8">
       <title>Dashboard | Quick Actions</title>
 
-      <header className="relative grid gap-6 overflow-hidden rounded-3xl border border-swin-red/40 bg-gradient-to-r from-[#9f1c2b] via-[#c82333] to-[#511627] p-8 text-white shadow-2xl shadow-swin-red/40 transition md:grid-cols-[1fr_minmax(0,260px)] md:items-center">
+      <header className="relative grid gap-8 overflow-hidden rounded-[32px] border border-swin-red/40 bg-gradient-to-br from-[#830f22] via-[#c82333] to-[#2f1438] p-8 text-white shadow-2xl shadow-swin-red/40 transition md:grid-cols-[minmax(0,1.5fr)_minmax(0,320px)] md:items-stretch">
         <div className="pointer-events-none absolute inset-0 opacity-30">
           <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/30 blur-3xl" />
-          <div className="absolute left-1/3 top-1/2 h-64 w-64 rounded-full bg-rose-500/30 blur-[120px]" />
-          <div className="absolute bottom-0 right-0 h-52 w-52 rounded-full bg-purple-600/20 blur-3xl" />
+          <div className="absolute left-1/4 top-1/2 h-64 w-64 rounded-full bg-rose-500/30 blur-[120px]" />
+          <div className="absolute bottom-6 right-0 h-56 w-56 rounded-full bg-purple-600/30 blur-3xl" />
+          <div className="absolute -bottom-10 left-0 h-72 w-72 rounded-full bg-amber-400/10 blur-[120px]" />
         </div>
-        <div className="relative z-10">
-          <p className="text-sm uppercase tracking-[0.35em] text-white/70">Self-Service Desk</p>
-          <TextType
-            as="h1"
-            className="mt-3 hidden text-2xl font-semibold leading-snug md:block"
-            text={desktopGreetings}
-            typingSpeed={60}
-            deletingSpeed={35}
-            pauseDuration={2200}
-            initialDelay={300}
-            variableSpeed={{ min: 35, max: 70 }}
-            hideCursorWhileTyping
-            cursorCharacter="_"
-            cursorClassName="text-white/70"
-            textColors={['#ffffff', '#ffe6ef', '#ffdbe5']}
-            startOnVisible
-          />
-          <TextType
-            as="h1"
-            className="mt-3 text-2xl font-semibold leading-snug md:hidden"
-            text={mobileGreetings}
-            typingSpeed={60}
-            deletingSpeed={35}
-            pauseDuration={2200}
-            initialDelay={300}
-            variableSpeed={{ min: 35, max: 70 }}
-            hideCursorWhileTyping
-            cursorCharacter="_"
-            cursorClassName="text-white/70"
-            textColors={['#ffffff', '#ffe6ef']}
-            startOnVisible
-          />
-          <p className="mt-3 max-w-2xl text-sm text-white/80">
-            Quickly process borrowing and returning directly from this dashboard. Use the controls below to
-            assist patrons without leaving the page.
-          </p>
+        <div className="relative z-10 flex flex-col gap-6">
+          <div className="flex flex-wrap items-center gap-3 text-[11px] uppercase tracking-[0.3em] text-white/70">
+            <span className="rounded-full border border-white/30 px-3 py-1">Self-Service Desk</span>
+            <span className="rounded-full border border-white/30 px-3 py-1">Supabase Sync Live</span>
+          </div>
+          <div>
+            <p className="text-sm text-white/70">Front-of-house control for quick lending</p>
+            <h1 className="mt-2 text-3xl font-semibold leading-tight text-white md:text-4xl">
+              Welcome back, <span className="text-white">{displayName}</span>
+            </h1>
+            <TextType
+              as="p"
+              className="mt-4 text-lg font-semibold leading-snug text-white/90"
+              text={heroPhrases}
+              typingSpeed={60}
+              deletingSpeed={40}
+              pauseDuration={2400}
+              initialDelay={300}
+              variableSpeed={{ min: 35, max: 75 }}
+              hideCursorWhileTyping
+              cursorCharacter="|"
+              cursorClassName="text-white/70"
+              textColors={['#ffffff', '#ffe6ef', '#ffdbe5', '#ffeeff']}
+              startOnVisible
+            />
+            <p className="mt-4 max-w-2xl text-sm text-white/75">
+              Move between check-outs, returns, and overdue follow-ups without leaving this workspace. All
+              updates flow directly to Supabase so your shelves stay perfectly in sync.
+            </p>
+          </div>
+          <ul className="grid gap-3 text-sm text-white/80 sm:grid-cols-3">
+            {heroStats.map(stat => (
+              <li
+                key={stat.label}
+                className="rounded-2xl border border-white/20 bg-white/10 px-4 py-4 shadow-lg shadow-black/20 backdrop-blur"
+              >
+                <p className="text-3xl font-semibold text-white">{stat.value}</p>
+                <p className="mt-1 text-xs uppercase tracking-wide text-white/70">{stat.label}</p>
+                <p className="text-sm text-white/70">{stat.helper}</p>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden gap-3 text-sm md:grid md:grid-cols-2">
+            {heroActionLinks.map(({ href, label, detail, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className="group flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-white shadow-lg shadow-black/20 backdrop-blur transition hover:border-white/60 hover:bg-white/20"
+              >
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-white/60">{label}</p>
+                  <p className="mt-1 text-sm font-semibold text-white">{detail}</p>
+                </div>
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/15 text-white transition group-hover:bg-white group-hover:text-swin-red">
+                  <Icon className="h-5 w-5" />
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
-        <div className="relative z-10 rounded-3xl border border-white/20 bg-white/10 p-5 text-sm text-white shadow-xl shadow-black/20 backdrop-blur-lg">
-          <p className="text-xs uppercase tracking-wide text-white/70">Signed in</p>
-          {user.email ? (
-            <p
-              className={clsx(
-                'mt-1 break-words font-semibold',
-                user.email.length > 30 ? 'text-sm md:text-base' : 'text-base',
-                user.email.length > 40 ? 'text-xs md:text-base' : 'text-base',
+        <div className="relative z-10 flex flex-col justify-between rounded-3xl border border-white/20 bg-white/5 p-6 text-sm text-white shadow-2xl shadow-black/30 backdrop-blur-xl">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 text-xl font-semibold text-white">
+              {userInitials}
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-white/70">Currently signed in</p>
+              <p className="mt-1 text-xl font-semibold text-white">{displayName}</p>
+              {user.email ? (
+                <p className="text-sm text-white/80">{user.email}</p>
+              ) : (
+                <p className="text-sm text-white/60">No email on record</p>
               )}
-            >
-              {user.email}
+            </div>
+          </div>
+          <div className="mt-6 space-y-3 text-sm text-white/80">
+            <div className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 px-4 py-3">
+              <span className="text-xs uppercase tracking-wide text-white/60">Role</span>
+              <span className="text-sm font-semibold text-white">{roleLabel(user.role)}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 px-4 py-3">
+              <span className="text-xs uppercase tracking-wide text-white/60">Username</span>
+              <span className="text-sm font-semibold text-white">{username}</span>
+            </div>
+          </div>
+          <div className="mt-6 rounded-2xl border border-white/10 bg-gradient-to-r from-white/20 to-transparent px-4 py-4 text-white/80">
+            <p className="text-xs uppercase tracking-wide text-white/70">Session</p>
+            <p className="mt-2 text-sm text-white">
+              {isBypassed
+                ? 'Development bypass active - authentication skipped.'
+                : 'Authentication verified - Supabase session active.'}
             </p>
-          ) : null}
-          <p className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white/80">
-            Role: {roleLabel(user.role)}
-          </p>
-          {isBypassed ? (
-            <p className="mt-3 rounded-md bg-amber-400/30 px-3 py-2 text-[11px] font-medium text-amber-100 shadow-inner shadow-amber-700/10">
-              Development bypass active - authentication skipped.
-            </p>
-          ) : null}
+          </div>
         </div>
       </header>
 

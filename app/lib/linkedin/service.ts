@@ -183,16 +183,22 @@ const extractTopics = (raw: any) => {
   return Array.from(set);
 };
 
+type ExtractedAuthor = {
+  name: string;
+  title: string | null;
+  profileUrl: string | null;
+};
+
 const extractAuthors = (raw: any) => {
   const buckets = [raw.authors, raw.instructors, raw.contributors];
-  const authors = [];
+  const authors: ExtractedAuthor[] = [];
 
-  const normaliseAuthor = (value: any) => {
+  const normaliseAuthor = (value: any): ExtractedAuthor | null => {
     if (!value) return null;
     if (typeof value === 'string') {
       const trimmed = value.trim();
       if (!trimmed) return null;
-      return { name: trimmed };
+      return { name: trimmed, title: null, profileUrl: null };
     }
     const name =
       pickText(value.name) ??
@@ -206,7 +212,7 @@ const extractAuthors = (raw: any) => {
     return {
       name,
       title: pickText(value.title) ?? value.headline ?? null,
-      profileUrl: pickUrl(value.profileUrl, value.publicProfileUrl, value.url),
+      profileUrl: pickUrl(value.profileUrl, value.publicProfileUrl, value.url) ?? null,
     };
   };
 
