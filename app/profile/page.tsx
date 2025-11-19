@@ -20,6 +20,8 @@ type ProfileRow = {
   student_id?: string | null;
   links?: unknown;
   visibility?: string | null;
+  followers_count?: number | null;
+  following_count?: number | null;
 };
 
 type ProfileLinks = Array<{ label: string; url: string }>;
@@ -156,6 +158,14 @@ export default async function ProfilePage() {
   const links = normalizeLinks(profile.links);
   const preferredName = profile.display_name ?? user.name ?? null;
   const initials = getInitials(preferredName, user.email ?? null);
+  const followersCount =
+    typeof profile.followers_count === 'number' && !Number.isNaN(profile.followers_count)
+      ? profile.followers_count
+      : 0;
+  const followingCount =
+    typeof profile.following_count === 'number' && !Number.isNaN(profile.following_count)
+      ? profile.following_count
+      : 0;
   const pageBgClass = clsx(
     'min-h-screen py-10 transition-colors',
     'bg-swin-ivory text-swin-charcoal dark:bg-[#050b1a] dark:text-slate-100',
@@ -185,6 +195,12 @@ export default async function ProfilePage() {
   const linksEmptyClass = 'mt-4 text-sm text-slate-500 dark:text-slate-400';
   const backButtonClass =
     'inline-flex w-full items-center justify-center rounded-lg border border-transparent px-4 py-2 text-sm font-semibold text-white shadow transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:w-auto bg-swin-red hover:bg-swin-red/90 focus-visible:outline-swin-red dark:border-white/20 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800 dark:focus-visible:outline-white';
+  const followLinkClass = clsx(
+    'flex flex-col rounded-2xl border px-4 py-3 text-center transition',
+    'border-slate-200 bg-white/70 hover:border-slate-300 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20 dark:hover:bg-white/10',
+  );
+  const followCountClass = 'text-2xl font-semibold text-slate-900 dark:text-white';
+  const followLabelClass = 'mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300';
 
   return (
     <main className={pageBgClass}>
@@ -221,6 +237,16 @@ export default async function ProfilePage() {
                     {memberSince ? (
                       <span className={pillSecondaryClass}>Member since {memberSince}</span>
                     ) : null}
+                  </div>
+                  <div className="mt-6 grid w-full grid-cols-2 gap-3 sm:mt-4 sm:max-w-md">
+                    <Link href="/profile/follows/followers" className={followLinkClass}>
+                      <span className={followCountClass}>{followersCount}</span>
+                      <span className={followLabelClass}>Followers</span>
+                    </Link>
+                    <Link href="/profile/follows/following" className={followLinkClass}>
+                      <span className={followCountClass}>{followingCount}</span>
+                      <span className={followLabelClass}>Following</span>
+                    </Link>
                   </div>
                 </div>
               </div>
