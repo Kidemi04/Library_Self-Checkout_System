@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import clsx from 'clsx';
 import SideNav from '@/app/ui/dashboard/sidenav';
 import MobileNav from '@/app/ui/dashboard/mobile-nav';
+import FaqQuickPanel from '@/app/ui/dashboard/faq-quick-panel';
 import { getDashboardSession } from '@/app/lib/auth/session';
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
@@ -37,6 +38,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </div>
       </div>
+      <FaqQuickPanel role={user.role} />
     </div>
   );
 }

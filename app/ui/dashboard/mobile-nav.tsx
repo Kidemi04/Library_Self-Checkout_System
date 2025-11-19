@@ -14,7 +14,6 @@ import {
   BookmarkIcon,
   UserGroupIcon,
   InformationCircleIcon,
-  QuestionMarkCircleIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import AcmeLogo from '@/app/ui/acme-logo';
@@ -33,7 +32,6 @@ const navItems: NavItem[] = [
   { key: 'catalog', label: 'Catalog', href: '/dashboard/book-items', icon: BookOpenIcon },
   { key: 'scan', label: 'Scan', href: '/dashboard/qr-scan', icon: CameraIcon },
   { key: 'notifications', label: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
-  { key: 'faq', label: 'FAQ', href: '/dashboard/faq', icon: QuestionMarkCircleIcon },
   { key: 'profile', label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];
 
@@ -179,10 +177,6 @@ export default function MobileNav({
         {/* Main Navigation */}
         <div className="mx-auto flex max-w-4xl items-end justify-between gap-1 px-5 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-4">
         {navItems.map((item) => {
-          if (item.key === 'faq' && isPrivileged) {
-            return null;
-          }
-
           const Icon = item.icon;
 
           // --- Special handling for Catalog (privileged toggle) ---

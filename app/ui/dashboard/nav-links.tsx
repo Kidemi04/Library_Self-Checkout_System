@@ -12,7 +12,6 @@ import {
   QueueListIcon,
   UserCircleIcon,
   InformationCircleIcon,
-  QuestionMarkCircleIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import type { DashboardRole } from '@/app/lib/auth/types';
@@ -24,7 +23,6 @@ const userLinks = [
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
   { name: 'About Us', href: '/dashboard/about-page', icon: InformationCircleIcon },
-  { name: 'FAQ', href: '/dashboard/faq', icon: QuestionMarkCircleIcon },
 ];
 
 const staffLinks = [
