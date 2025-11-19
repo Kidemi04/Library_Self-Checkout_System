@@ -1,7 +1,9 @@
 // app/dashboard/book-items/page.tsx
+import clsx from 'clsx';
 import BookList from '@/app/ui/dashboard/book-list'; // student-facing renderer (grid/list)
 import BookItemsFilter from '@/app/ui/dashboard/book-items-filter';
 import { fetchBooks } from '@/app/lib/supabase/queries';
+import { getDashboardUser } from '@/app/lib/auth/session';
 
 // Keep this in sync with your Supabase enum and the BookList component
 export type ItemStatus =
@@ -53,7 +55,23 @@ export default async function BookItemsPage({
 }: {
   searchParams?: Promise<Record<string, string | string[]>>;
 }) {
+  const user = await getDashboardUser();
+  const isPrivileged = user?.role === 'staff' || user?.role === 'admin';
   const params = searchParams ? await searchParams : undefined;
+
+  const TitleClass = clsx(
+    'text-lg font-semibold ',
+    isPrivileged
+     ? 'text-white/90'
+     : 'text-swin-charcoal' 
+  )
+
+  const SubtitleClass = clsx(
+    'text-sm',
+    isPrivileged
+     ? 'text-white/70'
+     : 'text-swin-charcoal' 
+  )
 
   // ----- read and sanitize query params -----
   const qp = (key: string) => {
@@ -122,8 +140,8 @@ export default async function BookItemsPage({
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-swin-charcoal">Catalogue</h2>
-          <p className="text-sm text-swin-charcoal/60">
+          <h2 className={TitleClass}>Catalogue</h2>
+          <p className={SubtitleClass}>
             Showing {books.length} record{books.length === 1 ? '' : 's'}
           </p>
         </div>
