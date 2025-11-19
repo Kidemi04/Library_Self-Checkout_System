@@ -1,7 +1,9 @@
 // app/dashboard/book-items/page.tsx
+import { redirect } from 'next/navigation';
 import BookList from '@/app/ui/dashboard/book-list'; // student-facing renderer (grid/list)
 import BookItemsFilter from '@/app/ui/dashboard/book-items-filter';
 import { fetchBooks } from '@/app/lib/supabase/queries';
+import { getDashboardSession } from '@/app/lib/auth/session';
 
 // Keep this in sync with your Supabase enum and the BookList component
 export type ItemStatus =
@@ -53,6 +55,13 @@ export default async function BookItemsPage({
 }: {
   searchParams?: Promise<Record<string, string | string[]>>;
 }) {
+  // 🔹 Get logged-in user from your NextAuth-based session
+  const { user } = await getDashboardSession();
+  if (!user) {
+    redirect('/login');
+  }
+  const patronId = user.id;
+
   const params = searchParams ? await searchParams : undefined;
 
   // ----- read and sanitize query params -----
@@ -65,17 +74,19 @@ export default async function BookItemsPage({
 
   const rawStatus = (qp('status') ?? '').trim();
   // ✅ Narrow the string to ItemStatus | undefined
-  const statusFilter: ItemStatus | undefined = isItemStatus(rawStatus) ? rawStatus : undefined;
+  const statusFilter: ItemStatus | undefined = isItemStatus(rawStatus)
+    ? rawStatus
+    : undefined;
 
   const sort = (qp('sort') as SortField) || 'title';
-  const order = (qp('order') as SortOrder) === 'desc' ? 'desc' : 'asc';
-  const view = (qp('view') as ViewMode) === 'list' ? 'list' : 'grid';
+  const order: SortOrder = (qp('order') as SortOrder) === 'desc' ? 'desc' : 'asc';
+  const view: ViewMode = (qp('view') as ViewMode) === 'list' ? 'list' : 'grid';
 
-  // ----- fetch from Supabase (title/author/isbn/barcode search is handled in fetchBooks) -----
+  // ----- fetch from Supabase -----
   const dbBooks = await fetchBooks(q);
   let books = (dbBooks ?? []).map(toUIBook);
 
-  // ----- apply status filter (server component side) -----
+  // ----- apply status filter -----
   if (statusFilter) {
     books = books.filter((b) => b.status === statusFilter);
   }
@@ -103,8 +114,9 @@ export default async function BookItemsPage({
 
       <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/40">
         <h1 className="text-2xl font-semibold">Book Items</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300">
-          Browse the catalogue and filter by status. Use title or author to narrow results.
+        <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
+          Browse the catalogue and filter by status. Use title or author to narrow
+          results.
         </p>
       </header>
 
@@ -113,7 +125,7 @@ export default async function BookItemsPage({
         action="/dashboard/book-items"
         defaults={{
           q,
-          status: statusFilter, // <-- correctly typed (ItemStatus | undefined)
+          status: statusFilter, // ItemStatus | undefined
           sort,
           order,
           view,
@@ -128,13 +140,11 @@ export default async function BookItemsPage({
           </p>
         </div>
 
-        {/* Student-friendly list/grid view (reuses your existing component) */}
+        {/* Student-friendly list/grid view */}
         <BookList
           books={books}
           variant={view}
-          // Optional actions for student page can be passed here if needed:
-          // onDetailsClick={(b) => {/* open a read-only details modal */}}
-          // onBorrowClick={(b) => {/* start borrow flow */}}
+          patronId={patronId} // used by PlaceHoldButton
         />
       </section>
     </main>

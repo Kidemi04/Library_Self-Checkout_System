@@ -475,3 +475,97 @@ export async function fetchAvailableBooks(searchTerm?: string): Promise<Book[]> 
   const books = await fetchBooks(searchTerm);
   return books.filter((book) => book.availableCopies > 0);
 }
+
+
+// ------------------- HOLDS (STAFF VIEW) -------------------
+
+export type HoldStatus =
+  | 'QUEUED'
+  | 'READY'
+  | 'FULFILLED'
+  | 'EXPIRED'
+  | 'CANCELED';
+
+type RawHoldRow = {
+  id: string;
+  patron_id: string;
+  book_id: string;
+  status: HoldStatus;
+  placed_at: string | null;
+  ready_at: string | null;
+  expires_at: string | null;
+};
+
+/**
+ * Basic fetch for holds table for staff/admin pages.
+ * (You can later extend this to join books/users if you want.)
+ */
+export async function fetchHoldsForStaff() {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('holds')
+    .select(
+      `
+      id,
+      patron_id,
+      book_id,
+      status,
+      placed_at,
+      ready_at,
+      expires_at,
+      book:books (
+        title,
+        cover_image_url
+      ),
+      patron:users (
+        email,
+        profile:user_profiles (
+          display_name
+        )
+      )
+      `
+    )
+    .order('placed_at', { ascending: true });
+
+  if (error) throw error;
+
+  return data.map((h: any) => ({
+    id: h.id,
+    patron_id: h.patron_id,
+    book_id: h.book_id,
+    status: h.status,
+    placed_at: h.placed_at,
+    ready_at: h.ready_at,
+    expires_at: h.expires_at,
+    book_title: h.book?.title ?? 'Unknown title',
+    book_cover: h.book?.cover_image_url ?? null,
+    patron_name:
+      h.patron?.profile?.display_name ??
+      h.patron?.email ??
+      'Unknown patron',
+  }));
+}
+
+
+/**
+ * Small helper for updating a single hold's status / timestamps.
+ */
+export async function updateHoldStatus(
+  holdId: string,
+  fields: {
+    status?: HoldStatus;
+    ready_at?: string | null;
+    expires_at?: string | null;
+    fulfilled_by_copy_id?: string | null;
+  },
+) {
+  const supabase = getSupabaseServerClient();
+
+  const { error } = await supabase
+    .from('holds')
+    .update(fields)
+    .eq('id', holdId);
+
+  if (error) throw error;
+}

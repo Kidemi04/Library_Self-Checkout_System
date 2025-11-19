@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
+import type { CopyStatus } from '@/app/lib/supabase/types';
 
 export type ItemStatus =
   | 'available'
@@ -26,6 +27,7 @@ export type UpdatePayload = {
   publication_year?: string | number | null;
   tags?: string[] | null;
   cover_image_url?: string | null;
+  sip_status?: CopyStatus | null;
 };
 
 const normalizeTags = (tags: string[]): string[] =>
@@ -138,6 +140,15 @@ export async function updateBook(payload: UpdatePayload) {
 
   if (Array.isArray(payload.tags)) {
     await syncBookTags(supabase, payload.id, payload.tags);
+  }
+
+  if (payload.sip_status) {
+    const sipStatusValue = payload.sip_status.toUpperCase();
+    const { error: copyStatusError } = await supabase
+      .from('copies')
+      .update({ status: sipStatusValue })
+      .eq('book_id', payload.id);
+    if (copyStatusError) throw new Error(copyStatusError.message);
   }
 
   revalidatePath('/dashboard/book-items');

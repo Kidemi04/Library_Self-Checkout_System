@@ -160,7 +160,7 @@ export default function AboutPage() {
                   rel="noopener noreferrer"
                  >
                  <img
-                 src="https://static.xx.fbcdn.net/rsrc.php/yx/r/e9sqr8WnkCf.ico"
+                 src="/public/image/facebook.png"
                  alt="Facebook"
                 className="w-6 h-6 hover:opacity-80 transition"
                 />
@@ -172,7 +172,7 @@ export default function AboutPage() {
                 rel="noopener noreferrer"
               >
               <img
-                 src="https://static.cdninstagram.com/rsrc.php/y4/r/QaBlI0OZiks.ico"
+                 src="/public/image/instagram.png"
                  alt="Instagram"
                 className="w-6 h-6 hover:opacity-80 transition"
                 />
@@ -183,7 +183,7 @@ export default function AboutPage() {
                 rel="noopener noreferrer"
               >
               <img
-                 src="https://abs.twimg.com/favicons/twitter.3.ico"
+                 src="/public/image/x.png"
                  alt="Twitter"
                 className="w-6 h-6 hover:opacity-80 transition"
                 />
@@ -194,7 +194,7 @@ export default function AboutPage() {
                 rel="noopener noreferrer"
               >
               <img
-                 src="https://www.tiktok.com/favicon.ico"
+                 src="/public/image/tiktok.png"
                  alt="TikTok"
                 className="w-6 h-6 hover:opacity-80 transition"
                 />

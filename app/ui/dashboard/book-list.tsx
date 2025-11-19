@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import PlaceHoldButton from './place-hold-button';
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
 
 /** SIP-aligned item status (match your Supabase column) */
@@ -31,6 +32,7 @@ export type UIBook = {
 type Props = {
   books: UIBook[];
   variant?: 'grid' | 'list';               // card grid or compact list
+  patronId?: string;                       // who is browsing (for holds)
   onDetailsClick?: (book: UIBook) => void; // optional: “View details”
   onBorrowClick?: (book: UIBook) => void;  // optional: “Borrow / Request”
   pageSize?: number; // optional: number of books per page
@@ -50,6 +52,7 @@ const STATUS_META: Record<
 export default function BookList({
   books,
   variant = 'grid',
+  patronId,
   onDetailsClick,
   onBorrowClick,
   pageSize, // new prop
@@ -105,7 +108,7 @@ export default function BookList({
             <span aria-hidden className={`absolute left-0 top-0 h-full w-1 ${meta.stripe}`} />
 
             <article className="flex gap-3 sm:gap-4 text-slate-900">
-              {/* cover (slightly smaller on tiny screens so 2-up fits nicely) */}
+              {/* cover */}
               <figure className="relative shrink-0">
                 {b.cover ? (
                   <img
@@ -171,6 +174,13 @@ export default function BookList({
                         {t}
                       </span>
                     ))}
+                  </div>
+                )}
+
+                {/* place hold when not available */}
+                {!canBorrow && (
+                  <div className="mt-3">
+                    <PlaceHoldButton bookId={b.id} patronId={patronId} />
                   </div>
                 )}
 

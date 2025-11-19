@@ -11,6 +11,7 @@ import {
   UserGroupIcon,
   QueueListIcon,
   UserCircleIcon,
+  BellAlertIcon,      // 👈 NEW: icon for Manage Holds
   InformationCircleIcon,
   AcademicCapIcon,
 } from '@heroicons/react/24/outline';
@@ -33,6 +34,7 @@ const staffLinks = [
   { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
   { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
+  { name: 'Manage Holds', href: '/dashboard/holds', icon: BellAlertIcon }, // 👈 NEW
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
   { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
