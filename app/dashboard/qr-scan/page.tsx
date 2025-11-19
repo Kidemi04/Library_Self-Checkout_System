@@ -170,16 +170,16 @@ export default function QrScanPage() {
     <main className="space-y-8">
       <title>QR Scanner | Dashboard</title>
 
-      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
+      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/40">
         <h1 className="text-2xl font-semibold">Scan QR Code</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
-          Use your camera or upload an image. If the code contains a link, you’ll be redirected automatically.
+        <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300">
+          Use your camera or upload an image. If the code contains a link, you'll be redirected automatically.
         </p>
       </header>
 
       <section className="mx-auto grid max-w-5xl gap-6 md:grid-cols-[minmax(0,1fr)_300px]">
         {/* Preview */}
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-black shadow-sm">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-black shadow-sm dark:border-white/10 dark:bg-slate-950">
           <div className="aspect-[4/3] w-full">
             <video
               ref={videoRef}
@@ -202,27 +202,27 @@ export default function QrScanPage() {
         </div>
 
         {/* Controls */}
-        <aside className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h2 className="text-sm font-semibold text-swin-charcoal">Controls</h2>
+        <aside className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 text-swin-charcoal shadow-sm transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white">
+          <h2 className="text-sm font-semibold">Controls</h2>
 
           <div className="flex flex-wrap gap-2">
             {scanState !== 'scanning' ? (
               <button
                 onClick={startCamera}
-                className="rounded-xl bg-swin-charcoal px-4 py-2 text-sm font-medium text-swin-ivory shadow hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-swin-red/50"
+                className="rounded-xl bg-swin-charcoal px-4 py-2 text-sm font-medium text-swin-ivory shadow transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-swin-red/50 dark:bg-white dark:text-slate-900"
               >
                 Start camera
               </button>
             ) : (
               <button
                 onClick={stopCamera}
-                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:border-white/20 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
               >
                 Stop camera
               </button>
             )}
 
-            <label className="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 focus-within:ring-2 focus-within:ring-slate-300">
+            <label className="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50 focus-within:ring-2 focus-within:ring-slate-300 dark:border-white/20 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800">
               <input
                 type="file"
                 accept="image/*"
@@ -236,20 +236,20 @@ export default function QrScanPage() {
             </label>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-700">
+          <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-200">
             <p className="mb-1 font-semibold">Decoded text</p>
             <p className="break-all">{decoded ?? '—'}</p>
             {decoded && !isUrl(decoded) && (
-              <p className="mt-2 text-slate-500">
-                This QR isn’t a URL. Copy the text or try another code.
+              <p className="mt-2 text-slate-500 dark:text-slate-400">
+                This QR isn't a URL. Copy the text or try another code.
               </p>
             )}
           </div>
 
-          <ul className="text-xs text-slate-500">
+          <ul className="text-xs text-slate-500 dark:text-slate-400">
             <li>• Works on HTTPS or on localhost.</li>
             <li>• Allow camera permission when prompted.</li>
-            <li>• You can also upload a photo/screenshot of a QR code.</li>
+            <li>• You can also upload a photo or screenshot of a QR code.</li>
           </ul>
         </aside>
       </section>

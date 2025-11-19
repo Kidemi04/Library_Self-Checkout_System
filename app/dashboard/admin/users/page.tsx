@@ -487,39 +487,39 @@ export default function UserManagementPage() {
   };
 
   return (
-    <main className="space-y-8">
+    <main className="space-y-8 text-slate-900 dark:text-slate-100">
       <title>Manage Users | Admin</title>
 
-      <header className="rounded-2xl bg-slate-900 p-8 text-white shadow-lg shadow-slate-900/30">
-        <h1 className="text-2xl font-semibold">User Management</h1>
-        <p className="mt-2 max-w-2xl text-sm text-white/70">
+      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-slate-900 shadow-lg shadow-slate-200 transition-colors dark:border-slate-700 dark:bg-white/95 dark:text-slate-900 dark:shadow-black/40">
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-900">User Management</h1>
+        <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-600">
           Invite staff or administrators and maintain their roles for the library checkout system.
         </p>
       </header>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/50">
-        <h2 className="text-lg font-semibold text-slate-900">Add staff member</h2>
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-700 dark:bg-white/95 dark:text-slate-900 dark:shadow-black/30">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-900">Add staff member</h2>
         <form onSubmit={handleAddUser} className="mt-4 grid gap-4 md:grid-cols-[2fr_2fr_1fr_auto]">
-          <input
-            type="email"
-            required
-            placeholder="person@swinburne.edu.my"
-            value={newUser.email}
-            onChange={(event) => setNewUser((prev) => ({ ...prev, email: event.target.value }))}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-          />
-          <input
-            type="text"
-            placeholder="Full name"
-            value={newUser.fullName}
-            onChange={(event) => setNewUser((prev) => ({ ...prev, fullName: event.target.value }))}
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-          />
-          <select
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 min-w-[7rem]"
-            value={newUser.role}
-            onChange={(event) => setNewUser((prev) => ({ ...prev, role: event.target.value as ManagedRole }))}
-          >
+            <input
+              type="email"
+              required
+              placeholder="person@swinburne.edu.my"
+              value={newUser.email}
+              onChange={(event) => setNewUser((prev) => ({ ...prev, email: event.target.value }))}
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:placeholder-slate-500 dark:focus:border-slate-500 dark:focus:ring-slate-400"
+            />
+            <input
+              type="text"
+              placeholder="Full name"
+              value={newUser.fullName}
+              onChange={(event) => setNewUser((prev) => ({ ...prev, fullName: event.target.value }))}
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:placeholder-slate-500 dark:focus:border-slate-500 dark:focus:ring-slate-400"
+            />
+            <select
+              className="min-w-[7rem] rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:focus:border-slate-500 dark:focus:ring-slate-400"
+              value={newUser.role}
+              onChange={(event) => setNewUser((prev) => ({ ...prev, role: event.target.value as ManagedRole }))}
+            >
             {roleOptions.map((role) => (
               <option key={role} value={role}>
                 {role.charAt(0).toUpperCase() + role.slice(1)}
@@ -529,12 +529,17 @@ export default function UserManagementPage() {
           <button
             type="submit"
             disabled={isPending}
-            className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-600"
+            className={clsx(
+              'inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold shadow transition disabled:cursor-not-allowed disabled:opacity-70',
+              isPending
+                ? 'bg-slate-400 text-white'
+                : 'bg-swin-red text-white hover:bg-swin-red/90 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800',
+            )}
           >
             {isPending ? 'Adding…' : 'Add user'}
           </button>
         </form>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
           Staff and admin must use their Swinburne Outlook email addresses.
         </p>
       </section>
@@ -544,19 +549,19 @@ export default function UserManagementPage() {
           className={clsx(
             'rounded-lg border px-4 py-3 text-sm',
             errorMessage
-              ? 'border-rose-300 bg-rose-50 text-rose-600'
-              : 'border-emerald-200 bg-emerald-50 text-emerald-700',
+              ? 'border-rose-300 bg-rose-50 text-rose-600 dark:border-rose-500 dark:bg-rose-500/10 dark:text-rose-100'
+              : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400 dark:bg-emerald-400/10 dark:text-emerald-100',
           )}
         >
           {errorMessage ?? statusMessage}
         </div>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/50">
-        <header className="flex flex-col gap-4 border-b border-slate-100 px-6 py-4 md:flex-row md:items-center md:justify-between">
+      <section className="rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-700 dark:bg-white/95 dark:text-slate-900 dark:shadow-black/30">
+        <header className="flex flex-col gap-4 border-b border-slate-100 px-6 py-4 md:flex-row md:items-center md:justify-between dark:border-slate-300">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Current users</h2>
-            <span className="text-sm text-slate-500">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-900">Current users</h2>
+            <span className="text-sm text-slate-500 dark:text-slate-600">
               {loading
                 ? 'Loading…'
                 : searchActive
@@ -577,14 +582,14 @@ export default function UserManagementPage() {
                 setSearchTerm(event.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:placeholder-slate-500 dark:focus:border-slate-500 dark:focus:ring-slate-400"
             />
           </div>
         </header>
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-100">
-            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <thead className="bg-white text-xs font-semibold uppercase tracking-wide text-slate-500 dark:bg-white dark:text-slate-700">
               <tr>
                 <th className="px-6 py-3 text-left">Email</th>
                 <th className="px-6 py-3 text-left">Full name</th>
@@ -593,16 +598,16 @@ export default function UserManagementPage() {
                 <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
+            <tbody className="divide-y divide-slate-100 bg-white text-sm dark:divide-slate-200 dark:bg-white dark:text-slate-900">
               {loading ? (
                 <tr>
-                  <td className="px-6 py-4 text-slate-500" colSpan={5}>
+                  <td className="px-6 py-4 text-slate-500 dark:text-slate-400" colSpan={5}>
                     Loading users…
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td className="px-6 py-4 text-slate-500" colSpan={5}>
+                  <td className="px-6 py-4 text-slate-500 dark:text-slate-400" colSpan={5}>
                     {searchActive ? 'No users match your search.' : 'No users found.'}
                   </td>
                 </tr>
@@ -615,7 +620,7 @@ export default function UserManagementPage() {
                         type="email"
                         value={user.email}
                         onChange={(event) => updateLocalUser(user.id, { email: event.target.value })}
-                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:placeholder-slate-500 dark:focus:border-slate-500 dark:focus:ring-slate-400"
                         maxLength={254}
                         autoComplete="off"
                         inputMode="email"
@@ -631,7 +636,7 @@ export default function UserManagementPage() {
                             profile: { display_name: event.target.value },
                           })
                         }
-                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:placeholder-slate-500 dark:focus:border-slate-500 dark:focus:ring-slate-400"
                         maxLength={120}
                         autoComplete="name"
                       />
@@ -643,7 +648,7 @@ export default function UserManagementPage() {
                         onChange={(event) =>
                           updateLocalUser(user.id, { profile: { student_id: event.target.value } })
                         }
-                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:placeholder-slate-500 dark:focus:border-slate-500 dark:focus:ring-slate-400"
                         maxLength={60}
                       />
                     </td>
@@ -653,7 +658,7 @@ export default function UserManagementPage() {
                         onChange={(event) =>
                           updateLocalUser(user.id, { role: event.target.value as ManagedRole })
                         }
-                        className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 min-w-[7rem]"
+                        className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 min-w-[7rem] dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:focus:border-slate-500 dark:focus:ring-slate-400"
                       >
                         {roleOptions.map((role) => (
                           <option key={role} value={role}>
@@ -667,7 +672,7 @@ export default function UserManagementPage() {
                         <button
                           type="button"
                           onClick={() => setExpandedUserId((prev) => (prev === user.id ? null : user.id))}
-                          className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100"
+                          className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10"
                         >
                           {expandedUserId === user.id ? 'Hide details' : 'Details'}
                         </button>
@@ -675,7 +680,7 @@ export default function UserManagementPage() {
                           type="button"
                           onClick={() => handleSave(user)}
                           disabled={isPending}
-                          className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Save
                         </button>
@@ -683,7 +688,7 @@ export default function UserManagementPage() {
                           type="button"
                           onClick={() => handleDelete(user.id)}
                           disabled={isPending}
-                          className="rounded-md border border-rose-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-md border border-rose-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-500 dark:text-rose-200 dark:hover:bg-rose-500/10"
                         >
                           Delete
                         </button>
@@ -691,7 +696,7 @@ export default function UserManagementPage() {
                     </td>
                     </tr>
                     {expandedUserId === user.id && (
-                      <tr key={`${user.id}-details`} className="bg-slate-50/60">
+                      <tr key={`${user.id}-details`} className="bg-slate-50/60 dark:bg-white/5">
                         <td className="px-6 py-4" colSpan={5}>
                           <UserDetailEditor user={user} onChange={updateLocalUser} isPending={isPending} />
                         </td>
@@ -705,7 +710,7 @@ export default function UserManagementPage() {
         </div>
 
         {!loading && filteredUsers.length > 0 && (
-          <footer className="flex flex-col gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
+          <footer className="flex flex-col gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-500 md:flex-row md:items-center md:justify-between dark:border-white/5 dark:text-slate-400">
             <span>
               Showing {visibleStart}-{visibleEnd} of {filteredUsers.length}{' '}
               {searchActive
@@ -717,7 +722,7 @@ export default function UserManagementPage() {
                 type="button"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Previous
               </button>
@@ -728,7 +733,7 @@ export default function UserManagementPage() {
                 type="button"
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Next
               </button>
@@ -775,11 +780,11 @@ function UserDetailEditor({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Account details</h3>
+      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-slate-900 dark:shadow-black/30">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-200">Account details</h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold uppercase text-slate-500" htmlFor={`${user.id}-account-display-name`}>
+            <label className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300" htmlFor={`${user.id}-account-display-name`}>
               Account display name
             </label>
             <input
@@ -789,23 +794,23 @@ function UserDetailEditor({
               onChange={(event) =>
                 onChange(user.id, { accountDisplayName: event.target.value })
               }
-              className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+              className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
               maxLength={120}
             />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase text-slate-500">Created at</p>
-            <p className="text-sm text-slate-600">{formatDate(user.createdAt)}</p>
+            <p className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">Created at</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">{formatDate(user.createdAt)}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase text-slate-500">Last updated</p>
-            <p className="text-sm text-slate-600">{formatDate(user.updatedAt)}</p>
+            <p className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">Last updated</p>
+            <p className="text-sm text-slate-600 dark:text-slate-300">{formatDate(user.updatedAt)}</p>
           </div>
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Profile fields</h3>
+      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-slate-900 dark:shadow-black/30">
+        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-200">Profile fields</h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           {profileKeys.map((key) => {
             const config = PROFILE_FIELD_CONFIG[key];
@@ -816,7 +821,7 @@ function UserDetailEditor({
             if (type === 'json' || type === 'textarea') {
               return (
                 <div key={key} className="md:col-span-2">
-                  <label className="mb-1 block text-xs font-semibold uppercase text-slate-500" htmlFor={`${user.id}-${key}`}>
+                  <label className="mb-1 block text-xs font-semibold uppercase text-slate-500 dark:text-slate-300" htmlFor={`${user.id}-${key}`}>
                     {label}
                   </label>
                   <textarea
@@ -824,12 +829,12 @@ function UserDetailEditor({
                     value={value}
                     onChange={(event) => handleProfileChange(key, event.target.value)}
                     rows={config?.rows ?? 4}
-                    className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
                     placeholder={config?.placeholder}
                     disabled={isPending}
                   />
                   {config?.description && (
-                    <p className="mt-1 text-xs text-slate-500">{config.description}</p>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{config.description}</p>
                   )}
                 </div>
               );
@@ -838,14 +843,14 @@ function UserDetailEditor({
             if (type === 'select') {
               return (
                 <div key={key} className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold uppercase text-slate-500" htmlFor={`${user.id}-${key}`}>
+                  <label className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300" htmlFor={`${user.id}-${key}`}>
                     {label}
                   </label>
                   <select
                     id={`${user.id}-${key}`}
                     value={value}
                     onChange={(event) => handleProfileChange(key, event.target.value)}
-                    className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                    className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
                     disabled={isPending}
                   >
                     <option value="">Not set</option>
@@ -856,7 +861,7 @@ function UserDetailEditor({
                     ))}
                   </select>
                   {config?.description && (
-                    <p className="text-xs text-slate-500">{config.description}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">{config.description}</p>
                   )}
                 </div>
               );
@@ -865,14 +870,14 @@ function UserDetailEditor({
             if (type === 'boolean') {
               return (
                 <div key={key} className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold uppercase text-slate-500" htmlFor={`${user.id}-${key}`}>
+                  <label className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300" htmlFor={`${user.id}-${key}`}>
                     {label}
                   </label>
                   <select
                     id={`${user.id}-${key}`}
                     value={value}
                     onChange={(event) => handleProfileChange(key, event.target.value)}
-                    className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                    className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
                     disabled={isPending}
                   >
                     <option value="">Not set</option>
@@ -885,7 +890,7 @@ function UserDetailEditor({
 
             return (
               <div key={key} className="flex flex-col gap-1">
-                <label className="text-xs font-semibold uppercase text-slate-500" htmlFor={`${user.id}-${key}`}>
+                <label className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300" htmlFor={`${user.id}-${key}`}>
                   {label}
                 </label>
                 <input
@@ -893,13 +898,13 @@ function UserDetailEditor({
                   type={type === 'number' ? 'number' : 'text'}
                   value={value}
                   onChange={(event) => handleProfileChange(key, event.target.value)}
-                  className="rounded-md border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
                   placeholder={config?.placeholder}
                   maxLength={config?.maxLength}
                   disabled={isPending}
                 />
                 {config?.description && (
-                  <p className="text-xs text-slate-500">{config.description}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{config.description}</p>
                 )}
               </div>
             );
@@ -909,3 +914,4 @@ function UserDetailEditor({
     </div>
   );
 }
+

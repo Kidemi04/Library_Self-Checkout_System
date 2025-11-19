@@ -12,8 +12,11 @@ import {
   QueueListIcon,
   UserCircleIcon,
   BellAlertIcon,      // 👈 NEW: icon for Manage Holds
+  InformationCircleIcon,
+  AcademicCapIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
+import { useTheme } from '@/app/ui/theme/theme-provider';
 import type { DashboardRole } from '@/app/lib/auth/types';
 
 const userLinks = [
@@ -22,6 +25,8 @@ const userLinks = [
   { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
+  { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
+  { name: 'About Us', href: '/dashboard/about-page', icon: InformationCircleIcon },
 ];
 
 const staffLinks = [
@@ -32,6 +37,8 @@ const staffLinks = [
   { name: 'Manage Holds', href: '/dashboard/holds', icon: BellAlertIcon }, // 👈 NEW
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
+  { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
+  { name: 'About Us', href: '/dashboard/about-page', icon: InformationCircleIcon },
 ];
 
 const adminLinks = [
@@ -49,7 +56,10 @@ export default function NavLinks({
   showLabels?: boolean;
 }) {
   const pathname = usePathname();
+  const { theme } = useTheme();
   const links = role === 'admin' ? adminLinks : role === 'staff' ? staffLinks : userLinks;
+  const isPrivileged = role === 'staff' || role === 'admin';
+  const isDarkTheme = theme === 'dark';
 
   const activeHref = links.reduce<string | null>((current, { href }) => {
     const isExactMatch = pathname === href;
@@ -66,15 +76,13 @@ export default function NavLinks({
     return href.length > current.length ? href : current;
   }, null);
 
-  const isPrivileged = role === 'staff' || role === 'admin';
-
-  const activeVariant = isPrivileged
+  const activeVariant = isDarkTheme
     ? 'bg-white/15 text-white shadow-lg shadow-slate-900/40'
-    : 'bg-swin-red text-swin-ivory shadow-lg shadow-swin-red/30';
+    : 'bg-swin-red text-[#FEFDFD] shadow-lg shadow-swin-red/30';
 
-  const inactiveVariant = isPrivileged
+  const inactiveVariant = isDarkTheme
     ? 'bg-transparent text-slate-200/80 hover:bg-white/10 hover:text-white border-white/20'
-    : 'bg-swin-charcoal text-swin-ivory/80 hover:bg-swin-red hover:text-swin-ivory border-transparent';
+    : 'bg-[#2a2d38] text-[#FEFDFD]/80 hover:bg-swin-red hover:text-white border-transparent shadow-inner shadow-black/30';
 
   return (
     <>

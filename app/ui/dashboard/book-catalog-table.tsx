@@ -4,6 +4,7 @@ import React from 'react';
 import ManageBookModal from './manage-book-modal';
 import { updateBook, deleteBook, type ItemStatus } from '@/app/lib/supabase/updates';
 import type { CopyStatus } from '@/app/lib/supabase/types';
+import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
 
 export type CatalogBook = {
   id: string;
@@ -57,6 +58,18 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
     });
     return clone;
   }, [books, sortKey, sortDir]);
+
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 10; // default 10 books per page
+
+  // Compute total pages
+  const totalPages = Math.ceil(sorted.length / itemsPerPage);
+
+  // Slice the books for current page
+  const paginated = React.useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return sorted.slice(start, start + itemsPerPage);
+  }, [sorted, currentPage]);
 
   function toggleSort(nextKey: typeof sortKey) {
     if (nextKey === sortKey) {
@@ -169,7 +182,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 bg-white">
-              {sorted.map((b) => (
+              {paginated.map((b) => (
                 <tr key={b.id} className="hover:bg-slate-50">
                   <Td>
                     <div className="flex items-center gap-3">
@@ -232,7 +245,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
 
       {/* Mobile: card list (no horizontal scrolling) */}
       <ul className="md:hidden space-y-3">
-        {sorted.map((b) => (
+        {paginated.map((b) => (
           <li
             key={b.id}
             className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-slate-900"
@@ -449,6 +462,30 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
           </div>
         </form>
       </ManageBookModal>
+
+      {/* Paging control */}
+      <div className="mt-4 flex items-center justify-center gap-4">
+        
+        <button
+          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          disabled={currentPage === 1}
+          className="rounded-xl border border-slate-200 bg-white px-5 py-1.5 text-m font-medium text-slate-800 shadow-sm disabled:opacity-50"
+        >
+          <ChevronDoubleLeftIcon className='h-6 w-6'></ChevronDoubleLeftIcon>
+        </button>
+
+        <span className="text-sm text-white/80">
+          Page {currentPage} of {totalPages}
+        </span>
+
+        <button
+          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          disabled={currentPage === totalPages}
+          className="rounded-xl border border-slate-200 bg-white px-5 py-1.5 text-m font-medium text-slate-800 shadow-sm disabled:opacity-50"
+        >
+          <ChevronDoubleRightIcon className='h-6 w-6'></ChevronDoubleRightIcon>
+        </button>
+      </div>
     </>
   );
 }
