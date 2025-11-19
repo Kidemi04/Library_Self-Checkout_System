@@ -21,6 +21,10 @@ A modern, web-based library self-service system built with Next.js 14, featuring
   - User administration
   - Loan history and analytics
   - System settings configuration
+- **Digital Learning Integration**
+  - LinkedIn Learning search and curation hub
+  - Sample data fallback for demos without credentials
+  - Quick filters for AI, customer experience, and leadership topics
 
 ## Technology Stack
 
@@ -239,6 +243,26 @@ USING (user_id = auth.uid());
   - Use `DEV_BYPASS_AUTH=true`
   - Set `DEV_BYPASS_ROLE` as needed
   - Remember to disable before deployment
+
+### LinkedIn Learning Setup
+
+1. Request LinkedIn Learning API access
+   - Create or reuse a LinkedIn Developer application inside your organization tenant
+   - Request the **LinkedIn Learning** product and ensure the tenant owns an enterprise subscription
+2. Configure OAuth client credentials
+   - In the developer portal add the `learning openid profile r_liteprofile r_emailaddress organization_learning` scopes
+   - Copy the client ID and client secret
+3. Populate the environment variables in `.env.local`
+   ```env
+   LINKEDIN_LEARNING_CLIENT_ID=xxxxxxxx
+   LINKEDIN_LEARNING_CLIENT_SECRET=xxxxxxxx
+   LINKEDIN_LEARNING_ORGANIZATION_URN=urn:li:organization:123456
+   LINKEDIN_LEARNING_DEFAULT_LOCALE=en_US
+   LINKEDIN_LEARNING_API_VERSION=202404
+   LINKEDIN_LEARNING_SCOPE="learning openid profile r_liteprofile r_emailaddress organization_learning"
+   ```
+4. Optional: keep `LINKEDIN_LEARNING_USE_STUB=true` locally to use the bundled sample catalogue without real API calls
+5. Open `/dashboard/learning` to search courses, explore curated topics, and verify whether the module is using live or sample data via the status badges
 
 ### Mobile Testing
 
