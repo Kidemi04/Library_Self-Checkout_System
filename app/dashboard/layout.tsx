@@ -3,13 +3,12 @@ import clsx from 'clsx';
 import SideNav from '@/app/ui/dashboard/sidenav';
 import MobileNav from '@/app/ui/dashboard/mobile-nav';
 import FaqQuickPanel from '@/app/ui/dashboard/faq-quick-panel';
+import DashboardShell from '@/app/ui/dashboard/dashboard-shell';
 import { getDashboardSession } from '@/app/lib/auth/session';
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const { user, isBypassed } = await getDashboardSession();
   if (!user) redirect('/login');
-
-  const isPrivileged = user.role === 'staff' || user.role === 'admin';
 
   return (
     <div
@@ -40,5 +39,8 @@ export default async function Layout({ children }: { children: React.ReactNode }
       </div>
       <FaqQuickPanel role={user.role} />
     </div>
+    <DashboardShell user={user} isBypassed={isBypassed}>
+      {children}
+    </DashboardShell>
   );
 }

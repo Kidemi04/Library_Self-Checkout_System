@@ -29,9 +29,9 @@ export default async function ReturningBooksPage({
   return (
     <main className="space-y-8">
       <title>Returning Books | Dashboard</title>
-      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
+      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/40">
         <h1 className="text-2xl font-semibold">Returning Books</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
+        <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300">
           {canProcessReturns
             ? 'Record completed loans and reconcile returned items with the inventory.'
             : 'Review which books are currently on loan before speaking with library staff.'}
@@ -52,7 +52,7 @@ export default async function ReturningBooksPage({
       {canProcessReturns ? (
         <CheckInForm activeLoanCount={totalBorrowed} defaultIdentifier={searchTerm} />
       ) : (
-        <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-sm text-swin-charcoal/70 shadow-sm shadow-swin-charcoal/5">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-swin-charcoal/70 shadow-sm shadow-slate-200 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300 dark:shadow-black/30">
           Only library staff can confirm returns. Please speak with a librarian to finalise your borrowed
           items.
         </div>
@@ -60,20 +60,10 @@ export default async function ReturningBooksPage({
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2
-            className={clsx(
-              'text-lg font-semibold',
-              canProcessReturns ? 'text-slate-100' : 'text-swin-charcoal',
-            )}
-          >
+          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">
             Books currently not available
           </h2>
-          <p
-            className={clsx(
-              'text-sm',
-              canProcessReturns ? 'text-slate-300' : 'text-swin-charcoal/60',
-            )}
-          >
+          <p className="text-sm text-swin-charcoal/60 dark:text-slate-300">
             Showing {activeLoans.length} of {totalBorrowed} borrowed books
           </p>
         </div>

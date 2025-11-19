@@ -22,16 +22,16 @@ export default async function AdminDashboardPage() {
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-white">Recent activity</h2>
-          <p className="text-sm text-slate-300">Latest borrowing and return activity</p>
+          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Recent activity</h2>
+          <p className="text-sm text-swin-charcoal/60 dark:text-slate-300">Latest borrowing and return activity</p>
         </div>
         <RecentLoans loans={recentLoans} />
       </section>
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-white">Active loans</h2>
-          <p className="text-sm text-slate-300">
+          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Active loans</h2>
+          <p className="text-sm text-swin-charcoal/60 dark:text-slate-300">
             {activeLoans.length} items currently outside the library
           </p>
         </div>

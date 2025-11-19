@@ -18,6 +18,8 @@ import {
 import clsx from 'clsx';
 import AcmeLogo from '@/app/ui/acme-logo';
 import SignOutButton from '@/app/ui/dashboard/sign-out-button';
+import ThemeToggle from '@/app/ui/theme/theme-toggle';
+import { useTheme } from '@/app/ui/theme/theme-provider';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 
 type NavItem = {
@@ -43,20 +45,17 @@ export default function MobileNav({
   isBypassed: boolean;
 }) {
   const pathname = usePathname();
-  const isPrivileged = user.role === 'staff' || user.role === 'admin';
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const topBarClasses = clsx(
-    'flex items-center justify-between px-4 py-3 md:hidden',
-    isPrivileged
-      ? 'bg-slate-950 text-white border-b border-white/10'
-      : 'bg-swin-charcoal text-swin-ivory border-b border-swin-ivory/10',
+    'flex items-center justify-between border-b px-4 py-3 transition-colors md:hidden',
+    isDark ? 'border-white/10 bg-slate-950 text-white' : 'border-swin-charcoal/10 bg-swin-charcoal text-swin-ivory',
   );
 
   const navClasses = clsx(
-    'fixed inset-x-0 bottom-0 z-50 border-t backdrop-blur-md md:hidden',
-    isPrivileged
-      ? 'border-white/10 bg-slate-950/90 text-white'
-      : 'border-swin-charcoal/10 bg-white/95 text-swin-charcoal',
+    'fixed inset-x-0 bottom-0 z-50 border-t backdrop-blur-md transition-colors md:hidden',
+    isDark ? 'border-white/10 bg-slate-950/90 text-white' : 'border-swin-charcoal/10 bg-white/95 text-swin-charcoal',
   );
 
   const isItemActive = (href: string) => {
@@ -66,13 +65,11 @@ export default function MobileNav({
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
-  const activeTextClass = isPrivileged ? 'text-emerald-300' : 'text-swin-red';
-  const inactiveTextClass = isPrivileged
-    ? 'text-slate-300/80 hover:text-white'
-    : 'text-swin-charcoal/70 hover:text-swin-red/80';
+  const activeTextClass = isDark ? 'text-emerald-300' : 'text-swin-red';
+  const inactiveTextClass = isDark ? 'text-slate-300/80 hover:text-white' : 'text-swin-charcoal/70 hover:text-swin-red/80';
 
-  const scanButtonBackground = isPrivileged ? 'bg-emerald-500 text-slate-950' : 'bg-swin-red text-white';
-  const scanButtonRing = isPrivileged ? 'ring-emerald-200/60' : 'ring-swin-red/30';
+  const scanButtonBackground = isDark ? 'bg-emerald-500 text-slate-950' : 'bg-swin-red text-white';
+  const scanButtonRing = isDark ? 'ring-emerald-200/60' : 'ring-swin-red/30';
 
   return (
     <>
@@ -87,10 +84,11 @@ export default function MobileNav({
               Dev
             </span>
           ) : null}
+          <ThemeToggle size="sm" />
           <SignOutButton
             className={clsx(
               'inline-flex items-center gap-2 rounded-lg border px-3 py-1 text-xs font-semibold transition',
-              isPrivileged
+              isDark
                 ? 'border-white/20 text-white hover:bg-white/10'
                 : 'border-swin-ivory/20 text-swin-ivory hover:bg-swin-ivory/20 hover:text-swin-charcoal',
             )}
@@ -123,21 +121,13 @@ export default function MobileNav({
             <BookmarkIcon
               className={clsx(
                 'h-5 w-5',
-                isItemActive('/dashboard/check-out')
-                  ? activeTextClass
-                  : isPrivileged
-                    ? 'text-slate-300/80'
-                    : 'text-swin-charcoal'
+                isItemActive('/dashboard/check-out') ? activeTextClass : isDark ? 'text-slate-300/80' : 'text-swin-charcoal'
               )}
             />
             <span
               className={clsx(
                 'text-xs font-medium',
-                isItemActive('/dashboard/check-out')
-                  ? activeTextClass
-                  : isPrivileged
-                    ? 'text-slate-300/80'
-                    : 'text-swin-charcoal'
+                isItemActive('/dashboard/check-out') ? activeTextClass : isDark ? 'text-slate-300/80' : 'text-swin-charcoal'
               )}
             >
               Borrow Book
@@ -151,21 +141,13 @@ export default function MobileNav({
             <ArrowUturnLeftIcon
               className={clsx(
                 'h-5 w-5',
-                isItemActive('/dashboard/check-in')
-                  ? activeTextClass
-                  : isPrivileged
-                    ? 'text-slate-300/80'
-                    : 'text-swin-charcoal'
+                isItemActive('/dashboard/check-in') ? activeTextClass : isDark ? 'text-slate-300/80' : 'text-swin-charcoal'
               )}
             />
             <span
               className={clsx(
                 'text-xs font-medium',
-                isItemActive('/dashboard/check-in')
-                  ? activeTextClass
-                  : isPrivileged
-                    ? 'text-slate-300/80'
-                    : 'text-swin-charcoal'
+                isItemActive('/dashboard/check-in') ? activeTextClass : isDark ? 'text-slate-300/80' : 'text-swin-charcoal'
               )}
             >
               Return Book
