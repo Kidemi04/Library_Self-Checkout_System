@@ -1,5 +1,5 @@
 import clsx from 'clsx';
-import type { DashboardUserProfile } from '@/app/lib/auth/types';
+import { getDashboardUser } from '@/app/lib/auth/session';
 
 type AboutUsList = {
   name: string;
@@ -16,53 +16,57 @@ const aboutUsList : AboutUsList[] = [
   {name: 'Ivan Jia Wei HOAN', major: 'Software Development', id: 102786580},
 ];
 
-export default function AboutPage({
-  user,
-}: {
-  user: DashboardUserProfile;
-}) {
+export default async function Page(){
+  const user = await getDashboardUser();
   const isPrivileged = user?.role === 'staff' || user?.role === 'admin';
 
   const subtitleClasses = clsx(
     'text-xl font-semibold',
     isPrivileged
-      ? 'text-swin-charcoal'
-      : 'text-white/90'
+      ? 'text-white/90'
+      : 'text-swin-charcoal'
   );
 
   const tableClass = clsx(
     'rounded-2xl border border-swin-charcoal/10 p-6 shadow-md',
     isPrivileged
-      ? 'bg-white'
-      : 'bg-swin-charcoal'
+      ? 'bg-swin-charcoal'
+      : 'bg-white'
   );
 
   const tableTitleClass = clsx(
     'text-lg font-semibold',
-    isPrivileged
-      ? 'text-swin-charcoal'
-      : 'text-white/90'
+    isPrivileged 
+      ? 'text-white/90'
+      : 'text-swin-charcoal'
   )
 
   const tableContentClass = clsx(
     'text-sm mt-1',
     isPrivileged
-      ? 'text-swin-charcoal/80'
-      : 'text-white/80'
+      ? 'text-white/80'
+      : 'text-swin-charcoal/80'
   );
 
   const contactTableClass = clsx(
     'rounded-2xl p-6 shadow-md border border-swin-charcoal/10',
-    isPrivileged
-      ? 'bg-swin-ivory'
-      : 'bg-swin-charcoal'
+    isPrivileged 
+      ? 'bg-swin-charcoal'
+      : 'bg-swin-ivory'
   );
 
   const contactTitleClass = clsx(
     'mt-4 space-y-2',
+    isPrivileged 
+      ? 'text-white-90'
+      : 'text-swin-charcoal/80'
+  )
+
+  const emailLinkClass = clsx(
+    'hover:underline',
     isPrivileged
-      ? 'text-swin-charcoal/80'
-      : 'text-white-90'
+     ? 'text-red-600'
+     : 'text-swin-red'
   )
 
   return (
@@ -86,7 +90,7 @@ export default function AboutPage({
         {/* Shorter the team list */}
         {aboutUsList.map((p) => {
           return (
-            <div className={tableClass}>
+            <div key={p.id} className={tableClass}>
             <h3 className={tableTitleClass}>{p.name}</h3>
             <p className={tableContentClass}>
               Bachelor of Computer Science ({p.major})
@@ -98,8 +102,8 @@ export default function AboutPage({
               <span className="font-medium">Email:</span>{" "}
               {/* Will open your */}
               <a
-                href="https://outlook.office.com/mail/deeplink/compose?to=${p.id}@students.swinburne.edu.my"
-                className="text-swin-red hover:underline"
+                href={`https://outlook.office.com/mail/deeplink/compose?to=${p.id}@students.swinburne.edu.my`}
+                className={emailLinkClass}
                 target="_blank"
               >
                 {p.id}@students.swinburne.edu.my
@@ -125,7 +129,7 @@ export default function AboutPage({
               {/* Will directly open the OutLook email */}
               <a
                 href="https://outlook.office.com/mail/deeplink/compose?to=library@swinburne.edu.my"
-                className="text-swin-red hover:underline"
+                className={emailLinkClass}
               >
                 library@swinburne.edu.my
               </a>
@@ -141,7 +145,7 @@ export default function AboutPage({
                 href="https://www.facebook.com/SwinburneSarawakLibrary"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-swin-red hover:underline"
+                className={emailLinkClass}
               >
                 Swinburne Sarawak Library
               </a>
