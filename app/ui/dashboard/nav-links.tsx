@@ -98,6 +98,7 @@ export default function NavLinks({
             className={clsx(
               'flex h-[48px] w-full grow items-center justify-center gap-2 rounded-md border p-3 text-sm font-medium transition-colors md:flex-none md:justify-start md:p-2 md:px-3',
               isActive ? activeVariant : inactiveVariant,
+              name === 'Learning Hub' && 'hidden md:flex'
             )}
             onClick={onNavigate}
             aria-current={isActive ? 'page' : undefined}
