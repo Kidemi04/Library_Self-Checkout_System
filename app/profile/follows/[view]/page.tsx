@@ -22,8 +22,8 @@ type FollowEdgeProfile = {
 };
 
 type FollowPageProps = {
-  params: { view: string };
-  searchParams?: { q?: string };
+  params: Promise<{ view: string }>;
+  searchParams?: Promise<{ q?: string }>;
 };
 
 const toDashboardRole = (value: string | null | undefined): DashboardRole => {
@@ -113,15 +113,15 @@ const loadFollowEdges = async (userId: string, view: FollowView): Promise<Follow
       const mutualQuery =
         view === 'followers'
           ? supabase
-              .from('friends')
-              .select('followed_id, status')
-              .eq('follower_id', userId)
-              .in('followed_id', relatedIds)
+            .from('friends')
+            .select('followed_id, status')
+            .eq('follower_id', userId)
+            .in('followed_id', relatedIds)
           : supabase
-              .from('friends')
-              .select('follower_id, status')
-              .eq('followed_id', userId)
-              .in('follower_id', relatedIds);
+            .from('friends')
+            .select('follower_id, status')
+            .eq('followed_id', userId)
+            .in('follower_id', relatedIds);
 
       const { data: mutualRows, error: mutualError } = await mutualQuery;
       if (mutualError) {
@@ -130,8 +130,8 @@ const loadFollowEdges = async (userId: string, view: FollowView): Promise<Follow
         const acceptedKey = view === 'followers' ? 'followed_id' : 'follower_id';
         mutualSet = new Set(
           (mutualRows ?? [])
-            .filter((row) => row.status === 'accepted' && typeof row[acceptedKey] === 'string')
-            .map((row) => row[acceptedKey] as string),
+            .filter((row: any) => row.status === 'accepted' && typeof row[acceptedKey] === 'string')
+            .map((row: any) => row[acceptedKey] as string),
         );
       }
     }
@@ -203,7 +203,9 @@ const viewCopy: Record<FollowView, { heading: string; empty: string; description
   },
 };
 
-export default async function FollowViewPage({ params, searchParams }: FollowPageProps) {
+export default async function FollowViewPage(props: FollowPageProps) {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
   const session = await getDashboardSession();
   if (!session.user) {
     redirect(`/login?callbackUrl=${encodeURIComponent('/profile')}`);
@@ -221,16 +223,16 @@ export default async function FollowViewPage({ params, searchParams }: FollowPag
   const filteredEdges = !searchValue
     ? edges
     : edges.filter((edge) => {
-        const searchTarget = searchValue.toLowerCase();
-        const candidates = [
-          edge.displayName?.toLowerCase(),
-          edge.username?.toLowerCase(),
-          edge.email?.toLowerCase(),
-          edge.faculty?.toLowerCase(),
-          edge.department?.toLowerCase(),
-        ].filter(Boolean) as string[];
-        return candidates.some((value) => value.includes(searchTarget));
-      });
+      const searchTarget = searchValue.toLowerCase();
+      const candidates = [
+        edge.displayName?.toLowerCase(),
+        edge.username?.toLowerCase(),
+        edge.email?.toLowerCase(),
+        edge.faculty?.toLowerCase(),
+        edge.department?.toLowerCase(),
+      ].filter(Boolean) as string[];
+      return candidates.some((value) => value.includes(searchTarget));
+    });
 
   const copy = viewCopy[view];
 

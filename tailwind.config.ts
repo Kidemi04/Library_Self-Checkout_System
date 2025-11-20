@@ -37,6 +37,29 @@ const config: Config = {
           transform: 'translateX(100%)',
         },
       },
+      "border-beam": {
+        "100%": {
+          "offset-distance": "100%",
+        },
+      },
+      "spin-around": {
+        "0%": {
+          transform: "translateZ(0) rotate(0)",
+        },
+        "100%": {
+          transform: "translateZ(0) rotate(360deg)",
+        },
+      },
+      "shimmer-slide": {
+        to: {
+          transform: "translate(calc(100cqw - 100%), 0)",
+        },
+      },
+    },
+    animation: {
+      "border-beam": "border-beam calc(var(--duration)*1s) infinite linear",
+      "spin-around": "spin-around calc(var(--speed) * 2) infinite linear",
+      "shimmer-slide": "shimmer-slide var(--speed) ease-in-out infinite alternate",
     },
   },
   plugins: [require('@tailwindcss/forms')],

@@ -1,4 +1,10 @@
+import { type ClassValue, clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 import type { Revenue } from '@/app/lib/definitions';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 export const generateYAxis = (revenue: Revenue[]) => {
   const defaultLabels = [0, 25, 50, 75, 100];

@@ -16,6 +16,7 @@ import {
   AcademicCapIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
+import BlurFade from '@/app/ui/magic-ui/blur-fade';
 import { useTheme } from '@/app/ui/theme/theme-provider';
 import type { DashboardRole } from '@/app/lib/auth/types';
 
@@ -82,33 +83,34 @@ export default function NavLinks({
   }, null);
 
   const activeVariant = isDarkTheme
-    ? 'bg-white/15 text-white shadow-lg shadow-slate-900/40'
-    : 'bg-swin-red text-[#FEFDFD] shadow-lg shadow-swin-red/30';
+    ? 'bg-gradient-to-r from-white/20 to-white/10 text-white shadow-xl shadow-white/10 scale-[1.02]'
+    : 'bg-gradient-to-r from-swin-red to-swin-red/90 text-swin-ivory shadow-xl shadow-swin-red/30 scale-[1.02]';
 
   const inactiveVariant = isDarkTheme
-    ? 'bg-transparent text-slate-200/80 hover:bg-white/10 hover:text-white border-white/20'
-    : 'bg-[#2a2d38] text-[#FEFDFD]/80 hover:bg-swin-red hover:text-white border-transparent shadow-inner shadow-black/30';
+    ? 'bg-transparent text-slate-200/80 hover:bg-white/10 hover:text-white hover:scale-[1.01] hover:shadow-lg border-white/10'
+    : 'bg-black/10 text-swin-ivory/80 hover:bg-swin-red/80 hover:text-white hover:scale-[1.01] hover:shadow-lg border-transparent shadow-sm';
 
   return (
     <>
-      {links.map(({ name, href, icon: LinkIcon }) => {
+      {links.map(({ name, href, icon: LinkIcon }, index) => {
         const isActive = href === activeHref;
 
         return (
-          <Link
-            key={name}
-            href={href}
-            className={clsx(
-              'flex h-[48px] w-full grow items-center justify-center gap-2 rounded-md border p-3 text-sm font-medium transition-colors md:flex-none md:justify-start md:p-2 md:px-3',
-              isActive ? activeVariant : inactiveVariant,
-              name === 'Learning Hub' && 'hidden md:flex'
-            )}
-            onClick={onNavigate}
-            aria-current={isActive ? 'page' : undefined}
-          >
-            <LinkIcon className="w-5" />
-            <span className={clsx(showLabels ? 'block' : 'hidden md:block')}>{name}</span>
-          </Link>
+          <BlurFade key={name} delay={0.3 + index * 0.05} yOffset={10}>
+            <Link
+              href={href}
+              className={clsx(
+                'flex h-auto w-full grow items-center justify-center gap-2 rounded-xl border py-3.5 px-3 text-sm font-medium transition-all duration-300 ease-out mb-2 md:flex-none md:justify-start active:scale-95',
+                isActive ? activeVariant : inactiveVariant,
+                name === 'Learning Hub' && 'hidden md:flex'
+              )}
+              onClick={onNavigate}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <LinkIcon className="w-5" />
+              <span className={clsx(showLabels ? 'block' : 'hidden md:block')}>{name}</span>
+            </Link>
+          </BlurFade>
         );
       })}
     </>
