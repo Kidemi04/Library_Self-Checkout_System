@@ -33,7 +33,6 @@ type NavItem = {
 const navItems: NavItem[] = [
   { key: 'home', label: 'Home', href: '/dashboard', icon: HomeIcon },
   { key: 'catalog', label: 'Catalog', href: '/dashboard/book-items', icon: BookOpenIcon },
-  { key: 'learning', label: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon },
   { key: 'scan', label: 'Scan', href: '/dashboard/qr-scan', icon: CameraIcon },
   { key: 'notifications', label: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
   { key: 'profile', label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
@@ -161,156 +160,156 @@ export default function MobileNav({
 
         {/* Main Navigation */}
         <div className="mx-auto flex max-w-4xl items-end justify-between gap-1 px-5 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-4">
-        {navItems.map((item) => {
-          const Icon = item.icon;
+          {navItems.map((item) => {
+            const Icon = item.icon;
 
-          // --- Special handling for Catalog (privileged toggle) ---
-          if (item.key === 'catalog') {
-            const isActive =
-              pathname.startsWith('/dashboard/book-items') ||
-              pathname.startsWith('/dashboard/book-list');
-          
-            // Detect current page
-            const isOnBookItems = pathname.startsWith('/dashboard/book-items');
-            const isOnBookList = pathname.startsWith('/dashboard/book-list');
+            // --- Special handling for Catalog (privileged toggle) ---
+            if (item.key === 'catalog') {
+              const isActive =
+                pathname.startsWith('/dashboard/book-items') ||
+                pathname.startsWith('/dashboard/book-list');
 
-            // Reset to default when not on catalog-related pages
-            const isOnCatalogPages = isOnBookItems || isOnBookList;
-          
-            // Determine next route based on current route
-            const nextCatalogHref = isPrivileged
-              ? isOnBookItems
-                ? '/dashboard/book-list'
-                : '/dashboard/book-items'
-              : item.href;
+              // Detect current page
+              const isOnBookItems = pathname.startsWith('/dashboard/book-items');
+              const isOnBookList = pathname.startsWith('/dashboard/book-list');
 
-            // Dynamically switch icon & label
-            const DynamicIcon = isPrivileged
-            ? isOnCatalogPages
-              ? (isOnBookItems ? QueueListIcon : BookOpenIcon) // Toggle icon only on catalog pages
-              : QueueListIcon // Reset to Book List icon when on other pages
-            : item.icon;
-        
-            // Dynamic label based on current page
-            const dynamicLabel = isPrivileged
-              ? isOnCatalogPages
-                ? (isOnBookItems ? 'Book List' : 'Catalog') // Toggle label only on catalog pages
-                : 'Book List' // Reset label when on other pages
-              : item.label;
-          
-            return (
-              <Link
-                key={item.key}
-                href={nextCatalogHref}
-                onClick={(e) => {
-                  if (!isPrivileged) return;
-                  e.preventDefault();
-                  window.location.href = nextCatalogHref;
-                }}
-                className={clsx(
-                  'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors',
-                  isActive ? activeTextClass : inactiveTextClass,
-                )}
-                aria-current={isActive ? 'page' : undefined}
-              >
-                <DynamicIcon className="h-6 w-6" />
-                <span>{dynamicLabel}</span>
-              </Link>
-            );
-          }
+              // Reset to default when not on catalog-related pages
+              const isOnCatalogPages = isOnBookItems || isOnBookList;
 
-          if (item.key === 'profile'){
-            const isActive =
-              pathname.startsWith('/dashboard/profile') ||
-              pathname.startsWith('/dashboard/about-page');
-        
-            // Detect current page
-            const isOnProfilePage = pathname.startsWith('/dashboard/profile');
-            const isOnAboutPage = pathname.startsWith('/dashboard/about-page');
+              // Determine next route based on current route
+              const nextCatalogHref = isPrivileged
+                ? isOnBookItems
+                  ? '/dashboard/book-list'
+                  : '/dashboard/book-items'
+                : item.href;
 
-            // Reset to default when not on catalog-related pages
-            const isOnProfileandAboutPage = isOnProfilePage || isOnAboutPage;
-          
-            // Determine next route based on current route
-            const nextCatalogHref = isOnProfilePage
+              // Dynamically switch icon & label
+              const DynamicIcon = isPrivileged
+                ? isOnCatalogPages
+                  ? (isOnBookItems ? QueueListIcon : BookOpenIcon) // Toggle icon only on catalog pages
+                  : QueueListIcon // Reset to Book List icon when on other pages
+                : item.icon;
+
+              // Dynamic label based on current page
+              const dynamicLabel = isPrivileged
+                ? isOnCatalogPages
+                  ? (isOnBookItems ? 'Book List' : 'Catalog') // Toggle label only on catalog pages
+                  : 'Book List' // Reset label when on other pages
+                : item.label;
+
+              return (
+                <Link
+                  key={item.key}
+                  href={nextCatalogHref}
+                  onClick={(e) => {
+                    if (!isPrivileged) return;
+                    e.preventDefault();
+                    window.location.href = nextCatalogHref;
+                  }}
+                  className={clsx(
+                    'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors',
+                    isActive ? activeTextClass : inactiveTextClass,
+                  )}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <DynamicIcon className="h-6 w-6" />
+                  <span>{dynamicLabel}</span>
+                </Link>
+              );
+            }
+
+            if (item.key === 'profile') {
+              const isActive =
+                pathname.startsWith('/dashboard/profile') ||
+                pathname.startsWith('/dashboard/about-page');
+
+              // Detect current page
+              const isOnProfilePage = pathname.startsWith('/dashboard/profile');
+              const isOnAboutPage = pathname.startsWith('/dashboard/about-page');
+
+              // Reset to default when not on catalog-related pages
+              const isOnProfileandAboutPage = isOnProfilePage || isOnAboutPage;
+
+              // Determine next route based on current route
+              const nextCatalogHref = isOnProfilePage
                 ? '/dashboard/about-page'
                 : '/dashboard/profile'
 
-            // Dynamically switch icon & label
-            const DynamicIcon = isOnProfileandAboutPage
-              ? (isOnProfilePage ? UserCircleIcon : InformationCircleIcon)
-              : UserCircleIcon
+              // Dynamically switch icon & label
+              const DynamicIcon = isOnProfileandAboutPage
+                ? (isOnProfilePage ? UserCircleIcon : InformationCircleIcon)
+                : UserCircleIcon
 
-            // Dynamic label based on current page
-            const dynamicLabel = isOnProfileandAboutPage
-                ? (isOnProfilePage ? 'Profile' : 'About Us') 
+              // Dynamic label based on current page
+              const dynamicLabel = isOnProfileandAboutPage
+                ? (isOnProfilePage ? 'Profile' : 'About Us')
                 : 'Profile'
-          
+
+              return (
+                <Link
+                  key={item.key}
+                  href={nextCatalogHref}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.href = nextCatalogHref;
+                  }}
+                  className={clsx(
+                    'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors',
+                    isActive ? activeTextClass : inactiveTextClass,
+                  )}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <DynamicIcon className="h-6 w-6" />
+                  <span>{dynamicLabel}</span>
+                </Link>
+              );
+            }
+
+
+            // --- Existing special Scan button (keep unchanged) ---
+            if (item.key === 'scan') {
+              const isActive = isItemActive(item.href);
+
+              return (
+                <div key={item.key} className="flex flex-1 flex-col items-center justify-end gap-1">
+                  <Link
+                    href={item.href}
+                    className={clsx(
+                      'grid h-16 w-16 place-items-center rounded-full shadow-xl ring-4 transition',
+                      scanButtonBackground,
+                      isActive ? 'scale-105' : 'hover:scale-105',
+                      scanButtonRing,
+                    )}
+                    aria-current={isActive ? 'page' : undefined}
+                    aria-label="Scan to borrow books"
+                  >
+                    <Icon className="h-7 w-7" />
+                  </Link>
+                  <span className={clsx('text-[11px] font-semibold', isActive ? activeTextClass : inactiveTextClass)}>
+                    {item.label}
+                  </span>
+                </div>
+              );
+            }
+
+            // --- Default for all other nav items ---
+            const isActive = isItemActive(item.href);
+
             return (
               <Link
                 key={item.key}
-                href={nextCatalogHref}
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.location.href = nextCatalogHref;
-                }}
+                href={item.href}
                 className={clsx(
                   'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors',
                   isActive ? activeTextClass : inactiveTextClass,
                 )}
                 aria-current={isActive ? 'page' : undefined}
               >
-                <DynamicIcon className="h-6 w-6" />
-                <span>{dynamicLabel}</span>
+                <Icon className="h-6 w-6" />
+                <span>{item.label}</span>
               </Link>
             );
-          }
-
-
-          // --- Existing special Scan button (keep unchanged) ---
-          if (item.key === 'scan') {
-            const isActive = isItemActive(item.href);
-
-            return (
-              <div key={item.key} className="flex flex-1 flex-col items-center justify-end gap-1">
-                <Link
-                  href={item.href}
-                  className={clsx(
-                    'grid h-16 w-16 place-items-center rounded-full shadow-xl ring-4 transition',
-                    scanButtonBackground,
-                    isActive ? 'scale-105' : 'hover:scale-105',
-                    scanButtonRing,
-                  )}
-                  aria-current={isActive ? 'page' : undefined}
-                  aria-label="Scan to borrow books"
-                >
-                  <Icon className="h-7 w-7" />
-                </Link>
-                <span className={clsx('text-[11px] font-semibold', isActive ? activeTextClass : inactiveTextClass)}>
-                  {item.label}
-                </span>
-              </div>
-            );
-          }
-
-          // --- Default for all other nav items ---
-          const isActive = isItemActive(item.href);
-
-          return (
-            <Link
-              key={item.key}
-              href={item.href}
-              className={clsx(
-                'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors',
-                isActive ? activeTextClass : inactiveTextClass,
-              )}
-              aria-current={isActive ? 'page' : undefined}
-            >
-              <Icon className="h-6 w-6" />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+          })}
 
         </div>
       </nav>

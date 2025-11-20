@@ -87,3 +87,83 @@ export interface DashboardSummary {
   activeLoans: number;
   overdueLoans: number;
 }
+
+export type FriendStatus = 'pending' | 'accepted' | 'blocked';
+
+export interface Friend {
+  id: string;
+  followerId: string;
+  followedId: string;
+  status: FriendStatus;
+  createdAt: string;
+  friendProfile?: {
+    id: string;
+    name: string | null;
+    email: string | null;
+    avatarUrl: string | null;
+    bio: string | null;
+  } | null;
+}
+
+export type CommunityVisibility = 'public' | 'private';
+export type CommunityMemberRole = 'admin' | 'moderator' | 'member';
+export type CommunityMemberStatus = 'pending' | 'approved' | 'rejected';
+
+export interface Community {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  coverImageUrl: string | null;
+  visibility: CommunityVisibility;
+  tags: string[] | null;
+  createdBy: string;
+  createdAt: string;
+  memberCount?: number;
+  isMember?: boolean;
+}
+
+export interface CommunityMember {
+  id: string;
+  communityId: string;
+  userId: string;
+  role: CommunityMemberRole;
+  status: CommunityMemberStatus;
+  joinedAt: string | null;
+  profile?: {
+    displayName: string | null;
+    avatarUrl: string | null;
+  } | null;
+}
+
+export type CommunityPostType = 'discussion' | 'announcement';
+
+export interface CommunityPost {
+  id: string;
+  communityId: string;
+  authorId: string;
+  type: CommunityPostType;
+  title: string | null;
+  body: string | null;
+  pinned: boolean;
+  createdAt: string;
+  author?: {
+    displayName: string | null;
+    avatarUrl: string | null;
+  } | null;
+  commentCount?: number;
+}
+
+export interface CommunityBookRecommendation {
+  id: string;
+  communityId: string;
+  bookId: string;
+  recommendedBy: string;
+  note: string | null;
+  createdAt: string;
+  book?: Book | null;
+  recommender?: {
+    displayName: string | null;
+  } | null;
+  voteScore?: number;
+}

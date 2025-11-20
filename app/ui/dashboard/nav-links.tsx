@@ -22,6 +22,8 @@ import type { DashboardRole } from '@/app/lib/auth/types';
 const userLinks = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
+  { name: 'Friends', href: '/dashboard/friends', icon: UserGroupIcon },
+  { name: 'Communities', href: '/dashboard/communities', icon: UserGroupIcon },
   { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
   { name: 'My Reservations', href: '/dashboard/reservations', icon: BellAlertIcon },
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
@@ -34,6 +36,8 @@ const staffLinks = [
   { name: 'Staff Overview', href: '/dashboard/admin', icon: Squares2X2Icon },
   { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
+  { name: 'Friends', href: '/dashboard/friends', icon: UserGroupIcon },
+  { name: 'Communities', href: '/dashboard/communities', icon: UserGroupIcon },
   { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
   { name: 'Manage Holds', href: '/dashboard/holds', icon: BellAlertIcon }, // 👈 NEW
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
@@ -97,6 +101,7 @@ export default function NavLinks({
             className={clsx(
               'flex h-[48px] w-full grow items-center justify-center gap-2 rounded-md border p-3 text-sm font-medium transition-colors md:flex-none md:justify-start md:p-2 md:px-3',
               isActive ? activeVariant : inactiveVariant,
+              name === 'Learning Hub' && 'hidden md:flex'
             )}
             onClick={onNavigate}
             aria-current={isActive ? 'page' : undefined}

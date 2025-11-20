@@ -3,6 +3,7 @@
 import { sampleLinkedInLearningAssets } from '@/app/lib/linkedin/sample-data';
 import type {
   LinkedInLearningAsset,
+  LinkedInLearningAuthor,
   LinkedInLearningLevel,
   LinkedInLearningSearchOptions,
   LinkedInLearningSearchResult,
@@ -183,11 +184,11 @@ const extractTopics = (raw: any) => {
   return Array.from(set);
 };
 
-const extractAuthors = (raw: any) => {
+const extractAuthors = (raw: any): LinkedInLearningAuthor[] => {
   const buckets = [raw.authors, raw.instructors, raw.contributors];
-  const authors = [];
+  const authors: LinkedInLearningAuthor[] = [];
 
-  const normaliseAuthor = (value: any) => {
+  const normaliseAuthor = (value: any): LinkedInLearningAuthor | null => {
     if (!value) return null;
     if (typeof value === 'string') {
       const trimmed = value.trim();
