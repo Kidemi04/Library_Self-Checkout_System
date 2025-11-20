@@ -96,7 +96,7 @@ export default function NavLinks({
             key={name}
             href={href}
             className={clsx(
-              'flex h-auto w-full grow items-center justify-center gap-2 rounded-xl border py-3.5 px-3 text-sm font-medium transition-all duration-300 ease-out mb-2 md:flex-none md:justify-start',
+              'flex h-auto w-full grow items-center justify-center gap-2 rounded-xl border py-3.5 px-3 text-sm font-medium transition-all duration-300 ease-out mb-2 md:flex-none md:justify-start active:scale-95',
               isActive ? activeVariant : inactiveVariant,
               name === 'Learning Hub' && 'hidden md:flex'
             )}
