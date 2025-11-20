@@ -51,13 +51,17 @@ export default function MobileNav({
   const isPrivileged = user.role === 'staff' || user.role === 'admin';
 
   const topBarClasses = clsx(
-    'flex items-center justify-between border-b px-4 py-3 transition-colors md:hidden',
-    isDark ? 'border-white/10 bg-slate-950 text-white' : 'border-swin-charcoal/10 bg-swin-charcoal text-swin-ivory',
+    'flex items-center justify-between border-b px-4 py-3 backdrop-blur-md transition-colors md:hidden',
+    isDark
+      ? 'border-white/10 bg-slate-950/90 text-white shadow-lg'
+      : 'border-swin-charcoal/10 bg-swin-charcoal/95 text-swin-ivory shadow-lg',
   );
 
   const navClasses = clsx(
-    'fixed inset-x-0 bottom-0 z-50 border-t backdrop-blur-md transition-colors md:hidden',
-    isDark ? 'border-white/10 bg-slate-950/90 text-white' : 'border-swin-charcoal/10 bg-white/95 text-swin-charcoal',
+    'fixed inset-x-0 bottom-0 z-50 border-t backdrop-blur-xl transition-colors md:hidden shadow-2xl',
+    isDark
+      ? 'border-white/10 bg-slate-950/80 text-white'
+      : 'border-swin-charcoal/10 bg-white/90 text-swin-charcoal',
   );
 
   const isItemActive = (href: string) => {
@@ -70,8 +74,12 @@ export default function MobileNav({
   const activeTextClass = isDark ? 'text-emerald-300' : 'text-swin-red';
   const inactiveTextClass = isDark ? 'text-slate-300/80 hover:text-white' : 'text-swin-charcoal/70 hover:text-swin-red/80';
 
-  const scanButtonBackground = isDark ? 'bg-emerald-500 text-slate-950' : 'bg-swin-red text-white';
-  const scanButtonRing = isDark ? 'ring-emerald-200/60' : 'ring-swin-red/30';
+  const scanButtonBackground = isDark
+    ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-slate-950'
+    : 'bg-gradient-to-br from-swin-red to-swin-red/90 text-white';
+  const scanButtonRing = isDark
+    ? 'ring-emerald-200/40 shadow-emerald-500/30'
+    : 'ring-swin-red/20 shadow-swin-red/40';
 
   return (
     <>
