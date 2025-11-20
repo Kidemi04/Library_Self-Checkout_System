@@ -15,6 +15,7 @@ import {
   AcademicCapIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
+import BlurFade from '@/app/ui/magic-ui/blur-fade';
 import { useTheme } from '@/app/ui/theme/theme-provider';
 import type { DashboardRole } from '@/app/lib/auth/types';
 
@@ -88,24 +89,25 @@ export default function NavLinks({
 
   return (
     <>
-      {links.map(({ name, href, icon: LinkIcon }) => {
+      {links.map(({ name, href, icon: LinkIcon }, index) => {
         const isActive = href === activeHref;
 
         return (
-          <Link
-            key={name}
-            href={href}
-            className={clsx(
-              'flex h-auto w-full grow items-center justify-center gap-2 rounded-xl border py-3.5 px-3 text-sm font-medium transition-all duration-300 ease-out mb-2 md:flex-none md:justify-start active:scale-95',
-              isActive ? activeVariant : inactiveVariant,
-              name === 'Learning Hub' && 'hidden md:flex'
-            )}
-            onClick={onNavigate}
-            aria-current={isActive ? 'page' : undefined}
-          >
-            <LinkIcon className="w-5" />
-            <span className={clsx(showLabels ? 'block' : 'hidden md:block')}>{name}</span>
-          </Link>
+          <BlurFade key={name} delay={0.3 + index * 0.05} yOffset={10}>
+            <Link
+              href={href}
+              className={clsx(
+                'flex h-auto w-full grow items-center justify-center gap-2 rounded-xl border py-3.5 px-3 text-sm font-medium transition-all duration-300 ease-out mb-2 md:flex-none md:justify-start active:scale-95',
+                isActive ? activeVariant : inactiveVariant,
+                name === 'Learning Hub' && 'hidden md:flex'
+              )}
+              onClick={onNavigate}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              <LinkIcon className="w-5" />
+              <span className={clsx(showLabels ? 'block' : 'hidden md:block')}>{name}</span>
+            </Link>
+          </BlurFade>
         );
       })}
     </>
