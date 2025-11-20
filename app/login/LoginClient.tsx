@@ -64,16 +64,9 @@ export default function LoginClient({ callbackUrl }: LoginClientProps) {
             </h1>
           </BlurFade>
 
-          {/* Description */}
-          <BlurFade delay={0.5} yOffset={10}>
-            <p className="mt-3 text-center text-sm leading-relaxed text-swin-charcoal/70 dark:text-slate-300">
-              Sign in with your Swinburne Microsoft account to access the borrow-and-return dashboard.
-            </p>
-          </BlurFade>
-
           {/* Sign In Button */}
-          <BlurFade delay={0.6} yOffset={10}>
-            <div className="mt-8 space-y-4">
+          <BlurFade delay={0.5} yOffset={10}>
+            <div className="mt-8">
               <button
                 type="button"
                 onClick={handleSignIn}
@@ -96,11 +89,6 @@ export default function LoginClient({ callbackUrl }: LoginClientProps) {
                 </svg>
                 <span className="relative">{pending ? 'Signing in...' : 'Sign in with Microsoft'}</span>
               </button>
-
-              <p className="text-center text-xs leading-relaxed text-swin-charcoal/60 dark:text-slate-400">
-                Local development can bypass authentication when enabled. In production you must sign in
-                with your Swinburne Microsoft account.
-              </p>
             </div>
           </BlurFade>
         </GlassCard>
