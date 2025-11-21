@@ -23,7 +23,10 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
   const [selectedBookId, setSelectedBookId] = useState<string>('');
   const [selectedCopyId, setSelectedCopyId] = useState<string>('');
   const [selectedCopyBarcode, setSelectedCopyBarcode] = useState<string | null>(null);
-  const [lookupMessage, setLookupMessage] = useState<{ tone: 'neutral' | 'success' | 'error'; text: string } | null>(null);
+  const [lookupMessage, setLookupMessage] = useState<{
+    tone: 'neutral' | 'success' | 'error';
+    text: string;
+  } | null>(null);
   const [bookOptions, setBookOptions] = useState(() => buildBookOptions(books));
   const [bookMap, setBookMap] = useState(() => createBookMap(books));
   const contentId = 'borrow-form-panel';
@@ -32,8 +35,8 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
     if (state.status === 'success') {
       formRef.current?.reset();
       setSelectedBookId('');
-       setSelectedCopyId('');
-       setSelectedCopyBarcode(null);
+      setSelectedCopyId('');
+      setSelectedCopyBarcode(null);
       setLookupMessage(null);
       borrowerIdRef.current?.focus();
     }
@@ -208,7 +211,15 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
         )}
       >
         <form ref={formRef} action={formAction} className="grid gap-4 lg:grid-cols-2">
+          {/* For Supabase: which copy to loan */}
           <input type="hidden" name="copyId" value={selectedCopyId} />
+          {/* For SIP: itemIdentifier (usually the copy barcode) */}
+          <input
+            type="hidden"
+            name="itemIdentifier"
+            value={selectedCopyBarcode ?? ''}
+          />
+
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-swin-charcoal" htmlFor="bookId">
               Book to borrow
@@ -291,16 +302,16 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
             <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerIdentifier">
               Borrower ID
             </label>
-          <input
-            id="borrowerIdentifier"
-            name="borrowerIdentifier"
-            type="text"
-            required
-            placeholder="Scan or type borrower ID"
-            ref={borrowerIdRef}
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-          />
-        </div>
+            <input
+              id="borrowerIdentifier"
+              name="borrowerIdentifier"
+              type="text"
+              required
+              placeholder="Scan or type borrower ID"
+              ref={borrowerIdRef}
+              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+            />
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerName">
@@ -397,7 +408,9 @@ type ApiBook = {
   copies: ApiBookCopy[] | null;
 };
 
-const normalizeCopyStatus = (value: string | null | undefined): Book['copies'][number]['status'] => {
+const normalizeCopyStatus = (
+  value: string | null | undefined,
+): Book['copies'][number]['status'] => {
   if (typeof value !== 'string') return 'available';
   switch (value.trim().toUpperCase()) {
     case 'ON_LOAN':

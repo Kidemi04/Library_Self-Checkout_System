@@ -1,10 +1,38 @@
 'use server';
 
+import { checkOut as sipCheckOut, checkIn as sipCheckIn } from '@/lib/sip2';
 import { revalidatePath } from 'next/cache';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { auth } from '@/auth';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import type { ActionState } from '@/app/dashboard/action-state';
+
+
+const pad = (n: number) => n.toString().padStart(2, '0');
+
+/**
+ * SIP2 expects: YYYYMMDDZZZZHHMMSS
+ * - YYYY: year
+ * - MM: month
+ * - DD: day
+ * - ZZZZ: time zone offset in HHMM (we just send "0000" for simplicity)
+ * - HHMMSS: time
+ *
+ * Example: 202501180000080000 = 2025-01-18 08:00:00 with "0000" TZ.
+ */
+const formatSipDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = pad(date.getMonth() + 1);
+  const day = pad(date.getDate());
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+
+  const zzzz = '0000'; // simple TZ placeholder, matches emulator requirement
+
+  return `${year}${month}${day}${zzzz}${hours}${minutes}${seconds}`;
+};
+
 
 const success = (message: string): ActionState => ({ status: 'success', message });
 const failure = (message: string): ActionState => ({ status: 'error', message });
@@ -282,6 +310,10 @@ export async function checkoutBookAction(
   const borrowerName = formData.get('borrowerName')?.toString().trim() || null;
   const dueDateInput = formData.get('dueDate')?.toString();
 
+  // from CheckOutForm hidden field (barcode if available)
+  const itemIdentifierFromForm =
+    formData.get('itemIdentifier')?.toString().trim() || null;
+
   if (!bookId) return failure('Select a book to borrow.');
   if (!borrowerIdentifier) return failure('Borrower ID is required.');
   if (!dueDateInput) return failure('Provide a due date.');
@@ -293,7 +325,8 @@ export async function checkoutBookAction(
 
   const supabase = getSupabaseServerClient();
   const handlerId = await getCurrentUserId();
-  const borrowedAt = new Date().toISOString();
+  const borrowedAt = new Date();
+  const borrowedAtIso = borrowedAt.toISOString();
   const dueAt = dueDate.toISOString();
 
   const borrower = await loadBorrowerByIdentifier(supabase, borrowerIdentifier);
@@ -367,12 +400,13 @@ export async function checkoutBookAction(
     }
   }
 
+  // ---------- Supabase: record loan ----------
   const { data: loanRow, error: insertLoanError } = await supabase
     .from('loans')
     .insert({
       copy_id: copy.id,
       user_id: borrower.id,
-      borrowed_at: borrowedAt,
+      borrowed_at: borrowedAtIso,
       due_at: dueAt,
       handled_by: handlerId,
     })
@@ -401,6 +435,7 @@ export async function checkoutBookAction(
     return failure('Loan cancelled because the copy status could not be updated.');
   }
 
+  // ---------- Optional: keep patron profile nice ----------
   if (borrowerName || (!isEmail(borrowerIdentifier) && !isUuid(borrowerIdentifier))) {
     const profileUpdates: { display_name?: string | null; student_id?: string | null } = {};
     if (!borrower.profile?.display_name && borrowerName) {
@@ -428,18 +463,51 @@ export async function checkoutBookAction(
         copy_id: copy.id,
         user_id: borrower.id,
         due_at: dueAt,
-        borrowed_at: borrowedAt,
+        borrowed_at: borrowedAtIso,
       },
     });
+  }
+
+  // ---------- SIP2: send checkOut to kiosk emulator ----------
+  const itemIdentifier =
+    itemIdentifierFromForm || copy.barcode || copy.id; // fallback chain
+
+  try {
+    await sipCheckOut({
+      // Required by emulator (see "Library SIP standard" doc)
+      scRenewalPolicy: 'Y',                           // allow renewals
+      noBlock: 'N',                                   // do not override blocks
+      transactionDate: formatSipDate(borrowedAt),
+      nbDueDate: formatSipDate(dueDate),
+      institutionId: 'LIB001',                        // follow the sample doc
+
+      patronIdentifier: borrowerIdentifier,
+      itemIdentifier,
+      terminalPassword: 'term123',                    // from sample
+      itemProperties: '',                             // you can fill this later if you want
+      patronPassword: 'patron456',                    // sample, can be dummy
+      feeAcknowledged: 'Y',
+      cancel: 'N',
+
+      // extra metadata just for ourselves (emulator will ignore unknown fields)
+      loanId,
+    });
+
+
+  } catch (error) {
+    console.error('SIP2 checkout failed', error);
+    // We keep the Supabase loan as source of truth, just log the SIP failure.
   }
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/check-out');
   revalidatePath('/dashboard/book-items');
 
-  const borrowerLabel = borrowerName ?? borrower.profile?.display_name ?? borrower.email ?? 'borrower';
+  const borrowerLabel =
+    borrowerName ?? borrower.profile?.display_name ?? borrower.email ?? 'borrower';
   return success(`Loan recorded for ${borrowerLabel}.`);
 }
+
 
 export async function checkinBookAction(
   _prevState: ActionState,
@@ -454,7 +522,8 @@ export async function checkinBookAction(
 
   const supabase = getSupabaseServerClient();
   const handlerId = await getCurrentUserId();
-  const nowIso = new Date().toISOString();
+  const now = new Date();
+  const nowIso = now.toISOString();
 
   let loan: ActiveLoanRow | null = null;
 
@@ -534,7 +603,9 @@ export async function checkinBookAction(
       }
 
       if (rows.length > 1) {
-        return failure('Multiple active loans found. Scan the barcode or enter the specific loan ID.');
+        return failure(
+          'Multiple active loans found. Scan the barcode or enter the specific loan ID.',
+        );
       }
 
       loan = rows[0] ?? null;
@@ -545,6 +616,7 @@ export async function checkinBookAction(
     return failure('No active loan matched the provided reference.');
   }
 
+  // ---------- Supabase updates ----------
   const loanUpdatePayload: Record<string, unknown> = {
     returned_at: nowIso,
   };
@@ -587,6 +659,36 @@ export async function checkinBookAction(
     },
   });
 
+  // ---------- SIP2 check-in ----------
+  const itemIdentifier =
+    identifier || loan.copy?.barcode || loan.copy_id.toString();
+
+  try {
+    await sipCheckIn({
+      noBlock: 'N',
+      transactionDate: formatSipDate(now),
+      returnDate: formatSipDate(now),
+      currentLocation: 'Main Library',
+      institutionId: 'LIB001',
+      itemIdentifier,
+      terminalPassword: 'term123',
+      itemProperties: '',
+      cancel: 'N',
+
+      // extra metadata for us
+      patronIdentifier:
+        loan.borrower?.profile?.student_id ??
+        loan.borrower?.email ??
+        loan.borrower?.id ??
+        '',
+      loanId: loan.id,
+    });
+
+  } catch (error) {
+    console.error('SIP2 check-in failed', error);
+    // Same idea: Supabase is the source of truth; SIP failure is logged.
+  }
+
   const borrowerLabel =
     loan.borrower?.profile?.display_name ?? loan.borrower?.email ?? 'borrower';
   const copyLabel = loan.copy?.barcode ? `copy ${loan.copy.barcode}` : 'the item';
@@ -598,6 +700,7 @@ export async function checkinBookAction(
 
   return success(`Marked ${copyLabel} as returned for ${borrowerLabel}.`);
 }
+
 
 export async function updateBookAction(
   _prevState: ActionState,
