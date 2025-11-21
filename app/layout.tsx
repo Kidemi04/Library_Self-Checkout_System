@@ -13,7 +13,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" className={resolvedTheme === 'dark' ? 'dark' : 'light'} data-theme={resolvedTheme}>
       <body
         suppressHydrationWarning
-        className="min-h-screen bg-swin-ivory text-swin-charcoal transition-colors duration-300 dark:bg-slate-900 dark:text-slate-100"
+        className="min-h-screen bg-swin-ivory text-swin-charcoal transition-colors duration-300 dark:bg-swin-dark-bg dark:text-slate-100"
       >
         <ThemeProvider defaultTheme={resolvedTheme}>{children}</ThemeProvider>
       </body>

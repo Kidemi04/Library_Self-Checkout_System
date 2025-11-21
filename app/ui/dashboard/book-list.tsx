@@ -1,8 +1,11 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import PlaceHoldButton from './place-hold-button';
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
+import GlassCard from '@/app/ui/magic-ui/glass-card';
+import BlurFade from '@/app/ui/magic-ui/blur-fade';
 
 /** SIP-aligned item status (match your Supabase column) */
 export type ItemStatus =
@@ -33,8 +36,8 @@ type Props = {
   books: UIBook[];
   variant?: 'grid' | 'list';               // card grid or compact list
   patronId?: string;                       // who is browsing (for holds)
-  onDetailsClick?: (book: UIBook) => void; // optional: “View details”
-  onBorrowClick?: (book: UIBook) => void;  // optional: “Borrow / Request”
+  onDetailsClick?: (book: UIBook) => void; // optional: "View details"
+  onBorrowClick?: (book: UIBook) => void;  // optional: "Borrow / Request" (deprecated, use Quick Borrow Link instead)
   pageSize?: number; // optional: number of books per page
 };
 
@@ -42,20 +45,18 @@ const STATUS_META: Record<
   ItemStatus,
   { label: string; chip: string; stripe: string; canBorrow: boolean }
 > = {
-  available:   { label: 'Available',    chip: 'bg-green-100 text-green-700',     stripe: 'bg-green-500/70',     canBorrow: true  },
-  checked_out: { label: 'Checked out',  chip: 'bg-amber-100 text-amber-800',    stripe: 'bg-amber-500/70',     canBorrow: false },
-  on_hold:     { label: 'On hold',      chip: 'bg-violet-100 text-violet-800',  stripe: 'bg-violet-500/70',    canBorrow: false },
-  reserved:    { label: 'Reserved',     chip: 'bg-blue-100 text-blue-800',      stripe: 'bg-blue-500/70',      canBorrow: false },
-  maintenance: { label: 'Maintenance',  chip: 'bg-slate-200 text-slate-700',    stripe: 'bg-slate-400/70',     canBorrow: false },
+  available: { label: 'Available', chip: 'bg-green-100 text-green-700', stripe: 'bg-green-500/70', canBorrow: true },
+  checked_out: { label: 'Checked out', chip: 'bg-amber-100 text-amber-800', stripe: 'bg-amber-500/70', canBorrow: false },
+  on_hold: { label: 'On hold', chip: 'bg-violet-100 text-violet-800', stripe: 'bg-violet-500/70', canBorrow: false },
+  reserved: { label: 'Reserved', chip: 'bg-blue-100 text-blue-800', stripe: 'bg-blue-500/70', canBorrow: false },
+  maintenance: { label: 'Maintenance', chip: 'bg-slate-200 text-slate-700', stripe: 'bg-slate-400/70', canBorrow: false },
 };
 
 export default function BookList({
   books,
   variant = 'grid',
   patronId,
-  onDetailsClick,
-  onBorrowClick,
-  pageSize, // new prop
+  pageSize,
 }: Props) {
   const [currentPage, setCurrentPage] = React.useState(1);
 
@@ -75,178 +76,172 @@ export default function BookList({
 
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     variant === 'grid' ? (
-      // 2 columns on mobile, 3 on md, 4 on xl
-      <ul className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
+      <BlurFade delay={0.2} yOffset={10} className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 xl:grid-cols-4">
         {children}
-      </ul>
+      </BlurFade>
     ) : (
-      <ul className="divide-y rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <BlurFade delay={0.2} yOffset={10} className="flex flex-col gap-3">
         {children}
-      </ul>
+      </BlurFade>
     );
 
   return (
     <>
-    <Wrapper>
-      {paginatedBooks.map((b) => {
-        const status = (b.status ?? 'available') as ItemStatus;
-        const meta = STATUS_META[status] ?? STATUS_META.available;
-        const canBorrow = meta.canBorrow && (b.copies_available ?? 1) > 0;
-        const showCopies =
-          typeof b.copies_available === 'number' && typeof b.total_copies === 'number';
+      <Wrapper>
+        {paginatedBooks.map((b, idx) => {
+          const status = (b.status ?? 'available') as ItemStatus;
+          const meta = STATUS_META[status] ?? STATUS_META.available;
+          const canBorrow = meta.canBorrow && (b.copies_available ?? 1) > 0;
+          const showCopies =
+            typeof b.copies_available === 'number' && typeof b.total_copies === 'number';
 
-        return (
-          <li
-            key={b.id}
-            className={
-              variant === 'grid'
-                ? 'group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 shadow-sm transition hover:shadow-md focus-within:ring-2 focus-within:ring-swin-red/50'
-                : 'relative p-4 transition hover:bg-slate-50 focus-within:ring-2 focus-within:ring-swin-red/50'
-            }
-          >
-            {/* status accent stripe */}
-            <span aria-hidden className={`absolute left-0 top-0 h-full w-1 ${meta.stripe}`} />
+          return (
+            <BlurFade key={b.id} delay={0.2 + idx * 0.05} yOffset={10}>
+              {variant === 'grid' ? (
+                <GlassCard
+                  intensity="low"
+                  className="group relative flex flex-col overflow-hidden p-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                >
+                  {/* Status Stripe */}
+                  <div className={`absolute top-0 left-0 w-full h-1 ${meta.stripe}`} />
 
-            <article className="flex gap-3 sm:gap-4 text-slate-900">
-              {/* cover */}
-              <figure className="relative shrink-0">
-                {b.cover ? (
-                  <img
-                    src={b.cover}
-                    alt=""
-                    aria-hidden
-                    className="h-24 w-16 sm:h-28 sm:w-20 rounded-lg object-cover ring-1 ring-slate-200"
-                  />
-                ) : (
-                  <div className="h-24 w-16 sm:h-28 sm:w-20 rounded-lg bg-slate-100 ring-1 ring-slate-200" />
-                )}
-
-                {/* status chip on image for grid variant */}
-                {variant === 'grid' && (
-                  <span className={`absolute -right-2 -top-2 rounded-full px-2 py-0.5 text-[10px] font-medium shadow ${meta.chip}`}>
-                    {meta.label}
-                  </span>
-                )}
-              </figure>
-
-              {/* content */}
-              <div className="min-w-0 flex-1">
-                <h3 className="line-clamp-2 text-sm sm:text-base font-semibold">{b.title}</h3>
-                <p className="truncate text-xs sm:text-sm text-slate-700">
-                  {b.author || 'Unknown author'}
-                </p>
-
-                {/* status chip for list variant */}
-                {variant === 'list' && (
-                  <div className="mt-1">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${meta.chip}`}>
-                      {meta.label}
-                    </span>
-                  </div>
-                )}
-
-                {/* copies summary */}
-                {showCopies && (
-                  <p className="mt-1 text-[11px] sm:text-xs text-slate-600">
-                    Copies: <span className="font-medium text-slate-800">{b.copies_available}</span> of{' '}
-                    <span className="font-medium text-slate-800">{b.total_copies}</span> available
-                  </p>
-                )}
-
-                {/* metadata row */}
-                {(b.classification || b.isbn || b.year || b.publisher) && (
-                  <dl className="mt-2 grid grid-cols-1 gap-1 text-[11px] sm:text-xs text-slate-700 sm:grid-cols-2">
-                    {b.classification && <MetaItem label="Call no.">{b.classification}</MetaItem>}
-                    {b.isbn && <MetaItem label="ISBN">ISBN {b.isbn}</MetaItem>}
-                    {b.publisher && <MetaItem label="Publisher">{b.publisher}</MetaItem>}
-                    {b.year && <MetaItem label="Year">{String(b.year)}</MetaItem>}
-                  </dl>
-                )}
-
-                {/* tags */}
-                {!!b.tags?.length && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {b.tags.slice(0, 4).map((t) => (
-                      <span
-                        key={t}
-                        className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700"
-                      >
-                        {t}
+                  <div className="p-4 flex-1 flex flex-col gap-3">
+                    {/* Header: Cover & Status */}
+                    <div className="flex items-start justify-between gap-3">
+                      <figure className="relative shrink-0 shadow-md rounded-lg overflow-hidden">
+                        {b.cover ? (
+                          <img
+                            src={b.cover}
+                            alt=""
+                            aria-hidden
+                            className="h-28 w-20 object-cover transition-transform duration-500 group-hover:scale-110"
+                          />
+                        ) : (
+                          <div className="h-28 w-20 bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-300 dark:text-white/20">
+                            <span className="text-xs">No Cover</span>
+                          </div>
+                        )}
+                      </figure>
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide shadow-sm ${meta.chip}`}>
+                        {meta.label}
                       </span>
-                    ))}
-                  </div>
-                )}
+                    </div>
 
-                {/* place hold when not available */}
-                {!canBorrow && (
-                  <div className="mt-3">
-                    <PlaceHoldButton bookId={b.id} patronId={patronId} />
-                  </div>
-                )}
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="line-clamp-2 text-sm font-bold text-swin-charcoal dark:text-white leading-tight group-hover:text-swin-red transition-colors">
+                        {b.title}
+                      </h3>
+                      <p className="mt-1 truncate text-xs text-swin-charcoal/70 dark:text-slate-400 font-medium">
+                        {b.author || 'Unknown author'}
+                      </p>
 
-                {/* actions */}
-                {(onDetailsClick || onBorrowClick) && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {onDetailsClick && (
-                      <button
-                        type="button"
-                        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
-                        onClick={() => onDetailsClick(b)}
-                        aria-label={`View details for ${b.title}`}
-                      >
-                        View details
-                      </button>
-                    )}
-                    {onBorrowClick && (
-                      <button
-                        type="button"
-                        disabled={!canBorrow}
-                        className={[
-                          'rounded-xl px-3 py-1.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2',
-                          !canBorrow
-                            ? 'cursor-not-allowed bg-slate-100 text-slate-400'
-                            : 'bg-swin-charcoal text-swin-ivory shadow hover:opacity-95 focus:ring-swin-red/50',
-                        ].join(' ')}
-                        onClick={() => canBorrow && onBorrowClick(b)}
-                        aria-label={
-                          !canBorrow
-                            ? 'Not available for borrowing'
-                            : `Borrow ${b.title}`
-                        }
-                      >
-                        {canBorrow ? 'Borrow' : 'Not available'}
-                      </button>
-                    )}
+                      {/* Metadata */}
+                      <div className="mt-3 flex flex-wrap gap-y-1 gap-x-3 text-[10px] text-swin-charcoal/60 dark:text-slate-500">
+                        {b.year && <span>{b.year}</span>}
+                        {b.classification && <span>• {b.classification}</span>}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="mt-auto pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-2">
+                      {showCopies && (
+                        <div className="text-[10px] font-medium text-swin-charcoal/80 dark:text-slate-400">
+                          <span className={b.copies_available && b.copies_available > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-swin-red"}>
+                            {b.copies_available}
+                          </span>
+                          <span className="opacity-60"> / {b.total_copies} left</span>
+                        </div>
+                      )}
+
+                      <div className="flex gap-2">
+                        {!canBorrow && <PlaceHoldButton bookId={b.id} patronId={patronId} />}
+                        {canBorrow && (
+                          <Link
+                            href={`/dashboard/check-out?bookId=${b.id}`}
+                            className="rounded-full bg-swin-charcoal dark:bg-white text-white dark:text-swin-charcoal px-3 py-1 text-[10px] font-bold uppercase tracking-wide hover:bg-swin-red dark:hover:bg-swin-red dark:hover:text-white transition-colors shadow-sm"
+                          >
+                            Borrow
+                          </Link>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
-            </article>
-          </li>
-        );
-      })}
-    </Wrapper>
+                </GlassCard>
+              ) : (
+                <GlassCard intensity="low" className="group relative flex items-center gap-4 p-4 transition-all duration-300 hover:bg-white/50 dark:hover:bg-white/5">
+                  {/* Status Stripe */}
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${meta.stripe}`} />
+
+                  <figure className="relative shrink-0 shadow-sm rounded-md overflow-hidden">
+                    {b.cover ? (
+                      <img src={b.cover} alt="" className="h-16 w-12 object-cover" />
+                    ) : (
+                      <div className="h-16 w-12 bg-slate-100 dark:bg-white/10" />
+                    )}
+                  </figure>
+
+                  <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-4 gap-4 items-center">
+                    <div className="sm:col-span-2">
+                      <h3 className="truncate text-sm font-bold text-swin-charcoal dark:text-white group-hover:text-swin-red transition-colors">
+                        {b.title}
+                      </h3>
+                      <p className="text-xs text-swin-charcoal/70 dark:text-slate-400">
+                        {b.author} • {b.year}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${meta.chip}`}>
+                        {meta.label}
+                      </span>
+                      {showCopies && (
+                        <span className="text-[10px] text-swin-charcoal/60 dark:text-slate-500">
+                          {b.copies_available}/{b.total_copies}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end gap-2">
+                      {!canBorrow && <PlaceHoldButton bookId={b.id} patronId={patronId} />}
+                      {canBorrow && (
+                        <Link
+                          href={`/dashboard/check-out?bookId=${b.id}`}
+                          className="rounded-full bg-swin-charcoal dark:bg-white text-white dark:text-swin-charcoal px-4 py-1.5 text-[10px] font-bold uppercase tracking-wide hover:bg-swin-red dark:hover:bg-swin-red dark:hover:text-white transition-colors shadow-sm"
+                        >
+                          Borrow
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </GlassCard>
+              )}
+            </BlurFade>
+          );
+        })}
+      </Wrapper>
 
       {/* Pagination controls */}
       {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-center gap-6 text-sm">
+        <div className="mt-6 flex items-center justify-center gap-4">
           <button
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
-            className="rounded border px-4 py-1 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full p-2 bg-white dark:bg-white/10 text-swin-charcoal dark:text-white shadow-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/20 transition-colors"
           >
-            <ChevronDoubleLeftIcon className='h-6 w-6'></ChevronDoubleLeftIcon>
+            <ChevronDoubleLeftIcon className='h-5 w-5' />
           </button>
 
-          <span className="text-center">
+          <span className="text-sm font-medium text-swin-charcoal/80 dark:text-slate-300">
             Page {currentPage} of {totalPages}
           </span>
 
           <button
             onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="rounded border px-4 py-1 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded-full p-2 bg-white dark:bg-white/10 text-swin-charcoal dark:text-white shadow-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/20 transition-colors"
           >
-            <ChevronDoubleRightIcon className='h-6 w-6'></ChevronDoubleRightIcon>
+            <ChevronDoubleRightIcon className='h-5 w-5' />
           </button>
         </div>
       )}
@@ -254,27 +249,9 @@ export default function BookList({
   );
 }
 
-/* ---------- helpers ---------- */
-
-function MetaItem({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex min-w-0 items-center gap-1">
-      <span aria-hidden className="inline-block h-1.5 w-1.5 rounded-full bg-slate-300" />
-      <dt className="sr-only">{label}</dt>
-      <dd className="truncate">{children}</dd>
-    </div>
-  );
-}
-
 function EmptyState() {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-600 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 p-10 text-center text-slate-600 dark:text-slate-400 shadow-sm">
       <p className="text-sm">
         No books match your search. Try a different keyword or clear filters.
       </p>

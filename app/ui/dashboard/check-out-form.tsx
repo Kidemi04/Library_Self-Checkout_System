@@ -13,14 +13,15 @@ import CameraScannerButton from '@/app/ui/dashboard/camera-scanner-button';
 interface CheckOutFormProps {
   books: Book[];
   defaultDueDate: string;
+  preSelectedBookId?: string;
 }
 
-export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProps) {
+export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId }: CheckOutFormProps) {
   const [state, formAction] = useActionState(checkoutBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
   const borrowerIdRef = useRef<HTMLInputElement | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState(false);
-  const [selectedBookId, setSelectedBookId] = useState<string>('');
+  const [selectedBookId, setSelectedBookId] = useState<string>(preSelectedBookId ?? '');
   const [selectedCopyId, setSelectedCopyId] = useState<string>('');
   const [selectedCopyBarcode, setSelectedCopyBarcode] = useState<string | null>(null);
   const [lookupMessage, setLookupMessage] = useState<{ tone: 'neutral' | 'success' | 'error'; text: string } | null>(null);
@@ -32,8 +33,8 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
     if (state.status === 'success') {
       formRef.current?.reset();
       setSelectedBookId('');
-       setSelectedCopyId('');
-       setSelectedCopyBarcode(null);
+      setSelectedCopyId('');
+      setSelectedCopyBarcode(null);
       setLookupMessage(null);
       borrowerIdRef.current?.focus();
     }
@@ -291,16 +292,16 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
             <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerIdentifier">
               Borrower ID
             </label>
-          <input
-            id="borrowerIdentifier"
-            name="borrowerIdentifier"
-            type="text"
-            required
-            placeholder="Scan or type borrower ID"
-            ref={borrowerIdRef}
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-          />
-        </div>
+            <input
+              id="borrowerIdentifier"
+              name="borrowerIdentifier"
+              type="text"
+              required
+              placeholder="Scan or type borrower ID"
+              ref={borrowerIdRef}
+              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+            />
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerName">
