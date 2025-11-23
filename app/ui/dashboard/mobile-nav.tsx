@@ -15,6 +15,7 @@ import {
   UserGroupIcon,
   InformationCircleIcon,
   AcademicCapIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import AcmeLogo from '@/app/ui/acme-logo';
@@ -33,6 +34,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { key: 'home', label: 'Home', href: '/dashboard', icon: HomeIcon },
   { key: 'catalog', label: 'Catalog', href: '/dashboard/book-items', icon: BookOpenIcon },
+  { key: 'recommendations', label: 'AI Recs', href: '/dashboard/recommendations', icon: SparklesIcon },
   { key: 'scan', label: 'Scan', href: '/dashboard/qr-scan', icon: CameraIcon },
   { key: 'notifications', label: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
   { key: 'profile', label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },

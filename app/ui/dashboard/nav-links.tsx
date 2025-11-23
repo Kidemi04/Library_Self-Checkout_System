@@ -11,9 +11,10 @@ import {
   UserGroupIcon,
   QueueListIcon,
   UserCircleIcon,
-  BellAlertIcon,      // 👈 NEW: icon for Manage Holds
+  BellAlertIcon,
   InformationCircleIcon,
   AcademicCapIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import BlurFade from '@/app/ui/magic-ui/blur-fade';
@@ -29,6 +30,7 @@ const userLinks = [
   { name: 'My Reservations', href: '/dashboard/reservations', icon: BellAlertIcon },
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
+  { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
   { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
   { name: 'About Us', href: '/dashboard/about-page', icon: InformationCircleIcon },
 ];
@@ -40,17 +42,15 @@ const staffLinks = [
   { name: 'Friends', href: '/dashboard/friends', icon: UserGroupIcon },
   { name: 'Communities', href: '/dashboard/communities', icon: UserGroupIcon },
   { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
-  { name: 'Manage Holds', href: '/dashboard/holds', icon: BellAlertIcon }, // 👈 NEW
+  { name: 'Manage Holds', href: '/dashboard/holds', icon: BellAlertIcon },
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
+  { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
   { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
   { name: 'About Us', href: '/dashboard/about-page', icon: InformationCircleIcon },
 ];
 
-const adminLinks = [
-  ...staffLinks,
-  { name: 'Manage Users', href: '/dashboard/admin/users', icon: UserGroupIcon },
-];
+const adminLinks = [...staffLinks, { name: 'Manage Users', href: '/dashboard/admin/users', icon: UserGroupIcon }];
 
 export default function NavLinks({
   role,
@@ -64,7 +64,6 @@ export default function NavLinks({
   const pathname = usePathname();
   const { theme } = useTheme();
   const links = role === 'admin' ? adminLinks : role === 'staff' ? staffLinks : userLinks;
-  const isPrivileged = role === 'staff' || role === 'admin';
   const isDarkTheme = theme === 'dark';
 
   const activeHref = links.reduce<string | null>((current, { href }) => {
@@ -102,7 +101,7 @@ export default function NavLinks({
               className={clsx(
                 'flex h-auto w-full grow items-center justify-center gap-2 rounded-xl border py-3.5 px-3 text-sm font-medium transition-all duration-300 ease-out mb-2 md:flex-none md:justify-start active:scale-95',
                 isActive ? activeVariant : inactiveVariant,
-                name === 'Learning Hub' && 'hidden md:flex'
+                name === 'Learning Hub' && 'hidden md:flex',
               )}
               onClick={onNavigate}
               aria-current={isActive ? 'page' : undefined}
