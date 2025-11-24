@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
+import { fetchBooks } from '@/app/lib/supabase/queries';
 import StudentChat from '@/app/ui/dashboard/student-chat';
 
 const supportFacts = [
@@ -59,6 +60,7 @@ export default async function StudentChatPage() {
     redirect('/dashboard');
   }
 
+  const books = await fetchBooks();
   const displayName = user.name ?? user.username ?? user.email ?? null;
 
   return (
@@ -88,7 +90,7 @@ export default async function StudentChatPage() {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
-        <StudentChat studentName={displayName} />
+        <StudentChat studentName={displayName} books={books} />
 
         <aside className="space-y-4">
           <div className="rounded-3xl border border-swin-charcoal/10 bg-white p-5 shadow-lg shadow-swin-charcoal/5">

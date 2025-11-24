@@ -7,7 +7,6 @@ import {
   BoltIcon,
   LightBulbIcon,
 } from '@heroicons/react/24/outline';
-import clsx from 'clsx';
 import type { Book } from '@/app/lib/supabase/types';
 import {
   type AssociationRule,
@@ -137,7 +136,7 @@ const AssociationPills = ({
           </span>
           <span>{rule.tag}</span>
           <span className="text-[10px] font-semibold text-swin-charcoal/60 dark:text-slate-300/70">
-            conf {(rule.confidence * 100).toFixed(0)}% · lift {rule.lift.toFixed(2)}
+            conf {(rule.confidence * 100).toFixed(0)}% | lift {rule.lift.toFixed(2)}
           </span>
         </span>
       ))}
@@ -165,6 +164,24 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
   );
 
   const interestTokens = useMemo(() => tokenizeInterests(interests), [interests]);
+  const derivedAssociations = useMemo(
+    () => {
+      const map = new Map<string, { source: string; rule: AssociationRule }>();
+      interestTokens.forEach((token) => {
+        (associationRules[token] ?? []).forEach((rule) => {
+          if (!map.has(rule.tag)) {
+            map.set(rule.tag, { source: token, rule });
+          }
+        });
+      });
+      return Array.from(map.values())
+        .sort(
+          (a, b) => b.rule.lift * b.rule.confidence - a.rule.lift * a.rule.confidence,
+        )
+        .slice(0, 6);
+    },
+    [associationRules, interestTokens],
+  );
 
   return (
     <div className="space-y-6">
@@ -174,6 +191,7 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
         <p className="mt-3 max-w-3xl text-sm text-white/80">
           Enter what you want to learn or explore. We score your catalogue using content signals,
           simple association rules between tags, and circulation heat to surface relevant titles.
+          This prototype view keeps the logic transparent so you can validate the AI-powered picks.
         </p>
         <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/75">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 font-semibold">
@@ -286,6 +304,83 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
             </p>
             <div className="mt-3">
               <AssociationPills associations={associationRules} interestTokens={interestTokens} />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/60">
+            <div className="flex items-center gap-2 text-swin-charcoal dark:text-white">
+              <SparklesIcon className="h-5 w-5 text-swin-red dark:text-emerald-200" />
+              <h4 className="text-sm font-semibold">Personalized snapshot</h4>
+            </div>
+            <p className="mt-2 text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+              A quick, dummy view of the signals driving your recommendations. Use it to show stakeholders how the AI blends your inputs with catalogue context.
+            </p>
+
+            <div className="mt-4">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-slate-300/70">
+                Your interests
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {interestTokens.length ? (
+                  interestTokens.slice(0, 6).map((token) => (
+                    <span
+                      key={token}
+                      className="inline-flex items-center gap-2 rounded-full bg-swin-red/10 px-3 py-1 text-xs font-semibold text-swin-red dark:bg-emerald-500/10 dark:text-emerald-200"
+                    >
+                      {token}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+                    Start typing a topic to see the AI wire up signals.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-slate-300/70">
+                AI adds
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {derivedAssociations.length ? (
+                  derivedAssociations.map(({ source, rule }) => (
+                    <span
+                      key={`${source}-${rule.tag}`}
+                      className="inline-flex items-center gap-2 rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-white/10 dark:bg-slate-900/50 dark:text-white/80"
+                    >
+                      <span className="rounded-full bg-swin-red/10 px-2 py-0.5 text-[10px] uppercase text-swin-red dark:bg-emerald-500/10 dark:text-emerald-200">
+                        {source}
+                      </span>
+                      <span>{rule.tag}</span>
+                      <span className="text-[10px] font-semibold text-swin-charcoal/60 dark:text-slate-300/70">
+                        conf {(rule.confidence * 100).toFixed(0)}% | lift {rule.lift.toFixed(2)}
+                      </span>
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+                    No associated tags yet. Add one or two more interests.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-900/50">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-slate-300/70">
+                Filters applied
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold text-swin-charcoal dark:text-white">
+                <span className="rounded-full bg-white px-3 py-1 shadow-sm dark:bg-slate-900">
+                  {onlyAvailable ? 'Available copies only' : 'Include on-loan items'}
+                </span>
+                <span className="rounded-full bg-white px-3 py-1 shadow-sm dark:bg-slate-900">
+                  {favorPopular ? 'Boost popular picks' : 'Neutral popularity'}
+                </span>
+                <span className="rounded-full bg-white px-3 py-1 shadow-sm dark:bg-slate-900">
+                  {favorNew ? 'Favor newer titles' : 'Any publication year'}
+                </span>
+              </div>
             </div>
           </div>
 

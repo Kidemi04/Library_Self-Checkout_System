@@ -2,6 +2,12 @@
 
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
+import type { Book } from '@/app/lib/supabase/types';
+import {
+  type Recommendation,
+  recommendBooks,
+  tokenizeInterests,
+} from '@/app/ui/dashboard/recommendations/recommender';
 
 type ChatMessage = {
   id: string;
@@ -64,6 +70,12 @@ const buildInitialMessages = (name?: string | null): ChatMessage[] => {
 };
 
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+const deriveInterestSource = (messages: ChatMessage[], inputValue: string) => {
+  const typed = inputValue.trim();
+  if (typed.length > 1) return typed;
+  const latestUser = [...messages].reverse().find((msg) => msg.sender === 'student');
+  return latestUser?.text ?? '';
+};
 
 const generateAssistantReply = (raw: string) => {
   const normalized = raw.toLowerCase();
@@ -98,14 +110,18 @@ const formatTimestamp = (timestamp: number) => {
 
 export default function StudentChat({
   studentName,
+  books = [],
 }: {
   studentName?: string | null;
+  books?: Book[];
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
     buildInitialMessages(studentName),
   );
   const [inputValue, setInputValue] = useState('');
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
+  const [bookRecommendations, setBookRecommendations] = useState<Recommendation[]>([]);
+  const [activeInterests, setActiveInterests] = useState<string[]>([]);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const replyTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -138,6 +154,23 @@ export default function StudentChat({
     if (!messagesRef.current) return;
     messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
   }, [messages, isAssistantTyping]);
+
+  useEffect(() => {
+    if (!books.length) return;
+    const interestSource = deriveInterestSource(messages, inputValue);
+    const interestTokens = tokenizeInterests(interestSource);
+    setActiveInterests(interestTokens.slice(0, 6));
+    if (!interestTokens.length) {
+      setBookRecommendations([]);
+      return;
+    }
+    const next = recommendBooks(books, interestSource, {
+      onlyAvailable: true,
+      favorPopular: true,
+      limit: 4,
+    });
+    setBookRecommendations(next);
+  }, [books, inputValue, messages]);
 
   const sendMessage = (raw: string) => {
     const trimmed = raw.trim();
@@ -282,6 +315,79 @@ export default function StudentChat({
           </button>
         </div>
       </form>
+
+      <div className="mt-6 rounded-3xl border border-swin-charcoal/10 bg-swin-ivory/70 p-4 shadow-inner shadow-swin-charcoal/10">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-[11px] uppercase tracking-[0.25em] text-swin-charcoal/60">
+              Live suggestions
+            </p>
+            <h3 className="text-base font-semibold text-swin-charcoal">Books keyed to your message</h3>
+            <p className="text-xs text-swin-charcoal/70">We refresh picks as you type keywords in the chat.</p>
+          </div>
+          <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-swin-charcoal">
+            Prototype
+          </span>
+        </div>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          {activeInterests.length ? (
+            activeInterests.map((token) => (
+              <span
+                key={token}
+                className="inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-semibold text-swin-red"
+              >
+                {token}
+              </span>
+            ))
+          ) : (
+            <p className="text-xs text-swin-charcoal/70">
+              Start typing a topic to see recommendations react to your keywords.
+            </p>
+          )}
+        </div>
+
+        {bookRecommendations.length ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {bookRecommendations.map((rec) => (
+              <div
+                key={rec.book.id}
+                className="flex flex-col gap-2 rounded-2xl border border-swin-charcoal/10 bg-white p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.2em] text-swin-charcoal/60">Recommendation</p>
+                    <h4 className="text-sm font-semibold text-swin-charcoal">{rec.book.title ?? 'Untitled'}</h4>
+                    <p className="text-xs text-swin-charcoal/70">{rec.book.author ?? 'Unknown author'}</p>
+                  </div>
+                  <span className="rounded-full bg-swin-red/10 px-2 py-1 text-[11px] font-semibold text-swin-red">
+                    {rec.score.toFixed(1)}
+                  </span>
+                </div>
+                {rec.book.tags?.length ? (
+                  <div className="flex flex-wrap gap-1 text-[11px] text-swin-charcoal/70">
+                    {rec.book.tags.slice(0, 3).map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full bg-swin-ivory px-2 py-0.5 font-semibold text-swin-charcoal"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                <p className="text-xs text-swin-charcoal/80">
+                  {rec.reasons[0] ?? 'Good match based on your keywords'}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-4 rounded-2xl border border-dashed border-swin-charcoal/15 bg-white p-4 text-xs text-swin-charcoal/70">
+            No live recommendations yet. Mention a topic or book title in your message to see picks here.
+          </div>
+        )}
+      </div>
     </section>
   );
 }
