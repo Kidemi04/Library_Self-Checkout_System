@@ -32,7 +32,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { key: 'home', label: 'Home', href: '/dashboard', icon: HomeIcon },
   { key: 'catalog', label: 'Catalog', href: '/dashboard/book-items', icon: BookOpenIcon },
-  { key: 'scan', label: 'Camera', href: '/dashboard/qr-scan', icon: CameraIcon },
+  { key: 'scan', label: 'Camera', href: '/dashboard/camera-scan', icon: CameraIcon },
   { key: 'notifications', label: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
   { key: 'profile', label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];

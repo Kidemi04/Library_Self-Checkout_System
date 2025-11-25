@@ -149,10 +149,10 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
   return (
     <>
       {/* Desktop/tablet: classic table */}
-      <div className="hidden md:block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div className="hidden md:block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:shadow-black/20">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
+          <table className="min-w-full divide-y divide-slate-200 text-slate-900 dark:divide-slate-800 dark:text-slate-100">
+            <thead className="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
               <tr>
                 <Th onClick={() => toggleSort('title')}>
                   <HeaderLabel label="Title" icon={sortIcon('title')} />
@@ -181,9 +181,9 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                 <Th>Actions</Th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
+          <tbody className="divide-y divide-slate-100 bg-white dark:divide-slate-800 dark:bg-slate-950/60">
               {paginated.map((b) => (
-                <tr key={b.id} className="hover:bg-slate-50">
+                <tr key={b.id} className="hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-900 dark:text-slate-100">
                   <Td>
                     <div className="flex items-center gap-3">
                       {b.cover ? (
@@ -197,31 +197,31 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                         <div className="h-12 w-8 rounded bg-slate-100 ring-1 ring-slate-200" />
                       )}
                       <div className="min-w-0">
-                        <p className="truncate font-medium text-slate-900">{b.title ?? 'Untitled'}</p>
+                        <p className="truncate font-medium text-slate-900 dark:text-slate-100">{b.title ?? 'Untitled'}</p>
                         {!!(b.tags && b.tags.length) && (
-                          <p className="truncate text-xs text-slate-600">{b.tags.slice(0, 3).join(', ')}</p>
+                          <p className="truncate text-xs text-slate-600 dark:text-slate-400">{b.tags.slice(0, 3).join(', ')}</p>
                         )}
                       </div>
                     </div>
                   </Td>
-                  <Td className="text-slate-900">{b.author ?? <span className="text-slate-400">Unknown</span>}</Td>
-                  <Td className="hidden lg:table-cell text-slate-900">{b.isbn ?? '-'}</Td>
-                  <Td className="hidden lg:table-cell text-slate-900">{b.classification ?? '-'}</Td>
-                  <Td className="hidden lg:table-cell text-slate-900">{b.publication_year ?? '-'}</Td>
-                  <Td className="hidden xl:table-cell text-slate-900">{b.publisher ?? '-'}</Td>
+                  <Td className="text-slate-900 dark:text-slate-200">{b.author ?? <span className="text-slate-400 dark:text-slate-500">Unknown</span>}</Td>
+                  <Td className="hidden lg:table-cell text-slate-900 dark:text-slate-200">{b.isbn ?? '-'}</Td>
+                  <Td className="hidden lg:table-cell text-slate-900 dark:text-slate-200">{b.classification ?? '-'}</Td>
+                  <Td className="hidden lg:table-cell text-slate-900 dark:text-slate-200">{b.publication_year ?? '-'}</Td>
+                  <Td className="hidden xl:table-cell text-slate-900 dark:text-slate-200">{b.publisher ?? '-'}</Td>
                   <Td>{renderStatusBadge(b.status)}</Td>
                   <Td>{renderSipStatusBadge(b.sip_status)}</Td>
                   <Td>
                     <div className="flex flex-wrap gap-2">
                       <button
-                        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50"
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                         onClick={() => onManage(b)}
                         type="button"
                       >
                         Manage
                       </button>
                       <button
-                        className="rounded-xl border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 shadow-sm hover:bg-red-50"
+                        className="rounded-xl border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 shadow-sm hover:bg-red-50 dark:border-red-300/40 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-500/10"
                         onClick={() => onDelete(b.id)}
                         type="button"
                       >
@@ -248,7 +248,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
         {paginated.map((b) => (
           <li
             key={b.id}
-            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-slate-900"
+            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-slate-900 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100"
           >
             <div className="flex gap-3">
               {b.cover ? (
@@ -312,7 +312,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                 {/* Actions */}
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
-                    className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50"
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                     onClick={() => onManage(b)}
                     type="button"
                   >
@@ -331,7 +331,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
           </li>
         ))}
         {sorted.length === 0 && (
-          <li className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-600">
+          <li className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-200">
             No books found.
           </li>
         )}
@@ -343,9 +343,9 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
         <form className="space-y-4" onSubmit={onSave}>
           {/* text colors forced to dark for clarity */}
           <div>
-            <label className="block text-sm font-medium text-slate-900">Title</label>
+            <label className="block text-sm font-medium text-slate-900 dark:text-slate-200">Title</label>
             <input
-              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               required
@@ -354,62 +354,62 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-slate-900">Author</label>
-              <input
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-                value={form.author}
-                onChange={(e) => setForm((f) => ({ ...f, author: e.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-900">ISBN</label>
-              <input
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-                value={form.isbn}
-                onChange={(e) => setForm((f) => ({ ...f, isbn: e.target.value }))}
-              />
-            </div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-slate-200">Author</label>
+            <input
+              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              value={form.author}
+              onChange={(e) => setForm((f) => ({ ...f, author: e.target.value }))}
+            />
           </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-sm font-medium text-slate-900">Call no.</label>
-              <input
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-                value={form.classification}
-                onChange={(e) => setForm((f) => ({ ...f, classification: e.target.value }))}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-sm font-medium text-slate-900">Year</label>
-              <input
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-                value={form.publication_year}
-                onChange={(e) => setForm((f) => ({ ...f, publication_year: e.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-900">Publisher</label>
-              <input
-                className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-                value={form.publisher}
-                onChange={(e) => setForm((f) => ({ ...f, publisher: e.target.value }))}
-              />
-            </div>
-          </div>
-
           <div>
-            <label className="block text-sm font-medium text-slate-900">SIP status</label>
-            <select
-              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-              value={form.sip_status}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, sip_status: e.target.value as CopyStatus }))
-              }
-            >
+            <label className="block text-sm font-medium text-slate-900 dark:text-slate-200">ISBN</label>
+            <input
+              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              value={form.isbn}
+              onChange={(e) => setForm((f) => ({ ...f, isbn: e.target.value }))}
+            />
+          </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-slate-200">Call no.</label>
+            <input
+              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              value={form.classification}
+              onChange={(e) => setForm((f) => ({ ...f, classification: e.target.value }))}
+            />
+          </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-slate-200">Year</label>
+            <input
+              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              value={form.publication_year}
+              onChange={(e) => setForm((f) => ({ ...f, publication_year: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-900 dark:text-slate-200">Publisher</label>
+            <input
+              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              value={form.publisher}
+              onChange={(e) => setForm((f) => ({ ...f, publisher: e.target.value }))}
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-slate-900 dark:text-slate-200">SIP status</label>
+          <select
+            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            value={form.sip_status}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, sip_status: e.target.value as CopyStatus }))
+            }
+          >
               <option value="available">Available</option>
               <option value="on_loan">On loan</option>
               <option value="hold_shelf">On hold shelf</option>
@@ -417,27 +417,27 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
               <option value="lost">Lost</option>
               <option value="damaged">Damaged</option>
             </select>
-            <p className="mt-1 text-xs text-slate-600">
+            <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
               Applies to all copies of this book; mirrors the SIP/ILS status.
             </p>
-          </div>
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-900">Tags</label>
-            <input
-              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-              placeholder="programming, ui, algorithms"
-              value={form.tags}
-              onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))}
-            />
-            <p className="mt-1 text-xs text-slate-600">Separate with commas</p>
-          </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-900 dark:text-slate-200">Tags</label>
+          <input
+            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+            placeholder="programming, ui, algorithms"
+            value={form.tags}
+            onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))}
+          />
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Separate with commas</p>
+        </div>
 
           <div className="mt-2 flex flex-wrap justify-between gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 hover:bg-slate-50"
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
             >
               Cancel
             </button>
@@ -542,9 +542,9 @@ function renderSipStatusBadge(status?: CopyStatus | null) {
 
 function HeaderLabel({ label, icon }: { label: string; icon: string }) {
   return (
-    <div className="flex select-none items-center gap-2 text-slate-900">
+    <div className="flex select-none items-center gap-2 text-slate-900 dark:text-slate-100">
       <span>{label}</span>
-      <span className="text-slate-500">{icon}</span>
+      <span className="text-slate-500 dark:text-slate-400">{icon}</span>
     </div>
   );
 }
@@ -564,7 +564,7 @@ function Th({
       onClick={onClick}
       className={[
         'px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide',
-        'text-slate-700 cursor-pointer select-none',
+        'text-slate-700 cursor-pointer select-none dark:text-slate-100 dark:opacity-90',
         className,
       ].join(' ')}
     >
@@ -580,7 +580,7 @@ function Td({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <td className={['px-4 py-3 align-top text-sm', className].join(' ')}>{children}</td>;
+  return <td className={['px-4 py-3 align-top text-sm text-slate-900 dark:text-slate-100', className].join(' ')}>{children}</td>;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

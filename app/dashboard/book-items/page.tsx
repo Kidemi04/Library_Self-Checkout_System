@@ -112,9 +112,9 @@ export default async function BookItemsPage({
     <main className="space-y-8">
       <title>Book Items | Dashboard</title>
 
-      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/40">
+      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100 dark:shadow-black/30">
         <h1 className="text-2xl font-semibold">Book Items</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
+        <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300/80">
           Browse the catalogue and filter by status. Use title or author to narrow
           results.
         </p>

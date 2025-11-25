@@ -90,25 +90,25 @@ export default async function HoldsManagementPage() {
     <main className="space-y-8">
       <title>Manage Holds | Dashboard</title>
 
-      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
+      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30 dark:bg-slate-900 dark:text-slate-100">
         <h1 className="text-2xl font-semibold">Manage Holds</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
+        <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70 dark:text-slate-300">
           View the reservation queue for each book and mark holds as ready or cancelled.
         </p>
       </header>
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-swin-charcoal">All holds</h2>
-          <p className="text-sm text-swin-charcoal/60">
+          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-slate-100">All holds</h2>
+          <p className="text-sm text-swin-charcoal/60 dark:text-slate-400">
             {holds.length} record{holds.length === 1 ? '' : 's'}
           </p>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50">
-              <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <table className="min-w-full text-sm text-slate-900 dark:text-slate-100">
+            <thead className="bg-slate-50 dark:bg-slate-900">
+              <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
                 <th className="px-4 py-3">Book</th>
                 <th className="px-4 py-3">Patron</th>
                 <th className="px-4 py-3">Status</th>
@@ -119,7 +119,7 @@ export default async function HoldsManagementPage() {
             </thead>
             <tbody>
               {holds.map((hold: any) => (
-                <tr key={hold.id} className="border-t border-slate-100">
+                <tr key={hold.id} className="border-t border-slate-100 dark:border-slate-800">
                   {/* Book */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -127,12 +127,12 @@ export default async function HoldsManagementPage() {
                         <img
                           src={hold.book_cover}
                           alt=""
-                          className="h-10 w-8 rounded object-cover ring-1 ring-slate-300"
+                          className="h-10 w-8 rounded object-cover ring-1 ring-slate-300 dark:ring-slate-700"
                         />
                       ) : (
-                        <div className="h-10 w-8 rounded bg-slate-200" />
+                        <div className="h-10 w-8 rounded bg-slate-200 dark:bg-slate-800" />
                       )}
-                      <span className="font-medium text-slate-900">
+                      <span className="font-medium text-slate-900 dark:text-slate-100">
                         {hold.book_title ?? 'Unknown title'}
                       </span>
                     </div>
@@ -140,27 +140,27 @@ export default async function HoldsManagementPage() {
 
                   {/* Patron */}
                   <td className="px-4 py-3">
-                    <span className="text-slate-900">
+                    <span className="text-slate-900 dark:text-slate-200">
                       {hold.patron_name ?? 'Unknown patron'}
                     </span>
                   </td>
 
                   {/* Status */}
                   <td className="px-4 py-3">
-                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
                       {hold.status}
                     </span>
                   </td>
 
                   {/* Placed at */}
-                  <td className="px-4 py-3 text-xs text-slate-600">
+                  <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400">
                     {hold.placed_at
                       ? new Date(hold.placed_at).toLocaleString()
                       : '—'}
                   </td>
 
                   {/* Ready / Expires */}
-                  <td className="px-4 py-3 text-xs text-slate-600">
+                  <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400">
                     {hold.ready_at ? (
                       <>
                         Ready:{' '}
@@ -206,7 +206,7 @@ export default async function HoldsManagementPage() {
                           <input type="hidden" name="holdId" value={hold.id} />
                           <button
                             type="submit"
-                            className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
                           >
                             Cancel
                           </button>

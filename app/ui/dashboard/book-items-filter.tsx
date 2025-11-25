@@ -47,13 +47,14 @@ export default function BookItemsFilter({
       method="get"
       className={clsx(
         'rounded-2xl border border-slate-200 bg-white p-4 shadow-sm',
+        'dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-black/20',
         'flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end',
         className
       )}
     >
       {/* Search */}
       <div className="flex-1 min-w-[220px]">
-        <label htmlFor="q" className="block text-xs font-semibold text-slate-900">
+        <label htmlFor="q" className="block text-xs font-semibold text-slate-900 dark:text-slate-200">
           Search
         </label>
         <input
@@ -61,20 +62,20 @@ export default function BookItemsFilter({
           name="q"
           defaultValue={q}
           placeholder="Search by title, author, ISBN, barcode"
-          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-swin-red/50"
+          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-swin-red/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
         />
       </div>
 
       {/* Status */}
       <div className="min-w-[180px]">
-        <label htmlFor="status" className="block text-xs font-semibold text-slate-900">
+        <label htmlFor="status" className="block text-xs font-semibold text-slate-900 dark:text-slate-200">
           Status
         </label>
         <select
           id="status"
           name="status"
           defaultValue={status}
-          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-swin-red/50"
+          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-swin-red/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
         >
           <option value="">Any status</option>
           <option value="available">Available</option>
@@ -87,14 +88,14 @@ export default function BookItemsFilter({
 
       {/* Sort field */}
       <div className="min-w-[160px]">
-        <label htmlFor="sort" className="block text-xs font-semibold text-slate-900">
+        <label htmlFor="sort" className="block text-xs font-semibold text-slate-900 dark:text-slate-200">
           Sort by
         </label>
         <select
           id="sort"
           name="sort"
           defaultValue={sort}
-          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-swin-red/50"
+          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-swin-red/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
         >
           <option value="title">Title</option>
           <option value="author">Author</option>
@@ -105,14 +106,14 @@ export default function BookItemsFilter({
 
       {/* Sort order */}
       <div className="min-w-[140px]">
-        <label htmlFor="order" className="block text-xs font-semibold text-slate-900">
+        <label htmlFor="order" className="block text-xs font-semibold text-slate-900 dark:text-slate-200">
           Order
         </label>
         <select
           id="order"
           name="order"
           defaultValue={order}
-          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-swin-red/50"
+          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-swin-red/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
         >
           <option value="asc">A → Z / Old → New</option>
           <option value="desc">Z → A / New → Old</option>
@@ -121,14 +122,14 @@ export default function BookItemsFilter({
 
       {/* View */}
       <div className="min-w-[140px]">
-        <label htmlFor="view" className="block text-xs font-semibold text-slate-900">
+        <label htmlFor="view" className="block text-xs font-semibold text-slate-900 dark:text-slate-200">
           View
         </label>
         <select
           id="view"
           name="view"
           defaultValue={view}
-          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-swin-red/50"
+          className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-swin-red/50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
         >
           <option value="grid">Grid</option>
           <option value="list">List</option>
@@ -139,7 +140,7 @@ export default function BookItemsFilter({
       <div className="sm:ml-auto">
         <button
           type="submit"
-          className="inline-flex items-center justify-center rounded-xl bg-swin-charcoal px-4 py-2 text-sm font-semibold text-swin-ivory shadow hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-swin-red/50"
+          className="inline-flex items-center justify-center rounded-xl bg-swin-charcoal px-4 py-2 text-sm font-semibold text-swin-ivory shadow hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-swin-red/50 dark:bg-slate-800 dark:text-slate-100"
         >
           Apply
         </button>

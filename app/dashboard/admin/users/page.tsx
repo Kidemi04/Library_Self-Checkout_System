@@ -490,15 +490,15 @@ export default function UserManagementPage() {
     <main className="space-y-8 text-slate-900 dark:text-slate-100">
       <title>Manage Users | Admin</title>
 
-      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-slate-900 shadow-lg shadow-slate-200 transition-colors dark:border-slate-700 dark:bg-white/95 dark:text-slate-900 dark:shadow-black/40">
-        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-900">User Management</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-600">
+      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-slate-900 shadow-lg shadow-slate-200 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/40">
+        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">User Management</h1>
+        <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
           Invite staff or administrators and maintain their roles for the library checkout system.
         </p>
       </header>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-700 dark:bg-white/95 dark:text-slate-900 dark:shadow-black/30">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-900">Add staff member</h2>
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/30">
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Add staff member</h2>
         <form onSubmit={handleAddUser} className="mt-4 grid gap-4 md:grid-cols-[2fr_2fr_1fr_auto]">
             <input
               type="email"
@@ -506,17 +506,17 @@ export default function UserManagementPage() {
               placeholder="person@swinburne.edu.my"
               value={newUser.email}
               onChange={(event) => setNewUser((prev) => ({ ...prev, email: event.target.value }))}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:placeholder-slate-500 dark:focus:border-slate-500 dark:focus:ring-slate-400"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
             />
             <input
               type="text"
               placeholder="Full name"
               value={newUser.fullName}
               onChange={(event) => setNewUser((prev) => ({ ...prev, fullName: event.target.value }))}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:placeholder-slate-500 dark:focus:border-slate-500 dark:focus:ring-slate-400"
+              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
             />
             <select
-              className="min-w-[7rem] rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:focus:border-slate-500 dark:focus:ring-slate-400"
+              className="min-w-[7rem] rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
               value={newUser.role}
               onChange={(event) => setNewUser((prev) => ({ ...prev, role: event.target.value as ManagedRole }))}
             >
@@ -533,7 +533,7 @@ export default function UserManagementPage() {
               'inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold shadow transition disabled:cursor-not-allowed disabled:opacity-70',
               isPending
                 ? 'bg-slate-400 text-white'
-                : 'bg-swin-red text-white hover:bg-swin-red/90 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800',
+                : 'bg-swin-red text-white hover:bg-swin-red/90 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500',
             )}
           >
             {isPending ? 'Adding…' : 'Add user'}
@@ -557,11 +557,11 @@ export default function UserManagementPage() {
         </div>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-700 dark:bg-white/95 dark:text-slate-900 dark:shadow-black/30">
-        <header className="flex flex-col gap-4 border-b border-slate-100 px-6 py-4 md:flex-row md:items-center md:justify-between dark:border-slate-300">
+      <section className="rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/30">
+        <header className="flex flex-col gap-4 border-b border-slate-100 px-6 py-4 md:flex-row md:items-center md:justify-between dark:border-slate-800">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-900">Current users</h2>
-            <span className="text-sm text-slate-500 dark:text-slate-600">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Current users</h2>
+            <span className="text-sm text-slate-500 dark:text-slate-400">
               {loading
                 ? 'Loading…'
                 : searchActive
@@ -582,14 +582,14 @@ export default function UserManagementPage() {
                 setSearchTerm(event.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:placeholder-slate-500 dark:focus:border-slate-500 dark:focus:ring-slate-400"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
             />
           </div>
         </header>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-100">
-            <thead className="bg-white text-xs font-semibold uppercase tracking-wide text-slate-500 dark:bg-white dark:text-slate-700">
+          <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+            <thead className="bg-white text-xs font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-900 dark:text-slate-200">
               <tr>
                 <th className="px-6 py-3 text-left">Email</th>
                 <th className="px-6 py-3 text-left">Full name</th>
@@ -598,7 +598,7 @@ export default function UserManagementPage() {
                 <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white text-sm dark:divide-slate-200 dark:bg-white dark:text-slate-900">
+            <tbody className="divide-y divide-slate-100 bg-white text-sm dark:divide-slate-800 dark:bg-slate-950 dark:text-slate-100">
               {loading ? (
                 <tr>
                   <td className="px-6 py-4 text-slate-500 dark:text-slate-400" colSpan={5}>
@@ -620,7 +620,7 @@ export default function UserManagementPage() {
                         type="email"
                         value={user.email}
                         onChange={(event) => updateLocalUser(user.id, { email: event.target.value })}
-                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:placeholder-slate-500 dark:focus:border-slate-500 dark:focus:ring-slate-400"
+                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
                         maxLength={254}
                         autoComplete="off"
                         inputMode="email"
@@ -636,7 +636,7 @@ export default function UserManagementPage() {
                             profile: { display_name: event.target.value },
                           })
                         }
-                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:placeholder-slate-500 dark:focus:border-slate-500 dark:focus:ring-slate-400"
+                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
                         maxLength={120}
                         autoComplete="name"
                       />
@@ -648,7 +648,7 @@ export default function UserManagementPage() {
                         onChange={(event) =>
                           updateLocalUser(user.id, { profile: { student_id: event.target.value } })
                         }
-                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:placeholder-slate-500 dark:focus:border-slate-500 dark:focus:ring-slate-400"
+                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
                         maxLength={60}
                       />
                     </td>
@@ -658,7 +658,7 @@ export default function UserManagementPage() {
                         onChange={(event) =>
                           updateLocalUser(user.id, { role: event.target.value as ManagedRole })
                         }
-                        className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 min-w-[7rem] dark:border-slate-300 dark:bg-white dark:text-slate-900 dark:focus:border-slate-500 dark:focus:ring-slate-400"
+                        className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 min-w-[7rem] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
                       >
                         {roleOptions.map((role) => (
                           <option key={role} value={role}>
@@ -696,7 +696,7 @@ export default function UserManagementPage() {
                     </td>
                     </tr>
                     {expandedUserId === user.id && (
-                      <tr key={`${user.id}-details`} className="bg-slate-50/60 dark:bg-white/5">
+                      <tr key={`${user.id}-details`} className="bg-slate-50/60 dark:bg-slate-900/60">
                         <td className="px-6 py-4" colSpan={5}>
                           <UserDetailEditor user={user} onChange={updateLocalUser} isPending={isPending} />
                         </td>
@@ -710,7 +710,7 @@ export default function UserManagementPage() {
         </div>
 
         {!loading && filteredUsers.length > 0 && (
-          <footer className="flex flex-col gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-500 md:flex-row md:items-center md:justify-between dark:border-white/5 dark:text-slate-400">
+          <footer className="flex flex-col gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-500 md:flex-row md:items-center md:justify-between dark:border-slate-800 dark:text-slate-400">
             <span>
               Showing {visibleStart}-{visibleEnd} of {filteredUsers.length}{' '}
               {searchActive

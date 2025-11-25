@@ -57,7 +57,7 @@ export default function SummaryCards({ summary }: { summary: DashboardSummary })
         <BlurFade key={key} delay={0.1 + index * 0.1} yOffset={10}>
           <GlassCard
             intensity="medium"
-            className="group relative overflow-hidden border-white/10 bg-white/60 p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl dark:bg-black/40"
+            className="group relative overflow-hidden p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl"
           >
             {/* Gradient overlay on hover */}
             <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-5`} />

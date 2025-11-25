@@ -37,8 +37,8 @@ const userLinks = [
 
 const staffLinks = [
   { name: 'Staff Overview', href: '/dashboard/admin', icon: Squares2X2Icon },
-  { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
+  { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
   { name: 'Friends', href: '/dashboard/friends', icon: UserGroupIcon },
   { name: 'Communities', href: '/dashboard/communities', icon: UserGroupIcon },
   { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },

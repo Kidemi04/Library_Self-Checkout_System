@@ -30,11 +30,13 @@ const normalizeTag = (value: string | null | undefined): string | null => {
 export const tokenizeInterests = (input: string): string[] =>
   input
     .split(/[,\n]/)
-    .flatMap((chunk) => chunk.split(/\\s+/))
+    .flatMap((chunk) => chunk.split(/\s+/))
     .map((token) => token.trim().toLowerCase())
     .filter((token) => token.length > 1);
 
 const unique = <T,>(values: T[]): T[] => Array.from(new Set(values));
+const normalizeInterestToken = (token: string): string =>
+  token.startsWith('#') ? token.slice(1) : token;
 
 const countLoans = (book: Book): number =>
   (book.copies ?? []).reduce((total, copy) => total + (copy.loans?.length ?? 0), 0);
@@ -117,7 +119,12 @@ export function recommendBooks(
   } = options;
 
   const rawTokens = tokenizeInterests(interestInput);
-  const interestTokens = unique(rawTokens);
+  const interestTokens = unique(
+    rawTokens
+      .map(normalizeInterestToken)
+      .map((t) => t.trim())
+      .filter((t) => t.length > 1),
+  );
   const interestSet = new Set(interestTokens);
 
   const associationDerived = new Set<string>();

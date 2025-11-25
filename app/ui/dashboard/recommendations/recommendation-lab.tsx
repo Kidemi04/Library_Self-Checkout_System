@@ -20,14 +20,9 @@ type RecommendationLabProps = {
   books: Book[];
 };
 
-const quickPrompts = [
-  'AI ethics & automation in libraries',
-  'Digital transformation & UX design',
-  'Leadership and team coaching',
-  'Climate fiction & sustainability',
-  'Data storytelling and visualization',
-  'Community building & social impact',
-];
+const defaultHashtags = ['#ai', '#data', '#coding', '#design', '#leadership', '#sustainability'];
+
+const cleanToken = (token: string) => (token.startsWith('#') ? token.slice(1) : token).trim();
 
 const mergeInterestText = (current: string, addition: string) => {
   const combined = new Set([...tokenizeInterests(current), ...tokenizeInterests(addition)]);
@@ -39,7 +34,7 @@ const formatScore = (value: number) => value.toFixed(1);
 const toTitle = (value: string | null | undefined) => value ?? 'Untitled';
 
 const TagChip = ({ label }: { label: string }) => (
-  <span className="rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-white/10 dark:bg-slate-900/50 dark:text-white/80">
+  <span className="rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-200/80">
     {label}
   </span>
 );
@@ -61,13 +56,13 @@ const RecommendationCard = ({ recommendation }: { recommendation: Recommendation
   const loanedOut = Math.max(0, (book.totalCopies ?? 0) - (book.availableCopies ?? 0));
 
   return (
-    <div className="flex h-full flex-col justify-between gap-3 rounded-2xl border border-swin-charcoal/10 bg-white p-5 shadow-sm transition hover:shadow-lg dark:border-white/10 dark:bg-slate-900/60">
+    <div className="flex h-full flex-col justify-between gap-3 rounded-2xl border border-swin-charcoal/10 bg-white p-5 shadow-sm transition hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/70">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-slate-300/70">
             Recommendation
           </p>
-          <h3 className="mt-1 text-lg font-semibold text-swin-charcoal dark:text-white">{toTitle(book.title)}</h3>
+          <h3 className="mt-1 text-lg font-semibold text-swin-charcoal dark:text-slate-100">{toTitle(book.title)}</h3>
           <p className="text-sm text-swin-charcoal/70 dark:text-slate-300/80">
             {book.author ?? 'Unknown author'}
           </p>
@@ -129,7 +124,7 @@ const AssociationPills = ({
       {derived.slice(0, 10).map(({ source, rule }) => (
         <span
           key={`${source}-${rule.tag}`}
-          className="inline-flex items-center gap-2 rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-white/10 dark:bg-slate-900/50 dark:text-white/80"
+          className="inline-flex items-center gap-2 rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-200/80"
         >
           <span className="rounded-full bg-swin-red/10 px-2 py-0.5 text-[10px] uppercase text-swin-red dark:bg-emerald-500/10 dark:text-emerald-200">
             {source}
@@ -151,6 +146,37 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
   const [favorPopular, setFavorPopular] = useState(true);
 
   const associationRules = useMemo(() => buildAssociationRules(books), [books]);
+  const quickHashtags = useMemo(() => {
+    const counts = new Map<string, number>();
+    books.forEach((book) => {
+      (book.tags ?? []).forEach((tag) => {
+        const key = tag.trim().toLowerCase();
+        if (!key) return;
+        counts.set(key, (counts.get(key) ?? 0) + 1);
+      });
+    });
+
+    const sortedTags = Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([tag]) => (tag.startsWith('#') ? tag : `#${tag.replace(/\s+/g, '-')}`));
+
+    const seen = new Set<string>();
+    const uniqueTags = sortedTags.filter((tag) => {
+      const lower = tag.toLowerCase();
+      if (seen.has(lower)) return false;
+      seen.add(lower);
+      return true;
+    });
+
+    return uniqueTags.length ? uniqueTags.slice(0, 6) : defaultHashtags;
+  }, [books]);
+
+  const interestTokensRaw = useMemo(() => tokenizeInterests(interests), [interests]);
+  const interestTokens = useMemo(
+    () => interestTokensRaw.map(cleanToken).filter(Boolean),
+    [interestTokensRaw],
+  );
+  const displayTokens = interestTokensRaw.length ? interestTokensRaw : interestTokens;
 
   const recommendations = useMemo(
     () =>
@@ -163,7 +189,17 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
     [associationRules, books, favorNew, favorPopular, interests, onlyAvailable],
   );
 
-  const interestTokens = useMemo(() => tokenizeInterests(interests), [interests]);
+  const aiPrototypeMatches = useMemo(() => {
+    const hasAi = interestTokens.some((token) => token.toLowerCase() === 'ai');
+    if (!hasAi) return [];
+    return books
+      .filter((book) => {
+        const inTitle = (book.title ?? '').toLowerCase().includes('ai');
+        const inTags = (book.tags ?? []).some((tag) => tag.toLowerCase().includes('ai'));
+        return inTitle || inTags;
+      })
+      .slice(0, 4);
+  }, [books, interestTokens]);
   const derivedAssociations = useMemo(
     () => {
       const map = new Map<string, { source: string; rule: AssociationRule }>();
@@ -207,13 +243,13 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
 
       <section className="grid gap-5 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/60">
+          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[11px] uppercase tracking-[0.3em] text-swin-charcoal/60 dark:text-slate-300/70">
                   Describe your interests
                 </p>
-                <h3 className="mt-1 text-lg font-semibold text-swin-charcoal dark:text-white">
+                <h3 className="mt-1 text-lg font-semibold text-swin-charcoal dark:text-slate-100">
                   What should we recommend?
                 </h3>
               </div>
@@ -223,17 +259,17 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
               value={interests}
               onChange={(e) => setInterests(e.target.value)}
               placeholder="Example: data visualization, climate tech, leadership coaching"
-              className="mt-3 w-full rounded-xl border border-swin-charcoal/10 bg-slate-50 px-4 py-3 text-sm text-swin-charcoal shadow-inner focus:border-swin-red focus:outline-none dark:border-white/10 dark:bg-slate-900/50 dark:text-white"
+              className="mt-3 w-full rounded-xl border border-swin-charcoal/10 bg-slate-50 px-4 py-3 text-sm text-swin-charcoal shadow-inner focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"
               rows={3}
             />
 
             <div className="mt-3 flex flex-wrap gap-2">
-              {quickPrompts.map((prompt) => (
+              {quickHashtags.map((prompt) => (
                 <button
                   key={prompt}
                   type="button"
                   onClick={() => setInterests((prev) => mergeInterestText(prev, prompt))}
-                  className="rounded-full border border-swin-charcoal/10 px-3 py-1 text-xs font-semibold text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-white/10 dark:text-white dark:hover:border-emerald-300/60 dark:hover:text-emerald-200"
+                  className="rounded-full border border-swin-charcoal/10 px-3 py-1 text-xs font-semibold text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-slate-700 dark:text-slate-200 dark:hover:border-emerald-300/60 dark:hover:text-emerald-200"
                 >
                   {prompt}
                 </button>
@@ -241,7 +277,7 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
             </div>
 
             <div className="mt-4 grid gap-3 md:grid-cols-3">
-              <label className="flex items-center gap-2 text-xs font-semibold text-swin-charcoal dark:text-white">
+              <label className="flex items-center gap-2 text-xs font-semibold text-swin-charcoal dark:text-slate-100">
                 <input
                   type="checkbox"
                   className="h-4 w-4 rounded border-swin-charcoal/20 text-swin-red focus:ring-swin-red"
@@ -250,7 +286,7 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
                 />
                 Only show available copies
               </label>
-              <label className="flex items-center gap-2 text-xs font-semibold text-swin-charcoal dark:text-white">
+              <label className="flex items-center gap-2 text-xs font-semibold text-swin-charcoal dark:text-slate-100">
                 <input
                   type="checkbox"
                   className="h-4 w-4 rounded border-swin-charcoal/20 text-swin-red focus:ring-swin-red"
@@ -259,7 +295,7 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
                 />
                 Boost popular picks
               </label>
-              <label className="flex items-center gap-2 text-xs font-semibold text-swin-charcoal dark:text-white">
+              <label className="flex items-center gap-2 text-xs font-semibold text-swin-charcoal dark:text-slate-100">
                 <input
                   type="checkbox"
                   className="h-4 w-4 rounded border-swin-charcoal/20 text-swin-red focus:ring-swin-red"
@@ -269,11 +305,40 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
                 Boost newer titles
               </label>
             </div>
+
+            <div className="mt-4 rounded-2xl border border-dashed border-swin-red/40 bg-swin-red/5 p-4 text-sm text-swin-charcoal dark:border-emerald-300/50 dark:bg-slate-900/40 dark:text-slate-100">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-swin-red dark:text-emerald-200">
+                Prototype
+              </p>
+              <p className="mt-1 text-sm">
+                Type <span className="font-semibold">AI</span> in the box to instantly pull AI-related books as a demo.
+              </p>
+
+              {aiPrototypeMatches.length ? (
+                <div className="mt-3 grid gap-2 md:grid-cols-2">
+                  {aiPrototypeMatches.map((book) => (
+                    <div
+                      key={book.id}
+                      className="rounded-xl border border-swin-red/20 bg-white/90 px-3 py-2 text-xs font-semibold text-swin-charcoal shadow-sm dark:border-emerald-300/30 dark:bg-slate-900/70 dark:text-slate-100"
+                    >
+                      <p className="line-clamp-2">{toTitle(book.title)}</p>
+                      <p className="text-[11px] font-medium text-swin-charcoal/70 dark:text-slate-300/80">
+                        {book.author ?? 'Unknown author'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+                  Waiting for an <strong>AI</strong> keyword to show demo results.
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-swin-charcoal dark:text-white">Recommendations</h4>
+              <h4 className="text-sm font-semibold text-swin-charcoal dark:text-slate-100">Recommendations</h4>
               <p className="text-xs text-swin-charcoal/70 dark:text-slate-300/80">
                 Showing {Math.min(recommendations.length, 12)} of {books.length}
               </p>
@@ -285,7 +350,7 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
                 ))}
               </div>
             ) : (
-              <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-sm text-swin-charcoal/70 shadow-sm dark:border-white/10 dark:bg-slate-900/60 dark:text-slate-300/80">
+          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-sm text-swin-charcoal/70 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300/80">
                 No matching books yet. Try broader interests or disable the availability filter.
               </div>
             )}
@@ -293,8 +358,8 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/60">
-            <div className="flex items-center gap-2 text-swin-charcoal dark:text-white">
+          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
+            <div className="flex items-center gap-2 text-swin-charcoal dark:text-slate-100">
               <LightBulbIcon className="h-5 w-5 text-swin-red dark:text-emerald-200" />
               <h4 className="text-sm font-semibold">Association rule boosters</h4>
             </div>
@@ -307,8 +372,8 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/60">
-            <div className="flex items-center gap-2 text-swin-charcoal dark:text-white">
+          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
+            <div className="flex items-center gap-2 text-swin-charcoal dark:text-slate-100">
               <SparklesIcon className="h-5 w-5 text-swin-red dark:text-emerald-200" />
               <h4 className="text-sm font-semibold">Personalized snapshot</h4>
             </div>
@@ -321,8 +386,8 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
                 Your interests
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
-                {interestTokens.length ? (
-                  interestTokens.slice(0, 6).map((token) => (
+                {displayTokens.length ? (
+                  displayTokens.slice(0, 6).map((token) => (
                     <span
                       key={token}
                       className="inline-flex items-center gap-2 rounded-full bg-swin-red/10 px-3 py-1 text-xs font-semibold text-swin-red dark:bg-emerald-500/10 dark:text-emerald-200"
@@ -347,7 +412,7 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
                   derivedAssociations.map(({ source, rule }) => (
                     <span
                       key={`${source}-${rule.tag}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-white/10 dark:bg-slate-900/50 dark:text-white/80"
+                      className="inline-flex items-center gap-2 rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-200/80"
                     >
                       <span className="rounded-full bg-swin-red/10 px-2 py-0.5 text-[10px] uppercase text-swin-red dark:bg-emerald-500/10 dark:text-emerald-200">
                         {source}
@@ -370,7 +435,7 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
               <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-slate-300/70">
                 Filters applied
               </p>
-              <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold text-swin-charcoal dark:text-white">
+              <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold text-swin-charcoal dark:text-slate-100">
                 <span className="rounded-full bg-white px-3 py-1 shadow-sm dark:bg-slate-900">
                   {onlyAvailable ? 'Available copies only' : 'Include on-loan items'}
                 </span>
@@ -384,7 +449,7 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/60">
+          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
             <div className="flex items-center gap-2 text-swin-charcoal dark:text-white">
               <SparklesIcon className="h-5 w-5 text-swin-red dark:text-emerald-200" />
               <h4 className="text-sm font-semibold">How scoring works</h4>

@@ -80,7 +80,7 @@ export default function BookList({
         {children}
       </ul>
     ) : (
-      <ul className="divide-y rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <ul className="divide-y rounded-2xl border border-slate-200 bg-white shadow-sm dark:divide-slate-800 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200">
         {children}
       </ul>
     );
@@ -100,14 +100,14 @@ export default function BookList({
             key={b.id}
             className={
               variant === 'grid'
-                ? 'group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 shadow-sm transition hover:shadow-md focus-within:ring-2 focus-within:ring-swin-red/50'
-                : 'relative p-4 transition hover:bg-slate-50 focus-within:ring-2 focus-within:ring-swin-red/50'
+                ? 'group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 shadow-sm transition hover:shadow-md focus-within:ring-2 focus-within:ring-swin-red/50 dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-black/20'
+                : 'relative p-4 transition hover:bg-slate-50 focus-within:ring-2 focus-within:ring-swin-red/50 dark:hover:bg-slate-800/70'
             }
           >
             {/* status accent stripe */}
             <span aria-hidden className={`absolute left-0 top-0 h-full w-1 ${meta.stripe}`} />
 
-            <article className="flex gap-3 sm:gap-4 text-slate-900">
+              <article className="flex gap-3 sm:gap-4 text-slate-900 dark:text-slate-200">
               {/* cover */}
               <figure className="relative shrink-0">
                 {b.cover ? (
@@ -115,10 +115,10 @@ export default function BookList({
                     src={b.cover}
                     alt=""
                     aria-hidden
-                    className="h-24 w-16 sm:h-28 sm:w-20 rounded-lg object-cover ring-1 ring-slate-200"
+                    className="h-24 w-16 sm:h-28 sm:w-20 rounded-lg object-cover ring-1 ring-slate-200 dark:ring-slate-700"
                   />
                 ) : (
-                  <div className="h-24 w-16 sm:h-28 sm:w-20 rounded-lg bg-slate-100 ring-1 ring-slate-200" />
+                  <div className="h-24 w-16 sm:h-28 sm:w-20 rounded-lg bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700" />
                 )}
 
                 {/* status chip on image for grid variant */}
@@ -132,7 +132,7 @@ export default function BookList({
               {/* content */}
               <div className="min-w-0 flex-1">
                 <h3 className="line-clamp-2 text-sm sm:text-base font-semibold">{b.title}</h3>
-                <p className="truncate text-xs sm:text-sm text-slate-700">
+                <p className="truncate text-xs sm:text-sm text-slate-700 dark:text-slate-400">
                   {b.author || 'Unknown author'}
                 </p>
 
@@ -147,15 +147,15 @@ export default function BookList({
 
                 {/* copies summary */}
                 {showCopies && (
-                  <p className="mt-1 text-[11px] sm:text-xs text-slate-600">
-                    Copies: <span className="font-medium text-slate-800">{b.copies_available}</span> of{' '}
-                    <span className="font-medium text-slate-800">{b.total_copies}</span> available
+                  <p className="mt-1 text-[11px] sm:text-xs text-slate-600 dark:text-slate-400">
+                    Copies: <span className="font-medium text-slate-800 dark:text-slate-100">{b.copies_available}</span> of{' '}
+                    <span className="font-medium text-slate-800 dark:text-slate-100">{b.total_copies}</span> available
                   </p>
                 )}
 
                 {/* metadata row */}
                 {(b.classification || b.isbn || b.year || b.publisher) && (
-                  <dl className="mt-2 grid grid-cols-1 gap-1 text-[11px] sm:text-xs text-slate-700 sm:grid-cols-2">
+                  <dl className="mt-2 grid grid-cols-1 gap-1 text-[11px] sm:text-xs text-slate-700 sm:grid-cols-2 dark:text-slate-400">
                     {b.classification && <MetaItem label="Call no.">{b.classification}</MetaItem>}
                     {b.isbn && <MetaItem label="ISBN">ISBN {b.isbn}</MetaItem>}
                     {b.publisher && <MetaItem label="Publisher">{b.publisher}</MetaItem>}
@@ -169,7 +169,7 @@ export default function BookList({
                     {b.tags.slice(0, 4).map((t) => (
                       <span
                         key={t}
-                        className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700"
+                        className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
                       >
                         {t}
                       </span>
@@ -190,7 +190,7 @@ export default function BookList({
                     {onDetailsClick && (
                       <button
                         type="button"
-                        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus:ring-slate-600"
                         onClick={() => onDetailsClick(b)}
                         aria-label={`View details for ${b.title}`}
                       >
@@ -204,8 +204,8 @@ export default function BookList({
                         className={[
                           'rounded-xl px-3 py-1.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2',
                           !canBorrow
-                            ? 'cursor-not-allowed bg-slate-100 text-slate-400'
-                            : 'bg-swin-charcoal text-swin-ivory shadow hover:opacity-95 focus:ring-swin-red/50',
+                            ? 'cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
+                            : 'bg-swin-charcoal text-swin-ivory shadow hover:opacity-95 focus:ring-swin-red/50 dark:bg-slate-800 dark:text-slate-100',
                         ].join(' ')}
                         onClick={() => canBorrow && onBorrowClick(b)}
                         aria-label={
@@ -232,7 +232,7 @@ export default function BookList({
           <button
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
-            className="rounded border px-4 py-1 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded border px-4 py-1 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
           >
             <ChevronDoubleLeftIcon className='h-6 w-6'></ChevronDoubleLeftIcon>
           </button>
@@ -244,7 +244,7 @@ export default function BookList({
           <button
             onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="rounded border px-4 py-1 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="rounded border px-4 py-1 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
           >
             <ChevronDoubleRightIcon className='h-6 w-6'></ChevronDoubleRightIcon>
           </button>
@@ -274,7 +274,7 @@ function MetaItem({
 
 function EmptyState() {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-600 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200">
       <p className="text-sm">
         No books match your search. Try a different keyword or clear filters.
       </p>
