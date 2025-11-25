@@ -71,7 +71,7 @@ export default function HomePageDesktop() {
 
           <BlurFade delay={0.5}>
             <p className="mx-auto mb-10 max-w-2xl text-lg text-white/80 md:text-xl">
-              Experience the future of borrowing. Seamlessly check out books with your device—fast, secure, and kiosk-free.
+              Experience the future of borrowing. Seamlessly check out books with your device -- fast, secure, and kiosk-free.
             </p>
           </BlurFade>
 
@@ -100,9 +100,12 @@ export default function HomePageDesktop() {
       {/* Footer */}
       <footer className="absolute bottom-6 left-0 w-full text-center">
         <BlurFade delay={0.8}>
-          <p className="text-xs text-white/50">
+          <Link
+            href="/dashboard/about-page"
+            className="text-xs font-semibold text-white/70 underline-offset-4 transition hover:text-white hover:underline"
+          >
             Powered by Group 12 • © 2025 Swinburne Final Year Project
-          </p>
+          </Link>
         </BlurFade>
       </footer>
     </main>

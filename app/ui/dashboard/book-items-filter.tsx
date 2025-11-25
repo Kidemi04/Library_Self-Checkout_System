@@ -136,14 +136,20 @@ export default function BookItemsFilter({
         </select>
       </div>
 
-      {/* Submit */}
-      <div className="sm:ml-auto">
+      {/* Submit + Reset */}
+      <div className="flex items-center gap-2 sm:ml-auto">
         <button
           type="submit"
           className="inline-flex items-center justify-center rounded-xl bg-swin-charcoal px-4 py-2 text-sm font-semibold text-swin-ivory shadow hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-swin-red/50 dark:bg-slate-800 dark:text-slate-100"
         >
           Apply
         </button>
+        <a
+          href={action}
+          className="inline-flex items-center justify-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400/50 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
+          Reset
+        </a>
       </div>
     </form>
   );

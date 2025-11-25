@@ -2,6 +2,7 @@
 import { redirect } from 'next/navigation';
 import BookList from '@/app/ui/dashboard/book-list'; // student-facing renderer (grid/list)
 import BookItemsFilter from '@/app/ui/dashboard/book-items-filter';
+import AiModeHero from '@/app/ui/dashboard/ai-mode-hero';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
 
@@ -112,13 +113,7 @@ export default async function BookItemsPage({
     <main className="space-y-8">
       <title>Book Items | Dashboard</title>
 
-      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-100 dark:shadow-black/30">
-        <h1 className="text-2xl font-semibold">Book Items</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300/80">
-          Browse the catalogue and filter by status. Use title or author to narrow
-          results.
-        </p>
-      </header>
+      <AiModeHero defaultQuery={q} />
 
       {/* ✅ This form stays on /dashboard/book-items and submits via GET */}
       <BookItemsFilter

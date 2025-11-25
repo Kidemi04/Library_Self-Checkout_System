@@ -218,7 +218,7 @@ export default function CheckOutForm({ books, defaultDueDate }: CheckOutFormProp
               name="bookId"
               value={selectedBookId}
               onChange={handleBookSelection}
-              className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 focus:border-swin-red focus:outline-none"
+              className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               required
             >
               <option value="" disabled>
