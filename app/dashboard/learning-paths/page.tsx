@@ -67,6 +67,7 @@ const studentPath = {
   advisor: 'Assigned by Faculty',
   nextMilestone: 'Complete Module 3: Search & Planning',
   progress: 62,
+  enrollHref: '/dashboard/learning-paths/enroll',
   modules: [
     { title: 'Module 1: Python foundations', status: 'Done' },
     { title: 'Module 2: Data structures', status: 'Done' },
@@ -265,6 +266,22 @@ export default async function LearningPathsPage() {
                   </span>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-swin-charcoal/20 bg-white px-4 py-3 text-sm shadow-sm dark:border-slate-700/70 dark:bg-slate-900/60">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-swin-red/80 dark:text-emerald-300/80">Action required</p>
+                <p className="text-sm font-semibold text-swin-charcoal dark:text-slate-50">Enroll to start your next module</p>
+                <p className="text-xs text-swin-charcoal/70 dark:text-slate-300">
+                  Tap enroll to unlock the next module in your path. Instructors will see your progress once started.
+                </p>
+              </div>
+              <a
+                href={studentPath.enrollHref}
+                className="rounded-full bg-swin-red px-4 py-2 text-xs font-semibold text-white shadow-md shadow-swin-red/30 transition hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                Enroll now
+              </a>
             </div>
           </div>
         </section>
