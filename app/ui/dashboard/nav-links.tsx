@@ -31,6 +31,7 @@ const userLinks = [
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
   { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
+  { name: 'Learning Paths', href: '/dashboard/learning-paths', icon: QueueListIcon },
   { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
 ];
 
@@ -45,6 +46,7 @@ const staffLinks = [
   { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
   { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
   { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
+  { name: 'Learning Paths', href: '/dashboard/learning-paths', icon: QueueListIcon },
   { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
 ];
 

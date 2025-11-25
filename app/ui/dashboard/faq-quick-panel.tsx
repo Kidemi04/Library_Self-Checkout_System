@@ -8,6 +8,8 @@ import {
   ArrowTopRightOnSquareIcon,
   PlusIcon,
   SparklesIcon,
+  AcademicCapIcon,
+  BookOpenIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { studentFaqSections } from '@/app/ui/dashboard/student-faq-data';
@@ -119,6 +121,8 @@ export default function FaqQuickPanel({ role }: FaqQuickPanelProps) {
   };
 
   const quickActions: QuickAction[] = [
+    { id: 'learning-path', label: 'Learn', icon: AcademicCapIcon, href: '/dashboard/learning-paths' },
+    { id: 'learning-hub', label: 'Hub', icon: BookOpenIcon, href: '/dashboard/learning' },
     { id: 'ai-recs', label: 'AI', icon: SparklesIcon, href: '/dashboard/recommendations' },
     { id: 'faq', label: 'FAQ', icon: QuestionMarkCircleIcon, onClick: openPanel },
   ];
