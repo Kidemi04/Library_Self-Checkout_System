@@ -14,9 +14,9 @@ type ProfileNameFormProps = {
 const fieldClass = (isPrivileged: boolean) =>
   clsx(
     'w-full rounded-md border px-3 py-2 text-sm shadow-sm transition focus:outline-none focus:ring-2',
-    isPrivileged
-      ? 'border-slate-300 bg-white text-slate-900 focus:ring-slate-400 focus:ring-offset-1 focus:ring-offset-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-slate-300 dark:focus:ring-offset-slate-900'
-      : 'border-slate-300 bg-white text-slate-900 focus:ring-slate-400 focus:ring-offset-1 focus:ring-offset-white',
+    'border-slate-300 bg-white text-slate-900 focus:ring-slate-400 focus:ring-offset-1 focus:ring-offset-white',
+    'dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-slate-300 dark:focus:ring-offset-slate-900',
+    isPrivileged && 'focus:ring-slate-500 dark:focus:ring-slate-300',
   );
 
 const labelClass = (isPrivileged: boolean) =>
