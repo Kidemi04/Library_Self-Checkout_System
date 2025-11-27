@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
+import clsx from 'clsx';
 
 type Props = {
   open: boolean;
@@ -19,6 +20,8 @@ export default function ManageBookModal({
   lockScroll = false,
   children,
 }: Props) {
+  const [isVisible, setIsVisible] = useState(false);
+
   // Optional: lock background scroll when modal is open
   useEffect(() => {
     if (!open || !lockScroll) return;
@@ -28,6 +31,15 @@ export default function ManageBookModal({
       document.body.style.overflow = prev;
     };
   }, [open, lockScroll]);
+
+  useEffect(() => {
+    if (!open) return;
+    const timer = window.setTimeout(() => setIsVisible(true), 10);
+    return () => {
+      window.clearTimeout(timer);
+      setIsVisible(false);
+    };
+  }, [open]);
 
   if (!open) return null;
 
@@ -40,27 +52,35 @@ export default function ManageBookModal({
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40" />
+      <div
+        className={clsx(
+          'absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300',
+          isVisible ? 'opacity-100' : 'opacity-0',
+        )}
+      />
 
       {/* Modal surface */}
       <div
-        className="relative w-full max-w-2xl rounded-2xl bg-white shadow-xl"
+        className={clsx(
+          'relative w-full max-w-2xl rounded-2xl bg-white shadow-xl transition-all duration-300 ease-out dark:bg-slate-950 dark:text-slate-100',
+          isVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-4 scale-95 opacity-0',
+        )}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b px-5 py-4">
+        <div className="flex items-center justify-between border-b px-5 py-4 dark:border-slate-800">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">{title}</h2>
-            <p className="text-xs text-slate-500">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Update catalogue details to keep the inventory accurate.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded px-2 py-1 text-slate-600 hover:bg-slate-100"
+            className="rounded px-2 py-1 text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
             aria-label="Close"
           >
-            ✕
+            X
           </button>
         </div>
 
@@ -68,6 +88,6 @@ export default function ManageBookModal({
         <div className="max-h-[70vh] overflow-y-auto px-5 py-4">{children}</div>
       </div>
     </div>,
-    document.body
+    document.body,
   );
 }

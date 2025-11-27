@@ -48,21 +48,21 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
   }, [state.status]);
 
   return (
-    <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5">
+    <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 dark:shadow-black/20">
       <div className="mb-3 flex flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-swin-charcoal">Returning Item Details</h2>
-          <p className="hidden text-sm text-swin-charcoal/60 md:block">
+          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-slate-100">Returning Item Details</h2>
+          <p className="hidden text-sm text-swin-charcoal/60 dark:text-slate-400 md:block">
             Use the search above or enter the loan reference to reconcile items being returned.
           </p>
-          <p className="text-xs text-swin-charcoal/60 md:hidden">
+          <p className="text-xs text-swin-charcoal/60 dark:text-slate-400 md:hidden">
             Scan a barcode or enter a loan ID to finish the return.
           </p>
         </div>
         <button
           type="button"
           onClick={handleMobileToggle}
-          className="inline-flex h-[44px] w-full items-center justify-center rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-4 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-white md:hidden"
+          className="inline-flex h-[44px] w-full items-center justify-center rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-4 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 md:hidden"
           aria-expanded={mobileExpanded}
           aria-controls={contentId}
         >
@@ -80,7 +80,7 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
         )}
       >
         <div className="flex flex-col">
-          <label className="block text-sm font-medium text-swin-charcoal" htmlFor="identifier">
+          <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-100" htmlFor="identifier">
             Scan barcode or enter loan ID
           </label>
           <input
@@ -90,9 +90,9 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
             required
             placeholder="Loan ID, borrower ID, barcode, or ISBN"
             ref={identifierInputRef}
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none"
+            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
           />
-          <p className="mt-2 text-xs text-swin-charcoal/60">{activeLoanCount} books are currently on loan.</p>
+          <p className="mt-2 text-xs text-swin-charcoal/60 dark:text-slate-400">{activeLoanCount} books are currently on loan.</p>
         </div>
         <div className="flex items-stretch justify-end md:self-end">
           <SubmitButton />

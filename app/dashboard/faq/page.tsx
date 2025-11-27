@@ -45,7 +45,7 @@ export default async function StudentFaqPage() {
     <main className="space-y-8">
       <title>Student FAQ | Dashboard</title>
 
-      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
+      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/40">
         <p className="text-xs uppercase tracking-[0.2em] text-swin-ivory/70">Need help fast?</p>
         <h1 className="mt-2 text-3xl font-semibold">Student FAQ</h1>
         <p className="mt-3 text-sm text-swin-ivory/70">
@@ -59,12 +59,12 @@ export default async function StudentFaqPage() {
           <Link
             key={item.title}
             href={item.href}
-            className="group rounded-2xl border border-swin-charcoal/10 bg-white p-5 text-swin-charcoal shadow-md shadow-swin-charcoal/5 transition hover:-translate-y-0.5 hover:border-swin-red/60"
+            className="group rounded-2xl border border-swin-charcoal/10 bg-white p-5 text-swin-charcoal shadow-md shadow-swin-charcoal/5 transition hover:-translate-y-0.5 hover:border-swin-red/60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/30"
           >
-            <div className="text-xs font-semibold uppercase tracking-wide text-swin-red/80">Shortcut</div>
-            <p className="mt-2 text-lg font-semibold">{item.title}</p>
-            <p className="mt-2 text-sm text-swin-charcoal/70">{item.description}</p>
-            <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-swin-red group-hover:gap-1.5">
+            <div className="text-xs font-semibold uppercase tracking-wide text-swin-red/80 dark:text-swin-red">Shortcut</div>
+            <p className="mt-2 text-lg font-semibold dark:text-slate-100">{item.title}</p>
+            <p className="mt-2 text-sm text-swin-charcoal/70 dark:text-slate-200">{item.description}</p>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-swin-red group-hover:gap-1.5 dark:text-swin-red">
               {item.actionLabel}
               <span aria-hidden="true">→</span>
             </span>
@@ -75,25 +75,25 @@ export default async function StudentFaqPage() {
       {studentFaqSections.map((section) => (
         <section key={section.id} aria-labelledby={`${section.id}-title`} className="space-y-4">
           <div className="flex flex-col gap-2">
-            <p className="text-xs uppercase tracking-[0.3em] text-swin-charcoal/60">Topic</p>
-            <h2 id={`${section.id}-title`} className="text-xl font-semibold text-swin-charcoal">
+            <p className="text-xs uppercase tracking-[0.3em] text-swin-charcoal/60 dark:text-slate-400">Topic</p>
+            <h2 id={`${section.id}-title`} className="text-xl font-semibold text-swin-charcoal dark:text-slate-100">
               {section.title}
             </h2>
-            <p className="text-sm text-swin-charcoal/70">{section.description}</p>
+            <p className="text-sm text-swin-charcoal/70 dark:text-slate-300">{section.description}</p>
           </div>
           <div className="space-y-4">
             {section.items.map((item, index) => (
               <details
                 key={`${section.id}-${index}`}
-                className="group rounded-2xl border border-swin-charcoal/10 bg-white/95 p-5 shadow-sm shadow-swin-charcoal/5 transition hover:border-swin-red/40 [&_summary::-webkit-details-marker]:hidden"
+                className="group rounded-2xl border border-swin-charcoal/10 bg-white/95 p-5 shadow-sm shadow-swin-charcoal/5 transition hover:border-swin-red/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/30 [&_summary::-webkit-details-marker]:hidden"
               >
                 <summary className="flex cursor-pointer items-start gap-4 text-left">
-                  <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-swin-charcoal/15 bg-swin-ivory text-sm font-semibold text-swin-red group-open:bg-swin-red group-open:text-white">
+                  <span className="flex h-10 w-10 flex-none items-center justify-center rounded-full border border-swin-charcoal/15 bg-swin-ivory text-sm font-semibold text-swin-red group-open:bg-swin-red group-open:text-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100">
                     {(index + 1).toString().padStart(2, '0')}
                   </span>
                   <div className="flex-1">
-                    <p className="text-base font-semibold text-swin-charcoal">{item.question}</p>
-                    <p className="mt-1 text-xs font-medium uppercase tracking-wide text-swin-charcoal/60 group-open:hidden">
+                    <p className="text-base font-semibold text-swin-charcoal dark:text-slate-100">{item.question}</p>
+                    <p className="mt-1 text-xs font-medium uppercase tracking-wide text-swin-charcoal/60 group-open:hidden dark:text-slate-400">
                       Tap to expand
                     </p>
                     <p className="mt-1 hidden text-xs font-medium uppercase tracking-wide text-swin-red group-open:block">
@@ -101,7 +101,7 @@ export default async function StudentFaqPage() {
                     </p>
                   </div>
                 </summary>
-                <div className="mt-4 border-t border-swin-charcoal/10 pt-4 text-sm text-swin-charcoal/80">
+                <div className="mt-4 border-t border-swin-charcoal/10 pt-4 text-sm text-swin-charcoal/80 dark:border-slate-700 dark:text-slate-200">
                   <div className="space-y-3 leading-relaxed">
                     {item.answer.map((paragraph, paragraphIndex) => (
                       <p key={`${section.id}-${index}-paragraph-${paragraphIndex}`}>{paragraph}</p>
@@ -112,7 +112,7 @@ export default async function StudentFaqPage() {
                       {item.tags.map((tag) => (
                         <span
                           key={`${section.id}-${tag}`}
-                          className="rounded-full border border-swin-charcoal/15 bg-swin-ivory px-3 py-1 text-xs font-semibold uppercase tracking-wide text-swin-charcoal/70"
+                          className="rounded-full border border-swin-charcoal/15 bg-swin-ivory px-3 py-1 text-xs font-semibold uppercase tracking-wide text-swin-charcoal/70 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                         >
                           {tag}
                         </span>
@@ -137,11 +137,11 @@ export default async function StudentFaqPage() {
         </section>
       ))}
 
-      <section className="rounded-2xl border border-swin-charcoal/10 bg-swin-ivory/70 p-6 text-swin-charcoal shadow-inner shadow-swin-charcoal/10">
+      <section className="rounded-2xl border border-swin-charcoal/10 bg-swin-ivory/70 p-6 text-swin-charcoal shadow-inner shadow-swin-charcoal/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:shadow-black/30">
         <div className="flex flex-col gap-3 text-sm md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-base font-semibold">Still need help?</p>
-            <p className="mt-1 text-swin-charcoal/70">
+            <p className="mt-1 text-swin-charcoal/70 dark:text-slate-300">
               Visit the service desk on Level 1 or email
               {' '}
               <a href="mailto:library@swinburne.edu.my" className="font-semibold text-swin-red hover:underline">
@@ -152,7 +152,7 @@ export default async function StudentFaqPage() {
           </div>
           <Link
             href="/dashboard/profile"
-            className="inline-flex items-center justify-center rounded-lg border border-swin-red/40 bg-white px-4 py-2 text-sm font-semibold text-swin-red shadow-sm transition hover:bg-swin-red hover:text-white"
+            className="inline-flex items-center justify-center rounded-lg border border-swin-red/40 bg-white px-4 py-2 text-sm font-semibold text-swin-red shadow-sm transition hover:bg-swin-red hover:text-white dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-swin-red dark:hover:text-white"
           >
             Update my contact details
           </Link>

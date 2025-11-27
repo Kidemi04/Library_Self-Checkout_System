@@ -104,7 +104,7 @@ export default async function BookItemsPage({
       <title>Book Items | Dashboard</title>
 
       {/* Header */}
-      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/40">
+      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 dark:shadow-black/30">
         <h1 className="text-2xl font-semibold">Book Items</h1>
         <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300">
           Keep the Supabase-powered catalogue of Swinburne resources up to date.

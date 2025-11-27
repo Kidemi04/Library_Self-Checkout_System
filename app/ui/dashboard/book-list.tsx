@@ -80,6 +80,7 @@ export default function BookList({
         {children}
       </BlurFade>
     ) : (
+      <ul className="divide-y rounded-2xl border border-slate-200 bg-white shadow-sm dark:divide-slate-800 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200">
       <BlurFade delay={0.2} yOffset={10} className="flex flex-col gap-3">
         {children}
       </BlurFade>
@@ -95,6 +96,31 @@ export default function BookList({
           const showCopies =
             typeof b.copies_available === 'number' && typeof b.total_copies === 'number';
 
+        return (
+          <li
+            key={b.id}
+            className={
+              variant === 'grid'
+                ? 'group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 shadow-sm transition hover:shadow-md focus-within:ring-2 focus-within:ring-swin-red/50 dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-black/20'
+                : 'relative p-4 transition hover:bg-slate-50 focus-within:ring-2 focus-within:ring-swin-red/50 dark:hover:bg-slate-800/70'
+            }
+          >
+            {/* status accent stripe */}
+            <span aria-hidden className={`absolute left-0 top-0 h-full w-1 ${meta.stripe}`} />
+
+              <article className="flex gap-3 sm:gap-4 text-slate-900 dark:text-slate-200">
+              {/* cover */}
+              <figure className="relative shrink-0">
+                {b.cover ? (
+                  <img
+                    src={b.cover}
+                    alt=""
+                    aria-hidden
+                    className="h-24 w-16 sm:h-28 sm:w-20 rounded-lg object-cover ring-1 ring-slate-200 dark:ring-slate-700"
+                  />
+                ) : (
+                  <div className="h-24 w-16 sm:h-28 sm:w-20 rounded-lg bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700" />
+                )}
           return (
             <BlurFade key={b.id} delay={0.2 + idx * 0.05} yOffset={10}>
               {variant === 'grid' ? (
@@ -143,6 +169,12 @@ export default function BookList({
                       </div>
                     </div>
 
+              {/* content */}
+              <div className="min-w-0 flex-1">
+                <h3 className="line-clamp-2 text-sm sm:text-base font-semibold">{b.title}</h3>
+                <p className="truncate text-xs sm:text-sm text-slate-700 dark:text-slate-400">
+                  {b.author || 'Unknown author'}
+                </p>
                     {/* Actions */}
                     <div className="mt-auto pt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-2">
                       {showCopies && (
@@ -173,6 +205,33 @@ export default function BookList({
                   {/* Status Stripe */}
                   <div className={`absolute left-0 top-0 bottom-0 w-1 ${meta.stripe}`} />
 
+                {/* copies summary */}
+                {showCopies && (
+                  <p className="mt-1 text-[11px] sm:text-xs text-slate-600 dark:text-slate-400">
+                    Copies: <span className="font-medium text-slate-800 dark:text-slate-100">{b.copies_available}</span> of{' '}
+                    <span className="font-medium text-slate-800 dark:text-slate-100">{b.total_copies}</span> available
+                  </p>
+                )}
+
+                {/* metadata row */}
+                {(b.classification || b.isbn || b.year || b.publisher) && (
+                  <dl className="mt-2 grid grid-cols-1 gap-1 text-[11px] sm:text-xs text-slate-700 sm:grid-cols-2 dark:text-slate-400">
+                    {b.classification && <MetaItem label="Call no.">{b.classification}</MetaItem>}
+                    {b.isbn && <MetaItem label="ISBN">ISBN {b.isbn}</MetaItem>}
+                    {b.publisher && <MetaItem label="Publisher">{b.publisher}</MetaItem>}
+                    {b.year && <MetaItem label="Year">{String(b.year)}</MetaItem>}
+                  </dl>
+                )}
+
+                {/* tags */}
+                {!!b.tags?.length && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {b.tags.slice(0, 4).map((t) => (
+                      <span
+                        key={t}
+                        className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                      >
+                        {t}
                   <figure className="relative shrink-0 shadow-sm rounded-md overflow-hidden">
                     {b.cover ? (
                       <img src={b.cover} alt="" className="h-16 w-12 object-cover" />
@@ -214,6 +273,49 @@ export default function BookList({
                       )}
                     </div>
                   </div>
+                )}
+
+                {/* actions */}
+                {(onDetailsClick || onBorrowClick) && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {onDetailsClick && (
+                      <button
+                        type="button"
+                        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 dark:focus:ring-slate-600"
+                        onClick={() => onDetailsClick(b)}
+                        aria-label={`View details for ${b.title}`}
+                      >
+                        View details
+                      </button>
+                    )}
+                    {onBorrowClick && (
+                      <button
+                        type="button"
+                        disabled={!canBorrow}
+                        className={[
+                          'rounded-xl px-3 py-1.5 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2',
+                          !canBorrow
+                            ? 'cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500'
+                            : 'bg-swin-charcoal text-swin-ivory shadow hover:opacity-95 focus:ring-swin-red/50 dark:bg-slate-800 dark:text-slate-100',
+                        ].join(' ')}
+                        onClick={() => canBorrow && onBorrowClick(b)}
+                        aria-label={
+                          !canBorrow
+                            ? 'Not available for borrowing'
+                            : `Borrow ${b.title}`
+                        }
+                      >
+                        {canBorrow ? 'Borrow' : 'Not available'}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </article>
+          </li>
+        );
+      })}
+    </Wrapper>
                 </GlassCard>
               )}
             </BlurFade>
@@ -227,7 +329,7 @@ export default function BookList({
           <button
             onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
-            className="rounded-full p-2 bg-white dark:bg-white/10 text-swin-charcoal dark:text-white shadow-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/20 transition-colors"
+            className="rounded border px-4 py-1 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
           >
             <ChevronDoubleLeftIcon className='h-5 w-5' />
           </button>
@@ -239,7 +341,7 @@ export default function BookList({
           <button
             onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className="rounded-full p-2 bg-white dark:bg-white/10 text-swin-charcoal dark:text-white shadow-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-50 dark:hover:bg-white/20 transition-colors"
+            className="rounded border px-4 py-1 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
           >
             <ChevronDoubleRightIcon className='h-5 w-5' />
           </button>
@@ -251,7 +353,7 @@ export default function BookList({
 
 function EmptyState() {
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 p-10 text-center text-slate-600 dark:text-slate-400 shadow-sm">
+    <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200">
       <p className="text-sm">
         No books match your search. Try a different keyword or clear filters.
       </p>

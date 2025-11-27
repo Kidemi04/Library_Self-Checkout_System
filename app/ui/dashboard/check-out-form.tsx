@@ -156,21 +156,21 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
   };
 
   return (
-    <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5">
+    <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 dark:shadow-black/30">
       <div className="mb-3 flex flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-swin-charcoal">Borrowed Item Details</h2>
-          <p className="hidden text-sm text-swin-charcoal/60 md:block">
+          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-slate-100">Borrowed Item Details</h2>
+          <p className="hidden text-sm text-swin-charcoal/60 dark:text-slate-400 md:block">
             Confirm borrower credentials and title availability before finalising the loan.
           </p>
-          <p className="text-xs text-swin-charcoal/60 md:hidden">
+          <p className="text-xs text-swin-charcoal/60 dark:text-slate-400 md:hidden">
             Scan or search for a book, then enter who is borrowing it.
           </p>
         </div>
         <button
           type="button"
           onClick={handleMobileToggle}
-          className="inline-flex h-[44px] w-full items-center justify-center rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-4 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-white md:hidden"
+          className="inline-flex h-[44px] w-full items-center justify-center rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-4 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-white md:hidden dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
           aria-expanded={mobileExpanded}
           aria-controls={contentId}
         >
@@ -191,7 +191,7 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
       {lookupMessage ? (
         <p
           className={clsx(
-            'mt-1 w-full text-xs font-medium text-swin-charcoal md:text-right',
+            'mt-1 w-full text-xs font-medium text-swin-charcoal md:text-right dark:text-slate-300',
             lookupMessage.tone === 'success'
               ? 'text-emerald-600'
               : lookupMessage.tone === 'error'
@@ -222,7 +222,7 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
           />
 
           <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-swin-charcoal" htmlFor="bookId">
+            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-100" htmlFor="bookId">
               Book to borrow
             </label>
             <select
@@ -230,7 +230,7 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
               name="bookId"
               value={selectedBookId}
               onChange={handleBookSelection}
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+              className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               required
             >
               <option value="" disabled>
@@ -248,7 +248,7 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
               </p>
             ) : null}
             {selectedBook ? (
-              <div className="mt-3 rounded-xl border border-swin-charcoal/10 bg-swin-ivory p-4 text-xs text-swin-charcoal shadow-inner shadow-swin-charcoal/5">
+              <div className="mt-3 rounded-xl border border-swin-charcoal/10 bg-swin-ivory p-4 text-xs text-swin-charcoal shadow-inner shadow-swin-charcoal/5 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:shadow-black/30">
                 <p className="text-sm font-semibold text-swin-charcoal">Selected title</p>
                 <dl className="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2">
                   <div>
@@ -300,22 +300,22 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerIdentifier">
+            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="borrowerIdentifier">
               Borrower ID
             </label>
-            <input
-              id="borrowerIdentifier"
-              name="borrowerIdentifier"
-              type="text"
-              required
-              placeholder="Scan or type borrower ID"
-              ref={borrowerIdRef}
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
-            />
-          </div>
+          <input
+            id="borrowerIdentifier"
+            name="borrowerIdentifier"
+            type="text"
+            required
+            placeholder="Scan or type borrower ID"
+            ref={borrowerIdRef}
+            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+          />
+        </div>
 
           <div>
-            <label className="block text-sm font-medium text-swin-charcoal" htmlFor="borrowerName">
+            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="borrowerName">
               Borrower name
             </label>
             <input
@@ -324,12 +324,12 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
               type="text"
               required
               placeholder="Full name"
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-swin-charcoal" htmlFor="dueDate">
+            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="dueDate">
               Due date
             </label>
             <input
@@ -338,7 +338,7 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
               type="date"
               defaultValue={defaultDueDate}
               required
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none"
+              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
             />
           </div>
 

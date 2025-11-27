@@ -67,7 +67,7 @@ export default function QrScanPage() {
       /* ignore */
     }
 
-    setMessage('Requesting camera access…');
+    setMessage('Requesting camera access...');
 
     // Ask for a stream first (user gesture is required)
     let stream: MediaStream | null = null;
@@ -108,7 +108,7 @@ export default function QrScanPage() {
       if (!readerRef.current) readerRef.current = new BrowserMultiFormatReader();
 
       setScanState('scanning');
-      setMessage('Point your camera at a QR code.');
+      setMessage('Point your camera at a code (QR or barcode).');
 
       const controls = await readerRef.current.decodeFromVideoDevice(
         backCam?.deviceId ?? undefined,
@@ -117,7 +117,7 @@ export default function QrScanPage() {
           if (!result) return;
           const text = (result as { getText(): string }).getText().trim();
           setDecoded(text);
-          setMessage('QR detected.');
+          setMessage('Code detected.');
 
           if (isUrl(text)) {
             // Auto-open links
@@ -148,7 +148,7 @@ export default function QrScanPage() {
 
   const onUpload = useCallback(async (file: File) => {
     setDecoded(null);
-    setMessage('Reading image…');
+    setMessage('Reading image...');
     if (!readerRef.current) readerRef.current = new BrowserMultiFormatReader();
 
     const url = URL.createObjectURL(file);
@@ -156,10 +156,10 @@ export default function QrScanPage() {
       const result = await readerRef.current.decodeFromImageUrl(url);
       const text = (result as { getText(): string }).getText().trim();
       setDecoded(text);
-      setMessage('QR detected from image.');
+      setMessage('Code detected from image.');
       if (isUrl(text)) window.location.href = text;
     } catch {
-      setMessage('No QR code found in that image.');
+      setMessage('No code found in that image.');
     } finally {
       URL.revokeObjectURL(url);
     }
@@ -168,12 +168,12 @@ export default function QrScanPage() {
   // ---------- UI ----------
   return (
     <main className="space-y-8">
-      <title>QR Scanner | Dashboard</title>
+      <title>Camera Scanner | Dashboard</title>
 
       <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/40">
-        <h1 className="text-2xl font-semibold">Scan QR Code</h1>
+        <h1 className="text-2xl font-semibold">Camera Scanner</h1>
         <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300">
-          Use your camera or upload an image. If the code contains a link, you'll be redirected automatically.
+          Use your camera or upload an image to scan QR codes or barcodes. Links will open automatically.
         </p>
       </header>
 
@@ -197,7 +197,7 @@ export default function QrScanPage() {
 
           {/* status */}
           <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-4 py-2 text-xs text-white">
-            {message || (scanState === 'scanning' ? 'Scanning…' : 'Camera idle')}
+            {message || (scanState === 'scanning' ? 'Scanning...' : 'Camera idle')}
           </div>
         </div>
 
@@ -238,18 +238,18 @@ export default function QrScanPage() {
 
           <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-200">
             <p className="mb-1 font-semibold">Decoded text</p>
-            <p className="break-all">{decoded ?? '—'}</p>
+            <p className="break-all">{decoded ?? '...'}</p>
             {decoded && !isUrl(decoded) && (
               <p className="mt-2 text-slate-500 dark:text-slate-400">
-                This QR isn't a URL. Copy the text or try another code.
+                This code is not a URL. Copy the text or try another code.
               </p>
             )}
           </div>
 
           <ul className="text-xs text-slate-500 dark:text-slate-400">
-            <li>• Works on HTTPS or on localhost.</li>
-            <li>• Allow camera permission when prompted.</li>
-            <li>• You can also upload a photo or screenshot of a QR code.</li>
+            <li>- Works on HTTPS or on localhost.</li>
+            <li>- Allow camera permission when prompted.</li>
+            <li>- You can also upload a photo or screenshot of a QR code or barcode.</li>
           </ul>
         </aside>
       </section>
