@@ -59,7 +59,7 @@ export async function fetchMyCommunities(userId: string): Promise<Community[]> {
       )
     `)
         .eq('user_id', userId)
-        .eq('status', 'approved'); // Assuming 'approved' is the status for joined members
+        .eq('status', 'accepted'); // Assuming 'accepted' is the status for joined members
 
     if (error) {
         console.error('Error fetching my communities', error);

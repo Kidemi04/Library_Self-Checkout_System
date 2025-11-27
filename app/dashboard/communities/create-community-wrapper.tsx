@@ -11,9 +11,9 @@ export default function CreateCommunityWrapper() {
 
     return (
         <>
-            <Button onClick={() => setIsOpen(true)} className="flex items-center gap-2">
+            <Button onClick={() => setIsOpen(true)} className="flex items-center justify-center gap-2 w-full md:w-auto bg-swin-red hover:bg-swin-red/90 shadow-lg shadow-swin-red/20 transition-all hover:scale-105 active:scale-95">
                 <PlusIcon className="h-5 w-5" />
-                <span className="hidden sm:inline">Create Community</span>
+                <span>Create Community</span>
             </Button>
 
             <CreateCommunityModal open={isOpen} onClose={() => setIsOpen(false)}>

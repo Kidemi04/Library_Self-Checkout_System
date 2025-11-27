@@ -107,7 +107,7 @@ export interface Friend {
 
 export type CommunityVisibility = 'public' | 'private';
 export type CommunityMemberRole = 'admin' | 'moderator' | 'member';
-export type CommunityMemberStatus = 'pending' | 'approved' | 'rejected';
+export type CommunityMemberStatus = 'pending' | 'accepted' | 'rejected';
 
 export interface Community {
   id: string;

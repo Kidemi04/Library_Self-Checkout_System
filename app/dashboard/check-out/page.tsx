@@ -27,6 +27,10 @@ export default async function BorrowBooksPage({
   const raw = params?.q;
   const searchTerm = Array.isArray(raw) ? raw[0]?.trim() ?? '' : raw?.trim() ?? '';
 
+  // Extract bookId for pre-selection
+  const rawBookId = params?.bookId;
+  const preSelectedBookId = Array.isArray(rawBookId) ? rawBookId[0]?.trim() ?? '' : rawBookId?.trim() ?? '';
+
   const [books, activeLoans] = await Promise.all([
     fetchAvailableBooks(searchTerm),
     fetchActiveLoans(),
@@ -53,7 +57,7 @@ export default async function BorrowBooksPage({
         aria-label="Search available books"
       />
 
-      <CheckOutForm books={books} defaultDueDate={defaultDueDate} />
+      <CheckOutForm books={books} defaultDueDate={defaultDueDate} preSelectedBookId={preSelectedBookId} />
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">

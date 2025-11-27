@@ -30,13 +30,6 @@ export default function ProfileAvatarForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const defaultAvatar = avatarUrl || getRandomDefaultAvatar();
 
-  const buttonBaseClass = clsx(
-    'flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2',
-    isPrivileged
-      ? 'bg-white/10 text-white hover:bg-white/20 focus:ring-white'
-      : 'bg-swin-red text-white hover:bg-swin-red/90 focus:ring-swin-red'
-  );
-
   const handleFileChange = async (e: React.ChangeEvent<HTMLFormElement>) => {
     setIsUploading(true);
     try {
@@ -48,28 +41,35 @@ export default function ProfileAvatarForm({
   };
 
   return (
-    <div className="relative flex-none">
-      <div className="relative">
-        <img
-          src={defaultAvatar}
-          alt={`${displayName ?? 'User'} avatar`}
-          className="h-16 w-16 sm:h-24 sm:w-24 rounded-full object-cover ring-2 ring-white/10"
-        />
+    <div className="relative flex-none group">
+      <div className="relative inline-block">
+        <div className="relative h-24 w-24 sm:h-32 sm:w-32 transition-transform duration-300 group-hover:scale-105">
+          <div className={clsx(
+            "absolute -inset-0.5 rounded-full bg-gradient-to-br opacity-75 blur transition duration-300 group-hover:opacity-100",
+            isPrivileged ? "from-emerald-400 to-cyan-300" : "from-swin-red to-orange-400"
+          )} />
+          <img
+            src={defaultAvatar}
+            alt={`${displayName ?? 'User'} avatar`}
+            className="relative h-full w-full rounded-full object-cover ring-4 ring-white dark:ring-slate-900 shadow-xl"
+          />
+        </div>
+
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           className={clsx(
-            'absolute bottom-0 right-0 rounded-full p-1.5 sm:p-2 shadow-lg',
+            'absolute bottom-0 right-0 rounded-full p-2.5 shadow-lg ring-4 ring-white dark:ring-slate-900 transition-all duration-300 hover:scale-110 active:scale-95',
             isPrivileged
-              ? 'bg-slate-800 text-white hover:bg-slate-700'
+              ? 'bg-emerald-600 text-white hover:bg-emerald-500'
               : 'bg-swin-red text-white hover:bg-swin-red/90'
           )}
         >
-          <CameraIcon className="h-4 w-4" />
+          <CameraIcon className="h-5 w-5" />
         </button>
       </div>
 
-      <form onChange={handleFileChange} className="flex flex-col items-center gap-2">
+      <form onChange={handleFileChange} className="flex flex-col items-center gap-2 mt-2">
         <input
           ref={fileInputRef}
           type="file"
@@ -79,16 +79,12 @@ export default function ProfileAvatarForm({
           disabled={isUploading}
         />
         {isUploading && (
-          <div className={buttonBaseClass}>
-            <ArrowPathIcon className="h-4 w-4 animate-spin" />
-            <span>Uploading...</span>
+          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm">
+            <ArrowPathIcon className="h-8 w-8 animate-spin text-white" />
           </div>
         )}
         {state.status === 'error' && (
-          <p className={clsx(
-            'text-sm',
-            isPrivileged ? 'text-red-400' : 'text-red-600'
-          )}>
+          <p className="text-xs font-medium text-red-500 mt-1 animate-pulse">
             {state.message}
           </p>
         )}
