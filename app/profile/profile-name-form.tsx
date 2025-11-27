@@ -12,6 +12,33 @@ type ProfileNameFormProps = {
   isPrivileged: boolean;
 };
 
+const fieldClass = (isPrivileged: boolean) =>
+  clsx(
+    'w-full rounded-md border px-3 py-2 text-sm shadow-sm transition focus:outline-none focus:ring-2',
+    'border-slate-300 bg-white text-slate-900 focus:ring-slate-400 focus:ring-offset-1 focus:ring-offset-white',
+    'dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-slate-300 dark:focus:ring-offset-slate-900',
+    isPrivileged && 'focus:ring-slate-500 dark:focus:ring-slate-300',
+  );
+
+const labelClass = (isPrivileged: boolean) =>
+  clsx(
+    'text-xs font-semibold uppercase tracking-wide',
+    isPrivileged ? 'text-slate-200' : 'text-slate-600',
+  );
+
+const helperClass = (isPrivileged: boolean) =>
+  clsx('text-xs', isPrivileged ? 'text-slate-400' : 'text-slate-500');
+
+const messageClass = (state: ProfileNameFormState, isPrivileged: boolean) => {
+  if (state.status === 'success') {
+    return 'text-sm font-medium text-emerald-500';
+  }
+  if (state.status === 'error') {
+    return 'text-sm font-medium text-rose-500';
+  }
+  return clsx('text-sm', isPrivileged ? 'text-slate-300' : 'text-slate-500');
+};
+
 function SubmitButton({ isPrivileged }: { isPrivileged: boolean }) {
   const { pending } = useFormStatus();
 

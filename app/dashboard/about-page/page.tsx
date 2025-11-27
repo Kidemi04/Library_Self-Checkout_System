@@ -183,9 +183,9 @@ export default function AboutPage() {
                 rel="noopener noreferrer"
               >
               <img
-                 src="https://cdn.simpleicons.org/x/ffffff"
+                 src="https://cdn.simpleicons.org/x/000000"
                  alt="Twitter"
-                className="w-6 h-6 hover:opacity-80 transition"
+                className="w-6 h-6 hover:opacity-80 transition dark:invert"
                 />
                  </a>
                  <a
@@ -194,9 +194,9 @@ export default function AboutPage() {
                 rel="noopener noreferrer"
               >
               <img
-                 src="https://cdn.simpleicons.org/tiktok/ffffff"
+                 src="https://cdn.simpleicons.org/tiktok/000000"
                  alt="TikTok"
-                className="w-6 h-6 hover:opacity-80 transition"
+                className="w-6 h-6 hover:opacity-80 transition dark:invert"
                 />
                  </a>
             </div>
