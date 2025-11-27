@@ -49,7 +49,7 @@ export async function createCommunity(prevState: ActionState, formData: FormData
         community_id: data.id,
         user_id: userId,
         role: 'admin',
-        status: 'approved', // Assuming 'approved' is the valid enum value for joined members based on typical logic, though schema said 'pending' default. Creator should be approved.
+        status: 'accepted', // Assuming 'accepted' is the valid enum value for joined members based on typical logic, though schema said 'pending' default. Creator should be accepted.
         joined_at: new Date().toISOString(),
     });
 
@@ -67,7 +67,7 @@ export async function joinCommunity(communityId: string): Promise<ActionState> {
         community_id: communityId,
         user_id: userId,
         role: 'member',
-        status: 'approved', // For public communities, auto-approve. For private, might need 'pending'.
+        status: 'accepted', // For public communities, auto-accept. For private, might need 'pending'.
         joined_at: new Date().toISOString(),
     });
 

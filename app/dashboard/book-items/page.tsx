@@ -2,6 +2,7 @@
 import { redirect } from 'next/navigation';
 import BookList from '@/app/ui/dashboard/book-list'; // student-facing renderer (grid/list)
 import BookItemsFilter from '@/app/ui/dashboard/book-items-filter';
+import BlurFade from '@/app/ui/magic-ui/blur-fade';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
 
@@ -112,13 +113,16 @@ export default async function BookItemsPage({
     <main className="space-y-8">
       <title>Book Items | Dashboard</title>
 
-      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/40">
-        <h1 className="text-2xl font-semibold">Book Items</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70">
-          Browse the catalogue and filter by status. Use title or author to narrow
-          results.
-        </p>
-      </header>
+      <BlurFade delay={0.1} yOffset={10}>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-bold tracking-tight text-swin-charcoal dark:text-white">
+            Book Items
+          </h1>
+          <p className="text-swin-charcoal/60 dark:text-slate-400 max-w-2xl">
+            Browse the catalogue and filter by status. Use title or author to narrow results.
+          </p>
+        </div>
+      </BlurFade>
 
       {/* ✅ This form stays on /dashboard/book-items and submits via GET */}
       <BookItemsFilter

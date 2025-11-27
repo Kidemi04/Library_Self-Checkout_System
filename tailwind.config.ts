@@ -28,6 +28,8 @@ const config: Config = {
           charcoal: '#343642',
           black: '#000000',
           ivory: '#FEFDFD',
+          'dark-bg': '#0F1115', // Deep Gunmetal
+          'dark-surface': '#181B21', // Deep Gunmetal Surface
         },
       },
     },
