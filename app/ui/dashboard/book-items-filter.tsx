@@ -2,10 +2,12 @@
 
 import React from 'react';
 import clsx from 'clsx';
+import GlassCard from '@/app/ui/magic-ui/glass-card';
+import BlurFade from '@/app/ui/magic-ui/blur-fade';
 
 type SortField = 'title' | 'author' | 'year' | 'created_at';
 type SortOrder = 'asc' | 'desc';
-type ViewMode  = 'grid' | 'list';
+type ViewMode = 'grid' | 'list';
 
 // ✅ Keep this in sync with page.tsx and book-list.tsx
 export type ItemStatus =
@@ -35,11 +37,11 @@ export default function BookItemsFilter({
   defaults,
   className,
 }: Props) {
-  const q      = defaults?.q ?? '';
+  const q = defaults?.q ?? '';
   const status = defaults?.status ?? '';          // '' means “Any status”
-  const sort   = (defaults?.sort ?? 'title') as SortField;
-  const order  = (defaults?.order ?? 'asc') as SortOrder;
-  const view   = (defaults?.view ?? 'grid') as ViewMode;
+  const sort = (defaults?.sort ?? 'title') as SortField;
+  const order = (defaults?.order ?? 'asc') as SortOrder;
+  const view = (defaults?.view ?? 'grid') as ViewMode;
 
   return (
     <form

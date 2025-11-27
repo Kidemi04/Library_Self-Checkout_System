@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import BookList from '@/app/ui/dashboard/book-list'; // student-facing renderer (grid/list)
 import BookItemsFilter from '@/app/ui/dashboard/book-items-filter';
 import AiModeHero from '@/app/ui/dashboard/ai-mode-hero';
+import BlurFade from '@/app/ui/magic-ui/blur-fade';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
 
@@ -114,6 +115,16 @@ export default async function BookItemsPage({
       <title>Book Items | Dashboard</title>
 
       <AiModeHero defaultQuery={q} />
+      <BlurFade delay={0.1} yOffset={10}>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-bold tracking-tight text-swin-charcoal dark:text-white">
+            Book Items
+          </h1>
+          <p className="text-swin-charcoal/60 dark:text-slate-400 max-w-2xl">
+            Browse the catalogue and filter by status. Use title or author to narrow results.
+          </p>
+        </div>
+      </BlurFade>
 
       {/* ✅ This form stays on /dashboard/book-items and submits via GET */}
       <BookItemsFilter

@@ -26,10 +26,8 @@ export default function ThemeToggle({ className, size = 'default', context = 'de
       className={clsx(
         'group relative inline-flex items-center rounded-full p-1 shadow-inner shadow-black/5 transition-all',
         isSidebar
-          ? isDark
-            ? 'w-full border-white/20 bg-slate-900/80 text-slate-100'
-            : 'w-full border-[#FEFDFD]/50 bg-[#2a2d38] text-[#FEFDFD]'
-          : 'border-2 border-slate-300 bg-white text-slate-800 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-100',
+          ? 'w-full border-white/10 bg-black/20 text-slate-100'
+          : 'border-2 border-slate-300 bg-white text-slate-800 dark:border-slate-700 dark:bg-swin-charcoal dark:text-slate-100',
         isSidebar ? 'h-[44px]' : containerClasses,
         className,
       )}
@@ -37,17 +35,17 @@ export default function ThemeToggle({ className, size = 'default', context = 'de
       <div
         className={clsx(
           'absolute inset-1 flex items-center justify-between text-xs font-semibold uppercase tracking-wide',
-          isSidebar ? (isDark ? 'px-3 text-slate-300' : 'px-3 text-[#FEFDFD]/90') : 'px-2 text-slate-500 dark:text-slate-300',
+          isSidebar ? 'px-3 text-slate-300' : 'px-2 text-slate-500 dark:text-slate-300',
         )}
       >
-        <SunIcon className={clsx(iconSize, isDark ? 'opacity-40' : 'opacity-100 text-amber-500')} />
-        <MoonIcon className={clsx(iconSize, isDark ? 'opacity-100 text-indigo-300' : 'opacity-30')} />
+        <SunIcon className={clsx(iconSize, isDark ? 'opacity-40' : 'opacity-100 text-swin-red')} />
+        <MoonIcon className={clsx(iconSize, isDark ? 'opacity-100 text-swin-red' : 'opacity-30')} />
       </div>
       {isSidebar ? (
         <span
           className={clsx(
             'absolute inset-y-[6px] w-[calc(50%-6px)] rounded-full shadow-lg transition-transform duration-300 ease-out',
-            isDark ? 'left-[6px] bg-slate-950' : 'left-[6px] bg-[#FEFDFD]',
+            'bg-swin-ivory',
           )}
           style={{ transform: isDark ? 'translateX(0)' : 'translateX(calc(100%))' }}
         />
