@@ -24,7 +24,10 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
   const [selectedBookId, setSelectedBookId] = useState<string>(preSelectedBookId ?? '');
   const [selectedCopyId, setSelectedCopyId] = useState<string>('');
   const [selectedCopyBarcode, setSelectedCopyBarcode] = useState<string | null>(null);
-  const [lookupMessage, setLookupMessage] = useState<{ tone: 'neutral' | 'success' | 'error'; text: string } | null>(null);
+  const [lookupMessage, setLookupMessage] = useState<{
+    tone: 'neutral' | 'success' | 'error';
+    text: string;
+  } | null>(null);
   const [bookOptions, setBookOptions] = useState(() => buildBookOptions(books));
   const [bookMap, setBookMap] = useState(() => createBookMap(books));
   const contentId = 'borrow-form-panel';
@@ -209,7 +212,15 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
         )}
       >
         <form ref={formRef} action={formAction} className="grid gap-4 lg:grid-cols-2">
+          {/* For Supabase: which copy to loan */}
           <input type="hidden" name="copyId" value={selectedCopyId} />
+          {/* For SIP: itemIdentifier (usually the copy barcode) */}
+          <input
+            type="hidden"
+            name="itemIdentifier"
+            value={selectedCopyBarcode ?? ''}
+          />
+
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-swin-charcoal" htmlFor="bookId">
               Book to borrow
@@ -398,7 +409,9 @@ type ApiBook = {
   copies: ApiBookCopy[] | null;
 };
 
-const normalizeCopyStatus = (value: string | null | undefined): Book['copies'][number]['status'] => {
+const normalizeCopyStatus = (
+  value: string | null | undefined,
+): Book['copies'][number]['status'] => {
   if (typeof value !== 'string') return 'available';
   switch (value.trim().toUpperCase()) {
     case 'ON_LOAN':
