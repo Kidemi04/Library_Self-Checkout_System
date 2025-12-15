@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   HomeIcon,
-  ArrowUpTrayIcon,
   BookOpenIcon,
   Squares2X2Icon,
   UserGroupIcon,
@@ -21,9 +20,9 @@ import type { DashboardRole } from '@/app/lib/auth/types';
 
 const userLinks = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
+  { name: 'Catalogue', href: '/dashboard/book', icon: BookOpenIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
   { name: 'Social', href: '/dashboard/social', icon: UserGroupIcon },
-  { name: 'Catalogue', href: '/dashboard/book', icon: BookOpenIcon },
   { name: 'My Reservations', href: '/dashboard/reservations', icon: BellAlertIcon },
   { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
   { name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon },
@@ -31,8 +30,8 @@ const userLinks = [
 
 const staffLinks = [
   { name: 'Staff Overview', href: '/dashboard/admin', icon: Squares2X2Icon },
+  { name: 'Catalogue', href: '/dashboard/book', icon: BookOpenIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
-  { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
   { name: 'Social', href: '/dashboard/social', icon: UserGroupIcon },
   { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
   { name: 'Manage Holds', href: '/dashboard/holds', icon: BellAlertIcon },
