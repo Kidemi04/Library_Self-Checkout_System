@@ -3,9 +3,9 @@ import Link from 'next/link';
 import clsx from 'clsx';
 
 export type TabSwitchItem = {
-  key: string;     // Unique key for active state
-  label: string;   // Text shown
-  href: string;    // Navigation link
+  key: string;
+  label: string;
+  href: string;
 };
 
 type TabSwitchProps = {
@@ -20,20 +20,29 @@ export default function TabSwitch({
   className,
 }: TabSwitchProps) {
   const count = items.length;
+  const activeIndex = items.findIndex(i => i.key === activeKey);
 
   return (
     <div
       className={clsx(
-        'relative w-full h-14 rounded-xl flex p-1 bg-slate-200 dark:bg-slate-800',
+        // Smaller height on mobile, allow horizontal scroll
+        'relative w-full rounded-xl flex p-1',
+        'h-12 md:h-14',
+        'bg-slate-200 dark:bg-slate-800',
+        'overflow-x-auto scrollbar-hide',
         className
       )}
     >
       {/* Active background */}
       <div
-        className="absolute inset-y-1 left-1 rounded-lg transition-all duration-300 bg-slate-800 dark:bg-slate-100"
+        className={clsx(
+          // Compact indicator on mobile
+          'absolute inset-y-1 left-1 rounded-lg transition-all duration-300',
+          'bg-slate-800 dark:bg-slate-100'
+        )}
         style={{
           width: `calc(${100 / count}% - 0.25rem)`,
-          transform: `translateX(${items.findIndex(i => i.key === activeKey) * 100}%)`,
+          transform: `translateX(${activeIndex * 100}%)`,
         }}
       />
 
@@ -46,11 +55,18 @@ export default function TabSwitch({
             href={item.href}
             prefetch
             className={clsx(
-              'relative z-10 flex-1 flex items-center justify-center font-semibold tezt-lg md:text-lg transition-colors',
+              'relative z-10 flex-1 min-w-[5rem]', // Prevent too narrow tabs
+              'flex items-center justify-center text-center',
+              'font-semibold transition-colors',
+              // Smaller text on mobile
+              'text-sm md:text-lg',
+              // Allow wrapping instead of squeezing
+              'leading-tight px-2',
               isActive
                 ? 'text-slate-200 dark:text-slate-800'
                 : 'text-slate-800 dark:text-slate-200 hover:text-slate-500 dark:hover:text-slate-400'
-            )}>
+            )}
+          >
             {item.label}
           </Link>
         );
