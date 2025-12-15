@@ -44,7 +44,6 @@ export default function MobileNav({
   const pathname = usePathname();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const isPrivileged = user.role === 'staff' || user.role === 'admin';
 
   const topBarClasses = clsx(
     'flex items-center justify-between border-b px-4 py-3 backdrop-blur-md transition-colors md:hidden',
