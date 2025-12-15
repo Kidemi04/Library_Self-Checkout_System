@@ -107,7 +107,7 @@ export default async function BookItemsPage({
       {/* Header */}
       <DashboardTitleBar
         subtitle="Book Lists"
-        title="Book Items"
+        title="Manage Book Lists"
         description="Keep the Supabase-powered catalogue of Swinburne resources up to date."
       />
 
