@@ -7,7 +7,6 @@ import {
   BookOpenIcon,
   Squares2X2Icon,
   UserGroupIcon,
-  QueueListIcon,
   UserCircleIcon,
   BellAlertIcon,
   AcademicCapIcon,
