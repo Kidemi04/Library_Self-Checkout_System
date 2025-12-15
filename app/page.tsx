@@ -141,7 +141,6 @@ export default function HomePage() {
         </BlurFade>
       </footer>
 
-
     </main>
   );
 }
