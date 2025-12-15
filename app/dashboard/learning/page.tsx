@@ -13,6 +13,13 @@ export default async function LearningPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const rawParams = (await searchParams) ?? {};
+
+  const normalizedParams: Record<string, string | string[]> = Object.fromEntries(
+    Object.entries(rawParams).filter(([, value]) => value !== undefined)
+  ) as Record<string, string | string[]>;
+  
+  
   const params = (await searchParams) ?? {};
   const { user } = await getDashboardSession();
   if (!user) redirect('/login');
@@ -48,9 +55,10 @@ export default async function LearningPage({
         {section === 'paths' ? (
           <LearningPathsPage />
         ) : (
-          <LinkedInLearningPage searchParams={Promise.resolve(params)} />
+          <LinkedInLearningPage searchParams={Promise.resolve(normalizedParams)} />
         )}
       </Suspense>
+
     </main>
   );
 }

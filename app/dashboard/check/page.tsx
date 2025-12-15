@@ -4,8 +4,8 @@ import { getDashboardSession } from "@/app/lib/auth/session";
 import TabSwitch from "@/app/ui/dashboard/tab-switch";
 
 // Sub page
-import BorrowBooksPage from "./out/page"
-import ReturningBooksPage from "./in/page"
+import BorrowBooksPage from "../book/check-out/page"
+import ReturningBooksPage from "../book/check-in/page"
 
 export default async function CheckPage({
     searchParams,

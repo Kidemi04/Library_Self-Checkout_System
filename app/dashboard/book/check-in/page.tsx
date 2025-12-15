@@ -40,7 +40,7 @@ export default async function ReturningBooksPage({
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchForm
-          action="/dashboard/check"
+          action="/dashboard/book"
           placeholder="Search borrowed books by borrower, ID, or title"
           defaultValue={searchTerm}
           aria-label="Search borrowed books"
