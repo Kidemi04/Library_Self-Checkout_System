@@ -20,6 +20,10 @@ jobs:
         with:
             node-version: 20.9.0
 
+      - name: Check Node version
+        run: node -v
+
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
