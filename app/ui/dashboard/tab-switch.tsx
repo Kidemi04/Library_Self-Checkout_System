@@ -50,8 +50,7 @@ export default function TabSwitch({
               isActive
                 ? 'text-slate-200 dark:text-slate-800'
                 : 'text-slate-800 dark:text-slate-200 '
-            )}
-          >
+            )}>
             {item.label}
           </Link>
         );
