@@ -10,6 +10,7 @@ import GlassCard from "@/app/ui/magic-ui/glass-card";
 export default function HomePage() {
   return (
     <main className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-swin-ivory text-swin-charcoal transition-colors dark:bg-slate-950 dark:text-slate-100">
+      <title>Home Page</title>
 
       {/* Background image */}
       <div className="absolute inset-0 z-0">
