@@ -8,7 +8,6 @@ import {
   BellIcon,
   CameraIcon,
   BookOpenIcon,
-  QueueListIcon,
   UserCircleIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
