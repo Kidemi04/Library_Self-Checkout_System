@@ -5,14 +5,12 @@ import { usePathname } from 'next/navigation';
 import {
   HomeIcon,
   ArrowUpTrayIcon,
-  ArrowDownTrayIcon,
   BookOpenIcon,
   Squares2X2Icon,
   UserGroupIcon,
   QueueListIcon,
   UserCircleIcon,
   BellAlertIcon,
-  InformationCircleIcon,
   AcademicCapIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline';
@@ -29,8 +27,7 @@ const userLinks = [
   { name: 'My Reservations', href: '/dashboard/reservations', icon: BellAlertIcon },
   { name: 'Borrow / Return Books', href: '/dashboard/check', icon: ArrowUpTrayIcon },
   { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
-  { name: 'Learning Paths', href: '/dashboard/learning-paths', icon: QueueListIcon },
-  { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
+  { name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon },
 ];
 
 const staffLinks = [
@@ -42,8 +39,7 @@ const staffLinks = [
   { name: 'Manage Holds', href: '/dashboard/holds', icon: BellAlertIcon },
   { name: 'Borrow / Return Books', href: '/dashboard/check', icon: ArrowUpTrayIcon },
   { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
-  { name: 'Learning Paths', href: '/dashboard/learning-paths', icon: QueueListIcon },
-  { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
+  { name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon },
 ];
 
 const adminLinks = [...staffLinks, { name: 'Manage Users', href: '/dashboard/admin/users', icon: UserGroupIcon }];
