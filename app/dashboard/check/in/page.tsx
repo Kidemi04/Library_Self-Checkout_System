@@ -31,7 +31,7 @@ export default async function ReturningBooksPage({
     <main className="space-y-8">
       <title>Returning Books | Dashboard</title>
       <DashboardTitleBar
-        subtitle="Check Out"
+        subtitle="Check In"
         title="Returning Books"
         description={canProcessReturns
           ? "Record completed loans and reconcile returned items with the inventory."
@@ -40,11 +40,12 @@ export default async function ReturningBooksPage({
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchForm
-          action="/dashboard/check-in"
+          action="/dashboard/check"
           placeholder="Search borrowed books by borrower, ID, or title"
           defaultValue={searchTerm}
           aria-label="Search borrowed books"
           className="flex-1 min-w-0"
+          extraParams={{ mode: 'in' }}
         />
         {canProcessReturns ? <CameraScanButton className="w-full max-w-full md:w-auto" /> : null}
       </div>

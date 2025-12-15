@@ -67,13 +67,13 @@ export default async function FriendsPage(props: {
                         className="absolute top-1 bottom-1 left-1 w-[calc(33.33%-0.5rem)] bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]"
                         style={{ transform: `translateX(${tab === 'requests' ? '100%' : tab === 'find' ? '200%' : '0%'})` }}
                     />
-                    <Link href="/dashboard/friends?tab=list" className={tabClass(tab === 'list')}>
+                    <Link href="/dashboard/social?section=friends&tab=list" className={tabClass(tab === 'list')}>
                         My Friends ({friends.length})
                     </Link>
-                    <Link href="/dashboard/friends?tab=requests" className={tabClass(tab === 'requests')}>
+                    <Link href="/dashboard/social?section=friends&tab=requests" className={tabClass(tab === 'requests')}>
                         Requests ({requests.length})
                     </Link>
-                    <Link href="/dashboard/friends?tab=find" className={tabClass(tab === 'find')}>
+                    <Link href="/dashboard/social?section=friends&tab=find" className={tabClass(tab === 'find')}>
                         Find Friends
                     </Link>
                 </div>
@@ -91,7 +91,7 @@ export default async function FriendsPage(props: {
                                 <p className="text-slate-500 max-w-xs mx-auto mt-1">
                                     Start building your network by finding people you know.
                                 </p>
-                                <Link href="/dashboard/friends?tab=find" className="mt-6 px-6 py-2 bg-swin-red text-white rounded-full font-medium hover:bg-swin-red/90 transition-colors shadow-lg shadow-swin-red/20">
+                                <Link href="/dashboard/social?section=friends&tab=find" className="mt-6 px-6 py-2 bg-swin-red text-white rounded-full font-medium hover:bg-swin-red/90 transition-colors shadow-lg shadow-swin-red/20">
                                     Find Friends
                                 </Link>
                             </GlassCard>

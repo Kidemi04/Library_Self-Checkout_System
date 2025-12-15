@@ -51,12 +51,12 @@ export default async function BorrowBooksPage({
         }
       />
 
-
       <SearchForm
-        action="/dashboard/check-out"
+        action="/dashboard/check"
         placeholder="Search by title, author, ISBN, or barcode"
         defaultValue={searchTerm}
         aria-label="Search available books"
+        extraParams={{ mode: 'out' }}
       />
 
       <CheckOutForm books={books} defaultDueDate={defaultDueDate} preSelectedBookId={preSelectedBookId} />
