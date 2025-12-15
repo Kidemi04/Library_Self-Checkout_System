@@ -49,7 +49,7 @@ export default function TabSwitch({
               'relative z-10 flex-1 flex items-center justify-center font-semibold tezt-lg md:text-lg transition-colors',
               isActive
                 ? 'text-slate-200 dark:text-slate-800'
-                : 'text-slate-800 dark:text-slate-200 '
+                : 'text-slate-800 dark:text-slate-200 hover:text-slate-500 dark:hover:text-slate-400'
             )}>
             {item.label}
           </Link>
