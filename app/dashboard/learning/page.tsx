@@ -10,6 +10,7 @@ import {
 import type { LinkedInLearningLevel, LinkedInLearningTopicDefinition } from '@/app/lib/linkedin/types';
 import LinkedInLearningCourseCard from '@/app/ui/dashboard/learning/course-card';
 import LinkedInLearningSearchForm from '@/app/ui/dashboard/learning/search-form';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 
 const curatedTopics: LinkedInLearningTopicDefinition[] = [
   {
@@ -101,14 +102,12 @@ export default async function LinkedInLearningPage({
     <main className="space-y-8">
       <title>LinkedIn Learning | Dashboard</title>
 
-      <header className="rounded-3xl border border-swin-charcoal/10 bg-gradient-to-r from-swin-charcoal via-swin-red to-[#3b0b14] p-8 text-white shadow-2xl shadow-swin-red/30">
-        <p className="text-xs uppercase tracking-[0.3em] text-white/70">Professional learning</p>
-        <h1 className="mt-3 text-2xl font-semibold">LinkedIn Learning library</h1>
-        <p className="mt-3 max-w-3xl text-sm text-white/80">
-          Surface curated LinkedIn Learning courses that complement library services. Search for topics, share
-          playlists with staff, or recommend skills to members right from the dashboard.
-        </p>
-      </header>
+      <DashboardTitleBar
+        subtitle="Professional learning"
+        title="LinkedIn Learning library"
+        description="Surface curated LinkedIn Learning courses that complement library services. Search for topics, share
+        playlists with staff, or recommend skills to members right from the dashboard."
+      />
 
       {isPrivileged && status ? (
         <section className="grid gap-4 md:grid-cols-2">

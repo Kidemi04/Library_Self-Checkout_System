@@ -7,6 +7,7 @@ import {
   fetchActiveHoldsForPatron,
   type PatronHold,
 } from '@/app/lib/supabase/queries';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 
 const dateFormatter = new Intl.DateTimeFormat('en-MY', {
   day: 'numeric',
@@ -202,14 +203,12 @@ export default async function MyReservationsPage() {
     <main className="space-y-8 text-slate-900 dark:text-slate-100">
       <title>My Reservations | Dashboard</title>
 
-      <header className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm shadow-slate-200/70 dark:border-white/10 dark:bg-slate-900 dark:shadow-black/40">
-        <p className="text-xs uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400">Reservations</p>
-        <h1 className="mt-3 text-2xl font-semibold text-slate-900 dark:text-slate-100">My reserved books</h1>
-        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-          Track items that are waiting for you or currently in the reservation queue. We’ll
-          notify you by email when it’s your turn to collect them.
-        </p>
-      </header>
+      <DashboardTitleBar
+        subtitle="Reservations"
+        title="My reserved books"
+        description="Track items that are waiting for you or currently in the reservation queue. We'll
+        notify you by email when it's your turn to collect them."
+      />
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
