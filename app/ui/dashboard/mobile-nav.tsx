@@ -123,61 +123,6 @@ export default function MobileNav({
           {navItems.map((item) => {
             const Icon = item.icon;
 
-            // --- Special handling for Catalog (privileged toggle) ---
-            if (item.key === 'catalog') {
-              const isActive =
-                pathname.startsWith('/dashboard/book-items') ||
-                pathname.startsWith('/dashboard/book-list');
-
-              // Detect current page
-              const isOnBookItems = pathname.startsWith('/dashboard/book-items');
-              const isOnBookList = pathname.startsWith('/dashboard/book-list');
-
-              // Reset to default when not on catalog-related pages
-              const isOnCatalogPages = isOnBookItems || isOnBookList;
-
-              // Determine next route based on current route
-              const nextCatalogHref = isPrivileged
-                ? isOnBookItems
-                  ? '/dashboard/book-list'
-                  : '/dashboard/book-items'
-                : item.href;
-
-              // Dynamically switch icon & label
-              const DynamicIcon = isPrivileged
-                ? isOnCatalogPages
-                  ? (isOnBookItems ? QueueListIcon : BookOpenIcon) // Toggle icon only on catalog pages
-                  : QueueListIcon // Reset to Book List icon when on other pages
-                : item.icon;
-
-              // Dynamic label based on current page
-              const dynamicLabel = isPrivileged
-                ? isOnCatalogPages
-                  ? (isOnBookItems ? 'Book List' : 'Catalog') // Toggle label only on catalog pages
-                  : 'Book List' // Reset label when on other pages
-                : item.label;
-
-              return (
-                <Link
-                  key={item.key}
-                  href={nextCatalogHref}
-                  onClick={(e) => {
-                    if (!isPrivileged) return;
-                    e.preventDefault();
-                    window.location.href = nextCatalogHref;
-                  }}
-                  className={clsx(
-                    'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors',
-                    isActive ? activeTextClass : inactiveTextClass,
-                  )}
-                  aria-current={isActive ? 'page' : undefined}
-                >
-                  <DynamicIcon className="h-6 w-6" />
-                  <span>{dynamicLabel}</span>
-                </Link>
-              );
-            }
-
             // --- Existing special Scan button (keep unchanged) ---
             if (item.key === 'scan') {
               const isActive = isItemActive(item.href);

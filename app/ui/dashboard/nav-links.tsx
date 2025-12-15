@@ -33,7 +33,6 @@ const staffLinks = [
   { name: 'Catalogue', href: '/dashboard/book', icon: BookOpenIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
   { name: 'Social', href: '/dashboard/social', icon: UserGroupIcon },
-  { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
   { name: 'Manage Holds', href: '/dashboard/holds', icon: BellAlertIcon },
   { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
   { name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon },
