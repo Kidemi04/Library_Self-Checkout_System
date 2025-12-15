@@ -101,7 +101,7 @@ export default function HomePageDesktop() {
       <footer className="absolute bottom-6 left-0 w-full text-center">
         <BlurFade delay={0.8}>
           <Link
-            href="/dashboard/about-page"
+            href="/about-page"
             className="text-xs font-semibold text-white/70 underline-offset-4 transition hover:text-white hover:underline"
           >
             Powered by Group 12 • © 2025 Swinburne Final Year Project
