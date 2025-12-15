@@ -1,5 +1,5 @@
-name: Test Next.js App
-
+name: Test Build Next.js
+    
 on:
     push:
         branches: ["**"]
@@ -18,16 +18,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-            node-version: 20.9.0
+            node-version: 22.19.0
+            # Same as the system version
 
       - name: Check Node version
         run: node -v
 
-
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-            version: 8
+            version: 10.17.1
+
+      - name: Check the pnpm version
+        run: pnpm -v
 
       - name: Install dependencies
         run: pnpm install
