@@ -10,6 +10,7 @@ import Search from '@/app/ui/search';
 import BlurFade from '@/app/ui/magic-ui/blur-fade';
 import GlassCard from '@/app/ui/magic-ui/glass-card';
 import clsx from 'clsx';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 
 export default async function FriendsPage(props: {
     searchParams: Promise<{
@@ -54,18 +55,11 @@ export default async function FriendsPage(props: {
 
     return (
         <main className="w-full space-y-8">
-            <BlurFade delay={0.1} yOffset={10}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            Friends
-                        </h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-1">
-                            Manage your connections and find new people.
-                        </p>
-                    </div>
-                </div>
-            </BlurFade>
+            <DashboardTitleBar
+                subtitle="Social"
+                title="Friends"
+                description="Manage your connections and find new people."
+            />
 
             <BlurFade delay={0.2} yOffset={10}>
                 <div className="relative bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-full backdrop-blur-md flex w-full max-w-md mx-auto md:mx-0">

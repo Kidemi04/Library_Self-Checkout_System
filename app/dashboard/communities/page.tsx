@@ -7,6 +7,7 @@ import { PlusIcon, UserGroupIcon, MagnifyingGlassIcon } from '@heroicons/react/2
 import CreateCommunityWrapper from './create-community-wrapper';
 import BlurFade from '@/app/ui/magic-ui/blur-fade';
 import GlassCard from '@/app/ui/magic-ui/glass-card';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 import clsx from 'clsx';
 
 export default async function CommunitiesPage(props: {
@@ -34,19 +35,11 @@ export default async function CommunitiesPage(props: {
 
     return (
         <main className="w-full space-y-8">
-            <BlurFade delay={0.1} yOffset={10}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            Communities
-                        </h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-1">
-                            Join groups and connect with people who share your interests.
-                        </p>
-                    </div>
-                    <CreateCommunityWrapper />
-                </div>
-            </BlurFade>
+            <DashboardTitleBar
+                subtitle="Social"
+                title="Communities"
+                description="Join groups and connect with people who share your interests."
+            />
 
             <BlurFade delay={0.2} yOffset={10}>
                 <div className="relative bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-full backdrop-blur-md flex w-full max-w-xs mx-auto md:mx-0">
