@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { fetchCommunityDetails, fetchCommunityPosts } from '@/app/lib/supabase/communities';
-import { joinCommunity, leaveCommunity } from '@/app/dashboard/communities/actions';
+import { joinCommunity, leaveCommunity } from '@/app/dashboard/social/communities/actions';
 import { redirect, notFound } from 'next/navigation';
 import { Button } from '@/app/ui/button';
 import CreatePostForm from '@/app/ui/dashboard/communities/create-post-form';
