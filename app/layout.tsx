@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import '@/app/ui/global.css';
 import { ThemeProvider, type ThemeMode } from '@/app/ui/theme/theme-provider';
 
 const THEME_COOKIE = 'dashboard-theme';
