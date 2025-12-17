@@ -4,7 +4,7 @@ import React from 'react';
 import ManageBookModal from './manage-book-modal';
 import { updateBook, deleteBook, type ItemStatus } from '@/app/lib/supabase/updates';
 import type { CopyStatus } from '@/app/lib/supabase/types';
-import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
+import { Pagination } from '@/app/ui/dashboard/pagination';
 
 export type CatalogBook = {
   id: string;
@@ -464,28 +464,11 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
       </ManageBookModal>
 
       {/* Paging control */}
-      <div className="mt-4 flex items-center justify-center gap-4">
-        
-        <button
-          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          disabled={currentPage === 1}
-          className="rounded-xl border border-slate-200 bg-white px-5 py-1.5 text-m font-medium text-slate-800 shadow-sm disabled:opacity-50"
-        >
-          <ChevronDoubleLeftIcon className='h-6 w-6'></ChevronDoubleLeftIcon>
-        </button>
-
-        <span className="text-sm text-white/80">
-          Page {currentPage} of {totalPages}
-        </span>
-
-        <button
-          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-          disabled={currentPage === totalPages}
-          className="rounded-xl border border-slate-200 bg-white px-5 py-1.5 text-m font-medium text-slate-800 shadow-sm disabled:opacity-50"
-        >
-          <ChevronDoubleRightIcon className='h-6 w-6'></ChevronDoubleRightIcon>
-        </button>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </>
   );
 }
@@ -508,7 +491,7 @@ function renderStatusBadge(status?: ItemStatus | null) {
   };
   const badge = map[s];
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${badge.cls}`}>
+    <span className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-medium ${badge.cls}`}>
       {badge.text}
     </span>
   );
@@ -517,7 +500,7 @@ function renderStatusBadge(status?: ItemStatus | null) {
 function renderSipStatusBadge(status?: CopyStatus | null) {
   if (!status) {
     return (
-      <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+      <span className="inline-flex items-center rounded-lg bg-slate-100 px-3 py-1 text-xs font-medium text-slate-500">
         Unknown
       </span>
     );
@@ -534,7 +517,7 @@ function renderSipStatusBadge(status?: CopyStatus | null) {
 
   const badge = map[status];
   return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${badge.cls}`}>
+    <span className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-medium ${badge.cls}`}>
       {badge.text}
     </span>
   );
