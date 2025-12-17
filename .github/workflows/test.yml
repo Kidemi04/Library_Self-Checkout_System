@@ -1,4 +1,4 @@
-name: Test Build Next.js
+name: Test Build Next.js in Ubuntu
 
 on:
     pull_request:
