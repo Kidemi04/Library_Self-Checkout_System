@@ -1,6 +1,6 @@
 # Library Self-Checkout System
 
-[![Test Next.js App](https://github.com/Kidemi04/Library_Self-Checkout_System/actions/workflows/test.yml/badge.svg)](https://github.com/Kidemi04/Library_Self-Checkout_System/actions/workflows/test.yml)
+[![Test Build Next.js in Ubuntu](https://github.com/Kidemi04/Library_Self-Checkout_System/actions/workflows/test.yml/badge.svg)](https://github.com/Kidemi04/Library_Self-Checkout_System/actions/workflows/test.yml)
 
 A modern, web-based library self-service system built with Next.js 14, featuring Azure AD authentication, Supabase backend, and a responsive mobile-first design.
 
