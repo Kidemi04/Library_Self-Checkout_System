@@ -6,7 +6,7 @@ on:
     workflow_dispatch:
 
 jobs:
-  Build_Nextjs:
+  Build-Nextjs:
     runs-on: ubuntu-latest
 
     steps:
