@@ -170,6 +170,8 @@ export default async function ProfilePage() {
 
   return (
     <main className={pageBgClass}>
+      <title>My Profile</title>
+
       <div className={wrapperClass}>
 
         {/* 1. Hero Section */}

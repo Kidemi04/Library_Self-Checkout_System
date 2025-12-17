@@ -1,21 +1,50 @@
-import { cookies } from 'next/headers';
 import '@/app/ui/global.css';
+
+import { cookies } from 'next/headers';
 import { ThemeProvider, type ThemeMode } from '@/app/ui/theme/theme-provider';
 
 const THEME_COOKIE = 'dashboard-theme';
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Read theme from cookie on the server
   const cookieStore = await cookies();
   const storedTheme = cookieStore.get(THEME_COOKIE)?.value;
-  const resolvedTheme: ThemeMode = storedTheme === 'dark' ? 'dark' : 'light';
+
+  // Resolve theme (default to light if missing)
+  const resolvedTheme: ThemeMode =
+    storedTheme === 'dark' ? 'dark' : 'light';
 
   return (
-    <html lang="en" className={resolvedTheme === 'dark' ? 'dark' : 'light'} data-theme={resolvedTheme}>
+    // IMPORTANT:
+    // Set theme class on <html> during SSR
+    // This prevents hydration mismatch
+    <html
+      lang="en"
+      className={resolvedTheme}
+      suppressHydrationWarning
+    >
       <body
-        suppressHydrationWarning
-        className="min-h-screen bg-swin-ivory text-swin-charcoal transition-colors duration-300 dark:bg-swin-dark-bg dark:text-slate-100"
+        className="
+          min-h-screen
+          transition-colors
+          duration-300
+          bg-swin-ivory
+          text-swin-charcoal
+          dark:bg-swin-dark-bg
+          dark:text-slate-100
+        "
       >
-        <ThemeProvider defaultTheme={resolvedTheme}>{children}</ThemeProvider>
+        {/* 
+          ThemeProvider uses the SAME theme as SSR.
+          No theme switch on first render.
+        */}
+        <ThemeProvider defaultTheme={resolvedTheme}>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

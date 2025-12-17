@@ -100,8 +100,6 @@ export default async function LinkedInLearningPage({
 
   return (
     <main className="space-y-8">
-      <title>LinkedIn Learning | Dashboard</title>
-
       <DashboardTitleBar
         subtitle="Professional learning"
         title="LinkedIn Learning library"
