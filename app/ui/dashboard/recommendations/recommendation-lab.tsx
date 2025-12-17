@@ -219,14 +219,19 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
     [associationRules, interestTokens],
   );
 
+const contentClass = 
+"inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 font-semibold " +
+"bg-slate-200 text-black/90 " +
+"dark:text-white/80"
+
   return (
     <div className="space-y-6">
-      <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/75">
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 font-semibold">
+      <div className="mt-4 flex flex-wrap gap-2 text-xs">
+        <span className={contentClass}>
           <SparklesIcon className="h-4 w-4" />
           Content + circulation blend
         </span>
-        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 font-semibold">
+        <span className={contentClass}>
           <LightBulbIcon className="h-4 w-4" />
           Association rules expand your tags
         </span>

@@ -24,6 +24,8 @@ export default async function CommunityPage(props: {
 
     return (
         <main className="w-full max-w-6xl mx-auto space-y-6">
+            <title>{community.name}</title>
+
             <BlurFade delay={0.1} yOffset={10}>
                 <Link href="/dashboard/social?section=communities" className="inline-flex items-center text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors mb-2">
                     <ArrowLeftIcon className="h-4 w-4 mr-1" />

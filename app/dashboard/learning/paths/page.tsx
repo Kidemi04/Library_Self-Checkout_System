@@ -85,8 +85,6 @@ export default async function LearningPathsPage() {
 
   return (
     <main className="space-y-8">
-      <title>Learning Path Management | Dashboard</title>
-
       <DashboardTitleBar
         subtitle="Learning Path Management"
         title="Academic course learning path creation"
