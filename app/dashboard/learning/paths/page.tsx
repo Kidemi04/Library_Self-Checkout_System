@@ -68,7 +68,7 @@ const studentPath = {
   advisor: 'Assigned by Faculty',
   nextMilestone: 'Complete Module 3: Search & Planning',
   progress: 62,
-  enrollHref: '/dashboard/learning-paths/enroll',
+  enrollHref: '/dashboard/learning/paths/enroll',
   modules: [
     { title: 'Module 1: Python foundations', status: 'Done' },
     { title: 'Module 2: Data structures', status: 'Done' },
