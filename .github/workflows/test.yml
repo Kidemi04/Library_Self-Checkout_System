@@ -1,7 +1,7 @@
 name: Test Build Next.js in Ubuntu
 
 on:
-    pull_request:
+    push:
         branches: ["**"]
     workflow_dispatch:
 
