@@ -5,6 +5,7 @@ import SideNav from '@/app/ui/dashboard/sidenav';
 import MobileNav from '@/app/ui/dashboard/mobile-nav';
 import { useTheme } from '@/app/ui/theme/theme-provider';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
+import { useEffect, useState } from 'react';
 
 type DashboardShellProps = {
   user: DashboardUserProfile;
@@ -14,6 +15,18 @@ type DashboardShellProps = {
 
 export default function DashboardShell({ user, isBypassed, children }: DashboardShellProps) {
   const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Wait until client is fully mounted
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Do not render layout until theme is stable
+  if (!mounted) {
+    return null; // or a skeleton if you want
+  }
+
   const isDark = theme === 'dark';
 
   return (
