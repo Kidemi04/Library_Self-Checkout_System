@@ -15,6 +15,8 @@ import {
   fetchRecentLoans
 } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import DashboardUserCard from '@/app/ui/dashboard/dashboard-user-card';
 
 const roleLabel = (role: string): string => {
   if (role === 'admin') return 'Admin';
@@ -55,52 +57,18 @@ export default async function UserDashboardPage() {
     <main className="space-y-8">
       <title>Dashboard | Quick Actions</title>
 
-      <header className="relative grid gap-6 overflow-hidden rounded-3xl border border-swin-red/40 bg-gradient-to-r from-[#9f1c2b] via-[#c82333] to-[#511627] p-8 text-white shadow-2xl shadow-swin-red/40 transition md:grid-cols-[1fr_minmax(0,260px)] md:items-center">
-        <div className="pointer-events-none absolute inset-0 opacity-30">
-          <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/30 blur-3xl" />
-          <div className="absolute left-1/3 top-1/2 h-64 w-64 rounded-full bg-rose-500/30 blur-[120px]" />
-          <div className="absolute bottom-0 right-0 h-52 w-52 rounded-full bg-purple-600/20 blur-3xl" />
-        </div>
+      <DashboardTitleBar
+        subtitle="Self-Service Desk"
+        title={`Welcome back, ${user.name || 'Library Member'}!`}
+        description="Quickly process borrowing and returning directly from this dashboard. Use the controls below to assist patrons without leaving the page."
+        rightSlot={
+          <DashboardUserCard
+            email={user.email}
+            role={user.role}
+          />
+        }
+      />
 
-        <BlurFade delay={0.1} yOffset={10}>
-          <div className="relative z-10">
-            <p className="text-sm uppercase tracking-[0.35em] text-white/70">Self-Service Desk</p>
-            <h1 className="mt-3 text-2xl font-semibold">
-              Welcome back, <span className="hidden md:inline">{user.name || 'Library Member'}</span>
-              <span className="inline md:hidden">{user.username || user.name || 'Library Member'}</span>!
-            </h1>
-            <p className="mt-3 max-w-2xl text-sm text-white/80">
-              Quickly process borrowing and returning directly from this dashboard. Use the controls below to
-              assist patrons without leaving the page.
-            </p>
-          </div>
-        </BlurFade>
-
-        <BlurFade delay={0.2} yOffset={10}>
-          <div className="relative z-10 rounded-3xl border border-white/20 bg-white/10 p-5 text-sm text-white shadow-xl shadow-black/20 backdrop-blur-lg">
-            <p className="text-xs uppercase tracking-wide text-white/70">Signed in</p>
-            {user.email ? (
-              <p
-                className={clsx(
-                  'mt-1 break-words font-semibold',
-                  user.email.length > 30 ? 'text-sm md:text-base' : 'text-base',
-                  user.email.length > 40 ? 'text-xs md:text-base' : 'text-base',
-                )}
-              >
-                {user.email}
-              </p>
-            ) : null}
-            <p className="mt-2 inline-flex items-center gap-2 rounded-full border border-white/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-white/80">
-              Role: {roleLabel(user.role)}
-            </p>
-            {isBypassed ? (
-              <p className="mt-3 rounded-md bg-amber-400/30 px-3 py-2 text-[11px] font-medium text-amber-100 shadow-inner shadow-amber-700/10">
-                Development bypass active - authentication skipped.
-              </p>
-            ) : null}
-          </div>
-        </BlurFade>
-      </header>
 
       {/* Mobile quick actions - Only visible on mobile */}
       <section className="grid gap-3 md:hidden">

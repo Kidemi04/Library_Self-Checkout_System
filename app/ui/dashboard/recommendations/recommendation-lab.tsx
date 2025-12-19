@@ -219,27 +219,23 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
     [associationRules, interestTokens],
   );
 
+const contentClass = 
+"inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 font-semibold " +
+"bg-slate-200 text-black/90 " +
+"dark:text-white/80"
+
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-swin-charcoal/10 bg-gradient-to-r from-swin-charcoal via-swin-red to-[#3b0b14] p-8 text-white shadow-2xl shadow-swin-red/30">
-        <p className="text-xs uppercase tracking-[0.3em] text-white/70">Recommendation lab</p>
-        <h2 className="mt-3 text-2xl font-semibold">AI-powered book picks</h2>
-        <p className="mt-3 max-w-3xl text-sm text-white/80">
-          Enter what you want to learn or explore. We score your catalogue using content signals,
-          simple association rules between tags, and circulation heat to surface relevant titles.
-          This prototype view keeps the logic transparent so you can validate the AI-powered picks.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2 text-xs text-white/75">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 font-semibold">
-            <SparklesIcon className="h-4 w-4" />
-            Content + circulation blend
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 font-semibold">
-            <LightBulbIcon className="h-4 w-4" />
-            Association rules expand your tags
-          </span>
-        </div>
-      </section>
+      <div className="mt-4 flex flex-wrap gap-2 text-xs">
+        <span className={contentClass}>
+          <SparklesIcon className="h-4 w-4" />
+          Content + circulation blend
+        </span>
+        <span className={contentClass}>
+          <LightBulbIcon className="h-4 w-4" />
+          Association rules expand your tags
+        </span>
+      </div>
 
       <section className="grid gap-5 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-4">

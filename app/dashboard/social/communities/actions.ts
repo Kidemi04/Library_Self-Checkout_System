@@ -53,7 +53,7 @@ export async function createCommunity(prevState: ActionState, formData: FormData
         joined_at: new Date().toISOString(),
     });
 
-    revalidatePath('/dashboard/communities');
+    revalidatePath('/dashboard/social/communities');
     return success('Community created successfully');
 }
 
@@ -67,7 +67,7 @@ export async function joinCommunity(communityId: string): Promise<ActionState> {
         community_id: communityId,
         user_id: userId,
         role: 'member',
-        status: 'accepted', // For public communities, auto-accept. For private, might need 'pending'.
+        status: 'active', // For public communities, auto-accept. For private, might need 'pending'.
         joined_at: new Date().toISOString(),
     });
 
@@ -76,8 +76,8 @@ export async function joinCommunity(communityId: string): Promise<ActionState> {
         return failure('Failed to join community');
     }
 
-    revalidatePath(`/dashboard/communities/${communityId}`);
-    revalidatePath('/dashboard/communities');
+    revalidatePath(`/dashboard/social/communities/${communityId}`);
+    revalidatePath('/dashboard/social/communities');
     return success('Joined community');
 }
 
@@ -98,8 +98,8 @@ export async function leaveCommunity(communityId: string): Promise<ActionState> 
         return failure('Failed to leave community');
     }
 
-    revalidatePath(`/dashboard/communities/${communityId}`);
-    revalidatePath('/dashboard/communities');
+    revalidatePath(`/dashboard/social/communities/${communityId}`);
+    revalidatePath('/dashboard/social/communities');
     return success('Left community');
 }
 
@@ -128,6 +128,6 @@ export async function createPost(prevState: ActionState, formData: FormData): Pr
         return failure('Failed to create post');
     }
 
-    revalidatePath(`/dashboard/communities/${communityId}`);
+    revalidatePath(`/dashboard/social/communities/${communityId}`);
     return success('Post created');
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useFormState, useFormStatus } from 'react-dom';
-import { createPost } from '@/app/dashboard/communities/actions';
+import { createPost } from '@/app/dashboard/social/communities/actions';
 import { Button } from '@/app/ui/button';
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { ActionState } from '@/app/dashboard/action-state';

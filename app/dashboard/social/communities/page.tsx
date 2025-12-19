@@ -7,6 +7,7 @@ import { PlusIcon, UserGroupIcon, MagnifyingGlassIcon } from '@heroicons/react/2
 import CreateCommunityWrapper from './create-community-wrapper';
 import BlurFade from '@/app/ui/magic-ui/blur-fade';
 import GlassCard from '@/app/ui/magic-ui/glass-card';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 import clsx from 'clsx';
 
 export default async function CommunitiesPage(props: {
@@ -34,33 +35,25 @@ export default async function CommunitiesPage(props: {
 
     return (
         <main className="w-full space-y-8">
-            <BlurFade delay={0.1} yOffset={10}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            Communities
-                        </h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-1">
-                            Join groups and connect with people who share your interests.
-                        </p>
-                    </div>
-                    <CreateCommunityWrapper />
-                </div>
-            </BlurFade>
+            <DashboardTitleBar
+                subtitle="Social"
+                title="Communities"
+                description="Join groups and connect with people who share your interests."
+            />
 
             <BlurFade delay={0.2} yOffset={10}>
-                <div className="relative bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-full backdrop-blur-md flex w-full max-w-xs mx-auto md:mx-0">
-                    <div
-                        className="absolute top-1 bottom-1 left-1 w-[calc(50%-0.5rem)] bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]"
-                        style={{ transform: `translateX(${tab === 'my' ? '100%' : '0%'})` }}
-                    />
-                    <Link href="/dashboard/communities?tab=explore" className={tabClass(tab === 'explore')}>
-                        Explore
-                    </Link>
-                    <Link href="/dashboard/communities?tab=my" className={tabClass(tab === 'my')}>
-                        My Communities
-                    </Link>
-                </div>
+              <div className="relative bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-full backdrop-blur-md flex w-full max-w-xs mx-auto md:mx-0">
+                  <div
+                      className="absolute top-1 bottom-1 left-1 w-[calc(50%-0.5rem)] bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]"
+                      style={{ transform: `translateX(${tab === 'my' ? '100%' : '0%'})` }}
+                  />
+                  <Link href="/dashboard/social?section=communities&tab=explore" className={tabClass(tab === 'explore')}>
+                      Explore
+                  </Link>
+                  <Link href="/dashboard/social?section=communities&tab=my" className={tabClass(tab === 'my')}>
+                      My Communities
+                  </Link>
+              </div>
             </BlurFade>
 
             <BlurFade delay={0.3} yOffset={20}>
@@ -81,7 +74,7 @@ export default async function CommunitiesPage(props: {
                         communitiesToShow.map((community) => (
                             <Link
                                 key={community.id}
-                                href={`/dashboard/communities/${community.id}`}
+                                href={`/dashboard/social/communities/${community.id}`}
                                 className="block group"
                             >
                                 <GlassCard className="h-full overflow-hidden p-0 hover:scale-[1.02] transition-transform duration-300 border-0 ring-1 ring-slate-200 dark:ring-slate-700">
