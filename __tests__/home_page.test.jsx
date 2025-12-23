@@ -27,13 +27,24 @@ jest.mock('framer-motion', () => ({
 }));
 
 describe('Home Page', () => {
-  it('Render the Heading 1', () => {
+  it('Render Heading 1', () => {
     render(<HomePage/>);
 
-    const heading = screen.getByRole('heading', {
-      name: /swinburne library/i,
-    })
+    const heading = screen.getByRole('heading', { name: /swinburne library/i })
 
     expect(heading).toBeInTheDocument();
+  })
+
+  it('Render All Button', () => {
+    render(<HomePage/>)
+
+    // In the Home Page, the login button and the get start button have using the button, but the learn more just use the link, not button
+    const LoginButton = screen.getByRole('button', { name: /log in/i })
+    const GetStartedButton = screen.getByRole('button', { name: /get started/i })
+    const LearnMoreButton = screen.getByRole('link', { name: /learn more/i })
+
+    expect(LoginButton).toBeInTheDocument();
+    expect(GetStartedButton).toBeInTheDocument();
+    expect(LearnMoreButton).toBeInTheDocument();
   })
 })
