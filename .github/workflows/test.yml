@@ -14,6 +14,7 @@ jobs:
 
   Jest_Test:
     runs-on: ubuntu-latest
+    needs: Build_Nextjs # Only start this Jobs when the Build_Nextjs Job successful
     steps:
       - uses: ./.github/setup
       - run: pnpm test
