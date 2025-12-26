@@ -30,7 +30,7 @@ describe('Home Page', () => {
   it('Render Heading 1', () => {
     render(<HomePage/>);
 
-    const heading = screen.getByRole('heading', { name: /swinburne library/i })
+    const heading = screen.getByRole('heading', { name: /swinburne library self-checkout/i })
 
     expect(heading).toBeInTheDocument();
   })
