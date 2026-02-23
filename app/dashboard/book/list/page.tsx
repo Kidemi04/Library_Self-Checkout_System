@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+import { redirect } from 'next/navigation';
 import { unstable_noStore as noStore } from 'next/cache';
 import CreateBookForm from '@/app/ui/dashboard/create-book-form';
 import BookCatalogTable, {
@@ -11,6 +12,7 @@ import SearchForm from '@/app/ui/dashboard/search-form';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import type { Book, CopyStatus } from '@/app/lib/supabase/types';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import type { DashboardRole } from '@/app/lib/auth/types';
 
 // Keep this list in sync with your SIP / Supabase enum
 type ItemStatus =
@@ -49,11 +51,20 @@ function pick(v?: string | string[] | null) {
   return v ?? '';
 }
 
-export default async function BookItemsPage({
+export default async function BookListPage({
   searchParams,
+  role,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
+  role: DashboardRole
 }) {
+  // Anti-bypass Mechanism
+  // Should a user access this page by other means whilst in student status (such as manual input), 
+  // they shall be redirected to the book items page.  
+  if (role !== 'admin' && role !== 'staff') {
+    redirect('/dashboard/book/items');
+  }
+
   noStore();
 
   // Read search (optional)
