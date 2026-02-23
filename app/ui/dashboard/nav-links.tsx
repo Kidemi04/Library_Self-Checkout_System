@@ -173,8 +173,7 @@ export default function NavLinks({
                         className={clsx(
                           'rounded-lg py-2.5 px-3 text-xs font-medium transition-all duration-200',
                           isChildActive ? 'bg-white/20 text-white' : subLinkVariant
-                        )}
-                      >
+                        )}>
                         {child.name}
                       </Link>
                     );
