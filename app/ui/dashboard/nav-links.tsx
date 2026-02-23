@@ -57,22 +57,29 @@ const userLinks: NavItem[] = [
   },
 ];
 
+// Define the staff-only top-level link
+const staffOverviewLink: NavItem = { 
+  name: 'Staff Overview', 
+  href: '/dashboard/admin', 
+  icon: Squares2X2Icon 
+};
+
+// Create staffLinks by transforming userLinks
 const staffLinks: NavItem[] = [
-  { name: 'Staff Overview', href: '/dashboard/admin', icon: Squares2X2Icon },
-  { name: 'Catalogue', href: '/dashboard/book', icon: BookOpenIcon },
-  { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
-  { 
-    name: 'Management', 
-    href: '/dashboard/manage', 
-    icon: Squares2X2Icon,
-    children: [
-      { name: 'Book Inventory', href: '/dashboard/manage/inventory' },
-      { name: 'Loan Records', href: '/dashboard/manage/loans' },
-    ]
-  },
-  { name: 'Manage Holds', href: '/dashboard/holds', icon: BellAlertIcon },
-  { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
-  { name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon },
+  staffOverviewLink, // 1. Prepend the Staff Overview at the top
+  ...userLinks.map((link) => {
+    // 2. Find the Catalogue section to inject the extra sub-item
+    if (link.name === 'Catalogue') {
+      return {
+        ...link,
+        children: [
+          { name: 'Inventory List', href: '/dashboard/book/list' }, // New staff sub-item
+          ...(link.children || []), // Keep existing user sub-items
+        ],
+      };
+    }
+    return link;
+  }),
 ];
 
 const adminLinks: NavItem[] = [
