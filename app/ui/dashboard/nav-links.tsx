@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import {
   HomeIcon,
   BookOpenIcon,
-  Squares2X2Icon,
   UserGroupIcon,
   UserCircleIcon,
   BellAlertIcon,
@@ -38,7 +37,6 @@ const userLinks: NavItem[] = [
       { name: 'Return Books', href: '/dashboard/book/checkin' },
     ]
   },
-  { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
   { name: 'Social', href: '/dashboard/social', icon: UserGroupIcon,
     children: [
       { name: 'Communities', href: '/dashboard/social/communities' },
@@ -55,20 +53,14 @@ const userLinks: NavItem[] = [
       { name: 'Learning Path Management', href: '/dashboard/learning/paths' },
     ]
   },
+  { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];
 
-// Define the staff-only top-level link
-const staffOverviewLink: NavItem = { 
-  name: 'Staff Overview', 
-  href: '/dashboard/admin', 
-  icon: Squares2X2Icon 
-};
 
 // Create staffLinks by transforming userLinks
 const staffLinks: NavItem[] = [
-  staffOverviewLink, // 1. Prepend the Staff Overview at the top
   ...userLinks.map((link) => {
-    // 2. Find the Catalogue section to inject the extra sub-item
+    // Find the Catalogue section to inject the extra sub-item
     if (link.name === 'Catalogue') {
       return {
         ...link,
@@ -83,7 +75,14 @@ const staffLinks: NavItem[] = [
 ];
 
 const adminLinks: NavItem[] = [
-  ...staffLinks, 
+  ...staffLinks.map((link) => {
+    // If the link name is Overview, change the homepage to the admin homepage.
+    if (link.name === 'Overview') {
+      return { ...link, href: '/dashboard/admin' };
+    }
+    // Return the original link if no change is needed
+    return link;
+  }), 
   { name: 'Manage Users', href: '/dashboard/admin/users', icon: UserGroupIcon }
 ];
 

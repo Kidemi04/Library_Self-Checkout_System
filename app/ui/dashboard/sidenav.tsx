@@ -59,7 +59,7 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
           <BlurFade delay={0.2} yOffset={-10}>
             <div
               className={clsx(
-                'relative overflow-hidden rounded-2xl border p-4 mb-6 text-sm shadow-xl backdrop-blur-xl transition-all duration-300 hover:shadow-2xl',
+                'relative overflow-hidden rounded-2xl border p-4 mb-2 text-sm shadow-xl backdrop-blur-xl transition-all duration-300 hover:shadow-2xl',
                 isDark
                   ? 'border-white/20 bg-white/10 text-slate-100 shadow-black/30 ring-1 ring-white/10'
                   : 'border-swin-ivory/20 bg-black/30 text-swin-ivory shadow-black/40 ring-1 ring-white/5',
@@ -79,7 +79,7 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
       )}
 
       {/* 3. SCROLLABLE MIDDLE: NavLinks */}
-      <nav className="flex-grow overflow-y-auto overflow-x-hidden scrollbar-none px-1">
+      <nav className="flex-grow overflow-y-auto overflow-x-hidden scrollbar-none px-1 mt-4">
         {/* Add a small padding-top here inside the scroll area.
             This ensures the first button's hover/scale effect 
             has space to expand without being clipped by the container.
