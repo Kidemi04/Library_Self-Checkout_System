@@ -121,9 +121,8 @@ export default async function BookItemsPage({
 
       <AiModeHero defaultQuery={q} />
 
-      {/* ✅ This form stays on /dashboard/book-items and submits via GET */}
       <BookItemsFilter
-        action="/dashboard/book?section=items"
+        action=""
         defaults={{
           q,
           status: statusFilter, // ItemStatus | undefined
