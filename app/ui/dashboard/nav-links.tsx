@@ -65,7 +65,7 @@ const staffLinks: NavItem[] = [
       return {
         ...link,
         children: [
-          { name: 'Inventory List', href: '/dashboard/book/list' }, // New staff sub-item
+          { name: 'Book List', href: '/dashboard/book/list' }, // New staff sub-item
           ...(link.children || []), // Keep existing user sub-items
         ],
       };

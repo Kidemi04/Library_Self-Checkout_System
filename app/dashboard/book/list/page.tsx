@@ -13,6 +13,7 @@ import { fetchBooks } from '@/app/lib/supabase/queries';
 import type { Book, CopyStatus } from '@/app/lib/supabase/types';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 import type { DashboardRole } from '@/app/lib/auth/types';
+import { getDashboardSession } from '@/app/lib/auth/session';
 
 // Keep this list in sync with your SIP / Supabase enum
 type ItemStatus =
@@ -53,19 +54,22 @@ function pick(v?: string | string[] | null) {
 
 export default async function BookListPage({
   searchParams,
-  role,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
-  role: DashboardRole
 }) {
+  noStore();
+
+  // 2. Fetch the session/role directly inside the server component
+  const { user } = await getDashboardSession();
+  const userRole = user?.role; // Assuming session contains the role
+
   // Anti-bypass Mechanism
   // Should a user access this page by other means whilst in student status (such as manual input), 
   // they shall be redirected to the book items page.  
-  if (role !== 'admin' && role !== 'staff') {
+  const isPrivileged = userRole === 'admin' || userRole === 'staff';
+  if (!isPrivileged) {
     redirect('/dashboard/book/items');
   }
-
-  noStore();
 
   // Read search (optional)
   const params =
