@@ -12,6 +12,7 @@ import {
   AcademicCapIcon,
   SparklesIcon,
   ChevronDownIcon, // Import icon for collapse indicator
+  BellIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import BlurFade from '@/app/ui/magic-ui/blur-fade';
@@ -53,6 +54,7 @@ const userLinks: NavItem[] = [
       { name: 'Learning Path Management', href: '/dashboard/learning/paths' },
     ]
   },
+  { name: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];
 
