@@ -74,7 +74,7 @@ export default async function BookItemsPage({
   const q = (qp('q') ?? '').trim();
 
   const rawStatus = (qp('status') ?? '').trim();
-  // ✅ Narrow the string to ItemStatus | undefined
+  // Narrow the string to ItemStatus | undefined
   const statusFilter: ItemStatus | undefined = isItemStatus(rawStatus)
     ? rawStatus
     : undefined;
@@ -133,7 +133,7 @@ export default async function BookItemsPage({
       />
 
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pb-4">
           <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Catalogue</h2>
           <p className="text-sm text-swin-charcoal/60 dark:text-slate-300">
             Showing {books.length} record{books.length === 1 ? '' : 's'}
