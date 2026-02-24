@@ -82,7 +82,7 @@ export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
           // new stacking context that could clip child elements
           isDark
             ? 'border-white/10 bg-slate-950 text-white'
-            : 'border-swin-charcoal/10 bg-white text-swin-charcoal',
+            : 'border-swin-charcoal/10 bg-swin-charcoal text-white',
           isOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
@@ -100,7 +100,7 @@ export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
               'rounded-lg p-1.5 transition-colors focus:outline-none focus-visible:ring-2',
               isDark
                 ? 'text-slate-400 hover:bg-white/10 hover:text-white focus-visible:ring-emerald-400'
-                : 'text-swin-charcoal/60 hover:bg-swin-charcoal/10 hover:text-swin-charcoal focus-visible:ring-swin-red',
+                : 'text-white/60 hover:bg-swin-charcoal/10 hover:text-white focus-visible:ring-swin-red',
             )}
             aria-label="Close menu"
           >
@@ -110,7 +110,7 @@ export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
           <span
             className={clsx(
               'text-sm font-semibold uppercase tracking-widest',
-              isDark ? 'text-slate-300' : 'text-swin-charcoal/70',
+              isDark ? 'text-slate-300' : 'text-white/80',
             )}
           >
             Navigation
