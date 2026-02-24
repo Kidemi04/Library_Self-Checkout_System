@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import AcmeLogo from '@/app/ui/acme-logo';
+import MobileMenu from '@/app/ui/dashboard/mobile-menu';
 import SignOutButton from '@/app/ui/dashboard/sign-out-button';
 import ThemeToggle from '@/app/ui/theme/theme-toggle';
 import { useTheme } from '@/app/ui/theme/theme-provider';
@@ -78,10 +79,13 @@ export default function MobileNav({
   return (
     <>
       <header className={topBarClasses}>
+        <MobileMenu user={user} />
+
         <Link href="/" className="flex items-center gap-2">
           <AcmeLogo />
           <span className="text-sm font-semibold uppercase tracking-wide">Self-Checkout</span>
         </Link>
+
         <div className="flex items-center gap-2">
           {isBypassed ? (
             <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-200">
