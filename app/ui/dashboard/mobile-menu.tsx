@@ -121,7 +121,6 @@ export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
         {/* Nav links — clicking any link also closes the drawer */}
         <nav
           className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4"
-          onClick={closeMenu}
         >
           <NavLinks 
           role={user.role}
