@@ -77,7 +77,7 @@ export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
         aria-label="Site navigation"
         aria-hidden={!isOpen}
         className={clsx(
-          'fixed inset-y-0 left-0 z-[9999] flex w-72 flex-col border-r shadow-2xl transition-transform duration-300 ease-in-out md:hidden',
+          'fixed inset-y-0 left-0 z-[9999] flex flex-col border-r shadow-2xl transition-transform duration-300 ease-in-out md:hidden',
           // Use a solid background instead of backdrop-blur to avoid creating a
           // new stacking context that could clip child elements
           isDark
@@ -125,7 +125,7 @@ export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
         >
           <NavLinks 
           role={user.role}
-          showLabels={true} />
+          showLabels={true}/>
         </nav>
 
         {/* Brand-colour accent stripe at the bottom of the drawer */}
