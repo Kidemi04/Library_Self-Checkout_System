@@ -127,8 +127,6 @@ export default async function BookListPage({
 
       {/* Search */}
       <SearchForm
-        action="/dashboard/book"
-        placeholder="Search catalogue by title, author, ISBN, or barcode"
         defaultValue={q}
         aria-label="Search books"
         extraParams={{ section: 'list' }}
