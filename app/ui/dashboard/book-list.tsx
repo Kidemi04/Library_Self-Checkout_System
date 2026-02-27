@@ -102,7 +102,7 @@ export default function BookList({
               {variant === 'grid' ? (
                 <GlassCard
                   intensity="low"
-                  className="group relative flex flex-col overflow-hidden p-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                  className="rounded-lg group relative flex flex-col overflow-hidden p-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
                 >
                   {/* Status Stripe */}
                   <div className={`absolute top-0 left-0 w-full h-1 ${meta.stripe}`} />

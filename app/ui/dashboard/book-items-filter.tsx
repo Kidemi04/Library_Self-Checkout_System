@@ -33,7 +33,7 @@ type Props = {
 };
 
 export default function BookItemsFilter({
-  action = '/dashboard/book-items',
+  action,
   defaults,
   className,
 }: Props) {

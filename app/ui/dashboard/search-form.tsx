@@ -1,8 +1,8 @@
 import clsx from 'clsx';
 
 interface SearchFormProps {
-  action: string;
-  placeholder: string;
+  action?: string;
+  placeholder?: string;
   defaultValue?: string;
   name?: string;
   extraParams?: Record<string, string | undefined>;
@@ -11,8 +11,8 @@ interface SearchFormProps {
 }
 
 export default function SearchForm({
-  action,
-  placeholder,
+  action = "/dashboard/book/items",
+  placeholder = "Search by title, author, ISBN, or barcode",
   defaultValue,
   name = 'q',
   extraParams,

@@ -2,7 +2,6 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import TabSwitch from '@/app/ui/dashboard/tab-switch';
 
 // Sub pages
 import LinkedInLearningPage from './linkedin/page';
@@ -33,23 +32,6 @@ export default async function LearningPage({
   return (
     <main className="space-y-8">
       <title>Learning</title>
-
-      {/* Top switch */}
-      <TabSwitch
-        activeKey={section}
-        items={[
-          {
-            key: 'linkedin',
-            label: 'LinkedIn Learning',
-            href: '/dashboard/learning?section=linkedin',
-          },
-          {
-            key: 'paths',
-            label: 'Learning Paths',
-            href: '/dashboard/learning?section=paths',
-          },
-        ]}
-      />
 
       {/* Content */}
       <Suspense fallback={null}>

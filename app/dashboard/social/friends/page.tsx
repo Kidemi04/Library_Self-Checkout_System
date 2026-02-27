@@ -210,12 +210,12 @@ export default async function FriendsPage(props: {
                                     key={result.id}
                                     className="flex items-center justify-between p-5 group hover:scale-[1.02] transition-transform duration-300"
                                 >
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-4 w-full">
                                         <div className="h-12 w-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-lg">
                                             {result.name?.[0]?.toUpperCase() || '?'}
                                         </div>
-                                        <div className="overflow-hidden">
-                                            <p className="font-semibold text-slate-900 dark:text-white truncate">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="font-semibold text-slate-900 dark:text-white truncate max-w-[210px]">
                                                 {result.name || 'Unknown User'}
                                             </p>
                                             <p className="text-xs text-slate-500 truncate max-w-[150px]">{result.bio || 'No bio'}</p>
