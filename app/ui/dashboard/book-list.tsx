@@ -171,7 +171,9 @@ export default function BookList({
                   </div>
                 </GlassCard>
               ) : (
-                <GlassCard intensity="low" className="group relative flex items-center gap-4 p-4 transition-all duration-300 hover:bg-white/50 dark:hover:bg-white/5">
+                <GlassCard 
+                  intensity="low" 
+                  className="group relative flex items-center gap-4 p-4 transition-all duration-300 hover:bg-white/50 dark:hover:bg-white/5 overflow-hidden">
                   {/* Status Stripe */}
                   <div className={`absolute left-0 top-0 bottom-0 w-1 ${meta.stripe}`} />
 

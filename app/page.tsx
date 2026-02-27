@@ -80,8 +80,9 @@ export default function HomePage() {
 
           {/* Title */}
           <BlurFade delay={0.4}>
-            <h1 className="mb-3 md:mb-6 text-2xl md:text-6xl font-bold tracking-tight text-white">
-              Swinburne Library <br className="md:hidden" />
+            <h1 className="mb-3 md:mb-6 text-xl md:text-6xl font-bold tracking-tight text-white">
+              Swinburne Library 
+                <br/>
               Self-Checkout
             </h1>
           </BlurFade>
@@ -89,7 +90,9 @@ export default function HomePage() {
           {/* Description */}
           <BlurFade delay={0.5}>
             <p className="mx-auto mb-6 md:mb-10 max-w-2xl text-sm md:text-xl text-white/80">
-              Borrow and return books anytime with your device — fast, secure, and kiosk-free.
+              Borrow and return books anytime with your device 
+              <br/>
+              fast, secure, and kiosk-free.
             </p>
           </BlurFade>
 
