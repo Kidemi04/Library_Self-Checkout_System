@@ -8,7 +8,6 @@ import {
   BookOpenIcon,
   UserGroupIcon,
   UserCircleIcon,
-  BellAlertIcon,
   AcademicCapIcon,
   SparklesIcon,
   ChevronDownIcon, // Import icon for collapse indicator
@@ -36,6 +35,7 @@ const userLinks: NavItem[] = [
       { name: 'Book Items', href: '/dashboard/book/items' },
       { name: 'Borrow Books', href: '/dashboard/book/checkout' },
       { name: 'Return Books', href: '/dashboard/book/checkin' },
+      { name: 'My Reservations', href: '/dashboard/book/reservation'}
     ]
   },
   { name: 'Social', href: '/dashboard/social', icon: UserGroupIcon,
@@ -44,7 +44,6 @@ const userLinks: NavItem[] = [
       { name: 'Friends', href: '/dashboard/social/friends' },
     ]
   },
-  { name: 'My Reservations', href: '/dashboard/reservations', icon: BellAlertIcon },
   { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
   { 
     name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon,
@@ -77,15 +76,23 @@ const staffLinks: NavItem[] = [
 ];
 
 const adminLinks: NavItem[] = [
-  ...staffLinks.map((link) => {
+  ...staffLinks.flatMap((link) => {
     // If the link name is Overview, change the homepage to the admin homepage.
     if (link.name === 'Overview') {
       return { ...link, href: '/dashboard/admin' };
     }
+
+    // Add the Manage User Page between Overview and Catalogue
+    if (link.name === 'Catalogue'){
+      return [
+        { name: 'Manage Users', href: '/dashboard/admin/users', icon: UserGroupIcon },
+        link
+      ];
+    }
+
     // Return the original link if no change is needed
     return link;
   }), 
-  { name: 'Manage Users', href: '/dashboard/admin/users', icon: UserGroupIcon }
 ];
 
 export default function NavLinks({
