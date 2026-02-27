@@ -105,7 +105,7 @@ export default function HomePage() {
               </Link>
 
               <Link
-                href="https://www.swinburne.edu.my/"
+                href="https://www.swinburne.edu.my/category/library/"
                 target="_blank"
                 className="
                   flex h-12 md:h-14 w-full md:w-auto
@@ -129,19 +129,16 @@ export default function HomePage() {
       <footer className="absolute bottom-4 md:bottom-6 left-0 w-full text-center z-10">
         <BlurFade delay={0.8}>
           {/* Footer link to About page */}
-          <Link
-            href="/about-page"
+          <p
             className="
               text-[10px] md:text-xs
               text-white/50
               transition
-              hover:text-white
-              hover:underline
               underline-offset-4
             "
           >
             © 2025 Swinburne Final Year Project • Group 12
-          </Link>
+          </p>
         </BlurFade>
       </footer>
 
