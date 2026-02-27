@@ -12,7 +12,6 @@ import SearchForm from '@/app/ui/dashboard/search-form';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import type { Book, CopyStatus } from '@/app/lib/supabase/types';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
-import type { DashboardRole } from '@/app/lib/auth/types';
 import { getDashboardSession } from '@/app/lib/auth/session';
 
 // Keep this list in sync with your SIP / Supabase enum
@@ -134,7 +133,6 @@ export default async function BookListPage({
         aria-label="Search books"
         extraParams={{ section: 'list' }}
       />
-
 
       {/* Create new item */}
       <CreateBookForm />
