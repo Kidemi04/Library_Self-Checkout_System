@@ -23,7 +23,7 @@ export default function DashboardTitleBar({
   return (
     <header
       className="
-        relative grid gap-6 overflow-hidden rounded-3xl
+        relative gap-6 overflow-hidden rounded-3xl
         border border-swin-charcoal/10
         bg-gradient-to-r from-swin-charcoal via-swin-red to-[#3b0b14]
         /* Mobile: smaller padding | Desktop: p-8 */
