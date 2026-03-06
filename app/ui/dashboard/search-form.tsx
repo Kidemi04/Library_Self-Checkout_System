@@ -1,21 +1,19 @@
 import clsx from 'clsx';
 
 interface SearchFormProps {
-  action?: string;
-  placeholder?: string;
+  action: string;
+  placeholder: string;
   defaultValue?: string;
   name?: string;
-  extraParams?: Record<string, string | undefined>;
   'aria-label'?: string;
   className?: string;
 }
 
 export default function SearchForm({
-  action = "/dashboard/book/items",
-  placeholder = "Search by title, author, ISBN, or barcode",
+  action,
+  placeholder,
   defaultValue,
   name = 'q',
-  extraParams,
   'aria-label': ariaLabel,
   className,
 }: SearchFormProps) {
@@ -40,15 +38,6 @@ export default function SearchForm({
         placeholder={placeholder}
         className="flex-1 rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
       />
-
-      {/* Preserve extra query params */}
-      {extraParams &&
-        Object.entries(extraParams).map(([key, value]) =>
-          value ? (
-            <input key={key} type="hidden" name={key} value={value} />
-          ) : null
-        )}
-
       <button
         type="submit"
         className="inline-flex items-center justify-center rounded-lg border border-swin-charcoal/20 bg-swin-charcoal px-4 py-2 text-sm font-semibold text-swin-ivory transition hover:border-swin-red hover:bg-swin-red dark:border-slate-700 dark:bg-slate-800"

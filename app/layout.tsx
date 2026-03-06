@@ -1,19 +1,21 @@
+import { cookies } from 'next/headers';
 import '@/app/ui/global.css';
-import { Providers } from './providers';
+import { ThemeProvider, type ThemeMode } from '@/app/ui/theme/theme-provider';
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const THEME_COOKIE = 'dashboard-theme';
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const storedTheme = cookieStore.get(THEME_COOKIE)?.value;
+  const resolvedTheme: ThemeMode = storedTheme === 'dark' ? 'dark' : 'light';
+
   return (
-    <html lang="en">
+    <html lang="en" className={resolvedTheme === 'dark' ? 'dark' : 'light'} data-theme={resolvedTheme}>
       <body
         suppressHydrationWarning
-        className="min-h-screen bg-white dark:bg-swin-dark-bg"
+        className="min-h-screen bg-swin-ivory text-swin-charcoal transition-colors duration-300 dark:bg-swin-dark-bg dark:text-slate-100"
       >
-        {/* GLOBAL PROVIDERS: mount once */}
-        <Providers>{children}</Providers>
+        <ThemeProvider defaultTheme={resolvedTheme}>{children}</ThemeProvider>
       </body>
     </html>
   );

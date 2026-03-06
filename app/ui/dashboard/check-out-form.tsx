@@ -167,7 +167,6 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
             Scan or search for a book, then enter who is borrowing it.
           </p>
         </div>
-
         <button
           type="button"
           onClick={handleMobileToggle}
@@ -189,7 +188,6 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
           className="w-full md:w-auto"
         />
       </div>
-
       {lookupMessage ? (
         <p
           className={clsx(
@@ -245,7 +243,7 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
               ))}
             </select>
             {bookOptions.length > 0 ? (
-              <p className="mt-1 text-xs text-swin-charcoal/60 dark:text-slate-400">
+              <p className="mt-1 text-xs text-swin-charcoal/60">
                 {bookOptions.length} titles ready to borrow.
               </p>
             ) : null}

@@ -1,5 +1,4 @@
 import { getDashboardSession } from '@/app/lib/auth/session';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 
 const featureHighlights = [
   {
@@ -68,7 +67,7 @@ const studentPath = {
   advisor: 'Assigned by Faculty',
   nextMilestone: 'Complete Module 3: Search & Planning',
   progress: 62,
-  enrollHref: '/dashboard/learning/paths/enroll',
+  enrollHref: '/dashboard/learning-paths/enroll',
   modules: [
     { title: 'Module 1: Python foundations', status: 'Done' },
     { title: 'Module 2: Data structures', status: 'Done' },
@@ -85,14 +84,16 @@ export default async function LearningPathsPage() {
 
   return (
     <main className="space-y-8">
-      <DashboardTitleBar
-        subtitle="Learning Path Management"
-        title="Academic course learning path creation"
-        description="Design, publish, and monitor structured learning journeys that align library resources with academic
-        curricula. Quickly assemble course-aligned modules, respect prerequisites, and keep faculty and students in
-        sync."
-      />
-        
+      <title>Learning Path Management | Dashboard</title>
+
+      <header className="rounded-3xl border border-swin-charcoal/10 bg-gradient-to-r from-swin-charcoal via-swin-red to-[#3b0b14] p-8 text-white shadow-2xl shadow-swin-red/30">
+        <p className="text-xs uppercase tracking-[0.3em] text-white/70">Learning Path Management</p>
+        <h1 className="mt-3 text-2xl font-semibold">Academic course learning path creation</h1>
+        <p className="mt-3 max-w-3xl text-sm text-white/80">
+          Design, publish, and monitor structured learning journeys that align library resources with academic
+          curricula. Quickly assemble course-aligned modules, respect prerequisites, and keep faculty and students in
+          sync.
+        </p>
         <div className="mt-6 flex flex-wrap gap-3">
           {isPrivileged ? (
             <>
@@ -112,6 +113,7 @@ export default async function LearningPathsPage() {
             </button>
           )}
         </div>
+      </header>
 
       {isPrivileged ? (
         <>
