@@ -2,7 +2,6 @@
 import { redirect } from 'next/navigation';
 import BookList from '@/app/ui/dashboard/book-list'; // student-facing renderer (grid/list)
 import BookItemsFilter from '@/app/ui/dashboard/book-items-filter';
-import AiModeHero from '@/app/ui/dashboard/ai-mode-hero';
 import BlurFade from '@/app/ui/magic-ui/blur-fade';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
@@ -114,7 +113,6 @@ export default async function BookItemsPage({
     <main className="space-y-8">
       <title>Book Items | Dashboard</title>
 
-      <AiModeHero defaultQuery={q} />
       <BlurFade delay={0.1} yOffset={10}>
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight text-swin-charcoal dark:text-white">

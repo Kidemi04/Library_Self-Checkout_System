@@ -1,13 +1,27 @@
 'use client';
 
-import { type FormEvent, useEffect, useRef, useState } from 'react';
+import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
-import type { Book } from '@/app/lib/supabase/types';
-import {
-  type Recommendation,
-  recommendBooks,
-  tokenizeInterests,
-} from '@/app/ui/dashboard/recommendations/recommender';
+
+type RecommendationItem = {
+  id: string;
+  title: string;
+  author: string | null;
+  coverImageUrl: string | null;
+  availableCopies: number;
+  totalCopies: number;
+  reason: string;
+};
+
+type RecommendationResponse = {
+  ok?: boolean;
+  kind?: 'recommendations' | 'clarify' | 'reject' | 'no_matches' | 'error' | 'rate_limited';
+  reply?: string;
+  recommendations?: RecommendationItem[];
+  interests?: string[];
+  summary?: string | null;
+  followUpQuestion?: string | null;
+};
 
 type ChatMessage = {
   id: string;
@@ -24,31 +38,31 @@ type QuickPrompt = {
 
 const quickPrompts: QuickPrompt[] = [
   {
-    id: 'borrow',
-    label: 'Borrowing rules',
-    message: 'Can you remind me how long I can borrow a book for?',
+    id: 'data-science',
+    label: '#DataScience',
+    message: 'Course unit: data science, machine learning, statistics.',
   },
   {
-    id: 'return',
-    label: 'After-hours returns',
-    message: 'How do I return my books when the desk is closed?',
+    id: 'business-strategy',
+    label: '#BusinessStrategy',
+    message: 'Course unit: business strategy, management, case studies.',
   },
   {
-    id: 'overdue',
-    label: 'Overdue fines',
-    message: 'What are the overdue fines if I miss my due date?',
+    id: 'engineering-design',
+    label: '#EngineeringDesign',
+    message: 'Course unit: engineering design, prototyping, systems thinking.',
   },
   {
-    id: 'hold',
-    label: 'Place a hold',
-    message: 'How do I place a hold on a book that is already loaned out?',
+    id: 'education-psych',
+    label: '#EducationPsychology',
+    message: 'Course unit: educational psychology, learning science.',
   },
 ];
 
 const buildGreeting = (name?: string | null) => {
   const friendlyName =
     name && name.trim().length > 0 ? name.trim().split(/\s+/)[0] : 'there';
-  return `Hi ${friendlyName}! I\'m the Library Assistant. Tell me what you\'re working on and I\'ll guide you or connect you with a librarian.`;
+  return `Hi ${friendlyName}! Tell me what you like to read and I will recommend books from the catalog.`;
 };
 
 const buildInitialMessages = (name?: string | null): ChatMessage[] => {
@@ -63,39 +77,16 @@ const buildInitialMessages = (name?: string | null): ChatMessage[] => {
     {
       id: 'assistant-2',
       sender: 'assistant',
-      text: 'Need a quick answer? Try the shortcuts below or send a question. A librarian monitors this chat during staffed hours.',
+      text: 'English only. Book recommendations only. Share genres, topics, mood, or course units.',
       timestamp: now - 60000,
     },
   ];
 };
 
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-const deriveInterestSource = (messages: ChatMessage[], inputValue: string) => {
-  const typed = inputValue.trim();
-  if (typed.length > 1) return typed;
-  const latestUser = [...messages].reverse().find((msg) => msg.sender === 'student');
-  return latestUser?.text ?? '';
-};
 
-const generateAssistantReply = (raw: string) => {
-  const normalized = raw.toLowerCase();
-  if (/borrow|loan|checkout|due date/.test(normalized)) {
-    return 'Students can borrow up to 8 items for 14 days. You can renew twice inside the Active loans list as long as no one else has a hold on the title.';
-  }
-  if (/return|check in|drop/i.test(normalized)) {
-    return 'Returns are accepted 24/7 via the foyer bins. Scan the item before dropping it in so the timestamp is captured, then you will see it disappear from Active loans within a few minutes.';
-  }
-  if (/fine|overdue|fee|late/.test(normalized)) {
-    return 'There is a 3 day grace period. After that the system charges RM1 per item per day. Pay inside the library or email us if you need to discuss an appeal.';
-  }
-  if (/hold|reserve|queue/.test(normalized)) {
-    return 'Open the Catalogue, select the title, and press "Place hold". We will email you when it is ready for pickup. Holds expire after 48 hours.';
-  }
-  if (/card|scan|scanner|barcode/.test(normalized)) {
-    return 'If the scanner is not reading your card or barcode, switch to manual entry in the form and type the student ID or book barcode. Let staff know if the device needs maintenance.';
-  }
-  return 'Thanks for the details! I just logged your message for a librarian. Expect a response in your student email soon, or continue chatting here if you have more info to add.';
-};
+const buildErrorReply = () =>
+  'Sorry, I could not reach the recommendation service. Please try again in a moment.';
 
 const formatTimestamp = (timestamp: number) => {
   try {
@@ -108,30 +99,18 @@ const formatTimestamp = (timestamp: number) => {
   }
 };
 
-export default function StudentChat({
-  studentName,
-  books = [],
-}: {
-  studentName?: string | null;
-  books?: Book[];
-}) {
+export default function StudentChat({ studentName }: { studentName?: string | null }) {
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
     buildInitialMessages(studentName),
   );
   const [inputValue, setInputValue] = useState('');
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
-  const [bookRecommendations, setBookRecommendations] = useState<Recommendation[]>([]);
+  const [sendNotice, setSendNotice] = useState<string | null>(null);
+  const [stickToBottom, setStickToBottom] = useState(true);
+  const [bookRecommendations, setBookRecommendations] = useState<RecommendationItem[]>([]);
   const [activeInterests, setActiveInterests] = useState<string[]>([]);
   const messagesRef = useRef<HTMLDivElement | null>(null);
-  const replyTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (replyTimeout.current) {
-        clearTimeout(replyTimeout.current);
-      }
-    };
-  }, []);
+  const lastSentAtRef = useRef<number>(0);
 
   useEffect(() => {
     const nextGreeting = buildGreeting(studentName);
@@ -150,31 +129,37 @@ export default function StudentChat({
     });
   }, [studentName]);
 
-  useEffect(() => {
+  const scrollToBottom = () => {
     if (!messagesRef.current) return;
     messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
-  }, [messages, isAssistantTyping]);
+  };
 
   useEffect(() => {
-    if (!books.length) return;
-    const interestSource = deriveInterestSource(messages, inputValue);
-    const interestTokens = tokenizeInterests(interestSource);
-    setActiveInterests(interestTokens.slice(0, 6));
-    if (!interestTokens.length) {
-      setBookRecommendations([]);
-      return;
-    }
-    const next = recommendBooks(books, interestSource, {
-      onlyAvailable: true,
-      favorPopular: true,
-      limit: 4,
-    });
-    setBookRecommendations(next);
-  }, [books, inputValue, messages]);
+    if (!stickToBottom) return;
+    scrollToBottom();
+  }, [messages, isAssistantTyping, stickToBottom]);
 
-  const sendMessage = (raw: string) => {
+  const handleScroll = () => {
+    if (!messagesRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = messagesRef.current;
+    const nearBottom = scrollHeight - scrollTop - clientHeight < 40;
+    setStickToBottom(nearBottom);
+  };
+
+  const sendMessage = async (raw: string) => {
     const trimmed = raw.trim();
     if (!trimmed) return false;
+    const now = Date.now();
+    if (isAssistantTyping) {
+      setSendNotice('Please wait for the current reply.');
+      return false;
+    }
+    if (now - lastSentAtRef.current < 1200) {
+      setSendNotice('Please wait a moment before sending another message.');
+      return false;
+    }
+    setSendNotice(null);
+
     const newMessage: ChatMessage = {
       id: createId(),
       sender: 'student',
@@ -182,32 +167,64 @@ export default function StudentChat({
       timestamp: Date.now(),
     };
     setMessages((prev) => [...prev, newMessage]);
-    triggerAssistantReply(trimmed);
+    lastSentAtRef.current = now;
+    await triggerAssistantReply(trimmed);
     return true;
   };
 
-  const triggerAssistantReply = (content: string) => {
+  const triggerAssistantReply = async (content: string) => {
     setIsAssistantTyping(true);
-    if (replyTimeout.current) {
-      clearTimeout(replyTimeout.current);
-    }
-    replyTimeout.current = setTimeout(() => {
+
+    try {
+      const response = await fetch('/api/recommendations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: content }),
+      });
+
+      const data = (await response.json()) as RecommendationResponse;
+      const replyText =
+        response.ok && data?.reply ? data.reply : data?.reply ?? buildErrorReply();
+
       setMessages((prev) => [
         ...prev,
         {
           id: createId(),
           sender: 'assistant',
-          text: generateAssistantReply(content),
+          text: replyText,
           timestamp: Date.now(),
         },
       ]);
+
+      setBookRecommendations(data?.recommendations ?? []);
+      setActiveInterests(data?.interests ?? []);
+
+      if (response.status === 429 && data?.reply) {
+        setSendNotice(data.reply);
+      } else {
+        setSendNotice(null);
+      }
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: createId(),
+          sender: 'assistant',
+          text: buildErrorReply(),
+          timestamp: Date.now(),
+        },
+      ]);
+      setBookRecommendations([]);
+      setActiveInterests([]);
+      setSendNotice('Unable to send right now. Please try again.');
+    } finally {
       setIsAssistantTyping(false);
-    }, 900);
+    }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (sendMessage(inputValue)) {
+    if (await sendMessage(inputValue)) {
       setInputValue('');
     }
   };
@@ -216,15 +233,25 @@ export default function StudentChat({
     sendMessage(prompt.message);
   };
 
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key !== 'Enter' || event.shiftKey) return;
+    event.preventDefault();
+    sendMessage(inputValue).then((sent) => {
+      if (sent) {
+        setInputValue('');
+      }
+    });
+  };
+
   return (
-    <section className="flex h-full flex-col rounded-3xl border border-swin-charcoal/10 bg-white p-5 shadow-lg shadow-swin-charcoal/5">
+    <section className="flex h-full flex-col rounded-3xl border border-slate-200 bg-slate-50/70 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950/40 dark:shadow-black/20">
       <div className="flex flex-col gap-1">
-        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-swin-charcoal/60">
-          Live support
+        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400/80">
+          AI recommendations
         </p>
-        <h2 className="text-xl font-semibold text-swin-charcoal">Chatbox</h2>
-        <p className="text-sm text-swin-charcoal/70">
-          Ask anything about borrowing, returns, fines, or using the library.
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Reading assistant</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-300/80">
+          Share what you want to read, and I will recommend books from the catalog.
         </p>
       </div>
 
@@ -233,7 +260,7 @@ export default function StudentChat({
           <button
             key={prompt.id}
             type="button"
-            className="rounded-full border border-swin-charcoal/15 bg-swin-ivory px-3 py-1 text-xs font-semibold text-swin-charcoal transition hover:border-swin-red/50 hover:text-swin-red"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
             onClick={() => handleQuickPrompt(prompt)}
           >
             {prompt.label}
@@ -243,7 +270,8 @@ export default function StudentChat({
 
       <div
         ref={messagesRef}
-        className="mt-4 flex-1 overflow-y-auto rounded-2xl border border-swin-charcoal/10 bg-swin-ivory/40 p-4"
+        onScroll={handleScroll}
+        className="mt-4 max-h-[55vh] flex-1 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/60 sm:max-h-[60vh] lg:max-h-[65vh]"
       >
         <ol className="space-y-4">
           {messages.map((message) => (
@@ -254,16 +282,9 @@ export default function StudentChat({
                 message.sender === 'student' ? 'items-end' : 'items-start',
               )}
             >
-              <div
-                className={clsx(
-                  'flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide',
-                  message.sender === 'student'
-                    ? 'text-swin-red/80'
-                    : 'text-swin-charcoal/60',
-                )}
-              >
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 <span>{message.sender === 'student' ? 'You' : 'Library Assistant'}</span>
-                <span className="text-swin-charcoal/50">
+                <span className="text-slate-400 dark:text-slate-500">
                   {formatTimestamp(message.timestamp)}
                 </span>
               </div>
@@ -271,8 +292,8 @@ export default function StudentChat({
                 className={clsx(
                   'w-full max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm md:max-w-[70%]',
                   message.sender === 'student'
-                    ? 'rounded-br-md bg-swin-red text-white shadow-swin-red/30'
-                    : 'rounded-bl-md border border-swin-charcoal/10 bg-white text-swin-charcoal shadow-swin-charcoal/10',
+                    ? 'rounded-br-md bg-slate-900 text-white shadow-slate-900/20 dark:bg-slate-200 dark:text-slate-900 dark:shadow-black/30'
+                    : 'rounded-bl-md border border-slate-200 bg-slate-100 text-slate-900 shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-100 dark:shadow-black/30',
                 )}
               >
                 {message.text.split('\n').map((line, lineIndex) => (
@@ -285,12 +306,25 @@ export default function StudentChat({
           ))}
         </ol>
         {isAssistantTyping ? (
-          <div className="mt-4 flex items-center gap-2 text-xs font-medium text-swin-charcoal/60">
-            <span className="h-2 w-2 animate-ping rounded-full bg-swin-red" />
+          <div className="mt-4 flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <span className="h-2 w-2 animate-ping rounded-full bg-slate-400 dark:bg-slate-500" />
             Library Assistant is typing...
           </div>
         ) : null}
       </div>
+
+      {!stickToBottom ? (
+        <button
+          type="button"
+          onClick={() => {
+            scrollToBottom();
+            setStickToBottom(true);
+          }}
+          className="mt-2 inline-flex items-center justify-center self-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
+        >
+          Scroll to latest
+        </button>
+      ) : null}
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">
         <label htmlFor="student-chat-message" className="sr-only">
@@ -302,32 +336,38 @@ export default function StudentChat({
           rows={3}
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
-          placeholder="Type your question here..."
-          className="w-full rounded-2xl border border-swin-charcoal/15 bg-white p-3 text-sm text-swin-charcoal shadow-inner shadow-white outline-none transition focus:border-swin-red focus:ring-2 focus:ring-swin-red/30"
+          onKeyDown={handleKeyDown}
+          placeholder="Example: cozy mystery, short reads, strong female lead"
+          className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100 dark:focus:border-slate-500 dark:focus:ring-slate-700/50"
         />
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-swin-charcoal/60">
-          <p>Responses arrive in-app and via email if you leave the chat.</p>
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+          <p>
+            {sendNotice ??
+              'English only. Book recommendations only. Based on the current library catalog.'}
+          </p>
           <button
             type="submit"
-            className="inline-flex items-center justify-center rounded-xl bg-swin-red px-4 py-2 text-sm font-semibold text-white shadow-swin-red/40 transition hover:bg-swin-red/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            disabled={isAssistantTyping}
+            className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white dark:focus-visible:ring-slate-500 dark:focus-visible:ring-offset-slate-900"
           >
-            Send message
+            {isAssistantTyping ? 'Sending...' : 'Send message'}
           </button>
         </div>
       </form>
 
-      <div className="mt-6 rounded-3xl border border-swin-charcoal/10 bg-swin-ivory/70 p-4 shadow-inner shadow-swin-charcoal/10">
+      <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-black/20">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <p className="text-[11px] uppercase tracking-[0.25em] text-swin-charcoal/60">
-              Live suggestions
+            <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
+              Your recommendations
             </p>
-            <h3 className="text-base font-semibold text-swin-charcoal">Books keyed to your message</h3>
-            <p className="text-xs text-swin-charcoal/70">We refresh picks as you type keywords in the chat.</p>
+            <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+              Books matched to your interests
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300/80">
+              Send a message to refresh the list.
+            </p>
           </div>
-          <span className="rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-swin-charcoal">
-            Prototype
-          </span>
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
@@ -335,14 +375,14 @@ export default function StudentChat({
             activeInterests.map((token) => (
               <span
                 key={token}
-                className="inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-semibold text-swin-red"
+                className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200"
               >
                 {token}
               </span>
             ))
           ) : (
-            <p className="text-xs text-swin-charcoal/70">
-              Start typing a topic to see recommendations react to your keywords.
+            <p className="text-xs text-slate-600 dark:text-slate-300/80">
+              Send a message to see the key interests we detected.
             </p>
           )}
         </div>
@@ -351,40 +391,34 @@ export default function StudentChat({
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {bookRecommendations.map((rec) => (
               <div
-                key={rec.book.id}
-                className="flex flex-col gap-2 rounded-2xl border border-swin-charcoal/10 bg-white p-4 shadow-sm"
+                key={rec.id}
+                className="flex flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-black/20"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-swin-charcoal/60">Recommendation</p>
-                    <h4 className="text-sm font-semibold text-swin-charcoal">{rec.book.title ?? 'Untitled'}</h4>
-                    <p className="text-xs text-swin-charcoal/70">{rec.book.author ?? 'Unknown author'}</p>
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400/80">
+                      Recommendation
+                    </p>
+                    <h4 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      {rec.title ?? 'Untitled'}
+                    </h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-300/80">
+                      {rec.author ?? 'Unknown author'}
+                    </p>
                   </div>
-                  <span className="rounded-full bg-swin-red/10 px-2 py-1 text-[11px] font-semibold text-swin-red">
-                    {rec.score.toFixed(1)}
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                    {rec.availableCopies} available
                   </span>
                 </div>
-                {rec.book.tags?.length ? (
-                  <div className="flex flex-wrap gap-1 text-[11px] text-swin-charcoal/70">
-                    {rec.book.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full bg-swin-ivory px-2 py-0.5 font-semibold text-swin-charcoal"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-                <p className="text-xs text-swin-charcoal/80">
-                  {rec.reasons[0] ?? 'Good match based on your keywords'}
+                <p className="text-xs text-slate-600 dark:text-slate-300/90">
+                  {rec.reason ?? 'Good match based on your interests'}
                 </p>
               </div>
             ))}
           </div>
         ) : (
-          <div className="mt-4 rounded-2xl border border-dashed border-swin-charcoal/15 bg-white p-4 text-xs text-swin-charcoal/70">
-            No live recommendations yet. Mention a topic or book title in your message to see picks here.
+          <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300/80">
+            No recommendations yet. Mention a genre, topic, or mood to get started.
           </div>
         )}
       </div>
