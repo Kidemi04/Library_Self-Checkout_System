@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+import { redirect } from 'next/navigation';
 import { unstable_noStore as noStore } from 'next/cache';
 import CreateBookForm from '@/app/ui/dashboard/create-book-form';
 import BookCatalogTable, {
@@ -10,6 +11,8 @@ import BookCatalogTable, {
 import SearchForm from '@/app/ui/dashboard/search-form';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import type { Book, CopyStatus } from '@/app/lib/supabase/types';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import { getDashboardSession } from '@/app/lib/auth/session';
 
 // Keep this list in sync with your SIP / Supabase enum
 type ItemStatus =
@@ -48,12 +51,24 @@ function pick(v?: string | string[] | null) {
   return v ?? '';
 }
 
-export default async function BookItemsPage({
+export default async function BookListPage({
   searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   noStore();
+
+  // 2. Fetch the session/role directly inside the server component
+  const { user } = await getDashboardSession();
+  const userRole = user?.role; // Assuming session contains the role
+
+  // Anti-bypass Mechanism
+  // Should a user access this page by other means whilst in student status (such as manual input), 
+  // they shall be redirected to the book items page.  
+  const isPrivileged = userRole === 'admin' || userRole === 'staff';
+  if (!isPrivileged) {
+    redirect('/dashboard/book/items');
+  }
 
   // Read search (optional)
   const params =
@@ -104,19 +119,17 @@ export default async function BookItemsPage({
       <title>Book Items | Dashboard</title>
 
       {/* Header */}
-      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 dark:shadow-black/30">
-        <h1 className="text-2xl font-semibold">Book Items</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300">
-          Keep the Supabase-powered catalogue of Swinburne resources up to date.
-        </p>
-      </header>
+      <DashboardTitleBar
+        subtitle="Book Lists"
+        title="Manage Book Lists"
+        description="Keep the Supabase-powered catalogue of Swinburne resources up to date."
+      />
 
       {/* Search */}
       <SearchForm
-        action="/dashboard/book-items"
-        placeholder="Search catalogue by title, author, ISBN, or barcode"
         defaultValue={q}
         aria-label="Search books"
+        extraParams={{ section: 'list' }}
       />
 
       {/* Create new item */}

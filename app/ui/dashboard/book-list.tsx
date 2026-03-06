@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import PlaceHoldButton from './place-hold-button';
-import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
+import { Pagination } from '@/app/ui/dashboard/pagination';
 import GlassCard from '@/app/ui/magic-ui/glass-card';
 import BlurFade from '@/app/ui/magic-ui/blur-fade';
 
@@ -102,7 +102,7 @@ export default function BookList({
               {variant === 'grid' ? (
                 <GlassCard
                   intensity="low"
-                  className="group relative flex flex-col overflow-hidden p-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+                  className="rounded-lg group relative flex flex-col overflow-hidden p-0 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
                 >
                   {/* Status Stripe */}
                   <div className={`absolute top-0 left-0 w-full h-1 ${meta.stripe}`} />
@@ -171,7 +171,9 @@ export default function BookList({
                   </div>
                 </GlassCard>
               ) : (
-                <GlassCard intensity="low" className="group relative flex items-center gap-4 p-4 transition-all duration-300 hover:bg-white/50 dark:hover:bg-white/5">
+                <GlassCard 
+                  intensity="low" 
+                  className="group relative flex items-center gap-4 p-4 transition-all duration-300 hover:bg-white/50 dark:hover:bg-white/5 overflow-hidden">
                   {/* Status Stripe */}
                   <div className={`absolute left-0 top-0 bottom-0 w-1 ${meta.stripe}`} />
 
@@ -225,26 +227,12 @@ export default function BookList({
 
       {/* Pagination controls */}
       {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-center gap-4">
-          <button
-            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-            className="rounded border px-4 py-1 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-          >
-            <ChevronDoubleLeftIcon className='h-5 w-5' />
-          </button>
-
-          <span className="text-sm font-medium text-swin-charcoal/80 dark:text-slate-300">
-            Page {currentPage} of {totalPages}
-          </span>
-
-          <button
-            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
-            className="rounded border px-4 py-1 bg-white text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-          >
-            <ChevronDoubleRightIcon className='h-5 w-5' />
-          </button>
+        <div className="mt-6 flex justify-center">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       )}
     </>
