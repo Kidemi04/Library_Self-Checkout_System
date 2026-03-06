@@ -6,6 +6,7 @@ import { supabaseBrowserClient } from '@/app/lib/supabase/client';
 import { addUserAction } from '@/app/actions/addUser';
 import { updateUserAction } from '@/app/actions/updateUser';
 import { deleteUserAction } from '@/app/actions/deleteUser';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 
 type ManagedRole = 'user' | 'staff' | 'admin';
 
@@ -489,13 +490,12 @@ export default function UserManagementPage() {
   return (
     <main className="space-y-8 text-slate-900 dark:text-slate-100">
       <title>Manage Users | Admin</title>
-
-      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-slate-900 shadow-lg shadow-slate-200 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/40">
-        <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">User Management</h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-300">
-          Invite staff or administrators and maintain their roles for the library checkout system.
-        </p>
-      </header>
+      
+      <DashboardTitleBar
+        subtitle="Admin Control Center"
+        title="User Management"
+        description="Invite staff or administrators and maintain their roles for the library checkout system."
+      />
 
       <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/30">
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Add staff member</h2>
