@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
-import NotificationsFilter from '@/app/ui/dashboard/notification-filter';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import NotificationsFilter from '@/app/ui/dashboard/notificationFilter';
 
 export default async function NotificationsPage() {
   const { user } = await getDashboardSession();

@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import DashboardShell from '@/app/ui/dashboard/dashboard-shell';
+import DashboardShell from '@/app/ui/dashboard/dashboardShell';
 import { getDashboardSession } from '@/app/lib/auth/session';
 
 export default async function DashboardLayout({

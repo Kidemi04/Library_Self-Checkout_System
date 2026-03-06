@@ -6,7 +6,7 @@ import { supabaseBrowserClient } from '@/app/lib/supabase/client';
 import { addUserAction } from '@/app/actions/addUser';
 import { updateUserAction } from '@/app/actions/updateUser';
 import { deleteUserAction } from '@/app/actions/deleteUser';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 
 type ManagedRole = 'user' | 'staff' | 'admin';
 

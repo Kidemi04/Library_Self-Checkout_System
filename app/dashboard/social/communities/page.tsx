@@ -5,9 +5,9 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { PlusIcon, UserGroupIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import CreateCommunityWrapper from './create-community-wrapper';
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
-import GlassCard from '@/app/ui/magic-ui/glass-card';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import BlurFade from '@/app/ui/magicUi/blurFade';
+import GlassCard from '@/app/ui/magicUi/glassCard';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 import clsx from 'clsx';
 
 export default async function CommunitiesPage(props: {

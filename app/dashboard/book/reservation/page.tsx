@@ -7,7 +7,7 @@ import {
   fetchActiveHoldsForPatron,
   type PatronHold,
 } from '@/app/lib/supabase/queries';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 
 const dateFormatter = new Intl.DateTimeFormat('en-MY', {
   day: 'numeric',

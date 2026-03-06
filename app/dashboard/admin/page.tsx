@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import clsx from 'clsx';
 import { redirect } from 'next/navigation';
-import SummaryCards from '@/app/ui/dashboard/summary-cards';
-import RecentLoans from '@/app/ui/dashboard/recent-loans';
-import ActiveLoansTable from '@/app/ui/dashboard/active-loans-table';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
-import DashboardUserCard from '@/app/ui/dashboard/dashboard-user-card';
+import SummaryCards from '@/app/ui/dashboard/summaryCards';
+import RecentLoans from '@/app/ui/dashboard/recentLoans';
+import ActiveLoansTable from '@/app/ui/dashboard/activeLoansTable';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import DashboardUserCard from '@/app/ui/dashboard/dashboardUserCard';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import {
   fetchActiveLoans,

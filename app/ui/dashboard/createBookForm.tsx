@@ -3,8 +3,8 @@
 import React, { useActionState, useEffect, useRef, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { createBookAction } from '@/app/dashboard/actions';
-import { initialActionState } from '@/app/dashboard/action-state';
-import type { ActionState } from '@/app/dashboard/action-state';
+import { initialActionState } from '@/app/dashboard/actionState';
+import type { ActionState } from '@/app/dashboard/actionState';
 import { ArrowDownCircleIcon, ArrowUpCircleIcon } from "@heroicons/react/24/outline";
 
 export default function CreateBookForm() {

@@ -1,8 +1,8 @@
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
-import RecommendationLab from '@/app/ui/dashboard/recommendations/recommendation-lab';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import RecommendationLab from '@/app/ui/dashboard/recommendations/recommendationLab';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 
 export default async function RecommendationsPage() {

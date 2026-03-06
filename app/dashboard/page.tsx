@@ -2,12 +2,12 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import clsx from 'clsx';
 import { ArrowUpTrayIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import CheckOutForm from '@/app/ui/dashboard/check-out-form';
-import CheckInForm from '@/app/ui/dashboard/check-in-form';
-import ActiveLoansTable from '@/app/ui/dashboard/active-loans-table';
-import SummaryCards from '@/app/ui/dashboard/summary-cards';
-import RecentLoans from '@/app/ui/dashboard/recent-loans';
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
+import CheckOutForm from '@/app/ui/dashboard/checkOutForm';
+import CheckInForm from '@/app/ui/dashboard/checkInForm';
+import ActiveLoansTable from '@/app/ui/dashboard/activeLoansTable';
+import SummaryCards from '@/app/ui/dashboard/summaryCards';
+import RecentLoans from '@/app/ui/dashboard/recentLoans';
+import BlurFade from '@/app/ui/magicUi/blurFade';
 import {
   fetchActiveLoans,
   fetchAvailableBooks,
@@ -15,8 +15,8 @@ import {
   fetchRecentLoans
 } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
-import DashboardUserCard from '@/app/ui/dashboard/dashboard-user-card';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import DashboardUserCard from '@/app/ui/dashboard/dashboardUserCard';
 
 const roleLabel = (role: string): string => {
   if (role === 'admin') return 'Admin';

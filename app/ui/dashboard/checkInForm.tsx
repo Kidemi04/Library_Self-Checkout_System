@@ -4,8 +4,8 @@ import { useActionState, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { useFormStatus } from 'react-dom';
 import { checkinBookAction } from '@/app/dashboard/actions';
-import { initialActionState } from '@/app/dashboard/action-state';
-import type { ActionState } from '@/app/dashboard/action-state';
+import { initialActionState } from '@/app/dashboard/actionState';
+import type { ActionState } from '@/app/dashboard/actionState';
 
 type CheckInFormProps = {
   activeLoanCount: number;

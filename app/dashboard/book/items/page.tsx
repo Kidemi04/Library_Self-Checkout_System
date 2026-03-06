@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation';
-import BookList from '@/app/ui/dashboard/book-list'; // student-facing renderer (grid/list)
-import BookItemsFilter from '@/app/ui/dashboard/book-items-filter';
+import BookList from '@/app/ui/dashboard/bookList'; // student-facing renderer (grid/list)
+import BookItemsFilter from '@/app/ui/dashboard/bookItemsFilter';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 
 // Keep this in sync with your Supabase enum and the BookList component
 export type ItemStatus =

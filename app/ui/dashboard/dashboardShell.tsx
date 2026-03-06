@@ -2,8 +2,8 @@
 
 import clsx from 'clsx';
 import SideNav from '@/app/ui/dashboard/sidenav';
-import MobileNav from '@/app/ui/dashboard/mobile-nav';
-import { useTheme } from '@/app/ui/theme/theme-provider';
+import MobileNav from '@/app/ui/dashboard/mobileNav';
+import { useTheme } from '@/app/ui/theme/themeProvider';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 import { useEffect, useState } from 'react';
 

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { fetchBooks } from '@/app/lib/supabase/queries';
-import StudentChat from '@/app/ui/dashboard/student-chat';
+import StudentChat from '@/app/ui/dashboard/studentChat';
 
 const supportFacts = [
   {

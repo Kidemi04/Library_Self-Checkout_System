@@ -2,10 +2,10 @@
 
 import React from 'react';
 import Link from 'next/link';
-import PlaceHoldButton from './place-hold-button';
+import PlaceHoldButton from './placeHoldButton';
 import { Pagination } from '@/app/ui/dashboard/pagination';
-import GlassCard from '@/app/ui/magic-ui/glass-card';
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
+import GlassCard from '@/app/ui/magicUi/glassCard';
+import BlurFade from '@/app/ui/magicUi/blurFade';
 
 /** SIP-aligned item status (match your Supabase column) */
 export type ItemStatus =

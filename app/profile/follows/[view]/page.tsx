@@ -4,7 +4,7 @@ import { redirect, notFound } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import type { DashboardRole } from '@/app/lib/auth/types';
-import FollowActionButton from '@/app/profile/follow-action-button';
+import FollowActionButton from '@/app/profile/followActionButton';
 
 type FollowView = 'followers' | 'following';
 

@@ -14,8 +14,8 @@ import {
   BellIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
-import { useTheme } from '@/app/ui/theme/theme-provider';
+import BlurFade from '@/app/ui/magicUi/blurFade';
+import { useTheme } from '@/app/ui/theme/themeProvider';
 import type { DashboardRole } from '@/app/lib/auth/types';
 
 // Define the Link type to support nested children

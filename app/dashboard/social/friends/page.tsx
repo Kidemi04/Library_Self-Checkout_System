@@ -7,10 +7,10 @@ import { UserPlusIcon, UserMinusIcon, CheckIcon, XMarkIcon, MagnifyingGlassIcon 
 import { sendFriendRequest, acceptFriendRequest, removeFriend } from './actions';
 import { Button } from '@/app/ui/button';
 import Search from '@/app/ui/search';
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
-import GlassCard from '@/app/ui/magic-ui/glass-card';
+import BlurFade from '@/app/ui/magicUi/blurFade';
+import GlassCard from '@/app/ui/magicUi/glassCard';
 import clsx from 'clsx';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 
 export default async function FriendsPage(props: {
     searchParams: Promise<{

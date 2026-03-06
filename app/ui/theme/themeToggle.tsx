@@ -2,7 +2,7 @@
 
 import clsx from 'clsx';
 import { MoonIcon, SunIcon } from '@heroicons/react/24/outline';
-import { useTheme } from '@/app/ui/theme/theme-provider';
+import { useTheme } from '@/app/ui/theme/themeProvider';
 
 type ThemeToggleProps = {
   className?: string;

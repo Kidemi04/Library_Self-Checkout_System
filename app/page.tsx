@@ -3,9 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { BookOpenIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
-import BlurFade from "@/app/ui/magic-ui/blur-fade";
-import ShimmerButton from "@/app/ui/magic-ui/shimmer-button";
-import GlassCard from "@/app/ui/magic-ui/glass-card";
+import BlurFade from "@/app/ui/magicUi/blurFade";
+import ShimmerButton from "@/app/ui/magicUi/shimmerButton";
+import GlassCard from "@/app/ui/magicUi/glassCard";
 import { unstable_noStore as noStore } from 'next/cache';
 
 export default function HomePage() {

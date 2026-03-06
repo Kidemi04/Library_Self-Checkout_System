@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { Button } from '@/app/ui/button';
 import { PlusIcon } from '@heroicons/react/24/outline';
-import CreateCommunityModal from '@/app/ui/dashboard/communities/create-community-modal';
-import CreateCommunityForm from '@/app/ui/dashboard/communities/create-community-form';
+import CreateCommunityModal from '@/app/ui/dashboard/communities/createCommunityModal';
+import CreateCommunityForm from '@/app/ui/dashboard/communities/createCommunityForm';
 
 export default function CreateCommunityWrapper() {
     const [isOpen, setIsOpen] = useState(false);

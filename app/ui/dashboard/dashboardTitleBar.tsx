@@ -1,6 +1,6 @@
 'use client';
 
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
+import BlurFade from '@/app/ui/magicUi/blurFade';
 import { ReactNode } from 'react';
 
 /**

@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { auth } from '@/auth';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
-import type { ActionState } from '@/app/dashboard/action-state';
+import type { ActionState } from '@/app/dashboard/actionState';
 
 
 const pad = (n: number) => n.toString().padStart(2, '0');
