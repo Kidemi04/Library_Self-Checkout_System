@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import BookList from '@/app/ui/dashboard/book-list'; // student-facing renderer (grid/list)
 import BookItemsFilter from '@/app/ui/dashboard/book-items-filter';
-import AiModeHero from '@/app/ui/dashboard/ai-mode-hero';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
@@ -118,8 +117,6 @@ export default async function BookItemsPage({
         title="Book Items"
         description="Browse the catalogue and filter by status. Use title or author to narrow results."
       />
-
-      <AiModeHero defaultQuery={q} />
 
       <BookItemsFilter
         action=""
