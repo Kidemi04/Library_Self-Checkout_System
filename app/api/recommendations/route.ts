@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { evaluateGuardrails } from '@/app/lib/recommendations/guardrails';
-import { extractPreferences } from '@/app/lib/recommendations/ai';
+import { evaluateGuardrails, isChatIntent } from '@/app/lib/recommendations/guardrails';
+import { answerQuestion, extractPreferences } from '@/app/lib/recommendations/ai';
 import { retrieveCandidateBooks } from '@/app/lib/recommendations/retrieve';
 import {
   buildAssociationRules,
@@ -92,6 +92,33 @@ const diversify = (recs: Recommendation[], limit: number): Recommendation[] => {
   return result;
 };
 
+const buildNoMatchReply = (interests: string[], fallback: string) => {
+  const token = interests[0]?.toLowerCase();
+  if (!token) return fallback;
+
+  const suggestions: Record<string, string> = {
+    programming:
+      'Try related topics like software engineering, algorithms, data structures, or web development.',
+    software:
+      'Try related topics like software engineering, algorithms, data structures, or web development.',
+    code: 'Try related topics like programming, software engineering, or web development.',
+    coding: 'Try related topics like programming, software engineering, or web development.',
+    python: 'Try related topics like programming, data science, or automation.',
+    javascript: 'Try related topics like web development, HTML, or CSS.',
+    typescript: 'Try related topics like web development, JavaScript, or frontend.',
+    ai: 'Try related topics like machine learning, data science, or algorithms.',
+    marketing: 'Try related topics like business, management, or digital marketing.',
+    finance: 'Try related topics like accounting, economics, or investment.',
+    accounting: 'Try related topics like finance, auditing, or business.',
+    art: 'Try related topics like design, multimedia, or visual communication.',
+    design: 'Try related topics like art, multimedia, or creative computing.',
+    multimedia: 'Try related topics like design, media studies, or digital content.',
+  };
+
+  const hint = suggestions[token];
+  return hint ? `${fallback} ${hint}` : fallback;
+};
+
 export async function POST(request: Request) {
   let body: RecommendationRequest;
 
@@ -167,6 +194,35 @@ export async function POST(request: Request) {
     }
   }
 
+  if (isChatIntent(message)) {
+    try {
+      const answer = await answerQuestion(message);
+      const reply =
+        answer ??
+        'I can help with programming or language questions, but the chat service is unavailable right now.';
+      return NextResponse.json({
+        ok: true,
+        kind: 'chat',
+        reply,
+        recommendations: [],
+        interests: [],
+        summary: null,
+        followUpQuestion: null,
+      });
+    } catch {
+      return NextResponse.json({
+        ok: true,
+        kind: 'chat',
+        reply:
+          'I can help with programming or language questions, but the chat service is unavailable right now.',
+        recommendations: [],
+        interests: [],
+        summary: null,
+        followUpQuestion: null,
+      });
+    }
+  }
+
   const guardrail = evaluateGuardrails(inferredMessage);
   if (guardrail.kind !== 'accept') {
     return NextResponse.json({
@@ -203,11 +259,12 @@ export async function POST(request: Request) {
     const finalList = diversify(ranked, requestedLimit);
 
     if (!finalList.length) {
+      const fallbackReply =
+        'I could not find matches in the catalog. Try broader interests (genre, topic, or course unit).';
       return NextResponse.json({
         ok: true,
         kind: 'no_matches',
-        reply:
-          'I could not find matches in the catalog. Try broader interests (genre, topic, mood, or course unit).',
+        reply: buildNoMatchReply(preference.interests, fallbackReply),
         recommendations: [],
         interests: preference.interests,
         summary: preference.summary,

@@ -88,6 +88,20 @@ export interface DashboardSummary {
   overdueLoans: number;
 }
 
+export interface Course {
+  id: string;
+  schemeName: string;
+  schemeYear: number;
+  faculty: string;
+  programName: string;
+  major: string | null;
+  programCode: string | null;
+  mqaCode: string | null;
+  mqaExpiry: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
 export type FriendStatus = 'pending' | 'accepted' | 'blocked';
 
 export interface Friend {

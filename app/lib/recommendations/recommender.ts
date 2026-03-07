@@ -94,9 +94,50 @@ const STOPWORDS = new Set([
   'about',
   'learn',
   'learning',
+  'ask',
+  'asking',
   'interest',
   'interested',
 ]);
+
+const AMBIGUOUS_TEXT_TOKENS = new Set(['code', 'coding']);
+const COMPUTING_HINTS = [
+  'computer',
+  'computing',
+  'software',
+  'program',
+  'programming',
+  'algorithm',
+  'data',
+  'database',
+  'network',
+  'system',
+  'operating',
+  'engineering',
+  'ai',
+  'machine',
+];
+
+const SYNONYM_MAP: Record<string, string[]> = {
+  code: ['programming', 'software'],
+  coding: ['programming', 'software'],
+  programing: ['programming', 'software'],
+  programmer: ['programming', 'software'],
+  programming: ['software'],
+  python: ['programming'],
+  ai: ['machine', 'learning', 'data', 'intelligence'],
+  'artificial intelligence': ['ai', 'machine', 'learning'],
+  robotic: ['robotics', 'automation'],
+  robotics: ['robotic', 'automation'],
+  javascript: ['programming', 'web'],
+  typescript: ['programming', 'web'],
+  marketing: ['business'],
+  finance: ['accounting', 'business'],
+  accounting: ['finance', 'business'],
+  art: ['design', 'visual'],
+  design: ['art', 'creative'],
+  multimedia: ['design', 'media'],
+};
 
 export const tokenizeInterests = (input: string): string[] =>
   input
@@ -106,6 +147,10 @@ export const tokenizeInterests = (input: string): string[] =>
       token
         .trim()
         .toLowerCase()
+        .replace(/\bprograming\b/g, 'programming')
+        .replace(/\bstastic\b/g, 'statistics')
+        .replace(/\bstatistic\b/g, 'statistics')
+        .replace(/\bintelligenct\b/g, 'intelligence')
         .replace(/^[^a-z0-9#]+|[^a-z0-9]+$/gi, ''),
     )
     .filter((token) => token.length > 1 && !STOPWORDS.has(token));
@@ -196,12 +241,14 @@ export function recommendBooks(
   const { requireMatch = false } = options;
 
   const rawTokens = tokenizeInterests(interestInput);
-  const interestTokens = unique(
-    rawTokens
-      .map(normalizeInterestToken)
-      .map((t) => t.trim())
-      .filter((t) => t.length > 1),
+  const normalizedTokens = rawTokens
+    .map(normalizeInterestToken)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 1);
+  const expandedTokens = unique(
+    normalizedTokens.flatMap((token) => [token, ...(SYNONYM_MAP[token] ?? [])]),
   );
+  const interestTokens = expandedTokens;
   const interestSet = new Set(interestTokens);
 
   const associationDerived = new Set<string>();
@@ -223,18 +270,30 @@ export function recommendBooks(
     );
 
     const textCorpus = collectTextCorpus(book);
+    const hasComputingHint =
+      COMPUTING_HINTS.some((hint) => textCorpus.includes(hint)) ||
+      tags.some((tag) => COMPUTING_HINTS.some((hint) => tag.includes(hint)));
     const matchedTags = tags.filter((tag) => interestSet.has(tag));
     const relatedTags = tags.filter((tag) => associationDerived.has(tag) && !interestSet.has(tag));
+    const safeMatchedTags = matchedTags.filter(
+      (tag) => !AMBIGUOUS_TEXT_TOKENS.has(tag) || hasComputingHint,
+    );
+    const safeRelatedTags = relatedTags.filter(
+      (tag) => !AMBIGUOUS_TEXT_TOKENS.has(tag) || hasComputingHint,
+    );
 
     const textMatches = interestTokens.filter(
-      (token) => token.length > 2 && textCorpus.includes(token),
+      (token) =>
+        token.length > 2 &&
+        textCorpus.includes(token) &&
+        (!AMBIGUOUS_TEXT_TOKENS.has(token) || hasComputingHint),
     );
 
     if (
       requireMatch &&
       interestTokens.length > 0 &&
-      matchedTags.length === 0 &&
-      relatedTags.length === 0 &&
+      safeMatchedTags.length === 0 &&
+      safeRelatedTags.length === 0 &&
       textMatches.length === 0
     ) {
       return;
@@ -243,14 +302,14 @@ export function recommendBooks(
     let score = 0;
     const reasons: string[] = [];
 
-    if (matchedTags.length) {
-      score += matchedTags.length * 3;
-      reasons.push(`Matches your interests: ${matchedTags.slice(0, 3).join(', ')}`);
+    if (safeMatchedTags.length) {
+      score += safeMatchedTags.length * 3;
+      reasons.push(`Matches your interests: ${safeMatchedTags.slice(0, 3).join(', ')}`);
     }
 
-    if (relatedTags.length) {
-      score += relatedTags.length * 2;
-      reasons.push(`Related via association rules: ${relatedTags.slice(0, 3).join(', ')}`);
+    if (safeRelatedTags.length) {
+      score += safeRelatedTags.length * 2;
+      reasons.push(`Related via association rules: ${safeRelatedTags.slice(0, 3).join(', ')}`);
     }
 
     if (textMatches.length) {

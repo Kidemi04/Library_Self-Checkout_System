@@ -15,7 +15,7 @@ type RecommendationItem = {
 
 type RecommendationResponse = {
   ok?: boolean;
-  kind?: 'recommendations' | 'clarify' | 'reject' | 'no_matches' | 'error' | 'rate_limited';
+  kind?: 'recommendations' | 'clarify' | 'reject' | 'no_matches' | 'error' | 'rate_limited' | 'chat';
   reply?: string;
   recommendations?: RecommendationItem[];
   interests?: string[];
@@ -56,7 +56,8 @@ const buildInitialMessages = (name?: string | null): ChatMessage[] => {
     {
       id: 'assistant-2',
       sender: 'assistant',
-      text: 'English only. Book recommendations only. Share genres, topics, mood, or course units.',
+      text:
+        'English only. Book recommendations or study help (programming, language). Share genres, topics, or course units.',
       timestamp: now - 60000,
     },
   ];
@@ -324,7 +325,7 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
           <p>
             {sendNotice ??
-              'English only. Book recommendations only. Based on the current library catalog.'}
+              'English only. Book recommendations or study help (programming, language).'}
           </p>
           <button
             type="submit"
@@ -399,7 +400,7 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
           </div>
         ) : (
           <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300/80">
-            No recommendations yet. Mention a genre, topic, or mood to get started.
+            No recommendations yet. Mention a genre, topic, or course unit to get started.
           </div>
         )}
       </div>
