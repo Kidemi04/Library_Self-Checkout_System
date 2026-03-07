@@ -5,12 +5,16 @@ import { retrieveCandidateBooks } from '@/app/lib/recommendations/retrieve';
 import {
   buildAssociationRules,
   recommendBooks,
+  tokenizeInterests,
   type Recommendation,
 } from '@/app/lib/recommendations/recommender';
 
 type RecommendationRequest = {
   message?: string;
   limit?: number;
+  context?: {
+    lastInterests?: string[];
+  };
 };
 
 type RecommendationItem = {
@@ -102,6 +106,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Message is required.' }, { status: 400 });
   }
 
+  const lastInterests =
+    Array.isArray(body.context?.lastInterests) && body.context?.lastInterests?.length
+      ? body.context.lastInterests.map((value) => String(value).trim()).filter(Boolean)
+      : [];
+  const isMoreRequest = /^\s*(any\s*more|more|another|next|what\s*else|else)\b/i.test(message);
+  const lastInterestTokens = lastInterests.map((value) => value.toLowerCase());
+  const lastInterestSet = new Set(lastInterestTokens);
+  const extraTokens = isMoreRequest
+    ? tokenizeInterests(message).filter((token) => !lastInterestSet.has(token))
+    : [];
+  const inferredMessage =
+    isMoreRequest && (lastInterests.length || extraTokens.length)
+      ? [...lastInterestTokens, ...extraTokens].join(', ')
+      : message;
+
   const clientKey = getClientKey(request);
   const now = Date.now();
   const existing = rateLimiter.get(clientKey);
@@ -148,7 +167,7 @@ export async function POST(request: Request) {
     }
   }
 
-  const guardrail = evaluateGuardrails(message);
+  const guardrail = evaluateGuardrails(inferredMessage);
   if (guardrail.kind !== 'accept') {
     return NextResponse.json({
       ok: true,
@@ -162,9 +181,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const preference = await extractPreferences(message);
+    const preference = await extractPreferences(inferredMessage);
     const interestInput =
-      preference.interests.length > 0 ? preference.interests.join(', ') : message;
+      preference.interests.length > 0 ? preference.interests.join(', ') : inferredMessage;
 
     const requestedLimit = clamp(Number(body.limit ?? 6), 3, 8);
     const books = await retrieveCandidateBooks(interestInput);
@@ -176,6 +195,7 @@ export async function POST(request: Request) {
         onlyAvailable: true,
         favorPopular: true,
         limit: Math.max(12, requestedLimit * 2),
+        requireMatch: true,
       },
       associations,
     );
@@ -196,8 +216,12 @@ export async function POST(request: Request) {
     }
 
     const items = finalList.map(toRecommendationItem);
+    const introLine =
+      isMoreRequest && lastInterests.length
+        ? `**More picks.** ${preference.summary}`
+        : `**Got it.** ${preference.summary}`;
     const replyLines = [
-      `**Got it.** ${preference.summary}`,
+      introLine,
       '',
       `Here are ${items.length} picks from the catalog:`,
       ...items.map(

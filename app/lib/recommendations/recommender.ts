@@ -5,6 +5,7 @@ export type RecommendationOptions = {
   favorNew?: boolean;
   favorPopular?: boolean;
   limit?: number;
+  requireMatch?: boolean;
 };
 
 export type Recommendation = {
@@ -27,12 +28,87 @@ const normalizeTag = (value: string | null | undefined): string | null => {
   return trimmed.length ? trimmed : null;
 };
 
+const STOPWORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'are',
+  'as',
+  'at',
+  'be',
+  'been',
+  'being',
+  'but',
+  'by',
+  'can',
+  'could',
+  'did',
+  'do',
+  'does',
+  'for',
+  'from',
+  'have',
+  'hey',
+  'hi',
+  'how',
+  'i',
+  'im',
+  "i'm",
+  'if',
+  'in',
+  'is',
+  'it',
+  'know',
+  'like',
+  'me',
+  'more',
+  'my',
+  'of',
+  'on',
+  'or',
+  'our',
+  'please',
+  'tell',
+  'that',
+  'the',
+  'their',
+  'them',
+  'this',
+  'to',
+  'too',
+  'not',
+  'those',
+  'these',
+  'book',
+  'books',
+  'us',
+  'want',
+  'we',
+  'what',
+  'with',
+  'why',
+  'would',
+  'you',
+  'your',
+  'also',
+  'about',
+  'learn',
+  'learning',
+  'interest',
+  'interested',
+]);
+
 export const tokenizeInterests = (input: string): string[] =>
   input
     .split(/[,\n]/)
     .flatMap((chunk) => chunk.split(/\s+/))
-    .map((token) => token.trim().toLowerCase())
-    .filter((token) => token.length > 1);
+    .map((token) =>
+      token
+        .trim()
+        .toLowerCase()
+        .replace(/^[^a-z0-9#]+|[^a-z0-9]+$/gi, ''),
+    )
+    .filter((token) => token.length > 1 && !STOPWORDS.has(token));
 
 const unique = <T,>(values: T[]): T[] => Array.from(new Set(values));
 const normalizeInterestToken = (token: string): string =>
@@ -117,6 +193,7 @@ export function recommendBooks(
     favorPopular = true,
     limit = 12,
   } = options;
+  const { requireMatch = false } = options;
 
   const rawTokens = tokenizeInterests(interestInput);
   const interestTokens = unique(
@@ -152,6 +229,16 @@ export function recommendBooks(
     const textMatches = interestTokens.filter(
       (token) => token.length > 2 && textCorpus.includes(token),
     );
+
+    if (
+      requireMatch &&
+      interestTokens.length > 0 &&
+      matchedTags.length === 0 &&
+      relatedTags.length === 0 &&
+      textMatches.length === 0
+    ) {
+      return;
+    }
 
     let score = 0;
     const reasons: string[] = [];

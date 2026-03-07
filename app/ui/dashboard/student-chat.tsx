@@ -36,28 +36,7 @@ type QuickPrompt = {
   message: string;
 };
 
-const quickPrompts: QuickPrompt[] = [
-  {
-    id: 'data-science',
-    label: '#DataScience',
-    message: 'Course unit: data science, machine learning, statistics.',
-  },
-  {
-    id: 'business-strategy',
-    label: '#BusinessStrategy',
-    message: 'Course unit: business strategy, management, case studies.',
-  },
-  {
-    id: 'engineering-design',
-    label: '#EngineeringDesign',
-    message: 'Course unit: engineering design, prototyping, systems thinking.',
-  },
-  {
-    id: 'education-psych',
-    label: '#EducationPsychology',
-    message: 'Course unit: educational psychology, learning science.',
-  },
-];
+const quickPrompts: QuickPrompt[] = [];
 
 const buildGreeting = (name?: string | null) => {
   const friendlyName =
@@ -179,7 +158,7 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
       const response = await fetch('/api/recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({ message: content, context: { lastInterests: activeInterests } }),
       });
 
       const data = (await response.json()) as RecommendationResponse;
@@ -255,18 +234,20 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
         </p>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {quickPrompts.map((prompt) => (
-          <button
-            key={prompt.id}
-            type="button"
-            className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
-            onClick={() => handleQuickPrompt(prompt)}
-          >
-            {prompt.label}
-          </button>
-        ))}
-      </div>
+      {quickPrompts.length ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {quickPrompts.map((prompt) => (
+            <button
+              key={prompt.id}
+              type="button"
+              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
+              onClick={() => handleQuickPrompt(prompt)}
+            >
+              {prompt.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       <div
         ref={messagesRef}
