@@ -47,7 +47,6 @@ function getSliderLeft(tabs: TabItem[], activeTab: string, tabCount: number): st
 
 
 export default function TabSwitch({ tabs, activeTab, className }: TabSwitchProps) {
-
   return (
     <div
       className={clsx(
