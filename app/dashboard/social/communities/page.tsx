@@ -3,8 +3,7 @@ import { getDashboardSession } from '@/app/lib/auth/session';
 import { fetchCommunities, fetchMyCommunities } from '@/app/lib/supabase/communities';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { PlusIcon, UserGroupIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import CreateCommunityWrapper from './create-community-wrapper';
+import { UserGroupIcon } from '@heroicons/react/24/outline';
 import BlurFade from '@/app/ui/magicUi/blurFade';
 import GlassCard from '@/app/ui/magicUi/glassCard';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
@@ -47,10 +46,10 @@ export default async function CommunitiesPage(props: {
                       className="absolute top-1 bottom-1 left-1 w-[calc(50%-0.5rem)] bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]"
                       style={{ transform: `translateX(${tab === 'my' ? '100%' : '0%'})` }}
                   />
-                  <Link href="/dashboard/social?section=communities&tab=explore" className={tabClass(tab === 'explore')}>
+                  <Link href="/dashboard/social/communities&tab=explore" className={tabClass(tab === 'explore')}>
                       Explore
                   </Link>
-                  <Link href="/dashboard/social?section=communities&tab=my" className={tabClass(tab === 'my')}>
+                  <Link href="/dashboard/social/communities&tab=my" className={tabClass(tab === 'my')}>
                       My Communities
                   </Link>
               </div>
