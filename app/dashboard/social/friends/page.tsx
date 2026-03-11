@@ -11,12 +11,13 @@ import BlurFade from '@/app/ui/magicUi/blurFade';
 import GlassCard from '@/app/ui/magicUi/glassCard';
 import clsx from 'clsx';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import TabSwitch from '@/app/ui/dashboard/tabSwitch';
 
 export default async function FriendsPage(props: {
-    searchParams: Promise<{
-        query?: string;
-        tab?: string;
-    }>;
+	searchParams: Promise<{
+		query?: string;
+		tab?: string;
+	}>;
 }) {
     const searchParams = await props.searchParams;
     const { user } = await getDashboardSession();
@@ -40,18 +41,11 @@ export default async function FriendsPage(props: {
         }
     }
 
-    const tabClass = (isActive: boolean) => clsx(
-        'flex-1 px-2 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium rounded-full transition-all duration-300 text-center relative z-10',
-        isActive
-            ? 'text-slate-900 dark:text-white shadow-sm'
-            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-    );
-
-    const activeTabBgStyle = {
-        list: '0%',
-        requests: '33.33%',
-        find: '66.66%'
-    };
+		const tabs = [
+			{ label: 'My Friends', value: 'list', href: 'friends?tab=list', count: friends.length },
+			{ label: 'Requests', value: 'requests', href: 'friends?tab=requests', count: requests.length },
+			{ label: 'Find', value: 'find', href: 'friends?tab=find' },
+		];
 
     return (
         <main className="w-full space-y-8">
@@ -61,23 +55,7 @@ export default async function FriendsPage(props: {
                 description="Manage your connections and find new people."
             />
 
-            <BlurFade delay={0.2} yOffset={10}>
-                <div className="relative bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-full backdrop-blur-md flex w-full max-w-md mx-auto md:mx-0">
-                    <div
-                        className="absolute top-1 bottom-1 left-1 w-[calc(33.33%-0.5rem)] bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]"
-                        style={{ transform: `translateX(${tab === 'requests' ? '100%' : tab === 'find' ? '200%' : '0%'})` }}
-                    />
-                    <Link href="/dashboard/social?section=friends&tab=list" className={tabClass(tab === 'list')}>
-                        My Friends ({friends.length})
-                    </Link>
-                    <Link href="/dashboard/social?section=friends&tab=requests" className={tabClass(tab === 'requests')}>
-                        Requests ({requests.length})
-                    </Link>
-                    <Link href="/dashboard/social?section=friends&tab=find" className={tabClass(tab === 'find')}>
-                        Find Friends
-                    </Link>
-                </div>
-            </BlurFade>
+						<TabSwitch tabs={tabs} activeTab={tab} className="max-w-md" />
 
             <BlurFade delay={0.3} yOffset={20}>
                 {tab === 'list' && (
@@ -91,9 +69,6 @@ export default async function FriendsPage(props: {
                                 <p className="text-slate-500 max-w-xs mx-auto mt-1">
                                     Start building your network by finding people you know.
                                 </p>
-                                <Link href="/dashboard/social?section=friends&tab=find" className="mt-6 px-6 py-2 bg-swin-red text-white rounded-full font-medium hover:bg-swin-red/90 transition-colors shadow-lg shadow-swin-red/20">
-                                    Find Friends
-                                </Link>
                             </GlassCard>
                         ) : (
                             friends.map((friend) => (

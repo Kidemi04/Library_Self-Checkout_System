@@ -8,68 +8,54 @@ import BlurFade from '@/app/ui/magicUi/blurFade';
 import GlassCard from '@/app/ui/magicUi/glassCard';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 import clsx from 'clsx';
+import TabSwitch from '@/app/ui/dashboard/tabSwitch';
+
 
 export default async function CommunitiesPage(props: {
-    searchParams: Promise<{
-        tab?: string;
-    }>;
+	searchParams: Promise<{
+		tab?: string;
+	}>;
 }) {
-    const searchParams = await props.searchParams;
-    const { user } = await getDashboardSession();
-    if (!user) redirect('/login');
+	const searchParams = await props.searchParams;
+	const { user } = await getDashboardSession();
+	if (!user) redirect('/login');
 
-    const tab = searchParams?.tab || 'explore'; // 'explore', 'my'
+	const tab = searchParams?.tab || 'explore'; // 'explore', 'my'
 
-    const allCommunities = tab === 'explore' ? await fetchCommunities() : [];
-    const myCommunities = await fetchMyCommunities(user.id);
+	const allCommunities = tab === 'explore' ? await fetchCommunities() : [];
+	const myCommunities = await fetchMyCommunities(user.id);
 
-    const communitiesToShow = tab === 'explore' ? allCommunities : myCommunities;
+	const communitiesToShow = tab === 'explore' ? allCommunities : myCommunities;
 
-    const tabClass = (isActive: boolean) => clsx(
-        'flex-1 px-2 py-1.5 md:px-4 md:py-2 text-xs md:text-sm font-medium rounded-full transition-all duration-300 text-center relative z-10',
-        isActive
-            ? 'text-slate-900 dark:text-white shadow-sm'
-            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-    );
-
+	const tabs = [
+		{ label: 'Explore', value: 'explore', href: 'communities?tab=explore' },
+		{ label: 'My Communities', value: 'my', href: 'communities?tab=my' },
+	];
     return (
         <main className="w-full space-y-8">
-            <DashboardTitleBar
-                subtitle="Social"
-                title="Communities"
-                description="Join groups and connect with people who share your interests."
-            />
+					<DashboardTitleBar
+						subtitle="Social"
+						title="Communities"
+						description="Join groups and connect with people who share your interests."
+					/>
 
-            <BlurFade delay={0.2} yOffset={10}>
-              <div className="relative bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-full backdrop-blur-md flex w-full max-w-xs mx-auto md:mx-0">
-                  <div
-                      className="absolute top-1 bottom-1 left-1 w-[calc(50%-0.5rem)] bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]"
-                      style={{ transform: `translateX(${tab === 'my' ? '100%' : '0%'})` }}
-                  />
-                  <Link href="/dashboard/social/communities&tab=explore" className={tabClass(tab === 'explore')}>
-                      Explore
-                  </Link>
-                  <Link href="/dashboard/social/communities&tab=my" className={tabClass(tab === 'my')}>
-                      My Communities
-                  </Link>
-              </div>
-            </BlurFade>
+					<TabSwitch tabs={tabs} activeTab={tab} className="max-w-xs" />
 
-            <BlurFade delay={0.3} yOffset={20}>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {communitiesToShow.length === 0 ? (
-                        <GlassCard className="col-span-full flex flex-col items-center justify-center py-16 text-center">
-                            <div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-                                <UserGroupIcon className="h-8 w-8 text-slate-400" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">No communities found</h3>
-                            <p className="text-slate-500 max-w-xs mx-auto mt-1">
-                                {tab === 'explore'
-                                    ? "There are no public communities yet. Be the first to create one!"
-                                    : "You haven't joined any communities yet."}
-                            </p>
-                        </GlassCard>
-                    ) : (
+					<BlurFade delay={0.3} yOffset={20}>
+						<div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+							{communitiesToShow.length === 0 ? (
+								<GlassCard className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+									<div className="h-16 w-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+										<UserGroupIcon className="h-8 w-8 text-slate-400" />
+											</div>
+										<h3 className="text-lg font-semibold text-slate-900 dark:text-white">No communities found</h3>
+										<p className="text-slate-500 max-w-xs mx-auto mt-1">
+											{tab === 'explore'
+												? "There are no public communities yet. Be the first to create one!"
+												: "You haven't joined any communities yet."}
+										</p>
+									</GlassCard>
+								) : (
                         communitiesToShow.map((community) => (
                             <Link
                                 key={community.id}
