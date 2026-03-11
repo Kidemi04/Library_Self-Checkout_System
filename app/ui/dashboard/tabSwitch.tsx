@@ -38,21 +38,15 @@ interface TabSwitchProps {
  * Each tab occupies an equal fraction of the container width, so the
  * offset is simply (activeIndex / totalTabs * 100)%.
  */
-function getSliderOffset(tabs: TabItem[], activeTab: string): string {
+function getSliderLeft(tabs: TabItem[], activeTab: string, tabCount: number): string {
   const index = tabs.findIndex((t) => t.value === activeTab);
   const safeIndex = index < 0 ? 0 : index;
-  return `${safeIndex * 100}%`;
-}
-
-
-function getSliderWidth(tabCount: number): string {
-  return `calc(${100 / tabCount}% - 0.5rem)`;
+  // Each tab occupies (100/N)% of the container, offset by the p-1 (4px) padding
+  return `calc(${safeIndex} * (100% - 0.5rem) / ${tabCount} + 0.25rem)`;
 }
 
 
 export default function TabSwitch({ tabs, activeTab, className }: TabSwitchProps) {
-  const sliderOffset = getSliderOffset(tabs, activeTab);
-  const sliderWidth  = getSliderWidth(tabs.length);
 
   return (
     <div
@@ -66,10 +60,10 @@ export default function TabSwitch({ tabs, activeTab, className }: TabSwitchProps
       {/* ── Sliding highlight pill ── */}
       <div
         aria-hidden="true"
-        className="absolute top-1 bottom-1 left-1 bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]"
+        className="absolute top-1 bottom-1 bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]"
         style={{
-          width:     sliderWidth,
-          transform: `translateX(${sliderOffset})`,
+          width: `calc((100% - 0.5rem) / ${tabs.length})`,
+          left: getSliderLeft(tabs, activeTab, tabs.length),
         }}
       />
 
