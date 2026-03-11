@@ -7,6 +7,9 @@ import { auth } from '@/auth';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import type { ActionState } from '@/app/dashboard/action-state';
 
+const SIP2_INSTITUTION_ID = process.env.SIP2_INSTITUTION_ID ?? 'LIB001';
+const SIP2_TERMINAL_PASSWORD = process.env.SIP2_TERMINAL_PASSWORD ?? '';
+const SIP2_PATRON_PASSWORD = process.env.SIP2_PATRON_PASSWORD ?? '';
 
 const pad = (n: number) => n.toString().padStart(2, '0');
 
@@ -21,16 +24,24 @@ const pad = (n: number) => n.toString().padStart(2, '0');
  * Example: 202501180000080000 = 2025-01-18 08:00:00 with "0000" TZ.
  */
 const formatSipDate = (date: Date) => {
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
+  const yyyy = date.getFullYear();
+  const mm = pad(date.getMonth() + 1);
+  const dd = pad(date.getDate());
 
-  const zzzz = '0000'; // simple TZ placeholder, matches emulator requirement
+  const hh = pad(date.getHours());
+  const min = pad(date.getMinutes());
+  const ss = pad(date.getSeconds());
 
-  return `${year}${month}${day}${zzzz}${hours}${minutes}${seconds}`;
+  // SIP2 timezone offset must be HHMM only (no + sign)
+  const offsetMinutes = -date.getTimezoneOffset();
+  const abs = Math.abs(offsetMinutes);
+
+  const offHH = pad(Math.floor(abs / 60));
+  const offMM = pad(abs % 60);
+
+  const zzzz = `${offHH}${offMM}`;
+
+  return `${yyyy}${mm}${dd}${zzzz}${hh}${min}${ss}`;
 };
 
 
@@ -479,18 +490,18 @@ export async function checkoutBookAction(
       noBlock: 'N',                                   // do not override blocks
       transactionDate: formatSipDate(borrowedAt),
       nbDueDate: formatSipDate(dueDate),
-      institutionId: 'LIB001',                        // follow the sample doc
+      institutionId: SIP2_INSTITUTION_ID,                        // follow the sample doc
 
       patronIdentifier: borrowerIdentifier,
       itemIdentifier,
-      terminalPassword: 'term123',                    // from sample
+      terminalPassword: SIP2_TERMINAL_PASSWORD,                    // from sample
       itemProperties: '',                             // you can fill this later if you want
-      patronPassword: 'patron456',                    // sample, can be dummy
+      patronPassword: SIP2_PATRON_PASSWORD,                   // sample, can be dummy
       feeAcknowledged: 'Y',
       cancel: 'N',
 
       // extra metadata just for ourselves (emulator will ignore unknown fields)
-      loanId,
+      //loanId,
     });
 
 
@@ -669,9 +680,9 @@ export async function checkinBookAction(
       transactionDate: formatSipDate(now),
       returnDate: formatSipDate(now),
       currentLocation: 'Main Library',
-      institutionId: 'LIB001',
+      institutionId: SIP2_INSTITUTION_ID,
       itemIdentifier,
-      terminalPassword: 'term123',
+      terminalPassword: SIP2_TERMINAL_PASSWORD,
       itemProperties: '',
       cancel: 'N',
 
@@ -681,7 +692,8 @@ export async function checkinBookAction(
         loan.borrower?.email ??
         loan.borrower?.id ??
         '',
-      loanId: loan.id,
+
+      //loanId: loan.id,
     });
 
   } catch (error) {

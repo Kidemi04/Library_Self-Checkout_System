@@ -2,30 +2,57 @@ const BASE = process.env.SIP2_BASE_URL;
 const TOKEN = process.env.SIP2_API_KEY;
 
 if (!BASE || !TOKEN) {
-  console.warn('SIP2_BASE_URL or SIP2_API_KEY is not set. SIP2 requests will fail.');
+  console.warn('[SIP2] Configuration missing.');
 }
 
-async function request<T>(endpoint: string, payload: unknown): Promise<T> {
+type SipEndpoint = '/login' | '/logout' | '/checkOut' | '/checkIn' | '/item';
+
+async function request<T>(endpoint: SipEndpoint, payload: unknown): Promise<T> {
   if (!BASE || !TOKEN) {
-    throw new Error('SIP2 configuration missing. Set SIP2_BASE_URL and SIP2_API_KEY.');
+    throw new Error('SIP2 service unavailable.');
   }
 
-  const response = await fetch(`${BASE}${endpoint}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${TOKEN}`,
-    },
-    body: JSON.stringify(payload),
-    cache: 'no-store',
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${BASE}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${TOKEN}`,
+      },
+      body: JSON.stringify(payload),
+      cache: 'no-store',
+    });
+  } catch (err) {
+    console.error('[SIP2] Network error', {
+      endpoint,
+      time: new Date().toISOString(),
+    });
+
+    throw new Error('SIP2 service unreachable.');
+  }
 
   if (!response.ok) {
-    const message = await response.text().catch(() => response.statusText);
-    throw new Error(`SIP2 request failed: ${response.status} ${message}`);
+    console.error('[SIP2] Request failed', {
+      endpoint,
+      status: response.status,
+      time: new Date().toISOString(),
+    });
+
+    throw new Error('SIP2 operation failed.');
   }
 
-  return response.json() as Promise<T>;
+  try {
+    return (await response.json()) as T;
+  } catch {
+    console.error('[SIP2] Invalid JSON response', {
+      endpoint,
+      time: new Date().toISOString(),
+    });
+
+    throw new Error('SIP2 invalid response.');
+  }
 }
 
 export async function login(payload: unknown) {
