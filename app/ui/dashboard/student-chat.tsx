@@ -36,28 +36,7 @@ type QuickPrompt = {
   message: string;
 };
 
-const quickPrompts: QuickPrompt[] = [
-  {
-    id: 'data-science',
-    label: '#DataScience',
-    message: 'Course unit: data science, machine learning, statistics.',
-  },
-  {
-    id: 'business-strategy',
-    label: '#BusinessStrategy',
-    message: 'Course unit: business strategy, management, case studies.',
-  },
-  {
-    id: 'engineering-design',
-    label: '#EngineeringDesign',
-    message: 'Course unit: engineering design, prototyping, systems thinking.',
-  },
-  {
-    id: 'education-psych',
-    label: '#EducationPsychology',
-    message: 'Course unit: educational psychology, learning science.',
-  },
-];
+const quickPrompts: QuickPrompt[] = [];
 
 const buildGreeting = (name?: string | null) => {
   const friendlyName =
@@ -111,6 +90,13 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
   const [activeInterests, setActiveInterests] = useState<string[]>([]);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const lastSentAtRef = useRef<number>(0);
+  const initialNameRef = useRef(studentName);
+  const lastClearedRef = useRef<{
+    messages: ChatMessage[];
+    recommendations: RecommendationItem[];
+    interests: string[];
+    sendNotice: string | null;
+  } | null>(null);
 
   useEffect(() => {
     const nextGreeting = buildGreeting(studentName);
@@ -128,6 +114,39 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
       return [{ ...first, text: nextGreeting }, ...rest];
     });
   }, [studentName]);
+
+  useEffect(() => {
+    if (initialNameRef.current == null) {
+      initialNameRef.current = studentName ?? null;
+    }
+  }, [studentName]);
+
+  const resetChat = () => {
+    lastClearedRef.current = {
+      messages,
+      recommendations: bookRecommendations,
+      interests: activeInterests,
+      sendNotice,
+    };
+    setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
+    setBookRecommendations([]);
+    setActiveInterests([]);
+    setSendNotice(null);
+    setStickToBottom(true);
+    setInputValue('');
+    setIsAssistantTyping(false);
+    lastSentAtRef.current = 0;
+  };
+
+  const restorePreviousChat = () => {
+    if (!lastClearedRef.current) return;
+    setMessages(lastClearedRef.current.messages);
+    setBookRecommendations(lastClearedRef.current.recommendations);
+    setActiveInterests(lastClearedRef.current.interests);
+    setSendNotice(lastClearedRef.current.sendNotice);
+    setStickToBottom(false);
+    setIsAssistantTyping(false);
+  };
 
   const scrollToBottom = () => {
     if (!messagesRef.current) return;
@@ -234,6 +253,17 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'ArrowUp' && !event.shiftKey && inputValue.trim() === '') {
+      const lastUserMessage = [...messages]
+        .reverse()
+        .find((message) => message.sender === 'student')?.text;
+      if (lastUserMessage) {
+        event.preventDefault();
+        setInputValue(lastUserMessage);
+      }
+      return;
+    }
+
     if (event.key !== 'Enter' || event.shiftKey) return;
     event.preventDefault();
     sendMessage(inputValue).then((sent) => {
@@ -245,7 +275,8 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
 
   return (
     <section className="flex h-full flex-col rounded-3xl border border-slate-200 bg-slate-50/70 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950/40 dark:shadow-black/20">
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-1">
         <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400/80">
           AI recommendations
         </p>
@@ -253,6 +284,25 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
         <p className="text-sm text-slate-600 dark:text-slate-300/80">
           Share what you want to read, and I will recommend books from the catalog.
         </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={restorePreviousChat}
+            disabled={!lastClearedRef.current}
+            aria-label="Restore previous chat"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
+          >
+            ↑
+          </button>
+          <button
+            type="button"
+            onClick={resetChat}
+            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
+          >
+            Clear chat
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">

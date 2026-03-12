@@ -165,9 +165,12 @@ export async function POST(request: Request) {
     const preference = await extractPreferences(message);
     const interestInput =
       preference.interests.length > 0 ? preference.interests.join(', ') : message;
+    const retrievalQuery = preference.interests.length
+      ? `${interestInput} ${message}`
+      : message;
 
     const requestedLimit = clamp(Number(body.limit ?? 6), 3, 8);
-    const books = await retrieveCandidateBooks(interestInput);
+    const books = await retrieveCandidateBooks(retrievalQuery);
     const associations = buildAssociationRules(books);
     const ranked = recommendBooks(
       books,
@@ -187,7 +190,7 @@ export async function POST(request: Request) {
         ok: true,
         kind: 'no_matches',
         reply:
-          'I could not find matches in the catalog. Try broader interests (genre, topic, mood, or course unit).',
+          'I could not find books related to that keyword in the catalog yet. Try another keyword or broaden it (genre, topic, mood, or course unit).',
         recommendations: [],
         interests: preference.interests,
         summary: preference.summary,
