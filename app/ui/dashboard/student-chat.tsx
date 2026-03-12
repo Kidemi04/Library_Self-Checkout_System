@@ -15,7 +15,14 @@ type RecommendationItem = {
 
 type RecommendationResponse = {
   ok?: boolean;
-  kind?: 'recommendations' | 'clarify' | 'reject' | 'no_matches' | 'error' | 'rate_limited';
+  kind?:
+    | 'recommendations'
+    | 'clarify'
+    | 'greeting'
+    | 'reject'
+    | 'no_matches'
+    | 'error'
+    | 'rate_limited';
   reply?: string;
   recommendations?: RecommendationItem[];
   interests?: string[];
@@ -153,6 +160,16 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
     messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
   };
 
+  const scheduleScrollToBottom = () => {
+    if (typeof requestAnimationFrame === 'undefined') {
+      scrollToBottom();
+      return;
+    }
+    requestAnimationFrame(() => {
+      scrollToBottom();
+    });
+  };
+
   useEffect(() => {
     if (!stickToBottom) return;
     scrollToBottom();
@@ -186,6 +203,8 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
       timestamp: Date.now(),
     };
     setMessages((prev) => [...prev, newMessage]);
+    setStickToBottom(true);
+    scheduleScrollToBottom();
     lastSentAtRef.current = now;
     await triggerAssistantReply(trimmed);
     return true;

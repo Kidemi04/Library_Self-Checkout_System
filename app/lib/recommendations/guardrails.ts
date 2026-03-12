@@ -1,5 +1,6 @@
 export type GuardrailResult =
   | { kind: 'accept' }
+  | { kind: 'greeting'; reply: string }
   | { kind: 'clarify'; reply: string }
   | { kind: 'reject'; reply: string };
 
@@ -60,6 +61,15 @@ const AMBIGUOUS_PATTERNS = [
   /^\s*(help|recommend|suggest)\b/i,
 ];
 
+const GREETING_PATTERNS = [
+  /^\s*(hi|hello|hey|yo)\b/i,
+  /\bgood\s*(morning|afternoon|evening)\b/i,
+  /\bhowdy\b/i,
+];
+
+const buildGreetingReply = () =>
+  'Hi! How can I help you with book recommendations for your course?';
+
 const isEnglishInput = (value: string) => {
   for (const char of value) {
     const code = char.charCodeAt(0);
@@ -79,6 +89,10 @@ export function evaluateGuardrails(input: string): GuardrailResult {
       kind: 'reject',
       reply: 'Please use English only for recommendations.',
     };
+  }
+
+  if (GREETING_PATTERNS.some((pattern) => pattern.test(trimmed))) {
+    return { kind: 'greeting', reply: buildGreetingReply() };
   }
 
   const lowered = trimmed.toLowerCase();
