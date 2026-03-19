@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
-import ShimmerButton from "@/app/ui/magic-ui/shimmer-button";
+import ShimmerButton from "@/app/ui/magicUi/shimmerButton";
  
 describe('Shimmer Button', () => {
   // Render the Button

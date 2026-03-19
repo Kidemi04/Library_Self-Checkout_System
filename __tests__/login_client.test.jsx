@@ -8,12 +8,12 @@ jest.mock('next-auth/react', () => ({
   signIn: (...args) => mockSignIn(...args),
 }));
 
-jest.mock('@/app/ui/magic-ui/blur-fade', () => ({
+jest.mock('@/app/ui/magicUi/blurFade', () => ({
   __esModule: true,
   default: ({ children }) => <div>{children}</div>,
 }));
 
-jest.mock('@/app/ui/magic-ui/glass-card', () => ({
+jest.mock('@/app/ui/magicUi/glassCard', () => ({
   __esModule: true,
   default: ({ children, className }) => <div className={className}>{children}</div>,
 }));
