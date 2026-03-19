@@ -99,7 +99,7 @@ const EmptyState = () => (
       is currently unavailable.
     </p>
     <Link
-      href="/dashboard/book-items"
+      href="/dashboard/book/items"
       className="mt-6 inline-flex items-center justify-center rounded-full bg-swin-charcoal px-4 py-2 text-sm font-semibold text-white shadow hover:bg-swin-charcoal/90 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
     >
       Browse catalogue

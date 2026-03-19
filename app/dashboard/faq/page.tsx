@@ -7,7 +7,7 @@ const quickHelpLinks = [
   {
     title: 'Borrowing checklist',
     description: 'Start a self-checkout, search for a title, or scan the barcode directly.',
-    href: '/dashboard/check-out',
+    href: '/dashboard/book/checkout',
     actionLabel: 'Open Borrow Books',
   },
   {

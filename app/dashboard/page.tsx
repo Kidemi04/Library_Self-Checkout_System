@@ -112,7 +112,7 @@ export default async function UserDashboardPage() {
         <div className="grid grid-cols-3 gap-3">
           <BlurFade delay={0.5} yOffset={10}>
             <Link
-              href="/dashboard/friends"
+              href="/dashboard/social/friends"
               className={clsx(
                 'flex flex-col items-center justify-center gap-2 rounded-2xl border border-swin-charcoal/10 bg-white p-3 text-center text-swin-charcoal shadow-sm backdrop-blur-sm transition-all duration-300 hover:scale-[1.05] hover:border-swin-red/60 hover:shadow-lg hover:shadow-swin-red/20',
                 'dark:border-white/10 dark:bg-slate-900/70 dark:text-white dark:hover:border-emerald-300/40 dark:hover:shadow-emerald-400/20',
@@ -129,7 +129,7 @@ export default async function UserDashboardPage() {
 
           <BlurFade delay={0.6} yOffset={10}>
             <Link
-              href="/dashboard/communities"
+              href="/dashboard/social/communities"
               className={clsx(
                 'flex flex-col items-center justify-center gap-2 rounded-2xl border border-swin-charcoal/10 bg-white p-3 text-center text-swin-charcoal shadow-sm backdrop-blur-sm transition-all duration-300 hover:scale-[1.05] hover:border-swin-red/60 hover:shadow-lg hover:shadow-swin-red/20',
                 'dark:border-white/10 dark:bg-slate-900/70 dark:text-white dark:hover:border-emerald-300/40 dark:hover:shadow-emerald-400/20',
