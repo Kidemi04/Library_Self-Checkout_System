@@ -4,15 +4,11 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   HomeIcon,
-  ArrowUpTrayIcon,
-  ArrowDownTrayIcon,
   BookOpenIcon,
   Squares2X2Icon,
   UserGroupIcon,
-  QueueListIcon,
   UserCircleIcon,
   BellAlertIcon,
-  InformationCircleIcon,
   AcademicCapIcon,
   SparklesIcon,
 } from '@heroicons/react/24/outline';
@@ -23,31 +19,22 @@ import type { DashboardRole } from '@/app/lib/auth/types';
 
 const userLinks = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
+  { name: 'Catalogue', href: '/dashboard/book', icon: BookOpenIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
-  { name: 'Friends', href: '/dashboard/friends', icon: UserGroupIcon },
-  { name: 'Communities', href: '/dashboard/communities', icon: UserGroupIcon },
-  { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
+  { name: 'Social', href: '/dashboard/social', icon: UserGroupIcon },
   { name: 'My Reservations', href: '/dashboard/reservations', icon: BellAlertIcon },
-  { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
-  { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
   { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
-  { name: 'Learning Paths', href: '/dashboard/learning-paths', icon: QueueListIcon },
-  { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
+  { name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon },
 ];
 
 const staffLinks = [
   { name: 'Staff Overview', href: '/dashboard/admin', icon: Squares2X2Icon },
+  { name: 'Catalogue', href: '/dashboard/book', icon: BookOpenIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
-  { name: 'Catalogue', href: '/dashboard/book-items', icon: BookOpenIcon },
-  { name: 'Friends', href: '/dashboard/friends', icon: UserGroupIcon },
-  { name: 'Communities', href: '/dashboard/communities', icon: UserGroupIcon },
-  { name: 'Book List', href: '/dashboard/book-list', icon: QueueListIcon },
+  { name: 'Social', href: '/dashboard/social', icon: UserGroupIcon },
   { name: 'Manage Holds', href: '/dashboard/holds', icon: BellAlertIcon },
-  { name: 'Borrow Books', href: '/dashboard/check-out', icon: ArrowUpTrayIcon },
-  { name: 'Returning Books', href: '/dashboard/check-in', icon: ArrowDownTrayIcon },
   { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
-  { name: 'Learning Paths', href: '/dashboard/learning-paths', icon: QueueListIcon },
-  { name: 'Learning Hub', href: '/dashboard/learning', icon: AcademicCapIcon },
+  { name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon },
 ];
 
 const adminLinks = [...staffLinks, { name: 'Manage Users', href: '/dashboard/admin/users', icon: UserGroupIcon }];

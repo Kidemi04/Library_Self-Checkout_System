@@ -4,6 +4,7 @@ import ActiveLoansTable from '@/app/ui/dashboard/active-loans-table';
 import SearchForm from '@/app/ui/dashboard/search-form';
 import { fetchActiveLoans, fetchAvailableBooks } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 
 const defaultLoanDurationDays = 14;
 
@@ -41,20 +42,21 @@ export default async function BorrowBooksPage({
   return (
     <main className="space-y-8">
       <title>Borrow Books | Dashboard</title>
-      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 dark:shadow-black/30">
-        <h1 className="text-2xl font-semibold">Borrow Books</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300">
-          {canProcessLoans
-            ? 'Lend titles by scanning barcodes or selecting items from the catalogue.'
-            : 'Borrow a title by scanning your copy or searching the catalogue, then confirm your details.'}
-        </p>
-      </header>
+      <DashboardTitleBar
+        subtitle="Check Out"
+        title="Borrow Books"
+        description={canProcessLoans
+          ? "Lend titles by scanning barcodes or selecting items from the catalogue."
+          : "Borrow a title by scanning your copy or searching the catalogue, then confirm your details."
+        }
+      />
 
       <SearchForm
-        action="/dashboard/check-out"
+        action="/dashboard/book"
         placeholder="Search by title, author, ISBN, or barcode"
         defaultValue={searchTerm}
         aria-label="Search available books"
+        extraParams={{ mode: 'out' }}
       />
 
       <CheckOutForm books={books} defaultDueDate={defaultDueDate} preSelectedBookId={preSelectedBookId} />

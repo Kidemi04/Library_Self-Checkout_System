@@ -10,6 +10,7 @@ import Search from '@/app/ui/search';
 import BlurFade from '@/app/ui/magic-ui/blur-fade';
 import GlassCard from '@/app/ui/magic-ui/glass-card';
 import clsx from 'clsx';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 
 export default async function FriendsPage(props: {
     searchParams: Promise<{
@@ -54,18 +55,11 @@ export default async function FriendsPage(props: {
 
     return (
         <main className="w-full space-y-8">
-            <BlurFade delay={0.1} yOffset={10}>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            Friends
-                        </h1>
-                        <p className="text-slate-500 dark:text-slate-400 mt-1">
-                            Manage your connections and find new people.
-                        </p>
-                    </div>
-                </div>
-            </BlurFade>
+            <DashboardTitleBar
+                subtitle="Social"
+                title="Friends"
+                description="Manage your connections and find new people."
+            />
 
             <BlurFade delay={0.2} yOffset={10}>
                 <div className="relative bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-full backdrop-blur-md flex w-full max-w-md mx-auto md:mx-0">
@@ -73,13 +67,13 @@ export default async function FriendsPage(props: {
                         className="absolute top-1 bottom-1 left-1 w-[calc(33.33%-0.5rem)] bg-white dark:bg-slate-700 rounded-full shadow-sm transition-all duration-300 ease-[cubic-bezier(0.25,0.1,0.25,1.0)]"
                         style={{ transform: `translateX(${tab === 'requests' ? '100%' : tab === 'find' ? '200%' : '0%'})` }}
                     />
-                    <Link href="/dashboard/friends?tab=list" className={tabClass(tab === 'list')}>
+                    <Link href="/dashboard/social?section=friends&tab=list" className={tabClass(tab === 'list')}>
                         My Friends ({friends.length})
                     </Link>
-                    <Link href="/dashboard/friends?tab=requests" className={tabClass(tab === 'requests')}>
+                    <Link href="/dashboard/social?section=friends&tab=requests" className={tabClass(tab === 'requests')}>
                         Requests ({requests.length})
                     </Link>
-                    <Link href="/dashboard/friends?tab=find" className={tabClass(tab === 'find')}>
+                    <Link href="/dashboard/social?section=friends&tab=find" className={tabClass(tab === 'find')}>
                         Find Friends
                     </Link>
                 </div>
@@ -97,7 +91,7 @@ export default async function FriendsPage(props: {
                                 <p className="text-slate-500 max-w-xs mx-auto mt-1">
                                     Start building your network by finding people you know.
                                 </p>
-                                <Link href="/dashboard/friends?tab=find" className="mt-6 px-6 py-2 bg-swin-red text-white rounded-full font-medium hover:bg-swin-red/90 transition-colors shadow-lg shadow-swin-red/20">
+                                <Link href="/dashboard/social?section=friends&tab=find" className="mt-6 px-6 py-2 bg-swin-red text-white rounded-full font-medium hover:bg-swin-red/90 transition-colors shadow-lg shadow-swin-red/20">
                                     Find Friends
                                 </Link>
                             </GlassCard>

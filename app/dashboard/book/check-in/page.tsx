@@ -5,6 +5,7 @@ import SearchForm from '@/app/ui/dashboard/search-form';
 import { fetchActiveLoans, fetchDashboardSummary } from '@/app/lib/supabase/queries';
 import CameraScanButton from '@/app/ui/dashboard/camera-scanner-button';
 import { getDashboardSession } from '@/app/lib/auth/session';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 
 export default async function ReturningBooksPage({
   searchParams,
@@ -29,22 +30,22 @@ export default async function ReturningBooksPage({
   return (
     <main className="space-y-8">
       <title>Returning Books | Dashboard</title>
-      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/40">
-        <h1 className="text-2xl font-semibold">Returning Books</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300">
-          {canProcessReturns
-            ? 'Record completed loans and reconcile returned items with the inventory.'
-            : 'Review which books are currently on loan before speaking with library staff.'}
-        </p>
-      </header>
+      <DashboardTitleBar
+        subtitle="Check In"
+        title="Returning Books"
+        description={canProcessReturns
+          ? "Record completed loans and reconcile returned items with the inventory."
+          : "Review which books are currently on loan before speaking with library staff."}
+      />
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchForm
-          action="/dashboard/check-in"
+          action="/dashboard/book"
           placeholder="Search borrowed books by borrower, ID, or title"
           defaultValue={searchTerm}
           aria-label="Search borrowed books"
           className="flex-1 min-w-0"
+          extraParams={{ mode: 'in' }}
         />
         {canProcessReturns ? <CameraScanButton className="w-full max-w-full md:w-auto" /> : null}
       </div>

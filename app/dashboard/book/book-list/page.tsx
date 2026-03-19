@@ -10,6 +10,7 @@ import BookCatalogTable, {
 import SearchForm from '@/app/ui/dashboard/search-form';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import type { Book, CopyStatus } from '@/app/lib/supabase/types';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 
 // Keep this list in sync with your SIP / Supabase enum
 type ItemStatus =
@@ -104,20 +105,21 @@ export default async function BookItemsPage({
       <title>Book Items | Dashboard</title>
 
       {/* Header */}
-      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 dark:shadow-black/30">
-        <h1 className="text-2xl font-semibold">Book Items</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300">
-          Keep the Supabase-powered catalogue of Swinburne resources up to date.
-        </p>
-      </header>
+      <DashboardTitleBar
+        subtitle="Book Lists"
+        title="Manage Book Lists"
+        description="Keep the Supabase-powered catalogue of Swinburne resources up to date."
+      />
 
       {/* Search */}
       <SearchForm
-        action="/dashboard/book-items"
+        action="/dashboard/book"
         placeholder="Search catalogue by title, author, ISBN, or barcode"
         defaultValue={q}
         aria-label="Search books"
+        extraParams={{ section: 'list' }}
       />
+
 
       {/* Create new item */}
       <CreateBookForm />

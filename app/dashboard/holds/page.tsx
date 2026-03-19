@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { fetchHoldsForStaff, updateHoldStatus } from '@/app/lib/supabase/queries';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
 
 // ---------- server actions ----------
 
@@ -90,12 +91,11 @@ export default async function HoldsManagementPage() {
     <main className="space-y-8">
       <title>Manage Holds | Dashboard</title>
 
-      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30 dark:bg-slate-900 dark:text-slate-100">
-        <h1 className="text-2xl font-semibold">Manage Holds</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-ivory/70 dark:text-slate-300">
-          View the reservation queue for each book and mark holds as ready or cancelled.
-        </p>
-      </header>
+      <DashboardTitleBar
+        subtitle="Holds"
+        title="Manage Holds"
+        description="View the reservation queue for each book and mark holds as ready or cancelled."
+      />
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">
