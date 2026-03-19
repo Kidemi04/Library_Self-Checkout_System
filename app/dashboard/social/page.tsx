@@ -4,7 +4,6 @@ import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import BlurFade from '@/app/ui/magic-ui/blur-fade';
 import clsx from 'clsx';
-import TabSwitch from '@/app/ui/dashboard/tab-switch';
 
 // Import sub pages as components
 import FriendsPage from './friends/page';
@@ -36,24 +35,6 @@ export default async function SocialPage({
   return (
     <main className="w-full space-y-8">
         <title>Social</title>
-
-        {/* Friends / Communities switch */}
-        <TabSwitch
-            activeKey={section}
-            items={[
-                {
-                    key: 'friends',
-                    label: 'Friends',
-                    href: '/dashboard/social?section=friends',
-                },
-                {
-                    key: 'communities',
-                    label: 'Communities',
-                    href: '/dashboard/social?section=communities',
-                },
-            ]}
-            />
-
 
       {/* Content */}
       <Suspense fallback={null}>

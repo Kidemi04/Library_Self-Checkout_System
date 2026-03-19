@@ -18,7 +18,6 @@ const ThemeContext = React.createContext<ThemeContextValue | undefined>(undefine
 
 type ThemeProviderProps = {
   children: React.ReactNode;
-  defaultTheme: ThemeMode;
 };
 
 const writeDomTheme = (mode: ThemeMode) => {

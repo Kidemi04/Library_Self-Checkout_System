@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react';
 import clsx from 'clsx';
 
 export default function AiModeHero({ defaultQuery }: { defaultQuery: string }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);

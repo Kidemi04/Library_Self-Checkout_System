@@ -88,7 +88,7 @@ async function cancelReservation(formData: FormData) {
     console.error('Failed to cancel hold', error);
   }
 
-  revalidatePath('/dashboard/reservations');
+  revalidatePath('/dashboard/book/reservation');
 }
 
 const EmptyState = () => (

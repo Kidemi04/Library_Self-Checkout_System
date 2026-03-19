@@ -74,7 +74,7 @@ export default async function UserDashboardPage() {
       <section className="grid gap-3 md:hidden">
         <BlurFade delay={0.3} yOffset={10}>
           <Link
-            href="/dashboard/check-out"
+            href="/dashboard/book/checkout"
             className={clsx(
               'flex items-center justify-between rounded-2xl border border-swin-charcoal/10 bg-white px-5 py-4 text-swin-charcoal shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-swin-red/60 hover:shadow-xl hover:shadow-swin-red/20',
               'dark:border-white/10 dark:bg-slate-900/70 dark:text-white dark:hover:border-emerald-300/40 dark:hover:shadow-emerald-400/20',
@@ -92,7 +92,7 @@ export default async function UserDashboardPage() {
 
         <BlurFade delay={0.4} yOffset={10}>
           <Link
-            href="/dashboard/check-in"
+            href="/dashboard/book/checkin"
             className={clsx(
               'flex items-center justify-between rounded-2xl border border-swin-charcoal/10 bg-white px-5 py-4 text-swin-charcoal shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-swin-red/60 hover:shadow-xl hover:shadow-swin-red/20',
               'dark:border-white/10 dark:bg-slate-900/70 dark:text-white dark:hover:border-emerald-300/40 dark:hover:shadow-emerald-400/20',

@@ -1,9 +1,11 @@
+'use client';
+
 import BlurFade from '@/app/ui/magic-ui/blur-fade';
 import { ReactNode } from 'react';
 
 /**
  * Dashboard title bar
- * Supports optional right-side content
+ * Fixed: Added responsive padding and layout to prevent content overflow on mobile
  */
 type DashboardTitleBarProps = {
   subtitle: string;        // Small uppercase label
@@ -24,9 +26,12 @@ export default function DashboardTitleBar({
         relative grid gap-6 overflow-hidden rounded-3xl
         border border-swin-charcoal/10
         bg-gradient-to-r from-swin-charcoal via-swin-red to-[#3b0b14]
-        p-8 text-white
+        /* Mobile: smaller padding | Desktop: p-8 */
+        p-5 md:p-8 
+        text-white
         shadow-2xl shadow-swin-red/30
-        md:grid-cols-[1fr_minmax(0,260px)] md:items-center
+        /* Mobile: single column (default) | Desktop: grid with specific width */
+        grid-cols-1 md:grid-cols-[1fr_minmax(0,260px)] md:items-center
       "
     >
       {/* Decorative blur background */}
@@ -39,15 +44,15 @@ export default function DashboardTitleBar({
       {/* Left: title content */}
       <BlurFade delay={0.1} yOffset={10}>
         <div className="relative z-10 pt-1 md:pt-2">
-          <p className="text-xs uppercase tracking-[0.3em] text-white/70">
+          <p className="text-[10px] md:text-xs uppercase tracking-[0.2em] md:tracking-[0.3em] text-white/70">
             {subtitle}
           </p>
 
-          <h1 className="mt-3 text-2xl font-semibold">
+          <h1 className="mt-2 md:mt-3 text-xl md:text-2xl font-semibold leading-tight">
             {title}
           </h1>
 
-          <p className="mt-3 max-w-3xl text-sm text-white/80">
+          <p className="mt-2 md:mt-3 max-w-3xl text-xs md:text-sm text-white/80 leading-relaxed">
             {description}
           </p>
         </div>
@@ -56,7 +61,8 @@ export default function DashboardTitleBar({
       {/* Right: optional slot */}
       {rightSlot && (
         <BlurFade delay={0.2} yOffset={10}>
-          <div className="relative z-10">
+          {/* Use w-full and min-w-0 to ensure children don't push outside the container */}
+          <div className="relative z-10 w-full min-w-0">
             {rightSlot}
           </div>
         </BlurFade>
