@@ -35,7 +35,7 @@ export default async function SocialPage({
 
   return (
     <main className="w-full space-y-8">
-        <title>Social | Dashboard</title>
+        <title>Social</title>
 
         {/* Friends / Communities switch */}
         <TabSwitch

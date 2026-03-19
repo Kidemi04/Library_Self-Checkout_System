@@ -32,6 +32,7 @@ export default async function LearningPage({
 
   return (
     <main className="space-y-8">
+      <title>Learning</title>
 
       {/* Top switch */}
       <TabSwitch

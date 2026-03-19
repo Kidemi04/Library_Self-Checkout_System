@@ -6,8 +6,11 @@ import { BookOpenIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import BlurFade from "@/app/ui/magic-ui/blur-fade";
 import ShimmerButton from "@/app/ui/magic-ui/shimmer-button";
 import GlassCard from "@/app/ui/magic-ui/glass-card";
+import { unstable_noStore as noStore } from 'next/cache';
 
 export default function HomePage() {
+  noStore();
+
   return (
     <main className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-swin-ivory text-swin-charcoal transition-colors dark:bg-slate-950 dark:text-slate-100">
       <title>Home Page</title>

@@ -56,7 +56,7 @@ export default function AiModeHero({ defaultQuery }: { defaultQuery: string }) {
             </p>
           </div>
 
-          <form action="/dashboard/book-items" method="get" className="mx-auto mt-5 w-full max-w-4xl sm:mt-6">
+          <form action="/dashboard/book?section=items" method="get" className="mx-auto mt-5 w-full max-w-4xl sm:mt-6">
             <label htmlFor="ai-query" className="sr-only">
               Ask anything
             </label>
@@ -119,7 +119,7 @@ export default function AiModeHero({ defaultQuery }: { defaultQuery: string }) {
             ].map((prompt) => (
               <a
                 key={prompt}
-                href={`/dashboard/book-items?q=${encodeURIComponent(prompt)}`}
+                href={`/dashboard/book?section=items?q=${encodeURIComponent(prompt)}`}
                 className="group inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2.5 shadow-sm transition hover:border-emerald-400/60 hover:bg-emerald-50 sm:px-4 sm:py-3 dark:border-slate-800 dark:bg-slate-900/60 dark:hover:bg-emerald-500/5"
               >
                 <span className="text-emerald-500 dark:text-emerald-300">✦</span>

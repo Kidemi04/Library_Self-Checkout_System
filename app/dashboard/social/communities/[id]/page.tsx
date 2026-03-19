@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { fetchCommunityDetails, fetchCommunityPosts } from '@/app/lib/supabase/communities';
-import { joinCommunity, leaveCommunity } from '@/app/dashboard/communities/actions';
+import { joinCommunity, leaveCommunity } from '@/app/dashboard/social/communities/actions';
 import { redirect, notFound } from 'next/navigation';
 import { Button } from '@/app/ui/button';
 import CreatePostForm from '@/app/ui/dashboard/communities/create-post-form';
@@ -24,8 +24,10 @@ export default async function CommunityPage(props: {
 
     return (
         <main className="w-full max-w-6xl mx-auto space-y-6">
+            <title>{community.name}</title>
+
             <BlurFade delay={0.1} yOffset={10}>
-                <Link href="/dashboard/communities" className="inline-flex items-center text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors mb-2">
+                <Link href="/dashboard/social?section=communities" className="inline-flex items-center text-sm text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors mb-2">
                     <ArrowLeftIcon className="h-4 w-4 mr-1" />
                     Back to Communities
                 </Link>
@@ -46,7 +48,7 @@ export default async function CommunityPage(props: {
                     </div>
 
                     <div className="px-6 pb-6 md:px-10 md:pb-10">
-                        <div className="relative -mt-16 mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div className="relative -mt-16 mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 pt-5">
                             <div className="flex flex-col md:flex-row md:items-end gap-6">
                                 <div className="h-32 w-32 rounded-2xl bg-white p-1.5 shadow-xl dark:bg-slate-800 ring-1 ring-slate-100 dark:ring-slate-700">
                                     <div className="flex h-full w-full items-center justify-center rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-4xl font-bold text-slate-500 dark:text-slate-300">
