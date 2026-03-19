@@ -216,20 +216,20 @@ export async function fetchDashboardSummary(): Promise<DashboardSummary> {
   const nowIso = new Date().toISOString();
 
   const [totalBooks, activeLoans, overdueLoans, copies] = await Promise.all([
-    supabase.from('Books').select('id', { head: true, count: 'exact' }),
-    supabase.from('Loans').select('id', { head: true, count: 'exact' }).is('returned_at', null),
+    supabase.from('books').select('id', { head: true, count: 'exact' }),
+    supabase.from('loans').select('id', { head: true, count: 'exact' }).is('returned_at', null),
     supabase
-      .from('Loans')
+      .from('loans')
       .select('id', { head: true, count: 'exact' })
       .is('returned_at', null)
       .lt('due_at', nowIso),
     supabase
-      .from('Copies')
+      .from('copies')
       .select(
         `
           book_id,
           status,
-          loans:Loans(
+          loans:loans(
             id,
             returned_at
           )
@@ -271,7 +271,7 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
   const supabase = getSupabaseServerClient();
 
   const { data, error } = await supabase
-    .from('Loans')
+    .from('loans')
     .select(
       `
         id,
@@ -284,17 +284,17 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
         handled_by,
         created_at,
         updated_at,
-        copy:Copies(
+        copy:copies(
           id,
           barcode,
-          book:Books(
+          book:books(
             id,
             title,
             author,
             isbn
           )
         ),
-        borrower:Users!loans_user_id_fkey(
+        borrower:users!loans_user_id_fkey(
           id,
           email,
           role,
@@ -303,7 +303,7 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
             student_id
           )
         ),
-        handler:Users!loans_handled_by_fkey(
+        handler:users!loans_handled_by_fkey(
           id,
           email,
           role,
@@ -326,7 +326,7 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
   const supabase = getSupabaseServerClient();
 
   const { data, error } = await supabase
-    .from('Loans')
+    .from('loans')
     .select(
       `
         id,
@@ -339,17 +339,17 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
         handled_by,
         created_at,
         updated_at,
-        copy:Copies(
+        copy:copies(
           id,
           barcode,
-          book:Books(
+          book:books(
             id,
             title,
             author,
             isbn
           )
         ),
-        borrower:Users!loans_user_id_fkey(
+        borrower:users!loans_user_id_fkey(
           id,
           email,
           role,
@@ -358,7 +358,7 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
             student_id
           )
         ),
-        handler:Users!loans_handled_by_fkey(
+        handler:users!loans_handled_by_fkey(
           id,
           email,
           role,
@@ -398,7 +398,7 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
   const sanitized = sanitizeSearchTerm(searchTerm);
 
   let query = supabase
-    .from('Books')
+    .from('books')
     .select(
       `
         id,
@@ -411,20 +411,20 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
         cover_image_url,
         created_at,
         updated_at,
-         copies:Copies(
+         copies:copies(
           id,
           book_id,
           barcode,
           status,
           created_at,
           updated_at,
-          loans:Loans(
+          loans:loans(
             id,
             returned_at
           )
         ),
-        book_tag_links:BookTagsLinks(
-          tag:BookTags(
+        book_tag_links:book_tag_links(
+          tag:book_tags(
             name
           )
         )
@@ -532,7 +532,7 @@ export async function fetchHoldsForStaff() {
         title,
         cover_image_url
       ),
-      patron:Users (
+      patron:users (
         email,
         profile:user_profiles (
           display_name
@@ -603,7 +603,7 @@ export async function fetchActiveHoldsForPatron(patronId: string): Promise<Patro
       placed_at,
       ready_at,
       expires_at,
-      book:Books (
+      book:books (
         title,
         author,
         isbn,
