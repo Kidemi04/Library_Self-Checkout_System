@@ -4,14 +4,14 @@ export const revalidate = 0;
 
 import { redirect } from 'next/navigation';
 import { unstable_noStore as noStore } from 'next/cache';
-import CreateBookForm from '@/app/ui/dashboard/create-book-form';
+import CreateBookForm from '@/app/ui/dashboard/createBookForm';
 import BookCatalogTable, {
   type CatalogBook,
-} from '@/app/ui/dashboard/book-catalog-table';
-import SearchForm from '@/app/ui/dashboard/search-form';
+} from '@/app/ui/dashboard/bookCatalogTable';
+import SearchForm from '@/app/ui/dashboard/searchForm';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import type { Book, CopyStatus } from '@/app/lib/supabase/types';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 import { getDashboardSession } from '@/app/lib/auth/session';
 
 // Keep this list in sync with your SIP / Supabase enum

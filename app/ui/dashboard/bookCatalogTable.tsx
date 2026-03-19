@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import ManageBookModal from './manage-book-modal';
+import ManageBookModal from './manageBookModal';
 import { updateBook, deleteBook, type ItemStatus } from '@/app/lib/supabase/updates';
 import type { CopyStatus } from '@/app/lib/supabase/types';
 import { Pagination } from '@/app/ui/dashboard/pagination';

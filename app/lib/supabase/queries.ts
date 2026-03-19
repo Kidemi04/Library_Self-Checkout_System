@@ -411,7 +411,7 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
         cover_image_url,
         created_at,
         updated_at,
-        copies:copies(
+         copies:copies(
           id,
           book_id,
           barcode,
@@ -528,7 +528,7 @@ export async function fetchHoldsForStaff() {
       placed_at,
       ready_at,
       expires_at,
-      book:books (
+      book:Books (
         title,
         cover_image_url
       ),

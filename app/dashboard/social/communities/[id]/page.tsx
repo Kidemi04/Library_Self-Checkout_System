@@ -4,11 +4,11 @@ import { fetchCommunityDetails, fetchCommunityPosts } from '@/app/lib/supabase/c
 import { joinCommunity, leaveCommunity } from '@/app/dashboard/social/communities/actions';
 import { redirect, notFound } from 'next/navigation';
 import { Button } from '@/app/ui/button';
-import CreatePostForm from '@/app/ui/dashboard/communities/create-post-form';
+import CreatePostForm from '@/app/ui/dashboard/communities/createPostForm';
 import { UserGroupIcon, CalendarIcon, ChatBubbleLeftIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
-import GlassCard from '@/app/ui/magic-ui/glass-card';
+import BlurFade from '@/app/ui/magicUi/blurFade';
+import GlassCard from '@/app/ui/magicUi/glassCard';
 
 export default async function CommunityPage(props: {
     params: Promise<{ id: string }>;

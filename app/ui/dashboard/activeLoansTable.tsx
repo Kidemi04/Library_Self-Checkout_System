@@ -1,5 +1,5 @@
 import type { Loan } from '@/app/lib/supabase/types';
-import QuickCheckInButton from '@/app/ui/dashboard/quick-check-in-button';
+import QuickCheckInButton from '@/app/ui/dashboard/quickCheckInButton';
 
 const dateFormatter = new Intl.DateTimeFormat('en-MY', {
   day: 'numeric',

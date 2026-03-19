@@ -1,8 +1,12 @@
 import Link from 'next/link';
 import clsx from 'clsx';
-import SummaryCards from '@/app/ui/dashboard/summary-cards';
-import RecentLoans from '@/app/ui/dashboard/recent-loans';
-import ActiveLoansTable from '@/app/ui/dashboard/active-loans-table';
+import { redirect } from 'next/navigation';
+import SummaryCards from '@/app/ui/dashboard/summaryCards';
+import RecentLoans from '@/app/ui/dashboard/recentLoans';
+import ActiveLoansTable from '@/app/ui/dashboard/activeLoansTable';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import DashboardUserCard from '@/app/ui/dashboard/dashboardUserCard';
+import { getDashboardSession } from '@/app/lib/auth/session';
 import {
   fetchActiveLoans,
   fetchDashboardSummary,
@@ -10,6 +14,18 @@ import {
 } from '@/app/lib/supabase/queries';
 
 export default async function AdminDashboardPage() {
+  // 1. Authenticate and authorize the user
+  const { user, isBypassed } = await getDashboardSession();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  if (user.role !== 'staff' && user.role !== 'admin') {
+    redirect('/dashboard');
+  }
+
+  // 2. Fetch dashboard data in parallel
   const [summary, recentLoans, activeLoans] = await Promise.all([
     fetchDashboardSummary(),
     fetchRecentLoans(6),
@@ -20,6 +36,18 @@ export default async function AdminDashboardPage() {
     <main className="space-y-8">
       <title>Dashboard | Admin Overview</title>
 
+      {/* Moved from layout.tsx: Displays page header and user profile */}
+      <DashboardTitleBar
+        subtitle="Admin Control Center"
+        title={`Good day, ${user.name}`}
+        description={`
+          Full catalogue and circulation access enabled for this session.
+          ${isBypassed ? "Development bypass active" : ""}
+        `}
+        rightSlot={<DashboardUserCard email={user.email} role={user.role} />}
+      />
+
+      {/* Quick Navigation Links (Mobile Only) */}
       <div className="grid grid-cols-3 gap-3 md:hidden">
         <Link
           href="/dashboard/friends"
@@ -67,8 +95,10 @@ export default async function AdminDashboardPage() {
         </Link>
       </div>
 
+      {/* Numerical Data Summary */}
       <SummaryCards summary={summary} />
 
+      {/* Recent Activity List */}
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Recent activity</h2>
@@ -77,6 +107,7 @@ export default async function AdminDashboardPage() {
         <RecentLoans loans={recentLoans} />
       </section>
 
+      {/* Detailed Loans Table */}
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Active loans</h2>

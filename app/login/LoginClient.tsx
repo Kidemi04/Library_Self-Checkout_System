@@ -4,8 +4,8 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
-import GlassCard from '@/app/ui/magic-ui/glass-card';
+import BlurFade from '@/app/ui/magicUi/blurFade';
+import GlassCard from '@/app/ui/magicUi/glassCard';
 
 type LoginClientProps = {
   callbackUrl: string;

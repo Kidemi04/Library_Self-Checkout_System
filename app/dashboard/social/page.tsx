@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
+import BlurFade from '@/app/ui/magicUi/blurFade';
 import clsx from 'clsx';
 
 // Import sub pages as components

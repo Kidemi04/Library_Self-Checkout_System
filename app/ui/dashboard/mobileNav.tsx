@@ -12,11 +12,11 @@ import {
   UserGroupIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import AcmeLogo from '@/app/ui/acme-logo';
-import MobileMenu from '@/app/ui/dashboard/mobile-menu';
-import SignOutButton from '@/app/ui/dashboard/sign-out-button';
-import ThemeToggle from '@/app/ui/theme/theme-toggle';
-import { useTheme } from '@/app/ui/theme/theme-provider';
+import AcmeLogo from '@/app/ui/acmeLogo';
+import MobileMenu from '@/app/ui/dashboard/mobileMenu';
+import SignOutButton from '@/app/ui/dashboard/signOutButton';
+import ThemeToggle from '@/app/ui/theme/themeToggle';
+import { useTheme } from '@/app/ui/theme/themeProvider';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 
 type NavItem = {
@@ -29,7 +29,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { key: 'home', label: 'Home', href: '/dashboard', icon: HomeIcon },
   { key: 'catalog', label: 'Catalog', href: '/dashboard/book', icon: BookOpenIcon },
-  { key: 'scan', label: 'Camera', href: '/dashboard/camera-scan', icon: CameraIcon },
+  { key: 'scan', label: 'Camera', href: '/dashboard/cameraScan', icon: CameraIcon },
   { key: 'notifications', label: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
   { key: 'profile', label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];

@@ -8,9 +8,9 @@ import {
   searchLinkedInLearningCourses,
 } from '@/app/lib/linkedin/service';
 import type { LinkedInLearningLevel, LinkedInLearningTopicDefinition } from '@/app/lib/linkedin/types';
-import LinkedInLearningCourseCard from '@/app/ui/dashboard/learning/course-card';
-import LinkedInLearningSearchForm from '@/app/ui/dashboard/learning/search-form';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import LinkedInLearningCourseCard from '@/app/ui/dashboard/learning/courseCard';
+import LinkedInLearningSearchForm from '@/app/ui/dashboard/learning/searchForm';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 
 const curatedTopics: LinkedInLearningTopicDefinition[] = [
   {

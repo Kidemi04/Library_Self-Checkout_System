@@ -4,8 +4,8 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import { useTheme } from '@/app/ui/theme/theme-provider';
-import NavLinks from '@/app/ui/dashboard/nav-links';
+import { useTheme } from '@/app/ui/theme/themeProvider';
+import NavLinks from '@/app/ui/dashboard/navLinks';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 
 export default function MobileMenu({ user }: { user: DashboardUserProfile }) {

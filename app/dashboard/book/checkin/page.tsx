@@ -1,11 +1,11 @@
 import clsx from 'clsx';
-import CheckInForm from '@/app/ui/dashboard/check-in-form';
-import ActiveLoansTable from '@/app/ui/dashboard/active-loans-table';
-import SearchForm from '@/app/ui/dashboard/search-form';
+import CheckInForm from '@/app/ui/dashboard/checkInForm';
+import ActiveLoansTable from '@/app/ui/dashboard/activeLoansTable';
+import SearchForm from '@/app/ui/dashboard/searchForm';
 import { fetchActiveLoans, fetchDashboardSummary } from '@/app/lib/supabase/queries';
-import CameraScanButton from '@/app/ui/dashboard/camera-scanner-button';
+import CameraScanButton from '@/app/ui/dashboard/cameraScannerButton';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 
 export default async function ReturningBooksPage({
   searchParams,

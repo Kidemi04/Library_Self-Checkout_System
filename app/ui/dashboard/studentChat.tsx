@@ -15,7 +15,14 @@ type RecommendationItem = {
 
 type RecommendationResponse = {
   ok?: boolean;
-  kind?: 'recommendations' | 'clarify' | 'reject' | 'no_matches' | 'error' | 'rate_limited' | 'chat';
+  kind?:
+    | 'recommendations'
+    | 'clarify'
+    | 'greeting'
+    | 'reject'
+    | 'no_matches'
+    | 'error'
+    | 'rate_limited';
   reply?: string;
   recommendations?: RecommendationItem[];
   interests?: string[];
@@ -56,8 +63,7 @@ const buildInitialMessages = (name?: string | null): ChatMessage[] => {
     {
       id: 'assistant-2',
       sender: 'assistant',
-      text:
-        'English only. Book recommendations or study help (programming, language). Share genres, topics, or course units.',
+      text: 'English only. Book recommendations only. Share genres, topics, mood, or course units.',
       timestamp: now - 60000,
     },
   ];
@@ -91,6 +97,7 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
   const [activeInterests, setActiveInterests] = useState<string[]>([]);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const lastSentAtRef = useRef<number>(0);
+  const initialNameRef = useRef(studentName);
 
   useEffect(() => {
     const nextGreeting = buildGreeting(studentName);
@@ -109,9 +116,36 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
     });
   }, [studentName]);
 
+  useEffect(() => {
+    if (initialNameRef.current == null) {
+      initialNameRef.current = studentName ?? null;
+    }
+  }, [studentName]);
+
+  const resetChat = () => {
+    setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
+    setBookRecommendations([]);
+    setActiveInterests([]);
+    setSendNotice(null);
+    setStickToBottom(true);
+    setInputValue('');
+    setIsAssistantTyping(false);
+    lastSentAtRef.current = 0;
+  };
+
   const scrollToBottom = () => {
     if (!messagesRef.current) return;
     messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+  };
+
+  const scheduleScrollToBottom = () => {
+    if (typeof requestAnimationFrame === 'undefined') {
+      scrollToBottom();
+      return;
+    }
+    requestAnimationFrame(() => {
+      scrollToBottom();
+    });
   };
 
   useEffect(() => {
@@ -147,6 +181,8 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
       timestamp: Date.now(),
     };
     setMessages((prev) => [...prev, newMessage]);
+    setStickToBottom(true);
+    scheduleScrollToBottom();
     lastSentAtRef.current = now;
     await triggerAssistantReply(trimmed);
     return true;
@@ -159,7 +195,7 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
       const response = await fetch('/api/recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: content, context: { lastInterests: activeInterests } }),
+        body: JSON.stringify({ message: content }),
       });
 
       const data = (await response.json()) as RecommendationResponse;
@@ -214,6 +250,17 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'ArrowUp' && !event.shiftKey && inputValue.trim() === '') {
+      const lastUserMessage = [...messages]
+        .reverse()
+        .find((message) => message.sender === 'student')?.text;
+      if (lastUserMessage) {
+        event.preventDefault();
+        setInputValue(lastUserMessage);
+      }
+      return;
+    }
+
     if (event.key !== 'Enter' || event.shiftKey) return;
     event.preventDefault();
     sendMessage(inputValue).then((sent) => {
@@ -225,7 +272,8 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
 
   return (
     <section className="flex h-full flex-col rounded-3xl border border-slate-200 bg-slate-50/70 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950/40 dark:shadow-black/20">
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-1">
         <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400/80">
           AI recommendations
         </p>
@@ -233,22 +281,28 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
         <p className="text-sm text-slate-600 dark:text-slate-300/80">
           Share what you want to read, and I will recommend books from the catalog.
         </p>
+        </div>
+        <button
+          type="button"
+          onClick={resetChat}
+          className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
+        >
+          Clear chat
+        </button>
       </div>
 
-      {quickPrompts.length ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {quickPrompts.map((prompt) => (
-            <button
-              key={prompt.id}
-              type="button"
-              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
-              onClick={() => handleQuickPrompt(prompt)}
-            >
-              {prompt.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
+      <div className="mt-4 flex flex-wrap gap-2">
+        {quickPrompts.map((prompt) => (
+          <button
+            key={prompt.id}
+            type="button"
+            className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
+            onClick={() => handleQuickPrompt(prompt)}
+          >
+            {prompt.label}
+          </button>
+        ))}
+      </div>
 
       <div
         ref={messagesRef}
@@ -319,13 +373,13 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Example: cozy mystery, short reads, strong female lead"
+          placeholder="Example: cozy mystery, short reads"
           className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100 dark:focus:border-slate-500 dark:focus:ring-slate-700/50"
         />
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
           <p>
             {sendNotice ??
-              'English only. Book recommendations or study help (programming, language).'}
+              'English only. Book recommendations only. Based on the current library catalog.'}
           </p>
           <button
             type="submit"
@@ -400,7 +454,7 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
           </div>
         ) : (
           <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300/80">
-            No recommendations yet. Mention a genre, topic, or course unit to get started.
+            No recommendations yet. Mention a genre, topic, or mood to get started.
           </div>
         )}
       </div>

@@ -14,7 +14,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 
-const CameraScanner = dynamic(() => import('@/app/ui/dashboard/camera-scanner'), { ssr: false });
+const CameraScanner = dynamic(() => import('@/app/ui/dashboard/cameraScanner'), { ssr: false });
 
 const buildNextUrl = (
   pathname: string | null,

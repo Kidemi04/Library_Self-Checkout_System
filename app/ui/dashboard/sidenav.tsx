@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import clsx from 'clsx';
-import NavLinks from '@/app/ui/dashboard/nav-links';
-import AcmeLogo from '@/app/ui/acme-logo';
-import SignOutButton from '@/app/ui/dashboard/sign-out-button';
-import ThemeToggle from '@/app/ui/theme/theme-toggle';
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
-import { useTheme } from '@/app/ui/theme/theme-provider';
+import NavLinks from '@/app/ui/dashboard/navLinks';
+import AcmeLogo from '@/app/ui/acmeLogo';
+import SignOutButton from '@/app/ui/dashboard/signOutButton';
+import ThemeToggle from '@/app/ui/theme/themeToggle';
+import BlurFade from '@/app/ui/magicUi/blurFade';
+import { useTheme } from '@/app/ui/theme/themeProvider';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 
 type SideNavProps = {

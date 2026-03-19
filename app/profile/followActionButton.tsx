@@ -3,7 +3,7 @@
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
-import { followUserAction, removeFollowerAction, unfollowUserAction } from '@/app/profile/follow-actions';
+import { followUserAction, removeFollowerAction, unfollowUserAction } from '@/app/profile/followActions';
 
 type FollowActionButtonProps = {
   targetUserId: string;

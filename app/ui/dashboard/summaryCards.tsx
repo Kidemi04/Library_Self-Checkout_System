@@ -4,8 +4,8 @@ import {
   ArrowPathIcon,
   ClockIcon,
 } from '@heroicons/react/24/outline';
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
-import GlassCard from '@/app/ui/magic-ui/glass-card';
+import BlurFade from '@/app/ui/magicUi/blurFade';
+import GlassCard from '@/app/ui/magicUi/glassCard';
 import type { DashboardSummary } from '@/app/lib/supabase/types';
 
 const formatNumber = (value: number) =>

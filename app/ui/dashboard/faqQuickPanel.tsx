@@ -12,9 +12,9 @@ import {
   BookOpenIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import { studentFaqSections } from '@/app/ui/dashboard/student-faq-data';
+import { studentFaqSections } from '@/app/ui/dashboard/studentFaqData';
 import type { DashboardRole } from '@/app/lib/auth/types';
-import { useTheme } from '@/app/ui/theme/theme-provider';
+import { useTheme } from '@/app/ui/theme/themeProvider';
 
 type ChatMessage = {
   id: string;

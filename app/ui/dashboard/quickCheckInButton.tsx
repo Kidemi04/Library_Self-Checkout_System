@@ -1,7 +1,7 @@
 'use client';
 
 import { checkinBookAction } from '@/app/dashboard/actions';
-import { initialActionState } from '@/app/dashboard/action-state';
+import { initialActionState } from '@/app/dashboard/actionState';
 import { useFormStatus } from 'react-dom';
 
 function SubmitButton() {

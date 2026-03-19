@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import { studentFaqSections } from '@/app/ui/dashboard/student-faq-data';
+import { studentFaqSections } from '@/app/ui/dashboard/studentFaqData';
 
 const quickHelpLinks = [
   {

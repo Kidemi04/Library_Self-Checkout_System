@@ -1,10 +1,10 @@
 import clsx from 'clsx';
-import CheckOutForm from '@/app/ui/dashboard/check-out-form';
-import ActiveLoansTable from '@/app/ui/dashboard/active-loans-table';
-import SearchForm from '@/app/ui/dashboard/search-form';
+import CheckOutForm from '@/app/ui/dashboard/checkOutForm';
+import ActiveLoansTable from '@/app/ui/dashboard/activeLoansTable';
+import SearchForm from '@/app/ui/dashboard/searchForm';
 import { fetchActiveLoans, fetchAvailableBooks } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 
 const defaultLoanDurationDays = 14;
 

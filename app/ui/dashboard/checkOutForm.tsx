@@ -5,10 +5,10 @@ import type { ChangeEvent } from 'react';
 import { useFormStatus } from 'react-dom';
 import clsx from 'clsx';
 import { checkoutBookAction } from '@/app/dashboard/actions';
-import { initialActionState } from '@/app/dashboard/action-state';
-import type { ActionState } from '@/app/dashboard/action-state';
+import { initialActionState } from '@/app/dashboard/actionState';
+import type { ActionState } from '@/app/dashboard/actionState';
 import type { Book } from '@/app/lib/supabase/types';
-import CameraScannerButton from '@/app/ui/dashboard/camera-scanner-button';
+import CameraScannerButton from '@/app/ui/dashboard/cameraScannerButton';
 
 interface CheckOutFormProps {
   books: Book[];

@@ -14,8 +14,8 @@ import {
   BellIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
-import { useTheme } from '@/app/ui/theme/theme-provider';
+import BlurFade from '@/app/ui/magicUi/blurFade';
+import { useTheme } from '@/app/ui/theme/themeProvider';
 import type { DashboardRole } from '@/app/lib/auth/types';
 
 // Define the Link type to support nested children
@@ -38,12 +38,6 @@ const userLinks: NavItem[] = [
       { name: 'My Reservations', href: '/dashboard/book/reservation'}
     ]
   },
-  { name: 'Social', href: '/dashboard/social', icon: UserGroupIcon,
-    children: [
-      { name: 'Communities', href: '/dashboard/social/communities' },
-      { name: 'Friends', href: '/dashboard/social/friends' },
-    ]
-  },
   { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
   { 
     name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon,
@@ -53,6 +47,13 @@ const userLinks: NavItem[] = [
       { name: 'Learning Path Management', href: '/dashboard/learning/paths' },
     ]
   },
+  { name: 'Social', href: '/dashboard/social', icon: UserGroupIcon,
+  children: [
+    { name: 'Communities', href: '/dashboard/social/communities' },
+    { name: 'Friends', href: '/dashboard/social/friends' },
+  ]
+},
+
   { name: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];

@@ -3,11 +3,11 @@ import clsx from 'clsx';
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
-import ProfileNameForm from '@/app/profile/profile-name-form';
-import ProfileAvatarForm from '@/app/profile/profile-avatar-form';
-import ProfileEditForm from '@/app/profile/profile-edit-form';
-import GlassCard from '@/app/ui/magic-ui/glass-card';
-import BlurFade from '@/app/ui/magic-ui/blur-fade';
+import ProfileNameForm from '@/app/profile/profileNameForm';
+import ProfileAvatarForm from '@/app/profile/profileAvatarForm';
+import ProfileEditForm from '@/app/profile/profileEditForm';
+import GlassCard from '@/app/ui/magicUi/glassCard';
+import BlurFade from '@/app/ui/magicUi/blurFade';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
 
 type ProfileRow = {

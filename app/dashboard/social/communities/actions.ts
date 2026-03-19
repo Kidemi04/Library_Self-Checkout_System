@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import { auth } from '@/auth';
-import { ActionState } from '@/app/dashboard/action-state';
+import { ActionState } from '@/app/dashboard/actionState';
 
 const success = (message: string): ActionState => ({ status: 'success', message });
 const failure = (message: string): ActionState => ({ status: 'error', message });

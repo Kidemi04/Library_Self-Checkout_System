@@ -3,9 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { BookOpenIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
-import BlurFade from "@/app/ui/magic-ui/blur-fade";
-import ShimmerButton from "@/app/ui/magic-ui/shimmer-button";
-import GlassCard from "@/app/ui/magic-ui/glass-card";
+import BlurFade from "@/app/ui/magicUi/blurFade";
+import ShimmerButton from "@/app/ui/magicUi/shimmerButton";
+import GlassCard from "@/app/ui/magicUi/glassCard";
 import { unstable_noStore as noStore } from 'next/cache';
 
 export default function HomePage() {
@@ -80,8 +80,9 @@ export default function HomePage() {
 
           {/* Title */}
           <BlurFade delay={0.4}>
-            <h1 className="mb-3 md:mb-6 text-2xl md:text-6xl font-bold tracking-tight text-white">
-              Swinburne Library <br className="md:hidden" />
+            <h1 className="mb-3 md:mb-6 text-xl md:text-6xl font-bold tracking-tight text-white">
+              Swinburne Library 
+                <br/>
               Self-Checkout
             </h1>
           </BlurFade>
@@ -89,7 +90,9 @@ export default function HomePage() {
           {/* Description */}
           <BlurFade delay={0.5}>
             <p className="mx-auto mb-6 md:mb-10 max-w-2xl text-sm md:text-xl text-white/80">
-              Borrow and return books anytime with your device — fast, secure, and kiosk-free.
+              Borrow and return books anytime with your device 
+              <br/>
+              fast, secure, and kiosk-free.
             </p>
           </BlurFade>
 
@@ -105,7 +108,7 @@ export default function HomePage() {
               </Link>
 
               <Link
-                href="https://www.swinburne.edu.my/"
+                href="https://www.swinburne.edu.my/category/library/"
                 target="_blank"
                 className="
                   flex h-12 md:h-14 w-full md:w-auto
@@ -129,19 +132,16 @@ export default function HomePage() {
       <footer className="absolute bottom-4 md:bottom-6 left-0 w-full text-center z-10">
         <BlurFade delay={0.8}>
           {/* Footer link to About page */}
-          <Link
-            href="/about-page"
+          <p
             className="
               text-[10px] md:text-xs
               text-white/50
               transition
-              hover:text-white
-              hover:underline
               underline-offset-4
             "
           >
             © 2025 Swinburne Final Year Project • Group 12
-          </Link>
+          </p>
         </BlurFade>
       </footer>
 

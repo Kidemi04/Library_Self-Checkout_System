@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { fetchHoldsForStaff, updateHoldStatus } from '@/app/lib/supabase/queries';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboard-title-bar';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 
 // ---------- server actions ----------
 
