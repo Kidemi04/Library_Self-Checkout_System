@@ -121,7 +121,7 @@ export default async function BookItemsPage({
 
 
       <BookItemsFilter
-        action="/dashboard/book-items"
+        action="/dashboard/book/items"
         defaults={{
           q,
           status: statusFilter, // ItemStatus | undefined
@@ -132,7 +132,7 @@ export default async function BookItemsPage({
       />
 
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between m-5 my-8">
           <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Catalogue</h2>
           <p className="text-sm text-swin-charcoal/60 dark:text-slate-300">
             Showing {books.length} record{books.length === 1 ? '' : 's'}
