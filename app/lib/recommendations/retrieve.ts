@@ -18,29 +18,28 @@ const sanitizeSearchTerm = (value: string) =>
 
 const unique = <T,>(values: T[]): T[] => Array.from(new Set(values));
 
-const normalizeToken = (token: string) => token.replace(/^#+/, '').trim().toLowerCase();
+// Strip # prefix, punctuation, lowercase — handles "science?" → "science"
+const normalizeToken = (token: string) =>
+  token.toLowerCase().replace(/^#+/, '').replace(/[^a-z0-9\-]/g, '').trim();
 
 const STOPWORDS = new Set([
-  'the',
-  'and',
-  'for',
-  'with',
-  'from',
-  'into',
-  'about',
-  'that',
-  'this',
-  'these',
-  'those',
-  'you',
-  'your',
-  'book',
-  'books',
-  'read',
-  'reading',
-  'recommend',
-  'recommendation',
-  'recommendations',
+  // articles / conjunctions / prepositions
+  'the', 'and', 'but', 'for', 'with', 'from', 'into', 'about', 'that',
+  'this', 'these', 'those', 'than', 'then', 'only', 'just', 'very',
+  // pronouns
+  'you', 'your', 'our', 'his', 'her', 'its', 'they', 'them', 'their',
+  // common verbs with no topic signal
+  'can', 'could', 'would', 'should', 'will', 'shall', 'may', 'might',
+  'want', 'like', 'need', 'know', 'think', 'look', 'find', 'use',
+  'get', 'got', 'give', 'take', 'make', 'see', 'come', 'say', 'let',
+  'share', 'show', 'tell', 'help', 'ask',
+  // library-specific noise
+  'book', 'books', 'read', 'reading',
+  'recommend', 'recommendation', 'recommendations', 'suggest', 'suggestions',
+  // misc / filler
+  'some', 'more', 'most', 'each', 'every', 'please', 'thanks', 'learn', 'learning',
+  'me', 'yo', 'hi', 'hey', 'something', 'anything', 'everything', 'nothing',
+  'sure', 'okay',
 ]);
 
 const buildTokens = (value: string): string[] => {
@@ -104,16 +103,14 @@ export async function retrieveCandidateBooks(
   const tokens = buildTokens(sanitizedTerm);
   const primaryToken = tokens.sort((a, b) => b.length - a.length)[0];
 
-  console.info('[recommendations] rag tokens:', tokens.length ? tokens.join(', ') : '(none)');
-  const filtered = primaryToken ? await fetchBooks(primaryToken) : await fetchBooks();
-  console.info('[recommendations] initial matches:', filtered.length);
-
-  let candidates = filtered;
-  if (shouldFallbackToFullCatalog(filtered, sanitizedTerm)) {
-    const full = await fetchBooks();
-    console.info('[recommendations] fallback to full catalog:', full.length);
-    candidates = mergeById([...filtered, ...full]);
-  }
+  // Always fetch full catalog so books matched only by hashtags are included.
+  // SQL pre-filter searches title/author/isbn only and misses tag-only matches.
+  const allBooks = await fetchBooks();
+  console.info(
+    '[recommendations] catalog size:', allBooks.length,
+    '| tokens:', tokens.length ? tokens.join(', ') : '(none)',
+  );
+  const candidates = allBooks;
 
   if (!tokens.length) {
     return candidates.slice(0, sanitizedLimit);

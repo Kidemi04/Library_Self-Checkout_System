@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { evaluateGuardrails } from '@/app/lib/recommendations/guardrails';
-import { extractPreferences } from '@/app/lib/recommendations/ai';
+import { extractPreferences, generateBookReasons } from '@/app/lib/recommendations/ai';
 import { retrieveCandidateBooks } from '@/app/lib/recommendations/retrieve';
 import {
   buildAssociationRules,
@@ -163,6 +163,21 @@ export async function POST(request: Request) {
 
   try {
     const preference = await extractPreferences(message);
+
+    // User only told us what they don't want — ask what they do want
+    if (!preference.interests.length && preference.exclusions?.length) {
+      const excluded = preference.exclusions.join(', ');
+      return NextResponse.json({
+        ok: true,
+        kind: 'clarify',
+        reply: `Got it, I'll skip anything related to ${excluded}. What topic would you like instead? (e.g. data science, software engineering, cyber security)`,
+        recommendations: [],
+        interests: [],
+        summary: null,
+        followUpQuestion: null,
+      });
+    }
+
     const interestInput =
       preference.interests.length > 0 ? preference.interests.join(', ') : message;
     const retrievalQuery = preference.interests.length
@@ -183,7 +198,24 @@ export async function POST(request: Request) {
       associations,
     );
 
-    const finalList = diversify(ranked, requestedLimit);
+    // Filter out books matching excluded topics
+    const exclusionTokens = (preference.exclusions ?? []).flatMap((ex) => {
+      const token = ex.toLowerCase().replace(/[^a-z0-9\-]/g, '');
+      return token ? [token] : [];
+    });
+
+    const isExcluded = (rec: Recommendation): boolean => {
+      if (!exclusionTokens.length) return false;
+      const corpus = [
+        rec.book.title ?? '',
+        rec.book.author ?? '',
+        ...(rec.book.tags ?? []).map((t) => t.replace(/^#+/, '')),
+      ].join(' ').toLowerCase();
+      return exclusionTokens.some((token) => corpus.includes(token));
+    };
+
+    const diversified = diversify(ranked, requestedLimit * 3);
+    const finalList = diversified.filter((rec) => !isExcluded(rec)).slice(0, requestedLimit);
 
     if (!finalList.length) {
       return NextResponse.json({
@@ -198,17 +230,30 @@ export async function POST(request: Request) {
       });
     }
 
-    const items = finalList.map(toRecommendationItem);
+    const bookSummaries = finalList.map((rec) => ({
+      id: rec.book.id,
+      title: rec.book.title,
+      author: rec.book.author ?? null,
+      tags: rec.book.tags ?? [],
+    }));
+    const aiReasons = await generateBookReasons(preference.summary, bookSummaries);
+
+    const items = finalList.map((rec) => {
+      const base = toRecommendationItem(rec);
+      const aiReason = aiReasons[rec.book.id];
+      return aiReason ? { ...base, reason: aiReason } : base;
+    });
+
     const replyLines = [
-      `**Got it.** ${preference.summary}`,
+      `Got it. ${preference.summary}`,
       '',
       `Here are ${items.length} picks from the catalog:`,
-      ...items.map(
-        (item, index) =>
-          `${index + 1}. ${item.title}${item.author ? ` - ${item.author}` : ''}`,
-      ),
+      ...items.flatMap((item, index) => [
+        `${index + 1}. ${item.title}${item.author ? ` by ${item.author}` : ''}`,
+        `   ${item.reason}`,
+      ]),
       '',
-      `**Question:** ${preference.followUpQuestion}`,
+      `Question: ${preference.followUpQuestion}`,
     ];
 
     return NextResponse.json({

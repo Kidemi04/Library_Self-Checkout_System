@@ -78,6 +78,54 @@ const isEnglishInput = (value: string) => {
   return true;
 };
 
+const levenshtein = (a: string, b: string): number => {
+  const m = a.length;
+  const n = b.length;
+  const dp: number[][] = Array.from({ length: m + 1 }, (_, i) =>
+    Array.from({ length: n + 1 }, (__, j) => (i === 0 ? j : j === 0 ? i : 0)),
+  );
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] =
+        a[i - 1] === b[j - 1]
+          ? dp[i - 1][j - 1]
+          : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+};
+
+// Individual words from COURSE_KEYWORDS + root forms (strip -ing) so
+// "enggiener" can fuzzy-match "engineer" alongside "engineering"
+const KEYWORD_TOKENS = Array.from(
+  new Set(
+    COURSE_KEYWORDS.flatMap((kw) => {
+      const words = kw.split(/\s+/).filter((t) => t.length > 3);
+      const roots = words.flatMap((w) => {
+        const forms: string[] = [];
+        if (w.endsWith('ing') && w.length > 6) forms.push(w.slice(0, -3));
+        if (w.endsWith('tion') && w.length > 7) forms.push(w.slice(0, -4));
+        return forms;
+      });
+      return [...words, ...roots];
+    }),
+  ),
+);
+
+const hasFuzzyMatch = (inputTokens: string[]): boolean => {
+  for (const token of inputTokens) {
+    if (token.length < 4) continue;
+    for (const kwToken of KEYWORD_TOKENS) {
+      // First letter must match — prevents false positives
+      if (token[0] !== kwToken[0]) continue;
+      // Allow more edits for longer words: ceil(max_length / 4)
+      const maxDist = Math.ceil(Math.max(token.length, kwToken.length) / 4);
+      if (levenshtein(token, kwToken) <= maxDist) return true;
+    }
+  }
+  return false;
+};
+
 export function evaluateGuardrails(input: string): GuardrailResult {
   const trimmed = input.trim();
   if (!trimmed) {
@@ -91,14 +139,24 @@ export function evaluateGuardrails(input: string): GuardrailResult {
     };
   }
 
-  if (GREETING_PATTERNS.some((pattern) => pattern.test(trimmed))) {
-    return { kind: 'greeting', reply: buildGreetingReply() };
-  }
-
   const lowered = trimmed.toLowerCase();
+
+  // Check course keywords FIRST — "yo, got something for data science?" must
+  // be accepted even though it starts with a greeting word
   const hasCourseSignal = COURSE_KEYWORDS.some((keyword) => lowered.includes(keyword));
   if (hasCourseSignal) {
     return { kind: 'accept' };
+  }
+
+  // Fuzzy match — catches typos like "artifical", "enggiener", "cybersecuity"
+  const inputTokens = lowered.split(/\s+/).filter((t) => t.length > 3);
+  if (hasFuzzyMatch(inputTokens)) {
+    return { kind: 'accept' };
+  }
+
+  // Only treat as greeting if no course signal was found
+  if (GREETING_PATTERNS.some((pattern) => pattern.test(trimmed))) {
+    return { kind: 'greeting', reply: buildGreetingReply() };
   }
 
   const hasSignal = SIGNAL_PATTERNS.some((pattern) => pattern.test(trimmed));

@@ -1,4 +1,5 @@
 import { getDashboardSession } from '@/app/lib/auth/session';
+import LearningPathGenerator from '@/app/ui/dashboard/learning-path-generator';
 
 const featureHighlights = [
   {
@@ -85,6 +86,8 @@ export default async function LearningPathsPage() {
   return (
     <main className="space-y-8">
       <title>Learning Path Management | Dashboard</title>
+
+      <LearningPathGenerator />
 
       <header className="rounded-3xl border border-swin-charcoal/10 bg-gradient-to-r from-swin-charcoal via-swin-red to-[#3b0b14] p-8 text-white shadow-2xl shadow-swin-red/30">
         <p className="text-xs uppercase tracking-[0.3em] text-white/70">Learning Path Management</p>
