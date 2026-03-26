@@ -6,6 +6,7 @@ import RecentLoans from '@/app/ui/dashboard/recentLoans';
 import ActiveLoansTable from '@/app/ui/dashboard/activeLoansTable';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 import DashboardUserCard from '@/app/ui/dashboard/dashboardUserCard';
+import NotificationPanel from '@/app/ui/dashboard/notificationPanel';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import {
   fetchActiveLoans,
@@ -117,6 +118,9 @@ export default async function AdminDashboardPage() {
         </div>
         <ActiveLoansTable loans={activeLoans.slice(0, 8)} />
       </section>
+
+      {/* Live Notification Feed */}
+      <NotificationPanel />
     </main>
   );
 }

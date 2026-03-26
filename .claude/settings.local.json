@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find c:/Users/User/Documents/GitHub/Library_Self-Checkout_System/app -type f -name *notif*)"
+    ]
+  }
+}

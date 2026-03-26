@@ -6,6 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { auth } from '@/auth';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import type { ActionState } from '@/app/dashboard/actionState';
+import { createNotification } from '@/app/lib/supabase/notifications';
 
 const SIP2_INSTITUTION_ID = process.env.SIP2_INSTITUTION_ID ?? 'LIB001';
 const SIP2_TERMINAL_PASSWORD = process.env.SIP2_TERMINAL_PASSWORD ?? '';
@@ -479,6 +480,41 @@ export async function checkoutBookAction(
     });
   }
 
+  // ---------- Notification ----------
+  ;(async () => {
+    const { data: bookRow } = await supabase
+      .from('books')
+      .select('title')
+      .eq('id', bookId)
+      .maybeSingle<{ title: string }>();
+    const bookTitle = bookRow?.title ?? bookId;
+    const patron = borrowerName ?? borrower.profile?.display_name ?? borrower.email ?? borrowerIdentifier;
+
+    // Staff/admin broadcast
+    await createNotification(
+      'checkout',
+      'Book Borrowed',
+      `"${bookTitle}" was checked out by ${patron}.`,
+      { bookTitle, barcode: copy.barcode ?? '', patronIdentifier: borrowerIdentifier },
+    );
+
+    // User confirmation — notify the borrower directly (skip staff/admin/librarian)
+    const isPrivilegedRole = borrower.role === 'admin' || borrower.role === 'staff' || borrower.role === 'librarian';
+    console.log('[notif-debug] borrower.id:', borrower.id, 'role:', borrower.role, 'isPrivileged:', isPrivilegedRole);
+    if (!isPrivilegedRole) {
+      const supabaseNotif = getSupabaseServerClient();
+      const { error: insertErr } = await supabaseNotif.from('notifications').insert({
+        type: 'loan_confirmed',
+        title: 'Loan confirmed',
+        message: `You have successfully borrowed "${bookTitle}". Due back by ${new Date(dueAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}.`,
+        target_user_id: borrower.id,
+        target_roles: [],
+        metadata: { bookTitle, barcode: copy.barcode ?? '', dueAt, loanId: loanId ?? '' },
+      });
+      console.log('[notif-debug] insert result:', insertErr ? insertErr.message : 'OK');
+    }
+  })().catch((err) => console.warn('[notifications] checkout notification failed:', err));
+
   // ---------- SIP2: send checkOut to kiosk emulator ----------
   const itemIdentifier =
     itemIdentifierFromForm || copy.barcode || copy.id; // fallback chain
@@ -669,6 +705,26 @@ export async function checkinBookAction(
       returned_at: nowIso,
     },
   });
+
+  // ---------- Notification ----------
+  ;(async () => {
+    const bookId = loan.copy?.book_id;
+    let bookTitle = loan.copy?.barcode ?? 'Unknown book';
+    if (bookId) {
+      const { data: bookRow } = await supabase
+        .from('books')
+        .select('title')
+        .eq('id', bookId)
+        .maybeSingle<{ title: string }>();
+      bookTitle = bookRow?.title ?? bookTitle;
+    }
+    await createNotification(
+      'checkin',
+      'Book Returned',
+      `"${bookTitle}" has been returned.`,
+      { bookTitle, barcode: loan.copy?.barcode ?? '' },
+    );
+  })().catch((err) => console.warn('[notifications] checkin notification failed:', err));
 
   // ---------- SIP2 check-in ----------
   const itemIdentifier =

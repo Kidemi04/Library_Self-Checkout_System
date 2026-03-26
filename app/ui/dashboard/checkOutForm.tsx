@@ -305,16 +305,16 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
             <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="borrowerIdentifier">
               Borrower ID
             </label>
-          <input
-            id="borrowerIdentifier"
-            name="borrowerIdentifier"
-            type="text"
-            required
-            placeholder="Scan or type borrower ID"
-            ref={borrowerIdRef}
-            className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
-          />
-        </div>
+            <input
+              id="borrowerIdentifier"
+              name="borrowerIdentifier"
+              type="text"
+              required
+              placeholder="Scan or type borrower ID"
+              ref={borrowerIdRef}
+              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+            />
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="borrowerName">

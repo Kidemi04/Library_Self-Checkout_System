@@ -3,6 +3,8 @@
 import clsx from 'clsx';
 import SideNav from '@/app/ui/dashboard/sidenav';
 import MobileNav from '@/app/ui/dashboard/mobileNav';
+import NotificationToast from '@/app/ui/dashboard/notificationToast';
+import DueDateChecker from '@/app/ui/dashboard/dueDateChecker';
 import { useTheme } from '@/app/ui/theme/themeProvider';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 import { useEffect, useState } from 'react';
@@ -52,6 +54,12 @@ export default function DashboardShell({ user, isBypassed, children }: Dashboard
           <div className="mx-auto w-full max-w-7xl">{children}</div>
         </div>
       </div>
+
+      {/* Floating notification toasts — staff & admin only */}
+      {(user.role === 'staff' || user.role === 'admin') && <NotificationToast />}
+
+      {/* Due date checker — runs once on mount for regular users only */}
+      {user.role === 'user' && <DueDateChecker />}
     </div>
   );
 }
