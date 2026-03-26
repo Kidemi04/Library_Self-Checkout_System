@@ -511,7 +511,7 @@ export async function checkoutBookAction(
   }
 
   revalidatePath('/dashboard');
-  revalidatePath('/dashboard/check-out');
+  revalidatePath('/dashboard/book/checkout');
   revalidatePath('/dashboard/book-items');
 
   const borrowerLabel =
@@ -707,7 +707,7 @@ export async function checkinBookAction(
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/check-in');
-  revalidatePath('/dashboard/check-out');
+  revalidatePath('/dashboard/book/checkout');
   revalidatePath('/dashboard/book-items');
 
   return success(`Marked ${copyLabel} as returned for ${borrowerLabel}.`);
@@ -752,7 +752,7 @@ export async function updateBookAction(
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/book-items');
-  revalidatePath('/dashboard/check-out');
+  revalidatePath('/dashboard/book/checkout');
   revalidatePath('/dashboard/book-list');
 
   return success('Book details updated.');
@@ -896,7 +896,7 @@ export async function createBookAction(
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/book-items');
-  revalidatePath('/dashboard/check-out');
+  revalidatePath('/dashboard/book/checkout');
 
   return success('Book has been added to the catalogue.');
 }

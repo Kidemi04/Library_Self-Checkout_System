@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "pnpm", "dev"],
+      "runtimeArgs": ["dev"],
+      "port": 3001
+    }
+  ]
+}

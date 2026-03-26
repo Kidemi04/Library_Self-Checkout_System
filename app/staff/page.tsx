@@ -12,5 +12,5 @@ export default async function StaffLandingPage() {
     redirect('/dashboard');
   }
 
-  redirect('/dashboard/check-out');
+  redirect('/dashboard/book/checkout');
 }

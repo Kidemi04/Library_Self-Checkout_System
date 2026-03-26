@@ -160,7 +160,7 @@ export default function BookList({
                         {!canBorrow && <PlaceHoldButton bookId={b.id} patronId={patronId} />}
                         {canBorrow && (
                           <Link
-                            href={`/dashboard/check-out?bookId=${b.id}`}
+                            href={`/dashboard/book/checkout?bookId=${b.id}`}
                             className="rounded-full bg-swin-charcoal dark:bg-white text-white dark:text-swin-charcoal px-3 py-1 text-[10px] font-bold uppercase tracking-wide hover:bg-swin-red dark:hover:bg-swin-red dark:hover:text-white transition-colors shadow-sm"
                           >
                             Borrow
@@ -210,7 +210,7 @@ export default function BookList({
                       {!canBorrow && <PlaceHoldButton bookId={b.id} patronId={patronId} />}
                       {canBorrow && (
                         <Link
-                          href={`/dashboard/check-out?bookId=${b.id}`}
+                          href={`/dashboard/book/checkout?bookId=${b.id}`}
                           className="rounded-full bg-swin-charcoal dark:bg-white text-white dark:text-swin-charcoal px-4 py-1.5 text-[10px] font-bold uppercase tracking-wide hover:bg-swin-red dark:hover:bg-swin-red dark:hover:text-white transition-colors shadow-sm"
                         >
                           Borrow

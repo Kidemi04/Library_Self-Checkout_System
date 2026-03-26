@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(pnpm install:*)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(where pnpm:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm update:*)",
+      "Bash(pnpm add:*)",
+      "Bash(ls -la /c/Users/fongk/Documents/Assignment/Library_Self-Checkout_System/app/*.tsx)",
+      "Bash(pnpm test:*)",
+      "Bash(gh pr:*)",
+      "Bash(winget install:*)"
+    ]
+  }
+}
