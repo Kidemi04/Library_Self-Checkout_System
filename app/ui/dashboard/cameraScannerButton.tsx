@@ -65,7 +65,6 @@ export default function CameraScannerButton({
   const [deviceListError, setDeviceListError] = useState<string | null>(null);
   const [enumeratingDevices, setEnumeratingDevices] = useState(false);
 
-  const phoneInputRef = useRef<HTMLInputElement | null>(null);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const refreshDeviceOptions = useCallback(async () => {
@@ -198,9 +197,7 @@ export default function CameraScannerButton({
         <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center">
           <button
             type="button"
-            onClick={() => {
-              phoneInputRef.current?.click();
-            }}
+            onClick={handleOpen}
             className={clsx(
               buttonBaseClass,
               'w-full justify-center md:hidden xxx-phone-version',
@@ -251,17 +248,6 @@ export default function CameraScannerButton({
           <p className="text-[11px] font-medium text-swin-red">{errorMessage}</p>
         ) : null}
       </div>
-
-      <input
-        ref={phoneInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={(event) => {
-          void handleUploadChange(event);
-        }}
-      />
 
       <input
         ref={uploadInputRef}
