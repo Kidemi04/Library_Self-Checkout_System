@@ -100,15 +100,15 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
         const response = await fetch(`/api/books/lookup?code=${encodeURIComponent(code)}`, {
           cache: 'no-store',
         });
-        const payload = (await response.json().catch(() => null)) as LookupResponse | null;
-
-        if (!payload?.book) {
-          const message =
-            (response.ok ? null : payload?.error) ?? 'No available book matched that code.';
+        
+        if (!response.ok) {
+          const payload = await response.json().catch(() => null);
+          const message = payload?.error ?? 'No available book matched that code.';
           setLookupMessage({ tone: 'error', text: message });
           return;
         }
 
+        const payload = (await response.json()) as LookupResponse;
         const book = mapApiBookToBook(payload.book);
         const explicitCopy = payload.copy
           ? { id: payload.copy.id, barcode: payload.copy.barcode ?? null }
@@ -131,13 +131,6 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
         setSelectedBookId(book.id);
         setSelectedCopyId(preferredCopy?.id ?? '');
         setSelectedCopyBarcode(preferredCopy?.barcode ?? null);
-
-        if (!response.ok) {
-          const message = payload.error ?? 'No available book matched that code.';
-          setLookupMessage({ tone: 'error', text: message });
-          return;
-        }
-
         setLookupMessage({
           tone: 'success',
           text: preferredCopy?.barcode
@@ -389,7 +382,6 @@ function ActionMessage({ status, message }: { status: ActionState['status']; mes
 }
 
 type LookupResponse = {
-  error?: string;
   book: ApiBook;
   copy?: {
     id: string;
