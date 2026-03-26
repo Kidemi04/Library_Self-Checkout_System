@@ -2,7 +2,7 @@
 
 import { NextResponse } from 'next/server';
 import { auth } from './auth';
-import { isDevAuthBypassed } from '@/app/lib/auth/env';
+import { getDevBypassLandingPath, isDevAuthBypassed } from '@/app/lib/auth/env';
 import type { DashboardRole } from '@/app/lib/auth/types';
 
 const protectedPrefixes = [
@@ -39,11 +39,15 @@ const resolveRole = (value: unknown): DashboardRole => {
 const buildCallbackUrl = (url: { pathname: string; search: string }) => url.pathname + url.search;
 
 export default auth((request) => {
+  const { pathname } = request.nextUrl;
+
   if (isDevAuthBypassed) {
+    if (pathname === '/' || pathname === '/login') {
+      return NextResponse.redirect(new URL(getDevBypassLandingPath(), request.url));
+    }
     return NextResponse.next();
   }
 
-  const { pathname } = request.nextUrl;
   const isProtected = protectedPrefixes.some((prefix) => matchesPrefix(pathname, prefix));
 
   if (!isProtected) {
@@ -77,6 +81,8 @@ export default auth((request) => {
 
 export const config = {
   matcher: [
+    '/',
+    '/login',
     '/dashboard/:path*',
     '/admin/:path*',
     '/staff/:path*',

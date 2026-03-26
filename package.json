@@ -2,7 +2,8 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev --turbopack -H 0.0.0.0",
+    "dev": "node scripts/dev-server.mjs",
+    "dev:lan-auth": "node scripts/dev-server.mjs --lan-auth",
     "start": "next start",
     "test": "jest",
     "test:watch": "jest --watch"

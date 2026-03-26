@@ -20,6 +20,13 @@ export const getDevBypassRole = (): DashboardRole => {
   return 'user';
 };
 
+export const getDevBypassLandingPath = (): string => {
+  const role = getDevBypassRole();
+  if (role === 'admin') return '/dashboard/admin';
+  if (role === 'staff') return '/dashboard/book/checkout';
+  return '/dashboard';
+};
+
 export const getDevBypassEmail = () =>
   process.env.DEV_BYPASS_EMAIL ?? 'library.dev@example.com';
 

@@ -10,10 +10,13 @@ export default function QrScanPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
+  const captureInputRef = useRef<HTMLInputElement | null>(null);
+  const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const [scanState, setScanState] = useState<ScanState>('idle');
   const [message, setMessage] = useState<string>('');
   const [decoded, setDecoded] = useState<string | null>(null);
+  const [canUseLiveCamera, setCanUseLiveCamera] = useState(false);
 
   // ---------- helpers ----------
   const ensureSecureContext = () => {
@@ -143,6 +146,10 @@ export default function QrScanPage() {
   }, [stopCamera]);
 
   useEffect(() => {
+    setCanUseLiveCamera(ensureSecureContext());
+  }, []);
+
+  useEffect(() => {
     return () => stopCamera();
   }, [stopCamera]);
 
@@ -209,7 +216,8 @@ export default function QrScanPage() {
             {scanState !== 'scanning' ? (
               <button
                 onClick={startCamera}
-                className="rounded-xl bg-swin-charcoal px-4 py-2 text-sm font-medium text-swin-ivory shadow transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-swin-red/50 dark:bg-white dark:text-slate-900"
+                disabled={!canUseLiveCamera}
+                className="rounded-xl bg-swin-charcoal px-4 py-2 text-sm font-medium text-swin-ivory shadow transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-swin-red/50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-900"
               >
                 Start camera
               </button>
@@ -224,17 +232,43 @@ export default function QrScanPage() {
 
             <label className="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50 focus-within:ring-2 focus-within:ring-slate-300 dark:border-white/20 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800">
               <input
+                ref={captureInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) onUpload(f);
+                  e.currentTarget.value = '';
+                }}
+              />
+              Capture photo
+            </label>
+
+            <label className="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50 focus-within:ring-2 focus-within:ring-slate-300 dark:border-white/20 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800">
+              <input
+                ref={uploadInputRef}
                 type="file"
                 accept="image/*"
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) onUpload(f);
+                  e.currentTarget.value = '';
                 }}
               />
               Upload image
             </label>
           </div>
+
+          {!canUseLiveCamera ? (
+            <p className="rounded-lg border border-amber-400/30 bg-amber-500/10 p-3 text-xs text-amber-100">
+              Live camera scanning needs HTTPS or localhost. On this LAN HTTP address, use
+              {' '}<span className="font-semibold">Capture photo</span>{' '}or
+              {' '}<span className="font-semibold">Upload image</span>{' '}instead.
+            </p>
+          ) : null}
 
           <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-200">
             <p className="mb-1 font-semibold">Decoded text</p>
@@ -247,7 +281,8 @@ export default function QrScanPage() {
           </div>
 
           <ul className="text-xs text-slate-500 dark:text-slate-400">
-            <li>- Works on HTTPS or on localhost.</li>
+            <li>- Live camera works on HTTPS or localhost.</li>
+            <li>- On HTTP LAN addresses, use Capture photo or Upload image.</li>
             <li>- Allow camera permission when prompted.</li>
             <li>- You can also upload a photo or screenshot of a QR code or barcode.</li>
           </ul>

@@ -86,6 +86,21 @@ A modern, web-based library self-service system built with Next.js 14, featuring
    pnpm dev
    ```
 
+### Mobile Testing On The Same Wi-Fi
+
+- The dev server already listens on `0.0.0.0`, and the project now auto-allows the machine's private LAN IPs in Next.js development mode.
+- Open the site from your phone with `http://<your-pc-lan-ip>:3000`.
+- If you use Azure AD locally, update `NEXTAUTH_URL` and `AUTH_URL` in `.env.local` to that same LAN origin, or remove those variables so the host can be inferred from the request.
+- Azure AD must also allow that same callback origin. Add both of these redirect URIs when testing over LAN:
+  - `http://<your-pc-lan-ip>:3000/api/auth/callback/azure-ad`
+  - `http://<your-pc-lan-ip>:3000/auth/azure-logout`
+- For quick mobile UI testing without changing Azure redirect URIs, use:
+  ```env
+  DEV_BYPASS_AUTH=true
+  DEV_BYPASS_ROLE=user
+  ```
+- If you run the project inside WSL2 and your phone still cannot connect, expose the port from Windows as well or run the dev server from Windows Node. WSL2 localhost forwarding often works on the PC itself but is not reachable from other devices on the LAN.
+
 ## Configuration
 
 ### Environment Variables
