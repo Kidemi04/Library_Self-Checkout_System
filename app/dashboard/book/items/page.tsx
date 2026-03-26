@@ -121,7 +121,7 @@ export default async function BookItemsPage({
 
 
       <BookItemsFilter
-        action="/dashboard/book-items"
+        action="/dashboard/book/items"
         defaults={{
           q,
           status: statusFilter, // ItemStatus | undefined

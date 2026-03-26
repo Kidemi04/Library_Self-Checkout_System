@@ -151,7 +151,7 @@ export async function updateBook(payload: UpdatePayload) {
     if (copyStatusError) throw new Error(copyStatusError.message);
   }
 
-  revalidatePath('/dashboard/book-items');
+  revalidatePath('/dashboard/book/items');
 }
 
 export async function deleteBook(id: string) {
@@ -163,5 +163,5 @@ export async function deleteBook(id: string) {
   const { error } = await supabase.from('books').delete().eq('id', id);
   if (error) throw new Error(error.message);
 
-  revalidatePath('/dashboard/book-items');
+  revalidatePath('/dashboard/book/items');
 }

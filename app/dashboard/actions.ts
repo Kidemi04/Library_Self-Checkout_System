@@ -512,7 +512,7 @@ export async function checkoutBookAction(
 
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/book/checkout');
-  revalidatePath('/dashboard/book-items');
+  revalidatePath('/dashboard/book/items');
 
   const borrowerLabel =
     borrowerName ?? borrower.profile?.display_name ?? borrower.email ?? 'borrower';
@@ -708,7 +708,7 @@ export async function checkinBookAction(
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/check-in');
   revalidatePath('/dashboard/book/checkout');
-  revalidatePath('/dashboard/book-items');
+  revalidatePath('/dashboard/book/items');
 
   return success(`Marked ${copyLabel} as returned for ${borrowerLabel}.`);
 }
@@ -751,7 +751,7 @@ export async function updateBookAction(
   }
 
   revalidatePath('/dashboard');
-  revalidatePath('/dashboard/book-items');
+  revalidatePath('/dashboard/book/items');
   revalidatePath('/dashboard/book/checkout');
   revalidatePath('/dashboard/book-list');
 
@@ -774,7 +774,7 @@ export async function deleteBookAction(bookId: string): Promise<ActionState> {
     }
 
     revalidatePath('/dashboard');
-    revalidatePath('/dashboard/book-items');
+    revalidatePath('/dashboard/book/items');
     revalidatePath('/dashboard/book-list');
 
     return success('Book deleted successfully.');
@@ -895,7 +895,7 @@ export async function createBookAction(
   }
 
   revalidatePath('/dashboard');
-  revalidatePath('/dashboard/book-items');
+  revalidatePath('/dashboard/book/items');
   revalidatePath('/dashboard/book/checkout');
 
   return success('Book has been added to the catalogue.');
