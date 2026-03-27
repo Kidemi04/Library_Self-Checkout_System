@@ -19,19 +19,27 @@ const ZXING_FORMATS = [
 type CameraScannerProps = {
   onDetected: (value: string) => void;
   onError?: (message: string) => void;
+  onDebugLog?: (msg: string) => void;
   facingMode: 'environment' | 'user';
   deviceId?: string | null;
 };
 
-export default function CameraScanner({ onDetected, onError, facingMode, deviceId }: CameraScannerProps) {
+export default function CameraScanner({ onDetected, onError, facingMode, deviceId, onDebugLog }: CameraScannerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
   const onDetectedRef = useRef(onDetected);
   const onErrorRef = useRef(onError);
+  const onDebugLogRef = useRef(onDebugLog);
   const [status, setStatus] = useState('Requesting camera access…');
 
   useEffect(() => { onDetectedRef.current = onDetected; });
   useEffect(() => { onErrorRef.current = onError; });
+  useEffect(() => { onDebugLogRef.current = onDebugLog; });
+
+  const log = (msg: string) => {
+    const ts = new Date().toLocaleTimeString();
+    onDebugLogRef.current?.(`[${ts}] ${msg}`);
+  };
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -41,6 +49,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
       const message = 'Camera access is not supported in this browser.';
       setStatus(message);
       onErrorRef.current?.(message);
+      log('ERROR: no getUserMedia support');
       return undefined;
     }
 
@@ -61,9 +70,17 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
     const hasNativeDetector =
       typeof window !== 'undefined' && 'BarcodeDetector' in window;
 
+    log(`Native BarcodeDetector: ${hasNativeDetector}`);
+    log(`deviceId=${deviceId ?? 'null'}, facingMode=${facingMode}`);
+
     const startWithNativeDetector = async () => {
+      log('Starting native BarcodeDetector path...');
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef = stream;
+      const track = stream.getVideoTracks()[0];
+      const settings = track?.getSettings();
+      log(`Stream ready: ${settings?.width}x${settings?.height}`);
+
       videoElement.srcObject = stream;
       await videoElement.play();
 
@@ -72,13 +89,20 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
 
       setStatus('Align the barcode within the frame.');
 
+      let tickCount = 0;
       const scanLoop = async () => {
         if (stopped) return;
+        tickCount++;
         try {
           if (videoElement.readyState >= 2) {
             const barcodes = await detector.detect(videoElement);
+            if (tickCount % 13 === 1) {
+              log(`[native] tick #${tickCount}, barcodes found: ${barcodes.length}`);
+            }
             if (barcodes.length > 0 && !stopped) {
               const text = barcodes[0].rawValue;
+              const fmt = barcodes[0].format;
+              log(`[native] DETECTED: "${text}" (format: ${fmt})`);
               setStatus(`Detected ${text}`);
               onDetectedRef.current(text);
               stopped = true;
@@ -86,8 +110,10 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
               return;
             }
           }
-        } catch {
-          // frame not ready, retry
+        } catch (e: any) {
+          if (tickCount % 13 === 1) {
+            log(`[native] tick #${tickCount} error: ${e?.message ?? e}`);
+          }
         }
         if (!stopped) {
           setTimeout(scanLoop, 150);
@@ -98,6 +124,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
     };
 
     const startWithZxing = async () => {
+      log('Starting ZXing path...');
       const hints = new Map<DecodeHintType, any>();
       hints.set(DecodeHintType.POSSIBLE_FORMATS, ZXING_FORMATS);
       hints.set(DecodeHintType.TRY_HARDER, true);
@@ -105,11 +132,15 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
         delayBetweenScanAttempts: 200,
       });
 
+      let tickCount = 0;
       const handleResult = (result: any, error: any, controls?: IScannerControls | null) => {
         if (stopped) return;
+        tickCount++;
         if (controls) controlsRef.current = controls;
         if (result) {
           const text = result.getText();
+          const fmt = result.getBarcodeFormat?.() ?? 'unknown';
+          log(`[zxing] DETECTED: "${text}" (format: ${fmt})`);
           setStatus(`Detected ${text}`);
           onDetectedRef.current(text);
           controls?.stop();
@@ -117,7 +148,11 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
           return;
         }
         if (error && error.name !== 'NotFoundException') {
+          log(`[zxing] error: ${error.name} - ${error.message}`);
           console.error('Scanner error', error);
+        }
+        if (tickCount % 15 === 1) {
+          log(`[zxing] tick #${tickCount}, scanning...`);
         }
       };
 
@@ -126,6 +161,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
         .then((controls) => {
           if (stopped) { controls?.stop(); return; }
           controlsRef.current = controls;
+          log('[zxing] decodeFromConstraints attached, scanning started');
           setStatus('Align the barcode within the frame.');
         });
     };
@@ -138,7 +174,9 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
         } else {
           await startWithZxing();
         }
-      } catch (error) {
+      } catch (error: any) {
+        const msg = error?.message ?? String(error);
+        log(`FATAL: ${msg}`);
         console.error('Failed to start camera scanner', error);
         const message =
           error instanceof DOMException && error.name === 'NotAllowedError'
@@ -162,6 +200,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
         videoElement.srcObject = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deviceId, facingMode]);
 
   return (

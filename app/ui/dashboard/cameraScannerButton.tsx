@@ -27,6 +27,23 @@ const buildNextUrl = (
   return `${pathname ?? '/dashboard/check-in'}?${params.toString()}`;
 };
 
+/** Resize an image file to max `maxDim` px via canvas. Also normalises EXIF orientation. */
+const resizeImage = async (file: File, maxDim = 1280): Promise<Blob> => {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close();
+  return new Promise<Blob>((resolve) =>
+    canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.92),
+  );
+};
+
 type CameraScannerButtonProps = {
   onDetected?: (value: string) => void;
   uploadLabel?: string;
@@ -65,8 +82,20 @@ export default function CameraScannerButton({
   const [availableDevices, setAvailableDevices] = useState<DeviceOption[]>([]);
   const [deviceListError, setDeviceListError] = useState<string | null>(null);
   const [enumeratingDevices, setEnumeratingDevices] = useState(false);
+  const [debugLog, setDebugLog] = useState<string[]>([]);
 
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
+  const debugEndRef = useRef<HTMLDivElement | null>(null);
+
+  const addLog = useCallback((msg: string) => {
+    const ts = new Date().toLocaleTimeString();
+    setDebugLog((prev) => [...prev.slice(-80), `[${ts}] ${msg}`]);
+  }, []);
+
+  // Auto-scroll debug log
+  useEffect(() => {
+    debugEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [debugLog]);
 
   const refreshDeviceOptions = useCallback(async () => {
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) {
@@ -88,6 +117,7 @@ export default function CameraScannerButton({
         }));
 
       setAvailableDevices(videoInputs);
+      addLog(`Enumerated ${videoInputs.length} camera(s)`);
 
       if (!videoInputs.length) {
         setDeviceListError('No camera devices detected. Connect a camera or check permissions.');
@@ -101,12 +131,16 @@ export default function CameraScannerButton({
     } finally {
       setEnumeratingDevices(false);
     }
-  }, []);
+  }, [addLog]);
 
   useEffect(() => {
     if (!open) return;
+    setDebugLog([]);
+    addLog('Modal opened');
+    addLog(`Native BarcodeDetector: ${typeof window !== 'undefined' && 'BarcodeDetector' in window}`);
+    addLog(`UA: ${typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 80) : 'N/A'}`);
     void refreshDeviceOptions();
-  }, [open, refreshDeviceOptions]);
+  }, [open, refreshDeviceOptions, addLog]);
 
   const defaultDetectedHandler = useCallback(
     (value: string) => {
@@ -146,6 +180,10 @@ export default function CameraScannerButton({
     setErrorMessage(message);
   }, []);
 
+  const handleDebugLog = useCallback((msg: string) => {
+    setDebugLog((prev) => [...prev.slice(-80), msg]);
+  }, []);
+
   const toggleFacingMode = () => {
     if (selectedDeviceId) return;
     setFacingMode((current) => (current === 'environment' ? 'user' : 'environment'));
@@ -154,30 +192,57 @@ export default function CameraScannerButton({
   const decodeImageFile = async (file: File) => {
     setStatusMessage('Processing uploaded image…');
     setErrorMessage(null);
+    addLog(`Upload: ${file.name} (${(file.size / 1024).toFixed(0)}KB, ${file.type})`);
 
-    // Try native BarcodeDetector first (hardware-accelerated on mobile)
+    // Resize first to normalise EXIF and reduce size
+    let resizedBlob: Blob;
+    try {
+      const origBitmap = await createImageBitmap(file);
+      addLog(`Original: ${origBitmap.width}x${origBitmap.height}`);
+      origBitmap.close();
+
+      resizedBlob = await resizeImage(file, 1280);
+      const resizedBitmap = await createImageBitmap(resizedBlob);
+      addLog(`Resized: ${resizedBitmap.width}x${resizedBitmap.height} (${(resizedBlob.size / 1024).toFixed(0)}KB)`);
+      resizedBitmap.close();
+    } catch (e: any) {
+      addLog(`Resize failed: ${e?.message ?? e}`);
+      setStatusMessage(null);
+      setErrorMessage('Failed to process image.');
+      return;
+    }
+
+    // Try native BarcodeDetector first
     if (typeof window !== 'undefined' && 'BarcodeDetector' in window) {
       try {
+        addLog('[native] Trying BarcodeDetector.detect()...');
         const BarcodeDetector = (window as any).BarcodeDetector;
         const detector = new BarcodeDetector({
           formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code'],
         });
-        const bitmap = await createImageBitmap(file);
+        const bitmap = await createImageBitmap(resizedBlob);
         const barcodes = await detector.detect(bitmap);
         bitmap.close();
+        addLog(`[native] Result: ${barcodes.length} barcode(s) found`);
         if (barcodes.length > 0) {
           const text = barcodes[0].rawValue;
+          const fmt = barcodes[0].format;
+          addLog(`[native] DETECTED: "${text}" (${fmt})`);
           setLastScan(text);
           setStatusMessage(null);
           handleDetected(text);
           return;
         }
-      } catch {
-        // native detection failed, fall through to ZXing
+        addLog('[native] No barcodes, falling through to ZXing');
+      } catch (e: any) {
+        addLog(`[native] Error: ${e?.message ?? e}`);
       }
+    } else {
+      addLog('[native] BarcodeDetector not available');
     }
 
-    // ZXing fallback with optimised hints
+    // ZXing fallback
+    addLog('[zxing] Trying decodeFromImageUrl...');
     const hints = new Map<DecodeHintType, any>();
     hints.set(DecodeHintType.POSSIBLE_FORMATS, [
       BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
@@ -187,11 +252,12 @@ export default function CameraScannerButton({
     ]);
     hints.set(DecodeHintType.TRY_HARDER, true);
     const reader = new BrowserMultiFormatReader(hints);
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = URL.createObjectURL(resizedBlob);
 
     try {
       const result = await reader.decodeFromImageUrl(objectUrl);
       const text = result.getText();
+      addLog(`[zxing] DETECTED: "${text}"`);
       if (text) {
         setLastScan(text);
         setStatusMessage(null);
@@ -200,7 +266,9 @@ export default function CameraScannerButton({
         setStatusMessage(null);
         setErrorMessage('No barcode detected. Try a clearer photo or different angle.');
       }
-    } catch (error) {
+    } catch (error: any) {
+      const msg = error?.message ?? String(error);
+      addLog(`[zxing] Error: ${msg}`);
       console.error('Unable to decode uploaded image', error);
       setStatusMessage(null);
       setErrorMessage('Unable to read that image. Try again with better lighting.');
@@ -282,7 +350,7 @@ export default function CameraScannerButton({
 
       {open ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-4"
           role="dialog"
           aria-modal="true"
         >
@@ -308,6 +376,7 @@ export default function CameraScannerButton({
                 deviceId={selectedDeviceId || null}
                 onDetected={handleDetected}
                 onError={handleScanError}
+                onDebugLog={handleDebugLog}
               />
 
               <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/80">
@@ -366,6 +435,23 @@ export default function CameraScannerButton({
                   Tip: If the camera cannot focus, switch cameras or try uploading a photo instead.
                 </p>
               )}
+
+              {/* Debug Log Panel */}
+              <details open className="rounded-2xl border border-yellow-500/30 bg-yellow-500/5 p-3">
+                <summary className="cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-yellow-400/80">
+                  Debug Log ({debugLog.length})
+                </summary>
+                <div className="mt-2 max-h-48 overflow-y-auto rounded-lg bg-black/60 p-2 font-mono text-[10px] leading-relaxed text-green-400/90">
+                  {debugLog.length === 0 ? (
+                    <p className="text-white/30">Waiting for events...</p>
+                  ) : (
+                    debugLog.map((line, i) => (
+                      <p key={i} className="break-all">{line}</p>
+                    ))
+                  )}
+                  <div ref={debugEndRef} />
+                </div>
+              </details>
             </div>
           </div>
         </div>
