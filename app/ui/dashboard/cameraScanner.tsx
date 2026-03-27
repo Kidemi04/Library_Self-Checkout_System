@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
+import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 
 type CameraScannerProps = {
   onDetected: (value: string) => void;
@@ -13,7 +14,12 @@ type CameraScannerProps = {
 export default function CameraScanner({ onDetected, onError, facingMode, deviceId }: CameraScannerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
+  const onDetectedRef = useRef(onDetected);
+  const onErrorRef = useRef(onError);
   const [status, setStatus] = useState('Requesting camera access…');
+
+  useEffect(() => { onDetectedRef.current = onDetected; });
+  useEffect(() => { onErrorRef.current = onError; });
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -22,7 +28,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
     if (typeof navigator === 'undefined') {
       const message = 'Camera access is not supported in this browser.';
       setStatus(message);
-      onError?.(message);
+      onErrorRef.current?.(message);
       return undefined;
     }
 
@@ -36,7 +42,18 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
       error: (err: unknown) => void,
     ) => void;
 
-    const reader = new BrowserMultiFormatReader();
+    const hints = new Map<DecodeHintType, unknown>();
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+      BarcodeFormat.EAN_13,
+      BarcodeFormat.EAN_8,
+      BarcodeFormat.UPC_A,
+      BarcodeFormat.UPC_E,
+      BarcodeFormat.CODE_128,
+      BarcodeFormat.CODE_39,
+      BarcodeFormat.QR_CODE,
+    ]);
+    const reader = new BrowserMultiFormatReader(hints as Map<DecodeHintType, any>, { delayBetweenScanAttempts: 100 });
+
     let stopped = false;
     const nav = navigator as Navigator & { webkitGetUserMedia?: LegacyGetUserMedia };
     const hasModernApi = typeof nav.mediaDevices?.getUserMedia === 'function';
@@ -45,7 +62,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
     if (!hasModernApi && !hasLegacyApi) {
       const message = 'Camera access is not supported in this browser.';
       setStatus(message);
-      onError?.(message);
+      onErrorRef.current?.(message);
       return undefined;
     }
 
@@ -56,13 +73,13 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
       video: deviceId
         ? {
             deviceId: { exact: deviceId },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+            width: { ideal: 640 },
+            height: { ideal: 480 },
           }
         : {
             facingMode: { ideal: facingMode },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+            width: { ideal: 640 },
+            height: { ideal: 480 },
           },
     };
 
@@ -74,7 +91,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
       if (result) {
         const text = result.getText();
         setStatus(`Detected ${text}`);
-        onDetected(text);
+        onDetectedRef.current(text);
         controls?.stop();
         stopped = true;
         return;
@@ -83,7 +100,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
         console.error('Scanner error', error);
         const message = 'Unable to read barcode. Adjust the lighting or try again.';
         setStatus(message);
-        onError?.(message);
+        onErrorRef.current?.(message);
       }
     };
 
@@ -119,7 +136,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
             ? 'Camera permission denied. Allow access and try again.'
             : 'Unable to access the camera. Check permissions or try another device.';
         setStatus(message);
-        onError?.(message);
+        onErrorRef.current?.(message);
       }
     };
 
@@ -129,7 +146,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
       stopped = true;
       controlsRef.current?.stop();
     };
-  }, [deviceId, facingMode, onDetected, onError]);
+  }, [deviceId, facingMode]);
 
   return (
     <div className="space-y-3">
