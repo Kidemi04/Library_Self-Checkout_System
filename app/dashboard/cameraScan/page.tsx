@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import clsx from 'clsx';
 import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
 import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 
@@ -29,7 +28,7 @@ const makeZxingHints = () => {
 const hasNativeDetector = () =>
   typeof window !== 'undefined' && 'BarcodeDetector' in window;
 
-/** Resize an image to max `maxDim` px via canvas (also normalises EXIF). */
+/** Resize an image to max `maxDim` px via canvas (also normalises EXIF). Uses PNG to preserve barcode sharpness. */
 const resizeImage = async (file: File, maxDim = 1280): Promise<Blob> => {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
@@ -39,10 +38,11 @@ const resizeImage = async (file: File, maxDim = 1280): Promise<Blob> => {
   canvas.width = w;
   canvas.height = h;
   const ctx = canvas.getContext('2d')!;
+  ctx.imageSmoothingEnabled = false;
   ctx.drawImage(bitmap, 0, 0, w, h);
   bitmap.close();
   return new Promise<Blob>((resolve) =>
-    canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.92),
+    canvas.toBlob((b) => resolve(b!), 'image/png'),
   );
 };
 
@@ -131,8 +131,8 @@ export default function QrScanPage() {
       stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: 'environment' },
-          width: { ideal: 640 },
-          height: { ideal: 480 },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
         },
         audio: false,
       });
@@ -227,8 +227,8 @@ export default function QrScanPage() {
             audio: false,
             video: {
               facingMode: { ideal: 'environment' },
-              width: { ideal: 640 },
-              height: { ideal: 480 },
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
             },
           },
           video,
@@ -249,8 +249,10 @@ export default function QrScanPage() {
                 setScanState('paused');
               }
             }
-            if (error && error.name !== 'NotFoundException' && tickCount % 15 === 1) {
-              addLog(`[zxing] error: ${error.name}`);
+            // In production builds, error class names get minified (e.g. "e" instead of "NotFoundException")
+            // Only log errors that are NOT the expected "not found" scan miss
+            if (error && !/NotFoundException|NotFound/i.test(error.name) && error.name.length > 2 && tickCount % 15 === 1) {
+              addLog(`[zxing] error: ${error.name} - ${error.message?.slice(0, 60)}`);
             }
             if (tickCount % 15 === 1) {
               addLog(`[zxing] tick #${tickCount}, scanning...`);
@@ -275,72 +277,87 @@ export default function QrScanPage() {
     return () => stopCamera();
   }, [stopCamera]);
 
+  /** Try to decode a blob with native + ZXing. Returns decoded text or null. */
+  const tryDecodeBlob = useCallback(async (blob: Blob, label: string): Promise<string | null> => {
+    // Try native BarcodeDetector
+    if (hasNativeDetector()) {
+      try {
+        addLog(`[native][${label}] Trying BarcodeDetector.detect()...`);
+        const BarcodeDetector = (window as any).BarcodeDetector;
+        const detector = new BarcodeDetector({ formats: [...NATIVE_FORMATS] });
+        const bitmap = await createImageBitmap(blob);
+        const barcodes = await detector.detect(bitmap);
+        bitmap.close();
+        addLog(`[native][${label}] Result: ${barcodes.length} barcode(s)`);
+        if (barcodes.length > 0) {
+          const text = barcodes[0].rawValue;
+          addLog(`[native][${label}] DETECTED: "${text}" (${barcodes[0].format})`);
+          return text;
+        }
+      } catch (e: any) {
+        addLog(`[native][${label}] Error: ${e?.message ?? e}`);
+      }
+    } else if (label === 'original') {
+      addLog('[native] BarcodeDetector not available');
+    }
+
+    // ZXing fallback
+    addLog(`[zxing][${label}] Trying decodeFromImageUrl...`);
+    const reader = new BrowserMultiFormatReader(makeZxingHints());
+    const url = URL.createObjectURL(blob);
+    try {
+      const result = await reader.decodeFromImageUrl(url);
+      const text = result.getText().trim();
+      addLog(`[zxing][${label}] DETECTED: "${text}"`);
+      return text;
+    } catch (e: any) {
+      addLog(`[zxing][${label}] Error: ${e?.message ?? e}`);
+      return null;
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }, [addLog]);
+
   const onUpload = useCallback(async (file: File) => {
     setDecoded(null);
     setMessage('Reading image...');
     addLog(`Upload: ${file.name} (${(file.size / 1024).toFixed(0)}KB, ${file.type})`);
 
-    // Resize image first
-    let resizedBlob: Blob;
-    try {
-      const origBitmap = await createImageBitmap(file);
-      addLog(`Original: ${origBitmap.width}x${origBitmap.height}`);
-      origBitmap.close();
+    const origBitmap = await createImageBitmap(file);
+    addLog(`Original: ${origBitmap.width}x${origBitmap.height}`);
+    origBitmap.close();
 
-      resizedBlob = await resizeImage(file, 1280);
-      const resizedBitmap = await createImageBitmap(resizedBlob);
-      addLog(`Resized: ${resizedBitmap.width}x${resizedBitmap.height} (${(resizedBlob.size / 1024).toFixed(0)}KB)`);
-      resizedBitmap.close();
-    } catch (e: any) {
-      addLog(`Resize failed: ${e?.message ?? e}`);
-      setMessage('Failed to process image.');
+    // 1) Try original file first (best quality, no compression artifacts)
+    addLog('--- Attempt 1: original file ---');
+    const text1 = await tryDecodeBlob(file, 'original');
+    if (text1) {
+      setDecoded(text1);
+      setMessage('Code detected from image.');
+      if (isUrl(text1)) window.location.href = text1;
       return;
     }
 
-    // Try native BarcodeDetector
-    if (hasNativeDetector()) {
-      try {
-        addLog('[native] Trying BarcodeDetector.detect()...');
-        const BarcodeDetector = (window as any).BarcodeDetector;
-        const detector = new BarcodeDetector({ formats: [...NATIVE_FORMATS] });
-        const bitmap = await createImageBitmap(resizedBlob);
-        const barcodes = await detector.detect(bitmap);
-        bitmap.close();
-        addLog(`[native] Result: ${barcodes.length} barcode(s)`);
-        if (barcodes.length > 0) {
-          const text = barcodes[0].rawValue;
-          addLog(`[native] DETECTED: "${text}" (${barcodes[0].format})`);
-          setDecoded(text);
-          setMessage('Code detected from image.');
-          if (isUrl(text)) window.location.href = text;
-          return;
-        }
-        addLog('[native] No barcodes, trying ZXing...');
-      } catch (e: any) {
-        addLog(`[native] Error: ${e?.message ?? e}`);
+    // 2) Try resized PNG (fixes EXIF orientation, smaller canvas)
+    addLog('--- Attempt 2: resized PNG ---');
+    try {
+      const resizedBlob = await resizeImage(file, 1280);
+      const resizedBitmap = await createImageBitmap(resizedBlob);
+      addLog(`Resized: ${resizedBitmap.width}x${resizedBitmap.height} (${(resizedBlob.size / 1024).toFixed(0)}KB)`);
+      resizedBitmap.close();
+
+      const text2 = await tryDecodeBlob(resizedBlob, 'resized');
+      if (text2) {
+        setDecoded(text2);
+        setMessage('Code detected from image.');
+        if (isUrl(text2)) window.location.href = text2;
+        return;
       }
-    } else {
-      addLog('[native] BarcodeDetector not available');
+    } catch (e: any) {
+      addLog(`Resize failed: ${e?.message ?? e}`);
     }
 
-    // ZXing fallback
-    addLog('[zxing] Trying decodeFromImageUrl...');
-    const reader = new BrowserMultiFormatReader(makeZxingHints());
-    const url = URL.createObjectURL(resizedBlob);
-    try {
-      const result = await reader.decodeFromImageUrl(url);
-      const text = result.getText().trim();
-      addLog(`[zxing] DETECTED: "${text}"`);
-      setDecoded(text);
-      setMessage('Code detected from image.');
-      if (isUrl(text)) window.location.href = text;
-    } catch (e: any) {
-      addLog(`[zxing] Error: ${e?.message ?? e}`);
-      setMessage('No code found in that image.');
-    } finally {
-      URL.revokeObjectURL(url);
-    }
-  }, [addLog]);
+    setMessage('No code found in that image. Try taking a clearer photo.');
+  }, [addLog, tryDecodeBlob]);
 
   // ---------- UI ----------
   return (
