@@ -23,12 +23,6 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.10
         version: 0.5.10(tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.10.7)(typescript@5.7.3)))
-      '@zxing/browser':
-        specifier: ^0.1.1
-        version: 0.1.5(@zxing/library@0.21.3)
-      '@zxing/library':
-        specifier: ^0.21.3
-        version: 0.21.3
       autoprefixer:
         specifier: 10.4.20
         version: 10.4.20(postcss@8.5.1)
@@ -77,6 +71,9 @@ importers:
       zod:
         specifier: ^3.25.17
         version: 3.25.17
+      zxing-wasm:
+        specifier: ^3.0.1
+        version: 3.0.1(@types/emscripten@1.41.5)
     devDependencies:
       '@testing-library/dom':
         specifier: ^10.4.1
@@ -829,6 +826,9 @@ packages:
   '@types/cookie@0.6.0':
     resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
 
+  '@types/emscripten@1.41.5':
+    resolution: {integrity: sha512-cMQm7pxu6BxtHyqJ7mQZ2kXWV5SLmugybFdHCBbJ5eHzOo6VhBckEgAT3//rP5FwPHNPeEiq4SmQ5ucBwsOo4Q==}
+
   '@types/istanbul-lib-coverage@2.0.6':
     resolution: {integrity: sha512-2QF/t/auWm0lsy8XtKVPG19v3sSOQlJe/YHZgfjb/KBBHOGSV+J2q/S671rcq9uTBrLAXmZpqJiaQbMT+zNU1w==}
 
@@ -970,18 +970,6 @@ packages:
     resolution: {integrity: sha512-lrW200hZdbfRtztbygyaq/6jP6AKE8qQN2KvPcJ+x7wiD038YtnYtZ82IMNJ69GJibV7bwL3y9FgK+5w/pYt6g==}
     cpu: [x64]
     os: [win32]
-
-  '@zxing/browser@0.1.5':
-    resolution: {integrity: sha512-4Lmrn/il4+UNb87Gk8h1iWnhj39TASEHpd91CwwSJtY5u+wa0iH9qS0wNLAWbNVYXR66WmT5uiMhZ7oVTrKfxw==}
-    peerDependencies:
-      '@zxing/library': ^0.21.0
-
-  '@zxing/library@0.21.3':
-    resolution: {integrity: sha512-hZHqFe2JyH/ZxviJZosZjV+2s6EDSY0O24R+FQmlWZBZXP9IqMo7S3nb3+2LBWxodJQkSurdQGnqE7KXqrYgow==}
-    engines: {node: '>= 10.4.0'}
-
-  '@zxing/text-encoding@0.9.0':
-    resolution: {integrity: sha512-U/4aVJ2mxI0aDNI8Uq0wEhMgY+u4CNtEb0om3+y3+niDAsoTCOB33UF0sxpzqzdqXLqmvc+vZyAt4O8pPdfkwA==}
 
   abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
@@ -2591,6 +2579,10 @@ packages:
     resolution: {integrity: sha512-MeQTA1r0litLUf0Rp/iisCaL8761lKAZHaimlbGK4j0HysC4PLfqygQj9srcs0m2RdtDYnF8UuYyKpbjHYp7Jw==}
     engines: {node: ^14.18.0 || >=16.0.0}
 
+  tagged-tag@1.0.0:
+    resolution: {integrity: sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==}
+    engines: {node: '>=20'}
+
   tailwind-merge@3.4.0:
     resolution: {integrity: sha512-uSaO4gnW+b3Y2aWoWfFpX62vn2sR3skfhbjsEnaBI81WD1wBLlHZe5sWf0AqjksNdYTbGBEd0UasQMT3SNV15g==}
 
@@ -2643,10 +2635,6 @@ packages:
     resolution: {integrity: sha512-hdF5ZgjTqgAntKkklYw0R03MG2x/bSzTtkxmIRw/sTNV8YXsCJ1tfLAX23lhxhHJlEf3CRCOCGGWw3vI3GaSPw==}
     engines: {node: '>=18'}
 
-  ts-custom-error@3.3.1:
-    resolution: {integrity: sha512-5OX1tzOjxWEgsr/YEUWSuPrQ00deKLh6D7OTWcvNHm12/7QPyRh8SYpyWvA4IZv8H/+GQWQEh/kwo95Q9OVW1A==}
-    engines: {node: '>=14.0.0'}
-
   ts-interface-checker@0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
 
@@ -2674,6 +2662,10 @@ packages:
   type-fest@0.21.3:
     resolution: {integrity: sha512-t0rzBq87m3fVcduHDUFhKmyyX+9eo6WQjZvf51Ea/M0Q7+T374Jp1aUiyUl0GKxp8M/OETVHSDvmkyPgvX+X2w==}
     engines: {node: '>=10'}
+
+  type-fest@5.5.0:
+    resolution: {integrity: sha512-PlBfpQwiUvGViBNX84Yxwjsdhd1TUlXr6zjX7eoirtCPIr08NAmxwa+fcYBTeRQxHo9YC9wwF3m9i700sHma8g==}
+    engines: {node: '>=20'}
 
   type-is@2.0.1:
     resolution: {integrity: sha512-OZs6gsjF4vMp32qrCbiVSkrFmXtG/AZhY3t0iAMrMBiAZyV9oALtXO8hsrHbMXF9x6L3grlFuwW2oAz7cav+Gw==}
@@ -2829,6 +2821,11 @@ packages:
 
   zod@3.25.17:
     resolution: {integrity: sha512-8hQzQ/kMOIFbwOgPrm9Sf9rtFHpFUMy4HvN0yEB0spw14aYi0uT5xG5CE2DB9cd51GWNsz+DNO7se1kztHMKnw==}
+
+  zxing-wasm@3.0.1:
+    resolution: {integrity: sha512-3CLj6iaGkpqPWXAB4pIWkFOR63MwqGekpMzaROFKto4dFowiPmLlC56KoMoOSXzqOCOpI5DAvMdB8ku2va6fUg==}
+    peerDependencies:
+      '@types/emscripten': '>=1.39.6'
 
 snapshots:
 
@@ -3664,6 +3661,8 @@ snapshots:
 
   '@types/cookie@0.6.0': {}
 
+  '@types/emscripten@1.41.5': {}
+
   '@types/istanbul-lib-coverage@2.0.6': {}
 
   '@types/istanbul-lib-report@3.0.3':
@@ -3772,21 +3771,6 @@ snapshots:
     optional: true
 
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
-    optional: true
-
-  '@zxing/browser@0.1.5(@zxing/library@0.21.3)':
-    dependencies:
-      '@zxing/library': 0.21.3
-    optionalDependencies:
-      '@zxing/text-encoding': 0.9.0
-
-  '@zxing/library@0.21.3':
-    dependencies:
-      ts-custom-error: 3.3.1
-    optionalDependencies:
-      '@zxing/text-encoding': 0.9.0
-
-  '@zxing/text-encoding@0.9.0':
     optional: true
 
   abbrev@1.1.1: {}
@@ -5521,6 +5505,8 @@ snapshots:
     dependencies:
       '@pkgr/core': 0.2.9
 
+  tagged-tag@1.0.0: {}
+
   tailwind-merge@3.4.0: {}
 
   tailwindcss@3.4.17(ts-node@10.9.2(@types/node@22.10.7)(typescript@5.7.3)):
@@ -5597,8 +5583,6 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  ts-custom-error@3.3.1: {}
-
   ts-interface-checker@0.1.13: {}
 
   ts-node@10.9.2(@types/node@22.10.7)(typescript@5.7.3):
@@ -5624,6 +5608,10 @@ snapshots:
   type-detect@4.0.8: {}
 
   type-fest@0.21.3: {}
+
+  type-fest@5.5.0:
+    dependencies:
+      tagged-tag: 1.0.0
 
   type-is@2.0.1:
     dependencies:
@@ -5773,3 +5761,8 @@ snapshots:
       zod: 3.25.17
 
   zod@3.25.17: {}
+
+  zxing-wasm@3.0.1(@types/emscripten@1.41.5):
+    dependencies:
+      '@types/emscripten': 1.41.5
+      type-fest: 5.5.0
