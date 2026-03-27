@@ -13,6 +13,7 @@ import {
   ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import { BrowserMultiFormatReader } from '@zxing/browser';
+import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 
 const CameraScanner = dynamic(() => import('@/app/ui/dashboard/cameraScanner'), { ssr: false });
 
@@ -151,10 +152,42 @@ export default function CameraScannerButton({
   };
 
   const decodeImageFile = async (file: File) => {
-    const reader = new BrowserMultiFormatReader();
-    const objectUrl = URL.createObjectURL(file);
     setStatusMessage('Processing uploaded image…');
     setErrorMessage(null);
+
+    // Try native BarcodeDetector first (hardware-accelerated on mobile)
+    if (typeof window !== 'undefined' && 'BarcodeDetector' in window) {
+      try {
+        const BarcodeDetector = (window as any).BarcodeDetector;
+        const detector = new BarcodeDetector({
+          formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'qr_code'],
+        });
+        const bitmap = await createImageBitmap(file);
+        const barcodes = await detector.detect(bitmap);
+        bitmap.close();
+        if (barcodes.length > 0) {
+          const text = barcodes[0].rawValue;
+          setLastScan(text);
+          setStatusMessage(null);
+          handleDetected(text);
+          return;
+        }
+      } catch {
+        // native detection failed, fall through to ZXing
+      }
+    }
+
+    // ZXing fallback with optimised hints
+    const hints = new Map<DecodeHintType, any>();
+    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+      BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
+      BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+      BarcodeFormat.CODE_128, BarcodeFormat.CODE_39,
+      BarcodeFormat.QR_CODE,
+    ]);
+    hints.set(DecodeHintType.TRY_HARDER, true);
+    const reader = new BrowserMultiFormatReader(hints);
+    const objectUrl = URL.createObjectURL(file);
 
     try {
       const result = await reader.decodeFromImageUrl(objectUrl);
@@ -173,10 +206,6 @@ export default function CameraScannerButton({
       setErrorMessage('Unable to read that image. Try again with better lighting.');
     } finally {
       URL.revokeObjectURL(objectUrl);
-      const resetReader = (reader as unknown as { reset?: () => void }).reset;
-      if (typeof resetReader === 'function') {
-        resetReader.call(reader);
-      }
     }
   };
 

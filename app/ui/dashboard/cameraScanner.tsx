@@ -4,6 +4,18 @@ import { useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
 import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 
+const NATIVE_FORMATS = [
+  'ean_13', 'ean_8', 'upc_a', 'upc_e',
+  'code_128', 'code_39', 'qr_code',
+] as const;
+
+const ZXING_FORMATS = [
+  BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
+  BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+  BarcodeFormat.CODE_128, BarcodeFormat.CODE_39,
+  BarcodeFormat.QR_CODE,
+];
+
 type CameraScannerProps = {
   onDetected: (value: string) => void;
   onError?: (message: string) => void;
@@ -25,7 +37,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
     const videoElement = videoRef.current;
     if (!videoElement) return undefined;
 
-    if (typeof navigator === 'undefined') {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
       const message = 'Camera access is not supported in this browser.';
       setStatus(message);
       onErrorRef.current?.(message);
@@ -36,98 +48,95 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
     videoElement.setAttribute('autoplay', 'true');
     videoElement.muted = true;
 
-    type LegacyGetUserMedia = (
-      constraints: MediaStreamConstraints,
-      success: (stream: MediaStream) => void,
-      error: (err: unknown) => void,
-    ) => void;
-
-    const hints = new Map<DecodeHintType, unknown>();
-    hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-      BarcodeFormat.EAN_13,
-      BarcodeFormat.EAN_8,
-      BarcodeFormat.UPC_A,
-      BarcodeFormat.UPC_E,
-      BarcodeFormat.CODE_128,
-      BarcodeFormat.CODE_39,
-      BarcodeFormat.QR_CODE,
-    ]);
-    const reader = new BrowserMultiFormatReader(hints as Map<DecodeHintType, any>, { delayBetweenScanAttempts: 100 });
-
     let stopped = false;
-    const nav = navigator as Navigator & { webkitGetUserMedia?: LegacyGetUserMedia };
-    const hasModernApi = typeof nav.mediaDevices?.getUserMedia === 'function';
-    const hasLegacyApi = typeof nav.webkitGetUserMedia === 'function';
-
-    if (!hasModernApi && !hasLegacyApi) {
-      const message = 'Camera access is not supported in this browser.';
-      setStatus(message);
-      onErrorRef.current?.(message);
-      return undefined;
-    }
-
-    setStatus('Initialising camera…');
+    let streamRef: MediaStream | null = null;
 
     const constraints: MediaStreamConstraints = {
       audio: false,
       video: deviceId
-        ? {
-            deviceId: { exact: deviceId },
-            width: { ideal: 640 },
-            height: { ideal: 480 },
-          }
-        : {
-            facingMode: { ideal: facingMode },
-            width: { ideal: 640 },
-            height: { ideal: 480 },
-          },
+        ? { deviceId: { exact: deviceId }, width: { ideal: 640 }, height: { ideal: 480 } }
+        : { facingMode: { ideal: facingMode }, width: { ideal: 640 }, height: { ideal: 480 } },
     };
 
-    const handleResult = (result: any, error: any, controls?: IScannerControls | null) => {
-      if (stopped) return;
-      if (controls) {
-        controlsRef.current = controls;
-      }
-      if (result) {
-        const text = result.getText();
-        setStatus(`Detected ${text}`);
-        onDetectedRef.current(text);
-        controls?.stop();
-        stopped = true;
-        return;
-      }
-      if (error && error.name !== 'NotFoundException') {
-        console.error('Scanner error', error);
-        const message = 'Unable to read barcode. Adjust the lighting or try again.';
-        setStatus(message);
-        onErrorRef.current?.(message);
-      }
+    const hasNativeDetector =
+      typeof window !== 'undefined' && 'BarcodeDetector' in window;
+
+    const startWithNativeDetector = async () => {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef = stream;
+      videoElement.srcObject = stream;
+      await videoElement.play();
+
+      const BarcodeDetector = (window as any).BarcodeDetector;
+      const detector = new BarcodeDetector({ formats: [...NATIVE_FORMATS] });
+
+      setStatus('Align the barcode within the frame.');
+
+      const scanLoop = async () => {
+        if (stopped) return;
+        try {
+          if (videoElement.readyState >= 2) {
+            const barcodes = await detector.detect(videoElement);
+            if (barcodes.length > 0 && !stopped) {
+              const text = barcodes[0].rawValue;
+              setStatus(`Detected ${text}`);
+              onDetectedRef.current(text);
+              stopped = true;
+              stream.getTracks().forEach((t: MediaStreamTrack) => t.stop());
+              return;
+            }
+          }
+        } catch {
+          // frame not ready, retry
+        }
+        if (!stopped) {
+          setTimeout(scanLoop, 150);
+        }
+      };
+
+      scanLoop();
+    };
+
+    const startWithZxing = async () => {
+      const hints = new Map<DecodeHintType, any>();
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, ZXING_FORMATS);
+      hints.set(DecodeHintType.TRY_HARDER, true);
+      const reader = new BrowserMultiFormatReader(hints, {
+        delayBetweenScanAttempts: 200,
+      });
+
+      const handleResult = (result: any, error: any, controls?: IScannerControls | null) => {
+        if (stopped) return;
+        if (controls) controlsRef.current = controls;
+        if (result) {
+          const text = result.getText();
+          setStatus(`Detected ${text}`);
+          onDetectedRef.current(text);
+          controls?.stop();
+          stopped = true;
+          return;
+        }
+        if (error && error.name !== 'NotFoundException') {
+          console.error('Scanner error', error);
+        }
+      };
+
+      await reader
+        .decodeFromConstraints(constraints, videoElement, handleResult)
+        .then((controls) => {
+          if (stopped) { controls?.stop(); return; }
+          controlsRef.current = controls;
+          setStatus('Align the barcode within the frame.');
+        });
     };
 
     const startScanner = async () => {
       try {
-        if (hasModernApi) {
-          await reader
-            .decodeFromConstraints(constraints, videoElement, handleResult)
-            .then((controls) => {
-              if (stopped) {
-                controls?.stop();
-                return;
-              }
-              controlsRef.current = controls;
-              setStatus('Align the barcode within the frame.');
-            });
-        } else if (hasLegacyApi) {
-          const stream = await new Promise<MediaStream>((resolve, reject) => {
-            nav.webkitGetUserMedia?.(constraints, resolve, reject);
-          });
-          const controls = await reader.decodeFromStream(stream, videoElement, handleResult);
-          if (stopped) {
-            controls?.stop();
-            return;
-          }
-          controlsRef.current = controls;
-          setStatus('Align the barcode within the frame.');
+        setStatus('Initialising camera…');
+        if (hasNativeDetector) {
+          await startWithNativeDetector();
+        } else {
+          await startWithZxing();
         }
       } catch (error) {
         console.error('Failed to start camera scanner', error);
@@ -145,6 +154,13 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
     return () => {
       stopped = true;
       controlsRef.current?.stop();
+      streamRef?.getTracks().forEach((t) => t.stop());
+      if (videoElement.srcObject) {
+        (videoElement.srcObject as MediaStream)
+          .getTracks()
+          .forEach((t) => t.stop());
+        videoElement.srcObject = null;
+      }
     };
   }, [deviceId, facingMode]);
 
