@@ -3,17 +3,68 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
+import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 
 type ScanState = 'idle' | 'scanning' | 'paused';
 
+const NATIVE_FORMATS = [
+  'ean_13', 'ean_8', 'upc_a', 'upc_e',
+  'code_128', 'code_39', 'qr_code',
+] as const;
+
+const ZXING_FORMATS = [
+  BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
+  BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+  BarcodeFormat.CODE_128, BarcodeFormat.CODE_39,
+  BarcodeFormat.QR_CODE,
+];
+
+const makeZxingHints = () => {
+  const hints = new Map<DecodeHintType, any>();
+  hints.set(DecodeHintType.POSSIBLE_FORMATS, ZXING_FORMATS);
+  hints.set(DecodeHintType.TRY_HARDER, true);
+  return hints;
+};
+
+const hasNativeDetector = () =>
+  typeof window !== 'undefined' && 'BarcodeDetector' in window;
+
+/** Resize an image to max `maxDim` px via canvas (also normalises EXIF). */
+const resizeImage = async (file: File, maxDim = 1280): Promise<Blob> => {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close();
+  return new Promise<Blob>((resolve) =>
+    canvas.toBlob((b) => resolve(b!), 'image/jpeg', 0.92),
+  );
+};
+
 export default function QrScanPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
 
   const [scanState, setScanState] = useState<ScanState>('idle');
   const [message, setMessage] = useState<string>('');
   const [decoded, setDecoded] = useState<string | null>(null);
+  const [debugLog, setDebugLog] = useState<string[]>([]);
+
+  const debugEndRef = useRef<HTMLDivElement | null>(null);
+
+  const addLog = useCallback((msg: string) => {
+    const ts = new Date().toLocaleTimeString();
+    setDebugLog((prev) => [...prev.slice(-80), `[${ts}] ${msg}`]);
+  }, []);
+
+  useEffect(() => {
+    debugEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [debugLog]);
 
   // ---------- helpers ----------
   const ensureSecureContext = () => {
@@ -33,7 +84,7 @@ export default function QrScanPage() {
 
   const stopCamera = useCallback(() => {
     try {
-      controlsRef.current?.stop(); // stop ZXing loop
+      controlsRef.current?.stop();
     } catch {}
     const video = videoRef.current;
     const stream = (video?.srcObject as MediaStream | null) || null;
@@ -46,42 +97,51 @@ export default function QrScanPage() {
 
   const startCamera = useCallback(async () => {
     setDecoded(null);
+    setDebugLog([]);
+    addLog(`Native BarcodeDetector: ${hasNativeDetector()}`);
+    addLog(`UA: ${navigator.userAgent.slice(0, 100)}`);
 
     if (!ensureSecureContext()) {
       setMessage('Camera requires HTTPS (or localhost). Open this page over https.');
+      addLog('ERROR: not a secure context');
       setScanState('idle');
       return;
     }
 
-    // permission pre-check (best-effort)
+    // permission pre-check
     try {
       const perm = await (navigator as any).permissions?.query?.({
         name: 'camera' as PermissionName,
       });
+      addLog(`Permission state: ${perm?.state ?? 'unknown'}`);
       if (perm && perm.state === 'denied') {
         setMessage('Camera permission is blocked in your browser settings.');
         setScanState('idle');
         return;
       }
     } catch {
-      /* ignore */
+      addLog('Permission query not supported');
     }
 
     setMessage('Requesting camera access...');
+    addLog('Requesting getUserMedia...');
 
-    // Ask for a stream first (user gesture is required)
     let stream: MediaStream | null = null;
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: { ideal: 'environment' },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+          width: { ideal: 640 },
+          height: { ideal: 480 },
         },
         audio: false,
       });
+      const track = stream.getVideoTracks()[0];
+      const settings = track?.getSettings();
+      addLog(`Stream ready: ${settings?.width}x${settings?.height}, device: ${track?.label?.slice(0, 40)}`);
     } catch (err: any) {
       const n = err?.name || '';
+      addLog(`getUserMedia FAILED: ${n} - ${err?.message}`);
       setMessage(
         n === 'NotAllowedError'
           ? 'Permission denied. Please allow camera access.'
@@ -97,50 +157,119 @@ export default function QrScanPage() {
       const video = videoRef.current!;
       video.srcObject = stream;
       await video.play();
-
-      // Prefer the back camera by label when possible
-      const devices = await BrowserMultiFormatReader.listVideoInputDevices();
-      const backCam =
-        devices.find((d) => /back|rear|environment/i.test(d.label)) ??
-        devices.at(-1) ??
-        devices[0];
-
-      if (!readerRef.current) readerRef.current = new BrowserMultiFormatReader();
+      addLog(`Video playing: ${video.videoWidth}x${video.videoHeight}`);
 
       setScanState('scanning');
       setMessage('Point your camera at a code (QR or barcode).');
 
-      const controls = await readerRef.current.decodeFromVideoDevice(
-        backCam?.deviceId ?? undefined,
-        video,
-        (result) => {
-          if (!result) return;
-          const text = (result as { getText(): string }).getText().trim();
-          setDecoded(text);
-          setMessage('Code detected.');
+      if (hasNativeDetector()) {
+        // ---- Native BarcodeDetector path ----
+        addLog('Using native BarcodeDetector for live scan');
+        const BarcodeDetector = (window as any).BarcodeDetector;
+        const detector = new BarcodeDetector({ formats: [...NATIVE_FORMATS] });
 
-          if (isUrl(text)) {
-            // Auto-open links
-            stopCamera();
-            window.location.href = text;
-          } else {
-            // Pause scanning for non-URL payloads
-            controlsRef.current?.stop();
-            setScanState('paused');
+        let stopped = false;
+        let tickCount = 0;
+
+        const scanLoop = async () => {
+          if (stopped) return;
+          tickCount++;
+          try {
+            if (video.readyState >= 2) {
+              const barcodes = await detector.detect(video);
+              if (tickCount % 13 === 1) {
+                addLog(`[native] tick #${tickCount}, found: ${barcodes.length}`);
+              }
+              if (barcodes.length > 0 && !stopped) {
+                const text = barcodes[0].rawValue;
+                const fmt = barcodes[0].format;
+                addLog(`[native] DETECTED: "${text}" (${fmt})`);
+                setDecoded(text);
+                setMessage('Code detected.');
+                stopped = true;
+
+                if (isUrl(text)) {
+                  stopCamera();
+                  window.location.href = text;
+                } else {
+                  stream?.getTracks().forEach((t) => t.stop());
+                  setScanState('paused');
+                }
+                return;
+              }
+            }
+          } catch (e: any) {
+            if (tickCount % 13 === 1) {
+              addLog(`[native] tick #${tickCount} error: ${e?.message ?? e}`);
+            }
           }
-        }
-      );
+          if (!stopped) {
+            setTimeout(scanLoop, 150);
+          }
+        };
 
-      controlsRef.current = controls;
-    } catch {
-      // Clean up if ZXing fails to attach
+        // Store cleanup
+        controlsRef.current = {
+          stop: () => { stopped = true; },
+        } as IScannerControls;
+
+        scanLoop();
+      } else {
+        // ---- ZXing fallback path ----
+        addLog('Using ZXing for live scan');
+        const reader = new BrowserMultiFormatReader(makeZxingHints(), {
+          delayBetweenScanAttempts: 200,
+        });
+
+        let tickCount = 0;
+        const controls = await reader.decodeFromConstraints(
+          {
+            audio: false,
+            video: {
+              facingMode: { ideal: 'environment' },
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+            },
+          },
+          video,
+          (result, error) => {
+            tickCount++;
+            if (result) {
+              const text = result.getText().trim();
+              addLog(`[zxing] DETECTED: "${text}"`);
+              setDecoded(text);
+              setMessage('Code detected.');
+              controls?.stop();
+
+              if (isUrl(text)) {
+                stopCamera();
+                window.location.href = text;
+              } else {
+                controlsRef.current?.stop();
+                setScanState('paused');
+              }
+            }
+            if (error && error.name !== 'NotFoundException' && tickCount % 15 === 1) {
+              addLog(`[zxing] error: ${error.name}`);
+            }
+            if (tickCount % 15 === 1) {
+              addLog(`[zxing] tick #${tickCount}, scanning...`);
+            }
+          },
+        );
+
+        controlsRef.current = controls;
+        addLog('[zxing] decodeFromConstraints attached');
+      }
+    } catch (e: any) {
+      addLog(`Scanner start FAILED: ${e?.message ?? e}`);
       stream?.getTracks().forEach((t) => t.stop());
       const video = videoRef.current;
       if (video) video.srcObject = null;
       setScanState('idle');
       setMessage('Failed to start the scanner.');
     }
-  }, [stopCamera]);
+  }, [stopCamera, addLog]);
 
   useEffect(() => {
     return () => stopCamera();
@@ -149,21 +278,69 @@ export default function QrScanPage() {
   const onUpload = useCallback(async (file: File) => {
     setDecoded(null);
     setMessage('Reading image...');
-    if (!readerRef.current) readerRef.current = new BrowserMultiFormatReader();
+    addLog(`Upload: ${file.name} (${(file.size / 1024).toFixed(0)}KB, ${file.type})`);
 
-    const url = URL.createObjectURL(file);
+    // Resize image first
+    let resizedBlob: Blob;
     try {
-      const result = await readerRef.current.decodeFromImageUrl(url);
-      const text = (result as { getText(): string }).getText().trim();
+      const origBitmap = await createImageBitmap(file);
+      addLog(`Original: ${origBitmap.width}x${origBitmap.height}`);
+      origBitmap.close();
+
+      resizedBlob = await resizeImage(file, 1280);
+      const resizedBitmap = await createImageBitmap(resizedBlob);
+      addLog(`Resized: ${resizedBitmap.width}x${resizedBitmap.height} (${(resizedBlob.size / 1024).toFixed(0)}KB)`);
+      resizedBitmap.close();
+    } catch (e: any) {
+      addLog(`Resize failed: ${e?.message ?? e}`);
+      setMessage('Failed to process image.');
+      return;
+    }
+
+    // Try native BarcodeDetector
+    if (hasNativeDetector()) {
+      try {
+        addLog('[native] Trying BarcodeDetector.detect()...');
+        const BarcodeDetector = (window as any).BarcodeDetector;
+        const detector = new BarcodeDetector({ formats: [...NATIVE_FORMATS] });
+        const bitmap = await createImageBitmap(resizedBlob);
+        const barcodes = await detector.detect(bitmap);
+        bitmap.close();
+        addLog(`[native] Result: ${barcodes.length} barcode(s)`);
+        if (barcodes.length > 0) {
+          const text = barcodes[0].rawValue;
+          addLog(`[native] DETECTED: "${text}" (${barcodes[0].format})`);
+          setDecoded(text);
+          setMessage('Code detected from image.');
+          if (isUrl(text)) window.location.href = text;
+          return;
+        }
+        addLog('[native] No barcodes, trying ZXing...');
+      } catch (e: any) {
+        addLog(`[native] Error: ${e?.message ?? e}`);
+      }
+    } else {
+      addLog('[native] BarcodeDetector not available');
+    }
+
+    // ZXing fallback
+    addLog('[zxing] Trying decodeFromImageUrl...');
+    const reader = new BrowserMultiFormatReader(makeZxingHints());
+    const url = URL.createObjectURL(resizedBlob);
+    try {
+      const result = await reader.decodeFromImageUrl(url);
+      const text = result.getText().trim();
+      addLog(`[zxing] DETECTED: "${text}"`);
       setDecoded(text);
       setMessage('Code detected from image.');
       if (isUrl(text)) window.location.href = text;
-    } catch {
+    } catch (e: any) {
+      addLog(`[zxing] Error: ${e?.message ?? e}`);
       setMessage('No code found in that image.');
     } finally {
       URL.revokeObjectURL(url);
     }
-  }, []);
+  }, [addLog]);
 
   // ---------- UI ----------
   return (
@@ -252,6 +429,25 @@ export default function QrScanPage() {
             <li>- You can also upload a photo or screenshot of a QR code or barcode.</li>
           </ul>
         </aside>
+      </section>
+
+      {/* Debug Log Panel */}
+      <section className="mx-auto max-w-5xl">
+        <details open className="rounded-2xl border border-yellow-500/30 bg-yellow-50 p-4 dark:bg-yellow-500/5">
+          <summary className="cursor-pointer text-sm font-semibold text-yellow-700 dark:text-yellow-400">
+            Debug Log ({debugLog.length})
+          </summary>
+          <div className="mt-2 max-h-64 overflow-y-auto rounded-lg bg-slate-900 p-3 font-mono text-[11px] leading-relaxed text-green-400">
+            {debugLog.length === 0 ? (
+              <p className="text-white/30">Click &quot;Start camera&quot; or &quot;Upload image&quot; to see logs...</p>
+            ) : (
+              debugLog.map((line, i) => (
+                <p key={i} className="break-all">{line}</p>
+              ))
+            )}
+            <div ref={debugEndRef} />
+          </div>
+        </details>
       </section>
     </main>
   );
