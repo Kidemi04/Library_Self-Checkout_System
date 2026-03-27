@@ -16,7 +16,11 @@
       "Bash(ls -la /c/Users/fongk/Documents/Assignment/Library_Self-Checkout_System/app/*.tsx)",
       "Bash(pnpm test:*)",
       "Bash(gh pr:*)",
-      "Bash(winget install:*)"
+      "Bash(winget install:*)",
+      "Bash(find /c/Users/fongk/Documents/Assignment/Library_Self-Checkout_System/app -type f \\\\\\(-name *.ts -o -name *.tsx -o -name *.js \\\\\\))",
+      "Bash(find /c/Users/fongk/Documents/Assignment/Library_Self-Checkout_System -type f -path */lib/* -name *.ts -o -type f -path */lib/* -name *.js)",
+      "Bash(xargs grep:*)",
+      "Bash(npx next:*)"
     ]
   }
 }
