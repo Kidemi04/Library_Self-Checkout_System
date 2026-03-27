@@ -6,22 +6,31 @@ import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 
 type ScanState = 'idle' | 'scanning' | 'paused';
 
-const NATIVE_FORMATS = [
-  'ean_13', 'ean_8', 'upc_a', 'upc_e',
-  'code_128', 'code_39', 'qr_code',
-] as const;
+// Prioritise Code 128 / Code 39 — the formats actually used by the library barcodes.
+const NATIVE_FORMATS_FAST = ['code_128', 'code_39'] as const;
+const NATIVE_FORMATS_ALL = ['code_128', 'code_39', 'qr_code', 'ean_13', 'ean_8', 'upc_a', 'upc_e'] as const;
 
-const ZXING_FORMATS = [
-  BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
-  BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+const ZXING_FORMATS_FAST = [BarcodeFormat.CODE_128, BarcodeFormat.CODE_39];
+const ZXING_FORMATS_ALL = [
   BarcodeFormat.CODE_128, BarcodeFormat.CODE_39,
   BarcodeFormat.QR_CODE,
+  BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
+  BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
 ];
 
-const makeZxingHints = () => {
+/** Speed-optimised hints for live camera (only Code 128/39, no TRY_HARDER). */
+const makeCameraHints = () => {
   const hints = new Map<DecodeHintType, any>();
-  hints.set(DecodeHintType.POSSIBLE_FORMATS, ZXING_FORMATS);
-  hints.set(DecodeHintType.TRY_HARDER, true);
+  hints.set(DecodeHintType.POSSIBLE_FORMATS, ZXING_FORMATS_FAST);
+  return hints;
+};
+
+/** Accuracy-optimised hints for uploaded images. */
+const makeUploadHints = (tryHarder = true, pureBarcode = false) => {
+  const hints = new Map<DecodeHintType, any>();
+  hints.set(DecodeHintType.POSSIBLE_FORMATS, ZXING_FORMATS_ALL);
+  if (tryHarder) hints.set(DecodeHintType.TRY_HARDER, true);
+  if (pureBarcode) hints.set(DecodeHintType.PURE_BARCODE, true);
   return hints;
 };
 
@@ -29,7 +38,7 @@ const hasNativeDetector = () =>
   typeof window !== 'undefined' && 'BarcodeDetector' in window;
 
 /** Resize an image to max `maxDim` px via canvas (also normalises EXIF). Uses PNG to preserve barcode sharpness. */
-const resizeImage = async (file: File, maxDim = 1280): Promise<Blob> => {
+const resizeImage = async (file: File, maxDim = 1280, contrast = true): Promise<Blob> => {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height));
   const w = Math.round(bitmap.width * scale);
@@ -39,6 +48,7 @@ const resizeImage = async (file: File, maxDim = 1280): Promise<Blob> => {
   canvas.height = h;
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
+  if (contrast) ctx.filter = 'contrast(1.5)';
   ctx.drawImage(bitmap, 0, 0, w, h);
   bitmap.close();
   return new Promise<Blob>((resolve) =>
@@ -166,7 +176,7 @@ export default function QrScanPage() {
         // ---- Native BarcodeDetector path ----
         addLog('Using native BarcodeDetector for live scan');
         const BarcodeDetector = (window as any).BarcodeDetector;
-        const detector = new BarcodeDetector({ formats: [...NATIVE_FORMATS] });
+        const detector = new BarcodeDetector({ formats: [...NATIVE_FORMATS_FAST] });
 
         let stopped = false;
         let tickCount = 0;
@@ -216,9 +226,9 @@ export default function QrScanPage() {
         scanLoop();
       } else {
         // ---- ZXing fallback path ----
-        addLog('Using ZXing for live scan');
-        const reader = new BrowserMultiFormatReader(makeZxingHints(), {
-          delayBetweenScanAttempts: 200,
+        addLog('Using ZXing for live scan (CODE_128 + CODE_39 only, 100ms)');
+        const reader = new BrowserMultiFormatReader(makeCameraHints(), {
+          delayBetweenScanAttempts: 100,
         });
 
         let tickCount = 0;
@@ -277,33 +287,10 @@ export default function QrScanPage() {
     return () => stopCamera();
   }, [stopCamera]);
 
-  /** Try to decode a blob with native + ZXing. Returns decoded text or null. */
-  const tryDecodeBlob = useCallback(async (blob: Blob, label: string): Promise<string | null> => {
-    // Try native BarcodeDetector
-    if (hasNativeDetector()) {
-      try {
-        addLog(`[native][${label}] Trying BarcodeDetector.detect()...`);
-        const BarcodeDetector = (window as any).BarcodeDetector;
-        const detector = new BarcodeDetector({ formats: [...NATIVE_FORMATS] });
-        const bitmap = await createImageBitmap(blob);
-        const barcodes = await detector.detect(bitmap);
-        bitmap.close();
-        addLog(`[native][${label}] Result: ${barcodes.length} barcode(s)`);
-        if (barcodes.length > 0) {
-          const text = barcodes[0].rawValue;
-          addLog(`[native][${label}] DETECTED: "${text}" (${barcodes[0].format})`);
-          return text;
-        }
-      } catch (e: any) {
-        addLog(`[native][${label}] Error: ${e?.message ?? e}`);
-      }
-    } else if (label === 'original') {
-      addLog('[native] BarcodeDetector not available');
-    }
-
-    // ZXing fallback
-    addLog(`[zxing][${label}] Trying decodeFromImageUrl...`);
-    const reader = new BrowserMultiFormatReader(makeZxingHints());
+  /** Try ZXing decode on a blob with given hints. */
+  const zxingDecode = useCallback(async (blob: Blob, hints: Map<DecodeHintType, any>, label: string): Promise<string | null> => {
+    addLog(`[zxing][${label}] decodeFromImageUrl...`);
+    const reader = new BrowserMultiFormatReader(hints);
     const url = URL.createObjectURL(blob);
     try {
       const result = await reader.decodeFromImageUrl(url);
@@ -311,53 +298,111 @@ export default function QrScanPage() {
       addLog(`[zxing][${label}] DETECTED: "${text}"`);
       return text;
     } catch (e: any) {
-      addLog(`[zxing][${label}] Error: ${e?.message ?? e}`);
+      addLog(`[zxing][${label}] fail: ${(e?.message ?? e).toString().slice(0, 80)}`);
       return null;
     } finally {
       URL.revokeObjectURL(url);
     }
   }, [addLog]);
 
+  /** Try native BarcodeDetector on a blob. */
+  const nativeDecode = useCallback(async (blob: Blob, label: string): Promise<string | null> => {
+    if (!hasNativeDetector()) return null;
+    try {
+      addLog(`[native][${label}] detect()...`);
+      const BarcodeDetector = (window as any).BarcodeDetector;
+      const detector = new BarcodeDetector({ formats: [...NATIVE_FORMATS_ALL] });
+      const bitmap = await createImageBitmap(blob);
+      const barcodes = await detector.detect(bitmap);
+      bitmap.close();
+      if (barcodes.length > 0) {
+        const text = barcodes[0].rawValue;
+        addLog(`[native][${label}] DETECTED: "${text}" (${barcodes[0].format})`);
+        return text;
+      }
+      addLog(`[native][${label}] 0 barcodes`);
+    } catch (e: any) {
+      addLog(`[native][${label}] error: ${e?.message ?? e}`);
+    }
+    return null;
+  }, [addLog]);
+
   const onUpload = useCallback(async (file: File) => {
     setDecoded(null);
-    setMessage('Reading image...');
+    setMessage('Analysing image...');
     addLog(`Upload: ${file.name} (${(file.size / 1024).toFixed(0)}KB, ${file.type})`);
 
     const origBitmap = await createImageBitmap(file);
-    addLog(`Original: ${origBitmap.width}x${origBitmap.height}`);
+    const ow = origBitmap.width, oh = origBitmap.height;
+    addLog(`Original: ${ow}x${oh}`);
     origBitmap.close();
 
-    // 1) Try original file first (best quality, no compression artifacts)
-    addLog('--- Attempt 1: original file ---');
-    const text1 = await tryDecodeBlob(file, 'original');
-    if (text1) {
-      setDecoded(text1);
+    const found = (text: string) => {
+      setDecoded(text);
       setMessage('Code detected from image.');
-      if (isUrl(text1)) window.location.href = text1;
-      return;
-    }
+      if (isUrl(text)) window.location.href = text;
+    };
 
-    // 2) Try resized PNG (fixes EXIF orientation, smaller canvas)
-    addLog('--- Attempt 2: resized PNG ---');
+    // Strategy 1: Native detector on original
+    addLog('--- Strategy 1: native on original ---');
+    const t1 = await nativeDecode(file, 'orig');
+    if (t1) { found(t1); return; }
+
+    if (!hasNativeDetector()) addLog('[native] BarcodeDetector not available on this device');
+
+    // Strategy 2: ZXing TRY_HARDER on original
+    addLog('--- Strategy 2: ZXing TRY_HARDER on original ---');
+    const t2 = await zxingDecode(file, makeUploadHints(true, false), 'orig-hard');
+    if (t2) { found(t2); return; }
+
+    // Strategy 3: ZXing PURE_BARCODE on original (helps if barcode fills most of image)
+    addLog('--- Strategy 3: ZXing PURE_BARCODE on original ---');
+    const t3 = await zxingDecode(file, makeUploadHints(true, true), 'orig-pure');
+    if (t3) { found(t3); return; }
+
+    // Strategy 4: Resized PNG 1280px with contrast boost
+    addLog('--- Strategy 4: resized PNG 1280px + contrast ---');
     try {
-      const resizedBlob = await resizeImage(file, 1280);
-      const resizedBitmap = await createImageBitmap(resizedBlob);
-      addLog(`Resized: ${resizedBitmap.width}x${resizedBitmap.height} (${(resizedBlob.size / 1024).toFixed(0)}KB)`);
-      resizedBitmap.close();
+      const blob4 = await resizeImage(file, 1280, true);
+      const bm4 = await createImageBitmap(blob4);
+      addLog(`Resized: ${bm4.width}x${bm4.height} (${(blob4.size / 1024).toFixed(0)}KB)`);
+      bm4.close();
 
-      const text2 = await tryDecodeBlob(resizedBlob, 'resized');
-      if (text2) {
-        setDecoded(text2);
-        setMessage('Code detected from image.');
-        if (isUrl(text2)) window.location.href = text2;
-        return;
-      }
+      const t4n = await nativeDecode(blob4, 'resize-1280');
+      if (t4n) { found(t4n); return; }
+
+      const t4z = await zxingDecode(blob4, makeUploadHints(true, false), 'resize-1280');
+      if (t4z) { found(t4z); return; }
     } catch (e: any) {
-      addLog(`Resize failed: ${e?.message ?? e}`);
+      addLog(`Resize 1280 failed: ${e?.message ?? e}`);
     }
 
-    setMessage('No code found in that image. Try taking a clearer photo.');
-  }, [addLog, tryDecodeBlob]);
+    // Strategy 5: Smaller resize 800px (different scale may help ZXing row scanner)
+    addLog('--- Strategy 5: resized PNG 800px + contrast ---');
+    try {
+      const blob5 = await resizeImage(file, 800, true);
+      const bm5 = await createImageBitmap(blob5);
+      addLog(`Resized: ${bm5.width}x${bm5.height} (${(blob5.size / 1024).toFixed(0)}KB)`);
+      bm5.close();
+
+      const t5 = await zxingDecode(blob5, makeUploadHints(true, false), 'resize-800');
+      if (t5) { found(t5); return; }
+    } catch (e: any) {
+      addLog(`Resize 800 failed: ${e?.message ?? e}`);
+    }
+
+    // Strategy 6: Resize without contrast (in case contrast filter hurts)
+    addLog('--- Strategy 6: resized PNG 1280px no contrast ---');
+    try {
+      const blob6 = await resizeImage(file, 1280, false);
+      const t6 = await zxingDecode(blob6, makeUploadHints(true, false), 'resize-nocontrast');
+      if (t6) { found(t6); return; }
+    } catch (e: any) {
+      addLog(`Resize no-contrast failed: ${e?.message ?? e}`);
+    }
+
+    setMessage('No code found in that image. Try a clearer, closer photo of the barcode.');
+  }, [addLog, nativeDecode, zxingDecode]);
 
   // ---------- UI ----------
   return (
