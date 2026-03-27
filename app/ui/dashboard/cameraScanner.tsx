@@ -1,20 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { BrowserMultiFormatReader, IScannerControls } from '@zxing/browser';
-import { BarcodeFormat, DecodeHintType } from '@zxing/library';
-
-const NATIVE_FORMATS = [
-  'ean_13', 'ean_8', 'upc_a', 'upc_e',
-  'code_128', 'code_39', 'qr_code',
-] as const;
-
-const ZXING_FORMATS = [
-  BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
-  BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
-  BarcodeFormat.CODE_128, BarcodeFormat.CODE_39,
-  BarcodeFormat.QR_CODE,
-];
+import { scanImageData } from '@/lib/barcodeScanner';
 
 type CameraScannerProps = {
   onDetected: (value: string) => void;
@@ -26,7 +13,7 @@ type CameraScannerProps = {
 
 export default function CameraScanner({ onDetected, onError, facingMode, deviceId, onDebugLog }: CameraScannerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const controlsRef = useRef<IScannerControls | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const onDetectedRef = useRef(onDetected);
   const onErrorRef = useRef(onError);
   const onDebugLogRef = useRef(onDebugLog);
@@ -59,121 +46,92 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
 
     let stopped = false;
     let streamRef: MediaStream | null = null;
+    let scanTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const constraints: MediaStreamConstraints = {
       audio: false,
       video: deviceId
-        ? { deviceId: { exact: deviceId }, width: { ideal: 640 }, height: { ideal: 480 } }
-        : { facingMode: { ideal: facingMode }, width: { ideal: 640 }, height: { ideal: 480 } },
+        ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+        : { facingMode: { ideal: facingMode }, width: { ideal: 1280 }, height: { ideal: 720 } },
     };
 
-    const hasNativeDetector =
-      typeof window !== 'undefined' && 'BarcodeDetector' in window;
-
-    log(`Native BarcodeDetector: ${hasNativeDetector}`);
     log(`deviceId=${deviceId ?? 'null'}, facingMode=${facingMode}`);
-
-    const startWithNativeDetector = async () => {
-      log('Starting native BarcodeDetector path...');
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef = stream;
-      const track = stream.getVideoTracks()[0];
-      const settings = track?.getSettings();
-      log(`Stream ready: ${settings?.width}x${settings?.height}`);
-
-      videoElement.srcObject = stream;
-      await videoElement.play();
-
-      const BarcodeDetector = (window as any).BarcodeDetector;
-      const detector = new BarcodeDetector({ formats: [...NATIVE_FORMATS] });
-
-      setStatus('Align the barcode within the frame.');
-
-      let tickCount = 0;
-      const scanLoop = async () => {
-        if (stopped) return;
-        tickCount++;
-        try {
-          if (videoElement.readyState >= 2) {
-            const barcodes = await detector.detect(videoElement);
-            if (tickCount % 13 === 1) {
-              log(`[native] tick #${tickCount}, barcodes found: ${barcodes.length}`);
-            }
-            if (barcodes.length > 0 && !stopped) {
-              const text = barcodes[0].rawValue;
-              const fmt = barcodes[0].format;
-              log(`[native] DETECTED: "${text}" (format: ${fmt})`);
-              setStatus(`Detected ${text}`);
-              onDetectedRef.current(text);
-              stopped = true;
-              stream.getTracks().forEach((t: MediaStreamTrack) => t.stop());
-              return;
-            }
-          }
-        } catch (e: any) {
-          if (tickCount % 13 === 1) {
-            log(`[native] tick #${tickCount} error: ${e?.message ?? e}`);
-          }
-        }
-        if (!stopped) {
-          setTimeout(scanLoop, 150);
-        }
-      };
-
-      scanLoop();
-    };
-
-    const startWithZxing = async () => {
-      log('Starting ZXing path...');
-      const hints = new Map<DecodeHintType, any>();
-      hints.set(DecodeHintType.POSSIBLE_FORMATS, ZXING_FORMATS);
-      hints.set(DecodeHintType.TRY_HARDER, true);
-      const reader = new BrowserMultiFormatReader(hints, {
-        delayBetweenScanAttempts: 200,
-      });
-
-      let tickCount = 0;
-      const handleResult = (result: any, error: any, controls?: IScannerControls | null) => {
-        if (stopped) return;
-        tickCount++;
-        if (controls) controlsRef.current = controls;
-        if (result) {
-          const text = result.getText();
-          const fmt = result.getBarcodeFormat?.() ?? 'unknown';
-          log(`[zxing] DETECTED: "${text}" (format: ${fmt})`);
-          setStatus(`Detected ${text}`);
-          onDetectedRef.current(text);
-          controls?.stop();
-          stopped = true;
-          return;
-        }
-        if (error && error.name !== 'NotFoundException') {
-          log(`[zxing] error: ${error.name} - ${error.message}`);
-          console.error('Scanner error', error);
-        }
-        if (tickCount % 15 === 1) {
-          log(`[zxing] tick #${tickCount}, scanning...`);
-        }
-      };
-
-      await reader
-        .decodeFromConstraints(constraints, videoElement, handleResult)
-        .then((controls) => {
-          if (stopped) { controls?.stop(); return; }
-          controlsRef.current = controls;
-          log('[zxing] decodeFromConstraints attached, scanning started');
-          setStatus('Align the barcode within the frame.');
-        });
-    };
 
     const startScanner = async () => {
       try {
         setStatus('Initialising camera…');
-        if (hasNativeDetector) {
-          await startWithNativeDetector();
-        } else {
-          await startWithZxing();
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef = stream;
+        const track = stream.getVideoTracks()[0];
+        const settings = track?.getSettings();
+        log(`Stream ready: ${settings?.width}x${settings?.height}, device: ${track?.label?.slice(0, 40)}`);
+
+        videoElement.srcObject = stream;
+        await videoElement.play();
+        log(`Video playing: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
+
+        setStatus('Align the barcode within the frame.');
+
+        // Create offscreen canvas for frame extraction
+        const canvas = document.createElement('canvas');
+        canvasRef.current = canvas;
+
+        let tickCount = 0;
+        const SCAN_INTERVAL_MS = 150; // ~6-7 fps scan rate
+
+        const scanLoop = async () => {
+          if (stopped) return;
+          tickCount++;
+
+          try {
+            if (videoElement.readyState >= 2) {
+              const vw = videoElement.videoWidth;
+              const vh = videoElement.videoHeight;
+
+              if (vw > 0 && vh > 0) {
+                // Use a smaller canvas for faster processing in live mode
+                const scale = Math.min(1, 640 / Math.max(vw, vh));
+                const cw = Math.round(vw * scale);
+                const ch = Math.round(vh * scale);
+                canvas.width = cw;
+                canvas.height = ch;
+
+                const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+                ctx.drawImage(videoElement, 0, 0, cw, ch);
+                const imageData = ctx.getImageData(0, 0, cw, ch);
+
+                const tickLog = tickCount % 15 === 1
+                  ? (msg: string) => log(msg)
+                  : undefined;
+
+                const result = await scanImageData(imageData, tickLog);
+
+                if (result && !stopped) {
+                  log(`DETECTED: "${result.text}" (engine: ${result.engine})`);
+                  setStatus(`Detected ${result.text}`);
+                  onDetectedRef.current(result.text);
+                  stopped = true;
+                  stream.getTracks().forEach((t) => t.stop());
+                  return;
+                }
+              }
+            }
+          } catch (e: any) {
+            if (tickCount % 15 === 1) {
+              log(`tick #${tickCount} error: ${e?.message ?? e}`);
+            }
+          }
+
+          if (!stopped) {
+            scanTimeoutId = setTimeout(scanLoop, SCAN_INTERVAL_MS);
+          }
+        };
+
+        if (tickCount % 15 === 0) {
+          log('Starting scan loop (zxing-wasm + native fallback)');
         }
+        scanLoop();
       } catch (error: any) {
         const msg = error?.message ?? String(error);
         log(`FATAL: ${msg}`);
@@ -191,7 +149,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
 
     return () => {
       stopped = true;
-      controlsRef.current?.stop();
+      if (scanTimeoutId) clearTimeout(scanTimeoutId);
       streamRef?.getTracks().forEach((t) => t.stop());
       if (videoElement.srcObject) {
         (videoElement.srcObject as MediaStream)
