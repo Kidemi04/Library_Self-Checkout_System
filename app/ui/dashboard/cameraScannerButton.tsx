@@ -65,7 +65,6 @@ export default function CameraScannerButton({
   const [deviceListError, setDeviceListError] = useState<string | null>(null);
   const [enumeratingDevices, setEnumeratingDevices] = useState(false);
 
-  const phoneInputRef = useRef<HTMLInputElement | null>(null);
   const uploadInputRef = useRef<HTMLInputElement | null>(null);
 
   const refreshDeviceOptions = useCallback(async () => {
@@ -81,7 +80,7 @@ export default function CameraScannerButton({
 
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoInputs = devices
-        .filter((device) => device.kind === 'videoinput')
+        .filter((device) => device.kind === 'videoinput' && device.deviceId !== '')
         .map((device, index) => ({
           deviceId: device.deviceId,
           label: device.label || `Camera ${index + 1}`,
@@ -142,6 +141,10 @@ export default function CameraScannerButton({
     setOpen(false);
   };
 
+  const handleScanError = useCallback((message: string) => {
+    setErrorMessage(message);
+  }, []);
+
   const toggleFacingMode = () => {
     if (selectedDeviceId) return;
     setFacingMode((current) => (current === 'environment' ? 'user' : 'environment'));
@@ -198,24 +201,10 @@ export default function CameraScannerButton({
         <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center">
           <button
             type="button"
-            onClick={() => {
-              phoneInputRef.current?.click();
-            }}
-            className={clsx(
-              buttonBaseClass,
-              'w-full justify-center md:hidden xxx-phone-version',
-            )}
-          >
-            <CameraIcon className="h-5 w-5" />
-            <span>Scan with Camera</span>
-          </button>
-
-          <button
-            type="button"
             onClick={handleOpen}
             className={clsx(
               buttonBaseClass,
-              'hidden justify-center md:inline-flex xxx-dekstop-version',
+              'w-full justify-center md:w-auto',
             )}
           >
             <CameraIcon className="h-5 w-5" />
@@ -251,17 +240,6 @@ export default function CameraScannerButton({
           <p className="text-[11px] font-medium text-swin-red">{errorMessage}</p>
         ) : null}
       </div>
-
-      <input
-        ref={phoneInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={(event) => {
-          void handleUploadChange(event);
-        }}
-      />
 
       <input
         ref={uploadInputRef}
@@ -300,7 +278,7 @@ export default function CameraScannerButton({
                 facingMode={facingMode}
                 deviceId={selectedDeviceId || null}
                 onDetected={handleDetected}
-                onError={(message) => setErrorMessage(message)}
+                onError={handleScanError}
               />
 
               <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/80">
