@@ -80,7 +80,7 @@ export default function CameraScannerButton({
 
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoInputs = devices
-        .filter((device) => device.kind === 'videoinput')
+        .filter((device) => device.kind === 'videoinput' && device.deviceId !== '')
         .map((device, index) => ({
           deviceId: device.deviceId,
           label: device.label || `Camera ${index + 1}`,
@@ -140,6 +140,10 @@ export default function CameraScannerButton({
   const handleClose = () => {
     setOpen(false);
   };
+
+  const handleScanError = useCallback((message: string) => {
+    setErrorMessage(message);
+  }, []);
 
   const toggleFacingMode = () => {
     if (selectedDeviceId) return;
@@ -274,7 +278,7 @@ export default function CameraScannerButton({
                 facingMode={facingMode}
                 deviceId={selectedDeviceId || null}
                 onDetected={handleDetected}
-                onError={(message) => setErrorMessage(message)}
+                onError={handleScanError}
               />
 
               <div className="space-y-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-white/80">

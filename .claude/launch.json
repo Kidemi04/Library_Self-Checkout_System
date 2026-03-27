@@ -5,7 +5,6 @@
       "name": "dev",
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "pnpm", "dev"],
-      "runtimeArgs": ["dev"],
       "port": 3001
     }
   ]
