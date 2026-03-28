@@ -52,6 +52,8 @@ export default async function BorrowBooksPage({
       />
 
       <SearchForm
+        action="/dashboard/book/items"
+        placeholder="Search by title, author, ISBN, or barcode"
         defaultValue={searchTerm}
         aria-label="Search available books"
         extraParams={{ mode: 'out' }}

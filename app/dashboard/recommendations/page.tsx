@@ -14,6 +14,15 @@ export default async function RecommendationsPage() {
     <main className="space-y-8">
       <title>Recommendations | Dashboard</title>
 
+      <DashboardTitleBar
+        subtitle="Chat With AI"
+        title="AI Recommendation"
+        description="Enter what you want to learn or explore. 
+        We score your catalogue using content signals, simple association rules between tags, 
+        and circulation heat to surface relevant titles. 
+        This prototype view keeps the logic transparent so you can validate the AI-powered picks."
+      />
+
       <StudentChat studentName={displayName} />
     </main>
   );
