@@ -6,7 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { auth } from '@/auth';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import type { ActionState } from '@/app/dashboard/actionState';
-import { createNotification } from '@/app/lib/supabase/notifications';
+import { createNotification, createUserNotification } from '@/app/lib/supabase/notifications';
 
 const SIP2_INSTITUTION_ID = process.env.SIP2_INSTITUTION_ID ?? 'LIB001';
 const SIP2_TERMINAL_PASSWORD = process.env.SIP2_TERMINAL_PASSWORD ?? '';
@@ -500,18 +500,14 @@ export async function checkoutBookAction(
 
     // User confirmation — notify the borrower directly (skip staff/admin/librarian)
     const isPrivilegedRole = borrower.role === 'admin' || borrower.role === 'staff' || borrower.role === 'librarian';
-    console.log('[notif-debug] borrower.id:', borrower.id, 'role:', borrower.role, 'isPrivileged:', isPrivilegedRole);
     if (!isPrivilegedRole) {
-      const supabaseNotif = getSupabaseServerClient();
-      const { error: insertErr } = await supabaseNotif.from('notifications').insert({
-        type: 'loan_confirmed',
-        title: 'Loan confirmed',
-        message: `You have successfully borrowed "${bookTitle}". Due back by ${new Date(dueAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}.`,
-        target_user_id: borrower.id,
-        target_roles: [],
-        metadata: { bookTitle, barcode: copy.barcode ?? '', dueAt, loanId: loanId ?? '' },
-      });
-      console.log('[notif-debug] insert result:', insertErr ? insertErr.message : 'OK');
+      await createUserNotification(
+        borrower.id,
+        'loan_confirmed',
+        'Loan confirmed',
+        `You have successfully borrowed "${bookTitle}". Due back by ${new Date(dueAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}.`,
+        { bookTitle, barcode: copy.barcode ?? '', dueAt, loanId: loanId ?? '' },
+      );
     }
   })().catch((err) => console.warn('[notifications] checkout notification failed:', err));
 

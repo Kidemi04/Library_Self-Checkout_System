@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requireStaff, ForbiddenError, UnauthorizedError } from '@/auth';
+import { requireStaff } from '@/auth';
 import { isDevAuthBypassed, getDevBypassUserId, getDevBypassRole } from '@/app/lib/auth/env';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import {
@@ -19,12 +19,12 @@ async function getSessionUser(): Promise<{ id: string; role: DashboardRole } | n
     return { id: getDevBypassUserId(), role };
   }
 
-  // Staff / admin — use requireStaff which validates the JWT
+  // Try staff/admin path first; fall through to session for regular users on any error
   try {
     const user = await requireStaff();
     return { id: user.id, role: user.role };
-  } catch (err) {
-    if (!(err instanceof UnauthorizedError) && !(err instanceof ForbiddenError)) throw err;
+  } catch {
+    // ForbiddenError (user role), UnauthorizedError, or network errors — all fall through
   }
 
   // Regular user — fall back to the full session helper
