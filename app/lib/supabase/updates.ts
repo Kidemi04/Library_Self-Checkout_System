@@ -8,9 +8,9 @@ import type { CopyStatus } from '@/app/lib/supabase/types';
 export type ItemStatus =
   | 'available'
   | 'borrowed'
-  | 'checked_out'
+  | 'checked out'
   | 'reserved'
-  | 'in_transit'
+  | 'in transit'
   | 'on_hold'
   | 'in_process'
   | 'lost'

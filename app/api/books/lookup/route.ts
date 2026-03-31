@@ -28,17 +28,17 @@ type BookRow = {
 const normalizeCopyStatus = (value: string | null | undefined) => {
   if (typeof value !== 'string') return 'available';
   switch (value.trim().toUpperCase()) {
-    case 'ON_LOAN':
+    case 'on_loan':
       return 'on_loan';
-    case 'LOST':
+    case 'lost':
       return 'lost';
-    case 'DAMAGED':
+    case 'damaged':
       return 'damaged';
-    case 'PROCESSING':
+    case 'processing':
       return 'processing';
-    case 'HOLD_SHELF':
+    case 'hold_shelf':
       return 'hold_shelf';
-    case 'AVAILABLE':
+    case 'available':
     default:
       return 'available';
   }
@@ -117,7 +117,7 @@ export async function GET(request: Request) {
   const supabase = getSupabaseServerClient();
 
   const { data: copyMatch, error: copyError } = await supabase
-    .from('copies')
+    .from('Copies')
     .select('id, book_id, barcode')
     .eq('barcode', sanitized)
     .maybeSingle();
@@ -132,7 +132,7 @@ export async function GET(request: Request) {
 
   if (copyMatch?.book_id) {
     const { data, error } = await supabase
-      .from('books')
+      .from('Books')
       .select(
         `
           id,
@@ -143,12 +143,12 @@ export async function GET(request: Request) {
           publisher,
           publication_year,
           cover_image_url,
-          copies:copies(
+          copies:Copies(
             id,
             book_id,
             barcode,
             status,
-            loans:loans(
+            loans:Loans(
               id,
               returned_at
             )
@@ -172,7 +172,7 @@ export async function GET(request: Request) {
       bookRow.copies?.find((copy) => copy.id === copyMatch.id) ?? findFirstAvailableCopy(bookRow.copies);
   } else {
     const { data, error } = await supabase
-      .from('books')
+      .from('Books')
       .select(
         `
           id,
@@ -183,12 +183,12 @@ export async function GET(request: Request) {
           publisher,
           publication_year,
           cover_image_url,
-          copies:copies(
+          copies:Copies(
             id,
             book_id,
             barcode,
             status,
-            loans:loans(
+            loans:Loans(
               id,
               returned_at
             )

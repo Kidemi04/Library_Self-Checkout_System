@@ -21,18 +21,18 @@ const toDashboardRole = (value: unknown): DashboardRole | null => {
 
 const normalizeCopyStatus = (value: unknown): Copy['status'] => {
   if (typeof value !== 'string') return 'available';
-  switch (value.trim().toUpperCase()) {
-    case 'ON_LOAN':
+  switch (value.trim().toLowerCase()) {
+    case 'on_loan':
       return 'on_loan';
-    case 'LOST':
+    case 'lost':
       return 'lost';
-    case 'DAMAGED':
+    case 'damaged':
       return 'damaged';
-    case 'PROCESSING':
+    case 'processing':
       return 'processing';
-    case 'HOLD_SHELF':
+    case 'hold_shelf':
       return 'hold_shelf';
-    case 'AVAILABLE':
+    case 'avaliable':
     default:
       return 'available';
   }
@@ -216,20 +216,20 @@ export async function fetchDashboardSummary(): Promise<DashboardSummary> {
   const nowIso = new Date().toISOString();
 
   const [totalBooks, activeLoans, overdueLoans, copies] = await Promise.all([
-    supabase.from('books').select('id', { head: true, count: 'exact' }),
-    supabase.from('loans').select('id', { head: true, count: 'exact' }).is('returned_at', null),
+    supabase.from('Books').select('id', { head: true, count: 'exact' }),
+    supabase.from('Loans').select('id', { head: true, count: 'exact' }).is('returned_at', null),
     supabase
-      .from('loans')
+      .from('Loans')
       .select('id', { head: true, count: 'exact' })
       .is('returned_at', null)
       .lt('due_at', nowIso),
     supabase
-      .from('copies')
+      .from('Copies')
       .select(
         `
           book_id,
           status,
-          loans:loans(
+          loans:Loans(
             id,
             returned_at
           )
@@ -271,7 +271,7 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
   const supabase = getSupabaseServerClient();
 
   const { data, error } = await supabase
-    .from('loans')
+    .from('Loans')
     .select(
       `
         id,
@@ -284,30 +284,30 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
         handled_by,
         created_at,
         updated_at,
-        copy:copies(
+        copy:Copies(
           id,
           barcode,
-          book:books(
+          book:Books(
             id,
             title,
             author,
             isbn
           )
         ),
-        borrower:users!loans_user_id_fkey(
+        borrower:Users!loans_user_id_fkey(
           id,
           email,
           role,
-          profile:user_profiles(
+          profile:UserProfile(
             display_name,
             student_id
           )
         ),
-        handler:users!loans_handled_by_fkey(
+        handler:Users!loans_handled_by_fkey(
           id,
           email,
           role,
-          profile:user_profiles(
+          profile:UserProfile(
             display_name
           )
         )
@@ -326,7 +326,7 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
   const supabase = getSupabaseServerClient();
 
   const { data, error } = await supabase
-    .from('loans')
+    .from('Loans')
     .select(
       `
         id,
@@ -339,30 +339,30 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
         handled_by,
         created_at,
         updated_at,
-        copy:copies(
+        copy:Copies(
           id,
           barcode,
-          book:books(
+          book:Books(
             id,
             title,
             author,
             isbn
           )
         ),
-        borrower:users!loans_user_id_fkey(
+        borrower:Users!loans_user_id_fkey(
           id,
           email,
           role,
-          profile:user_profiles(
+          profile:UserProfile(
             display_name,
             student_id
           )
         ),
-        handler:users!loans_handled_by_fkey(
+        handler:Users!loans_handled_by_fkey(
           id,
           email,
           role,
-          profile:user_profiles(
+          profile:UserProfile(
             display_name
           )
         )
@@ -398,7 +398,7 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
   const sanitized = sanitizeSearchTerm(searchTerm);
 
   let query = supabase
-    .from('books')
+    .from('Books')
     .select(
       `
         id,
@@ -411,19 +411,19 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
         cover_image_url,
         created_at,
         updated_at,
-         copies:copies(
+         copies:Copies(
           id,
           book_id,
           barcode,
           status,
           created_at,
           updated_at,
-          loans:loans(
+          loans:Loans(
             id,
             returned_at
           )
         ),
-        book_tag_links:book_tag_links(
+        book_tag_links:BookTagsLinks(
           tag:book_tags(
             name
           )
@@ -480,11 +480,11 @@ export async function fetchAvailableBooks(searchTerm?: string): Promise<Book[]> 
 // ------------------- HOLDS (STAFF VIEW) -------------------
 
 export type HoldStatus =
-  | 'QUEUED'
-  | 'READY'
-  | 'FULFILLED'
-  | 'EXPIRED'
-  | 'CANCELED';
+  | 'queued'
+  | 'ready'
+  | 'fulfilled'
+  | 'expired'
+  | 'canceled';
 
 type RawHoldRow = {
   id: string;
@@ -518,7 +518,7 @@ export async function fetchHoldsForStaff() {
   const supabase = getSupabaseServerClient();
 
   const { data, error } = await supabase
-    .from('holds')
+    .from('Holds')
     .select(
       `
       id,
@@ -532,9 +532,9 @@ export async function fetchHoldsForStaff() {
         title,
         cover_image_url
       ),
-      patron:users (
+      patron:Users (
         email,
-        profile:user_profiles (
+        profile:UserProfile (
           display_name
         )
       )
@@ -593,7 +593,7 @@ export async function fetchActiveHoldsForPatron(patronId: string): Promise<Patro
   const supabase = getSupabaseServerClient();
 
   const { data, error } = await supabase
-    .from('holds')
+    .from('Holds')
     .select(
       `
       id,
@@ -603,7 +603,7 @@ export async function fetchActiveHoldsForPatron(patronId: string): Promise<Patro
       placed_at,
       ready_at,
       expires_at,
-      book:books (
+      book:Books (
         title,
         author,
         isbn,
@@ -612,7 +612,7 @@ export async function fetchActiveHoldsForPatron(patronId: string): Promise<Patro
       `,
     )
     .eq('patron_id', patronId)
-    .in('status', ['QUEUED', 'READY'])
+    .in('status', ['queued', 'ready'])
     .order('placed_at', { ascending: true });
 
   if (error) throw error;
@@ -632,8 +632,8 @@ export async function fetchActiveHoldsForPatron(patronId: string): Promise<Patro
       coverImage: row.book?.cover_image_url ?? null,
     }))
     .sort((a, b) => {
-      if (a.status === 'READY' && b.status !== 'READY') return -1;
-      if (b.status === 'READY' && a.status !== 'READY') return 1;
+      if (a.status === 'ready' && b.status !== 'ready') return -1;
+      if (b.status === 'ready' && a.status !== 'ready') return 1;
       const aTime = a.placedAt ? new Date(a.placedAt).getTime() : 0;
       const bTime = b.placedAt ? new Date(b.placedAt).getTime() : 0;
       return aTime - bTime;
@@ -646,14 +646,14 @@ export async function cancelHoldForPatron(holdId: string, patronId: string): Pro
   const { data, error } = await supabase
     .from('holds')
     .update({
-      status: 'CANCELED',
+      status: 'canceled',
       ready_at: null,
       expires_at: null,
       fulfilled_by_copy_id: null,
     })
     .eq('id', holdId)
     .eq('patron_id', patronId)
-    .in('status', ['QUEUED', 'READY'])
+    .in('status', ['queued', 'ready'])
     .select('id');
 
   if (error) throw error;
