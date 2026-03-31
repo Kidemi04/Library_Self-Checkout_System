@@ -424,7 +424,7 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
           )
         ),
         book_tag_links:BookTagsLinks(
-          tag:book_tags(
+          tag:BookTags(
             name
           )
         )
