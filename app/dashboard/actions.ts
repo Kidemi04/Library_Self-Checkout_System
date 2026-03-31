@@ -236,7 +236,7 @@ const activeLoanSelect = `
     book_id,
     barcode
   ),
-  borrower:Users!loans_user_id_fkey(
+  borrower:Users!Loans_user_id_fkey(
     id,
     email,
     profile:UserProfile(

@@ -294,7 +294,7 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
             isbn
           )
         ),
-        borrower:Users!loans_user_id_fkey(
+        borrower:Users!Loans_user_id_fkey(
           id,
           email,
           role,
@@ -303,7 +303,7 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
             student_id
           )
         ),
-        handler:Users!loans_handled_by_fkey(
+        handler:Users!Loans_handled_by_fkey(
           id,
           email,
           role,
@@ -349,7 +349,7 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
             isbn
           )
         ),
-        borrower:Users!loans_user_id_fkey(
+        borrower:Users!Loans_user_id_fkey(
           id,
           email,
           role,
@@ -358,7 +358,7 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
             student_id
           )
         ),
-        handler:Users!loans_handled_by_fkey(
+        handler:Users!Loans_handled_by_fkey(
           id,
           email,
           role,
