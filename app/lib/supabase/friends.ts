@@ -13,7 +13,7 @@ export async function fetchFriends(userId: string): Promise<Friend[]> {
       followed_id,
       status,
       created_at,
-      friend:Users!friends_friend_id_fkey(
+      friend:Users!Friends_followed_id_fkey(
         id,
         email,
         profile:UserProfile(
@@ -40,10 +40,10 @@ export async function fetchFriends(userId: string): Promise<Friend[]> {
       followed_id,
       status,
       created_at,
-      friend:Users!friends_user_id_fkey(
+      friend:Users!Friends_follower_id_fkey(
         id,
         email,
-        profile:UserProfiles(
+        profile:UserProfile(
           display_name,
           avatar_url,
           bio
@@ -103,10 +103,10 @@ export async function fetchFriendRequests(userId: string): Promise<Friend[]> {
       followed_id,
       status,
       created_at,
-      friend:users!friends_user_id_fkey(
+      friend:Users!Friends_follower_id_fkey(
         id,
         email,
-        profile:UserProfiles(
+        profile:UserProfile(
           display_name,
           avatar_url,
           bio
@@ -143,7 +143,7 @@ export async function searchUsers(query: string, currentUserId: string) {
     if (!query || query.length < 2) return [];
 
     const { data, error } = await supabase
-        .from('UserProfiles')
+        .from('UserProfile')
         .select(`
       user_id,
       display_name,
