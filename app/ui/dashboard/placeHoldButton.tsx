@@ -22,11 +22,11 @@ export default function PlaceHoldButton({ bookId, patronId }: PlaceHoldButtonPro
       if (!patronId) return;
 
       const { data, error } = await supabase
-        .from('holds')
+        .from('Holds')
         .select('id, status')
         .eq('patron_id', patronId)
         .eq('book_id', bookId)
-        .in('status', ['QUEUED', 'READY'])
+        .in('status', ['queued', 'ready'])
         .order('placed_at', { ascending: true })
         .limit(1);
 
@@ -37,7 +37,7 @@ export default function PlaceHoldButton({ bookId, patronId }: PlaceHoldButtonPro
 
       if (data && data.length > 0) {
         const status = data[0].status as string;
-        if (status === 'READY') {
+        if (status === 'ready') {
           setHoldState('ready');
         } else {
           // QUEUED / FULFILLED / etc – anything active we treat as queued for UI
@@ -71,7 +71,7 @@ export default function PlaceHoldButton({ bookId, patronId }: PlaceHoldButtonPro
       const { error: insertError } = await supabase.from('holds').insert({
         patron_id: patronId,
         book_id: bookId,
-        status: 'QUEUED',
+        status: 'queued',
         placed_at: new Date().toISOString(),
       });
 
