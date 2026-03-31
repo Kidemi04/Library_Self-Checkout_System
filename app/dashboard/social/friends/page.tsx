@@ -49,6 +49,8 @@ export default async function FriendsPage(props: {
 
     return (
         <main className="w-full space-y-8">
+            <title>Friends | Social</title>
+
             <DashboardTitleBar
                 subtitle="Social"
                 title="Friends"
