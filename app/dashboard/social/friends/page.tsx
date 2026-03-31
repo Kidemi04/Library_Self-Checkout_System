@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { UserPlusIcon, UserMinusIcon, CheckIcon, XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { sendFriendRequest, acceptFriendRequest, removeFriend } from './actions';
 import { Button } from '@/app/ui/button';
-import Search from '@/app/ui/search';
+import SearchBar from '@/app/ui/searchBar';
 import BlurFade from '@/app/ui/magicUi/blurFade';
 import GlassCard from '@/app/ui/magicUi/glassCard';
 import clsx from 'clsx';
@@ -159,8 +159,8 @@ export default async function FriendsPage(props: {
 
                 {tab === 'find' && (
                     <div className="space-y-6">
-                        <div className="relative max-w-md">
-                            <Search placeholder="Search by name or student ID..." />
+                      <div className="relative max-w-md">
+                            <SearchBar placeholder="Search by name or student ID..." />
                         </div>
 
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
