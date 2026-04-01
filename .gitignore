@@ -18,6 +18,14 @@
 # testing
 /coverage
 
+# environment variables — never commit real secrets
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.staging
+
 # misc
 .DS_Store
 *.pem

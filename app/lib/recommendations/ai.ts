@@ -210,6 +210,85 @@ export async function extractPreferences(message: string): Promise<AiPreferenceR
   return buildFallback(message);
 }
 
+export type LinkedInCourseSuggestion = {
+  title: string;
+  query: string;
+};
+
+const GEMINI_LINKEDIN_PROMPT =
+  'You are a library assistant. Given a list of reading interests, suggest exactly 3 LinkedIn Learning course titles that complement those topics. Return ONLY valid JSON with key: courses (array of objects, each with title (string) and query (string — the search keywords to use on LinkedIn Learning)). Keep titles concise and realistic. Use English only. No extra text.';
+
+export async function suggestLinkedInCourses(
+  interests: string[],
+): Promise<LinkedInCourseSuggestion[]> {
+  if (!interests.length) return [];
+  const { geminiApiKey, geminiBaseUrl, geminiModel } = getEnv();
+  if (!geminiApiKey || !geminiModel || geminiDisabled) return [];
+
+  try {
+    const url = `${geminiBaseUrl.replace(/\/+$/, '')}/models/${encodeURIComponent(geminiModel)}:generateContent?key=${encodeURIComponent(geminiApiKey)}`;
+    const body = {
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            { text: GEMINI_LINKEDIN_PROMPT },
+            { text: `Interests: ${interests.join(', ')}` },
+          ],
+        },
+      ],
+      generationConfig: { temperature: 0.4 },
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      console.error('[LinkedIn suggestions] Gemini API error', response.status, errText);
+      return [];
+    }
+
+    const data = (await response.json()) as {
+      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+    };
+
+    const text =
+      data?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
+    console.log('[LinkedIn suggestions] raw Gemini text:', text);
+    if (!text.trim()) return [];
+
+    // Strip markdown code fences (```json ... ``` or ``` ... ```)
+    const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+
+    let parsed: { courses?: Array<{ title?: string; query?: string }> } | null = null;
+    try {
+      parsed = JSON.parse(stripped);
+    } catch {
+      const match = stripped.match(/\{[\s\S]*\}/);
+      if (match) {
+        try {
+          parsed = JSON.parse(match[0]);
+        } catch {
+          console.error('[LinkedIn suggestions] JSON parse failed, stripped text:', stripped);
+          return [];
+        }
+      }
+    }
+
+    if (!parsed || !Array.isArray(parsed.courses)) return [];
+    return parsed.courses
+      .filter((c) => c.title && c.query)
+      .map((c) => ({ title: c.title!.trim(), query: c.query!.trim() }))
+      .slice(0, 3);
+  } catch {
+    return [];
+  }
+}
+
 export async function answerQuestion(message: string): Promise<string | null> {
   const { provider, geminiApiKey } = getEnv();
   const localFallback = localChatFallback(message);
