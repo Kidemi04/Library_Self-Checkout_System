@@ -36,7 +36,7 @@ const loadProfileFromView = async (
 
   try {
     const { data, error } = await supabase
-      .from('my_profile')
+      .from('MyProfile')
       .select(
         `
           user_id,

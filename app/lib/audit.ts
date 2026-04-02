@@ -41,7 +41,7 @@ export const audit = async ({
     const supabase = getSupabaseServerClient();
     const changedData = buildChangePayload({ before, after, metadata });
 
-    await supabase.from('audit_log').insert({
+    await supabase.from('AuditLog').insert({
       table_name: entity,
       record_id: entityId ?? null,
       action,

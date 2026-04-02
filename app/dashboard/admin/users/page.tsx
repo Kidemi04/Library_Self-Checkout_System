@@ -38,9 +38,9 @@ const roleOptions: ManagedRole[] = ['user', 'staff', 'admin'];
 const PAGE_SIZE = 25;
 
 const visibilityOptions = [
-  { value: 'PUBLIC', label: 'Public' },
-  { value: 'CAMPUS', label: 'Campus' },
-  { value: 'PRIVATE', label: 'Private' },
+  { value: 'publiv', label: 'Public' },
+  { value: 'campus', label: 'Campus' },
+  { value: 'private', label: 'Private' },
 ];
 
 const baseProfileFieldOrder = [
@@ -271,8 +271,8 @@ export default function UserManagementPage() {
     setErrorMessage(null);
 
     const { data, error } = await supabaseBrowserClient
-      .from('users')
-      .select('*, profile:user_profiles(*)')
+      .from('Users')
+      .select('*, profile:UserProfile(*)')
       .order('email');
 
     if (error) {
@@ -536,7 +536,7 @@ export default function UserManagementPage() {
                 : 'bg-swin-red text-white hover:bg-swin-red/90 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500',
             )}
           >
-            {isPending ? 'Adding…' : 'Add user'}
+            {isPending ? 'Adding…' : 'Add User'}
           </button>
         </form>
         <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">

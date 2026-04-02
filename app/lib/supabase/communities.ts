@@ -5,7 +5,7 @@ export async function fetchCommunities(): Promise<Community[]> {
     const supabase = getSupabaseServerClient();
 
     const { data, error } = await supabase
-        .from('communities')
+        .from('Community')
         .select(`
       id,
       slug,
@@ -16,7 +16,7 @@ export async function fetchCommunities(): Promise<Community[]> {
       tags,
       created_by,
       created_at,
-      members:community_members(count)
+      members:CommunityMembers(count)
     `)
         .eq('visibility', 'public')
         .order('created_at', { ascending: false });
@@ -44,9 +44,9 @@ export async function fetchMyCommunities(userId: string): Promise<Community[]> {
     const supabase = getSupabaseServerClient();
 
     const { data, error } = await supabase
-        .from('community_members')
+        .from('CommunityMembers')
         .select(`
-      community:communities(
+      community:Community(
         id,
         slug,
         name,
@@ -59,7 +59,7 @@ export async function fetchMyCommunities(userId: string): Promise<Community[]> {
       )
     `)
         .eq('user_id', userId)
-        .eq('status', 'accepted'); // Assuming 'accepted' is the status for joined members
+        .eq('status', 'active'); // Assuming 'accepted' is the status for joined members
 
     if (error) {
         console.error('Error fetching my communities', error);
@@ -83,7 +83,7 @@ export async function fetchCommunityDetails(id: string, currentUserId?: string):
     const supabase = getSupabaseServerClient();
 
     const { data, error } = await supabase
-        .from('communities')
+        .from('Community')
         .select(`
       id,
       slug,
@@ -94,7 +94,7 @@ export async function fetchCommunityDetails(id: string, currentUserId?: string):
       tags,
       created_by,
       created_at,
-      members:community_members(count)
+      members:CommunityMembers(count)
     `)
         .eq('id', id)
         .single();
@@ -106,7 +106,7 @@ export async function fetchCommunityDetails(id: string, currentUserId?: string):
     let isMember = false;
     if (currentUserId) {
         const { data: memberData } = await supabase
-            .from('community_members')
+            .from('CommunityMembers')
             .select('id')
             .eq('community_id', id)
             .eq('user_id', currentUserId)
@@ -133,7 +133,7 @@ export async function fetchCommunityPosts(communityId: string): Promise<Communit
     const supabase = getSupabaseServerClient();
 
     const { data, error } = await supabase
-        .from('community_posts')
+        .from('CommunityPosts')
         .select(`
       id,
       community_id,
@@ -143,13 +143,13 @@ export async function fetchCommunityPosts(communityId: string): Promise<Communit
       body,
       pinned,
       created_at,
-      author:users!community_posts_author_id_fkey(
-        profile:user_profiles(
+      author:Users!CommunityPost_author_id_fkey(
+        profile:UserProfile(
           display_name,
           avatar_url
         )
       ),
-      comments:community_post_comments(count)
+      comments:CommunityPostComments(count)
     `)
         .eq('community_id', communityId)
         .order('created_at', { ascending: false });

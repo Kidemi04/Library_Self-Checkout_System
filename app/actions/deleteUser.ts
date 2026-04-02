@@ -10,13 +10,13 @@ export async function deleteUserAction(id: string) {
 
     const supabase = getSupabaseServerClient();
 
-    const { error: profileError } = await supabase.from('user_profiles').delete().eq('user_id', id);
+    const { error: profileError } = await supabase.from('UserProfile').delete().eq('user_id', id);
     if (profileError) {
       console.error('Failed to remove user profile', profileError);
       return { success: false, error: profileError.message };
     }
 
-    const { error } = await supabase.from('users').delete().eq('id', id);
+    const { error } = await supabase.from('Users').delete().eq('id', id);
 
     if (error) {
       console.error('Failed to delete user', error);
