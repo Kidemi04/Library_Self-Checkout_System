@@ -110,7 +110,7 @@ const EmptyState = () => (
 const ReservationCard = ({ hold }: { hold: PatronHold }) => {
   const meta = statusMeta[hold.status] ?? statusMeta.queued;
   const readyMessage =
-    hold.status === 'readu'
+    hold.status === 'ready'
       ? hold.expiresAt
         ? `Collect by ${formatDateTime(hold.expiresAt)} to keep your spot.`
         : 'Collect the book from the service desk.'
