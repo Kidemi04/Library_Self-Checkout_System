@@ -92,7 +92,7 @@ export async function updateUserAction(updateData: UpdateUserInput) {
 
     if (Object.keys(profilePayload).length > 0) {
       const { error: profileError } = await supabase
-        .from('UserProfiles')
+        .from('UserProfile')
         .upsert(
           {
             user_id: updateData.id,

@@ -75,7 +75,7 @@ export async function addUserAction(formData: AddUserPayload) {
       };
 
       const { error: profileError } = await supabase
-        .from('UserProfiles')
+        .from('UserProfile')
         .upsert(profilePayload, { onConflict: 'user_id' });
 
       if (profileError) {
