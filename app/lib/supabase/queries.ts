@@ -534,7 +534,7 @@ export async function fetchHoldsForStaff() {
       placed_at,
       ready_at,
       expires_at,
-      book:Books (
+      book:books (
         title,
         cover_image_url
       ),

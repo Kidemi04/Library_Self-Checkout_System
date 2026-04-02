@@ -61,7 +61,7 @@ async function markReady(formData: FormData) {
   );
 
   // 3) Refresh staff holds page
-  revalidatePath('/dashboard/holds');
+  revalidatePath('/dashboard/book/holds');
 }
 
 async function cancelHold(formData: FormData) {
@@ -77,7 +77,7 @@ async function cancelHold(formData: FormData) {
     fulfilled_by_copy_id: null,
   });
 
-  revalidatePath('/dashboard/holds');
+  revalidatePath('/dashboard/books/holds');
 }
 
 // ---------- page ----------
