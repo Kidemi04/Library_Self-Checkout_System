@@ -38,9 +38,9 @@ const roleOptions: ManagedRole[] = ['user', 'staff', 'admin'];
 const PAGE_SIZE = 25;
 
 const visibilityOptions = [
-  { value: 'PUBLIC', label: 'Public' },
-  { value: 'CAMPUS', label: 'Campus' },
-  { value: 'PRIVATE', label: 'Private' },
+  { value: 'publiv', label: 'Public' },
+  { value: 'campus', label: 'Campus' },
+  { value: 'private', label: 'Private' },
 ];
 
 const baseProfileFieldOrder = [
@@ -271,8 +271,8 @@ export default function UserManagementPage() {
     setErrorMessage(null);
 
     const { data, error } = await supabaseBrowserClient
-      .from('users')
-      .select('*, profile:user_profiles(*)')
+      .from('Users')
+      .select('*, profile:UserProfile(*)')
       .order('email');
 
     if (error) {
