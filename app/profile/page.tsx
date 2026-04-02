@@ -107,7 +107,7 @@ export default async function ProfilePage() {
   const [{ data: profileRow, error: profileError }, { data: userRow, error: userError }] =
     await Promise.all([
       supabase
-        .from('UserProfiles')
+        .from('UserProfile')
         .select(
           `
             display_name,
