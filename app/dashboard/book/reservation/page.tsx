@@ -41,31 +41,31 @@ const statusMeta: Record<
   PatronHold['status'],
   { label: string; badge: string; accent: string }
 > = {
-  READY: {
+  ready: {
     label: 'Ready for pickup',
     badge:
       'bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-100 dark:border-emerald-700/70',
     accent: 'text-emerald-700 dark:text-emerald-200',
   },
-  QUEUED: {
+  queued: {
     label: 'Waiting in queue',
     badge:
       'bg-sky-100 text-sky-800 border border-sky-200 dark:bg-sky-900/50 dark:text-sky-100 dark:border-sky-700/70',
     accent: 'text-sky-700 dark:text-sky-200',
   },
-  FULFILLED: {
+  fulfilled: {
     label: 'Fulfilled',
     badge:
       'bg-slate-100 text-slate-800 border border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700',
     accent: 'text-slate-600 dark:text-slate-300',
   },
-  EXPIRED: {
+  expired: {
     label: 'Expired',
     badge:
       'bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/50 dark:text-amber-100 dark:border-amber-700/70',
     accent: 'text-amber-700 dark:text-amber-200',
   },
-  CANCELED: {
+  canceled: {
     label: 'Cancelled',
     badge:
       'bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700',
@@ -108,15 +108,15 @@ const EmptyState = () => (
 );
 
 const ReservationCard = ({ hold }: { hold: PatronHold }) => {
-  const meta = statusMeta[hold.status] ?? statusMeta.QUEUED;
+  const meta = statusMeta[hold.status] ?? statusMeta.queued;
   const readyMessage =
-    hold.status === 'READY'
+    hold.status === 'readu'
       ? hold.expiresAt
         ? `Collect by ${formatDateTime(hold.expiresAt)} to keep your spot.`
         : 'Collect the book from the service desk.'
       : 'We will notify you once the copy is ready to be picked up.';
 
-  const cancellationAllowed = hold.status === 'QUEUED' || hold.status === 'READY';
+  const cancellationAllowed = hold.status === 'queued' || hold.status === 'ready';
 
   return (
     <li className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/50 dark:border-white/10 dark:bg-slate-900 dark:shadow-black/40">
