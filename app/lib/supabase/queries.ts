@@ -322,10 +322,10 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
   return rawRows.map(mapLoanRow);
 }
 
-export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
+export async function fetchActiveLoans(searchTerm?: string, userId?: string): Promise<Loan[]> {
   const supabase = getSupabaseServerClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('loans')
     .select(
       `
@@ -370,6 +370,12 @@ export async function fetchActiveLoans(searchTerm?: string): Promise<Loan[]> {
     )
     .is('returned_at', null)
     .order('borrowed_at', { ascending: false });
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
 

@@ -198,10 +198,12 @@ export const authOptions: NextAuthOptions = {
         enhanced.id = record.id;
         enhanced.role = record.role;
 
-          return true;
-        } catch (error) {
-          console.error('Failed to sync user record during sign-in', error);
-        return false;
+        return true;
+      } catch (error) {
+        console.error('Failed to sync user record during sign-in', error);
+        // Allow sign-in even if Supabase is temporarily unreachable.
+        // The jwt callback will re-sync the record on the next request.
+        return true;
       }
     },
     async jwt({ token, user }) {

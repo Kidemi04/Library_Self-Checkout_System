@@ -44,9 +44,11 @@ export default async function UserDashboardPage() {
     redirect('/dashboard/admin');
   }
 
+  const isUser = user.role === 'user';
+
   const [books, activeLoans, summary, recentLoans] = await Promise.all([
     fetchAvailableBooks(),
-    fetchActiveLoans(),
+    fetchActiveLoans(undefined, isUser ? user.id : undefined),
     fetchDashboardSummary(),
     fetchRecentLoans(6),
   ]);
@@ -189,12 +191,16 @@ export default async function UserDashboardPage() {
       <BlurFade delay={0.9} yOffset={20}>
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Active loans</h2>
+            <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">
+              {isUser ? 'My borrowed books' : 'Active loans'}
+            </h2>
             <p className="text-sm text-swin-charcoal/60 dark:text-slate-300/80">
-              {activeLoans.length} items currently outside the library
+              {isUser
+                ? `${activeLoans.length} book${activeLoans.length === 1 ? '' : 's'} currently borrowed`
+                : `${activeLoans.length} items currently outside the library`}
             </p>
           </div>
-          <ActiveLoansTable loans={activeLoans} />
+          <ActiveLoansTable loans={activeLoans} showActions={!isUser} />
         </section>
       </BlurFade>
     </main>

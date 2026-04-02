@@ -90,15 +90,15 @@ export default function QuickCheckInButton({
               </svg>
             </div>
 
-            <h2 id={`confirm-title-${loanId}`} className="text-lg font-semibold text-swin-charcoal dark:text-slate-100">
+            <h2 id={`confirm-title-${loanId}`} className="text-left text-lg font-semibold text-swin-charcoal dark:text-slate-100">
               Confirm book return
             </h2>
 
             {/* Context — show what's being returned */}
             {(bookTitle || borrowerName) && (
-              <div className="mt-3 rounded-xl border border-swin-charcoal/10 bg-swin-ivory px-4 py-3 dark:border-slate-700 dark:bg-slate-800">
+              <div className="mt-3 rounded-xl border border-swin-charcoal/10 bg-swin-ivory px-4 py-3 text-left dark:border-slate-700 dark:bg-slate-800">
                 {bookTitle && (
-                  <p className="text-sm font-medium text-swin-charcoal dark:text-slate-100 truncate">
+                  <p className="truncate text-sm font-medium text-swin-charcoal dark:text-slate-100">
                     {bookTitle}
                   </p>
                 )}
@@ -110,14 +110,14 @@ export default function QuickCheckInButton({
               </div>
             )}
 
-            <p className="mt-3 text-sm text-swin-charcoal/70 dark:text-slate-400">
+            <p className="mt-3 text-left text-sm text-swin-charcoal/70 dark:text-slate-400">
               This will mark the loan as returned and make the copy available again. This cannot be undone without manual intervention.
             </p>
 
             <div className="mt-5">
               <label
                 htmlFor={`confirm-input-${loanId}`}
-                className="block text-sm font-medium text-swin-charcoal dark:text-slate-200"
+                className="block text-left text-sm font-medium text-swin-charcoal dark:text-slate-200"
               >
                 Type{' '}
                 <span className="rounded bg-swin-charcoal/10 px-1.5 py-0.5 font-mono font-semibold text-swin-red dark:bg-slate-800 dark:text-swin-red">
