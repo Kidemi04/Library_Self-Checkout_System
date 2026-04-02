@@ -26,7 +26,7 @@ type NavItem = {
   children?: { name: string; href: string }[];
 };
 
-const userLinks: NavItem[] = [
+const generalLinks: NavItem[] = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
   { 
     name: 'Catalogue', href: '/dashboard/book', icon: BookOpenIcon,
@@ -35,13 +35,11 @@ const userLinks: NavItem[] = [
       { name: 'Book Items', href: '/dashboard/book/items' },
       { name: 'Borrow Books', href: '/dashboard/book/checkout' },
       { name: 'Return Books', href: '/dashboard/book/checkin' },
-      { name: 'My Reservations', href: '/dashboard/book/reservation'}
     ]
   },
   { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
   { 
     name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon,
-    // sub-titles
     children: [
       { name: 'LinkedIn Learning library', href: '/dashboard/learning/linkedin' },
       { name: 'Learning Path Management', href: '/dashboard/learning/paths' },
@@ -58,10 +56,26 @@ const userLinks: NavItem[] = [
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];
 
+const userLinks: NavItem[] = [
+  ...generalLinks.map((link) => {
+    // Find the Catalogue section to inject the extra sub-item
+    if (link.name === 'Catalogue') {
+      return {
+        ...link,
+        children: [
+          ...(link.children || []), // Keep existing user sub-items
+          { name: 'My Reservations', href: '/dashboard/book/reservation' },
+        ],
+      };
+    }
+    return link;
+  }),
+];
+
 
 // Create staffLinks by transforming userLinks
 const staffLinks: NavItem[] = [
-  ...userLinks.map((link) => {
+  ...generalLinks.map((link) => {
     // Find the Catalogue section to inject the extra sub-item
     if (link.name === 'Catalogue') {
       return {
@@ -69,6 +83,7 @@ const staffLinks: NavItem[] = [
         children: [
           { name: 'Book List', href: '/dashboard/book/list' }, // New staff sub-item
           ...(link.children || []), // Keep existing user sub-items
+          { name: 'Manage Holds', href: '/dashboard/book/holds' }, 
         ],
       };
     }
