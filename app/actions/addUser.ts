@@ -26,7 +26,7 @@ export async function addUserAction(formData: AddUserPayload) {
     const supabase = getSupabaseServerClient();
 
     const { data: existingUser, error: lookupError } = await supabase
-      .from('users')
+      .from('Users')
       .select('id, role')
       .eq('email', email)
       .maybeSingle<{ id: string; role: string }>();
@@ -40,7 +40,7 @@ export async function addUserAction(formData: AddUserPayload) {
 
     if (existingUser) {
       const { error: updateError } = await supabase
-        .from('users')
+        .from('Users')
         .update({ role })
         .eq('id', existingUser.id);
 
@@ -52,7 +52,7 @@ export async function addUserAction(formData: AddUserPayload) {
       userId = existingUser.id;
     } else {
       const { data: inserted, error: insertError } = await supabase
-        .from('users')
+        .from('Users')
         .insert({ email, role })
         .select('id')
         .single<{ id: string }>();
@@ -75,7 +75,7 @@ export async function addUserAction(formData: AddUserPayload) {
       };
 
       const { error: profileError } = await supabase
-        .from('user_profiles')
+        .from('UserProfiles')
         .upsert(profilePayload, { onConflict: 'user_id' });
 
       if (profileError) {

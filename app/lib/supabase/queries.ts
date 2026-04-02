@@ -577,7 +577,7 @@ export async function updateHoldStatus(
   const supabase = getSupabaseServerClient();
 
   const { error } = await supabase
-    .from('holds')
+    .from('Holds')
     .update(fields)
     .eq('id', holdId);
 
@@ -644,7 +644,7 @@ export async function cancelHoldForPatron(holdId: string, patronId: string): Pro
   const supabase = getSupabaseServerClient();
 
   const { data, error } = await supabase
-    .from('holds')
+    .from('Holds')
     .update({
       status: 'canceled',
       ready_at: null,
