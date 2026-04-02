@@ -46,7 +46,7 @@ export default function MobileNav({
   const isDark = theme === 'dark';
 
   const topBarClasses = clsx(
-    'flex items-center justify-between border-b px-4 py-3 backdrop-blur-md transition-colors md:hidden',
+    'sticky top-0 z-40 flex items-center justify-between border-b px-4 py-3 backdrop-blur-md transition-colors md:hidden',
     isDark
       ? 'border-white/10 bg-slate-950/90 text-white shadow-lg'
       : 'border-swin-charcoal/10 bg-swin-charcoal/95 text-swin-ivory shadow-lg',
