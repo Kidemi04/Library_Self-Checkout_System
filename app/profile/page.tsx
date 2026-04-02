@@ -107,7 +107,7 @@ export default async function ProfilePage() {
   const [{ data: profileRow, error: profileError }, { data: userRow, error: userError }] =
     await Promise.all([
       supabase
-        .from('user_profiles')
+        .from('UserProfiles')
         .select(
           `
             display_name,
@@ -129,7 +129,7 @@ export default async function ProfilePage() {
         .eq('user_id', user.id)
         .maybeSingle<ProfileRow>(),
       supabase
-        .from('users')
+        .from('Users')
         .select('created_at')
         .eq('id', user.id)
         .maybeSingle<{ created_at: string | null }>(),
