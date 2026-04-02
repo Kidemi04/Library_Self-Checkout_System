@@ -484,30 +484,27 @@ export async function checkoutBookAction(
     itemIdentifierFromForm || copy.barcode || copy.id; // fallback chain
 
   try {
-    await sipCheckOut({
-      // Required by emulator (see "Library SIP standard" doc)
-      scRenewalPolicy: 'Y',                           // allow renewals
-      noBlock: 'N',                                   // do not override blocks
+    const sipResult = await sipCheckOut({
+      scRenewalPolicy: 'Y',
+      noBlock: 'N',
       transactionDate: formatSipDate(borrowedAt),
       nbDueDate: formatSipDate(dueDate),
-      institutionId: SIP2_INSTITUTION_ID,                        // follow the sample doc
-
+      institutionId: SIP2_INSTITUTION_ID,
       patronIdentifier: borrowerIdentifier,
       itemIdentifier,
-      terminalPassword: SIP2_TERMINAL_PASSWORD,                    // from sample
-      itemProperties: '',                             // you can fill this later if you want
-      patronPassword: SIP2_PATRON_PASSWORD,                   // sample, can be dummy
+      terminalPassword: SIP2_TERMINAL_PASSWORD,
+      itemProperties: '',
+      patronPassword: SIP2_PATRON_PASSWORD,
       feeAcknowledged: 'Y',
       cancel: 'N',
+    }) as { status?: number };
 
-      // extra metadata just for ourselves (emulator will ignore unknown fields)
-      //loanId,
-    });
-
-
+    if (sipResult?.status !== 1) {
+      console.warn('[SIP2] Checkout returned non-OK status', sipResult);
+    }
   } catch (error) {
     console.error('SIP2 checkout failed', error);
-    // We keep the Supabase loan as source of truth, just log the SIP failure.
+    // Supabase is source of truth; SIP failure is logged only.
   }
 
   revalidatePath('/dashboard');
@@ -675,7 +672,7 @@ export async function checkinBookAction(
     identifier || loan.copy?.barcode || loan.copy_id.toString();
 
   try {
-    await sipCheckIn({
+    const sipResult = await sipCheckIn({
       noBlock: 'N',
       transactionDate: formatSipDate(now),
       returnDate: formatSipDate(now),
@@ -685,20 +682,14 @@ export async function checkinBookAction(
       terminalPassword: SIP2_TERMINAL_PASSWORD,
       itemProperties: '',
       cancel: 'N',
+    }) as { status?: number };
 
-      // extra metadata for us
-      patronIdentifier:
-        loan.borrower?.profile?.student_id ??
-        loan.borrower?.email ??
-        loan.borrower?.id ??
-        '',
-
-      //loanId: loan.id,
-    });
-
+    if (sipResult?.status !== 1) {
+      console.warn('[SIP2] Checkin returned non-OK status', sipResult);
+    }
   } catch (error) {
     console.error('SIP2 check-in failed', error);
-    // Same idea: Supabase is the source of truth; SIP failure is logged.
+    // Supabase is source of truth; SIP failure is logged only.
   }
 
   const borrowerLabel =
