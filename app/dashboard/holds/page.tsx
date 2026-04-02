@@ -23,7 +23,7 @@ async function markReady(formData: FormData) {
 
   // 1) Update hold status + timestamps
   await updateHoldStatus(holdId, {
-    status: 'READY',
+    status: 'ready',
     ready_at: now.toISOString(),
     expires_at: expires.toISOString(),
   });
@@ -31,24 +31,24 @@ async function markReady(formData: FormData) {
   // 2) Enqueue notification job in notification_queue
   const supabase = getSupabaseServerClient();
 
-  await supabase.from('notification_queue').insert({
+  await supabase.from('NotificationQueue').insert({
     patron_id: patronId,
     hold_id: holdId,
     loan_id: null,
     // ⚠ Make sure these enum values match your Supabase enums exactly
-    type: 'HOLD_READY',    // notification_type enum value
-    channel: 'IN_APP',     // notification_channel enum value (or 'EMAIL' etc)
+    type: 'hold_ready',    // notification_type enum value
+    channel: 'in_app',     // notification_channel enum value (or 'EMAIL' etc)
     title: 'Your hold is ready for pickup',
     body: bookTitle
       ? `Your hold for "${bookTitle}" is ready for pickup. Please collect it before ${expires.toLocaleDateString()}.`
       : `One of your holds is ready for pickup. Please collect it before ${expires.toLocaleDateString()}.`,
     payload: {
-      kind: 'HOLD_READY',
+      kind: 'hold_ready',
       hold_id: holdId,
       book_title: bookTitle,
       expires_at: expires.toISOString(),
     } as any,              // cast to any so TS is happy with JSONB
-    status: 'PENDING',     // notification_status enum value
+    status: 'pending',     // notification_status enum value
     scheduled_for: now.toISOString(),
   });
 
@@ -63,7 +63,7 @@ async function cancelHold(formData: FormData) {
   if (!holdId) return;
 
   await updateHoldStatus(holdId, {
-    status: 'CANCELED',
+    status: 'canceled',
     ready_at: null,
     expires_at: null,
     fulfilled_by_copy_id: null,
@@ -179,7 +179,7 @@ export default async function HoldsManagementPage() {
                   {/* Actions */}
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
-                      {hold.status === 'QUEUED' && (
+                      {hold.status === 'queued' && (
                         <form action={markReady}>
                           <input type="hidden" name="holdId" value={hold.id} />
                           <input
@@ -201,7 +201,7 @@ export default async function HoldsManagementPage() {
                         </form>
                       )}
 
-                      {(hold.status === 'QUEUED' || hold.status === 'READY') && (
+                      {(hold.status === 'queued' || hold.status === 'ready') && (
                         <form action={cancelHold}>
                           <input type="hidden" name="holdId" value={hold.id} />
                           <button
