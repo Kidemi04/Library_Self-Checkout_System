@@ -2,25 +2,27 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { studentFaqSections } from '@/app/ui/dashboard/studentFaqData';
+import FaqScrollTopButton from '@/app/ui/dashboard/faqScrollTopButton';
+import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 
 const quickHelpLinks = [
   {
-    title: 'Borrowing checklist',
-    description: 'Start a self-checkout, search for a title, or scan the barcode directly.',
+    title: 'Borrow a book',
+    description: 'Search by title or scan the barcode to start a 14-day self-checkout right now.',
     href: '/dashboard/book/checkout',
     actionLabel: 'Open Borrow Books',
   },
   {
-    title: 'Active loans',
-    description: 'Keep track of who currently holds each item and extend loans when possible.',
+    title: 'View active loans',
+    description: 'See everything you currently have borrowed along with each due date.',
     href: '/dashboard',
     actionLabel: 'View dashboard',
   },
   {
-    title: 'Notifications',
-    description: 'Review reminders about due dates, holds, and renewals in one place.',
-    href: '/dashboard/notifications',
-    actionLabel: 'Go to notifications',
+    title: 'Scan a barcode',
+    description: 'Use your camera to identify a book instantly without typing anything.',
+    href: '/dashboard/cameraScan',
+    actionLabel: 'Open camera scan',
   },
 ];
 
@@ -45,14 +47,11 @@ export default async function StudentFaqPage() {
     <main className="space-y-8">
       <title>Student FAQ | Dashboard</title>
 
-      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/40">
-        <p className="text-xs uppercase tracking-[0.2em] text-swin-ivory/70">Need help fast?</p>
-        <h1 className="mt-2 text-3xl font-semibold">Student FAQ</h1>
-        <p className="mt-3 text-sm text-swin-ivory/70">
-          Everything you need to borrow, return, and manage your account with confidence. These answers are tailored
-          for student access inside the self-checkout dashboard.
-        </p>
-      </header>
+      <DashboardTitleBar
+        subtitle="Student Guide"
+        title="How to Use the Library System"
+        description="A step-by-step guide to borrowing, returning, and managing your loans. Learn about the 14-day loan period, due dates, renewals, and how to use the barcode scanner."
+      />
 
       <section className="grid gap-4 md:grid-cols-3">
         {quickHelpLinks.map((item) => (
@@ -158,6 +157,7 @@ export default async function StudentFaqPage() {
           </Link>
         </div>
       </section>
+      <FaqScrollTopButton />
     </main>
   );
 }

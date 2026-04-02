@@ -27,7 +27,8 @@
       "Bash(npx tsc:*)",
       "Bash(ls -la /c/Users/User/Documents/GitHub/Library_Self-Checkout_System/supabase*)",
       "Bash(find /c/Users/User/Documents/GitHub/Library_Self-Checkout_System -maxdepth 2 -type d -name *db* -o -name *sql* -o -name *migration*)",
-      "Bash(del \"c:\\\\Users\\\\User\\\\Documents\\\\GitHub\\\\Library_Self-Checkout_System\\\\AGENTS.md\")"
+      "Bash(del \"c:\\\\Users\\\\User\\\\Documents\\\\GitHub\\\\Library_Self-Checkout_System\\\\AGENTS.md\")",
+      "Bash(grep -l \"role === 'admin'\" c:/Users/User/Documents/GitHub/Library_Self-Checkout_System/app/dashboard/**/*.tsx c:/Users/User/Documents/GitHub/Library_Self-Checkout_System/app/dashboard/*.tsx)"
     ]
   }
 }
