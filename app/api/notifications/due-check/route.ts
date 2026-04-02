@@ -11,12 +11,10 @@ export async function POST() {
 
   const supabase = getSupabaseServerClient();
 
-  // Window: loans due between (now + 2 days) and (now + 4 days) — catches "3 days out"
+  // Catch any unreturned loan due within the next 3 days (including today/overdue)
   const now = new Date();
-  const windowStart = new Date(now);
-  windowStart.setDate(windowStart.getDate() + DUE_SOON_DAYS - 1);
   const windowEnd = new Date(now);
-  windowEnd.setDate(windowEnd.getDate() + DUE_SOON_DAYS + 1);
+  windowEnd.setDate(windowEnd.getDate() + DUE_SOON_DAYS);
 
   const { data: loans, error } = await supabase
     .from('loans')
@@ -30,7 +28,6 @@ export async function POST() {
     `)
     .eq('user_id', user.id)
     .is('returned_at', null)
-    .gte('due_at', windowStart.toISOString())
     .lte('due_at', windowEnd.toISOString());
 
   if (error) {
@@ -40,9 +37,11 @@ export async function POST() {
 
   let created = 0;
 
+  const todayKey = now.toISOString().slice(0, 10); // YYYY-MM-DD
+
   for (const loan of loans ?? []) {
-    // Idempotency: skip if we already sent a due_soon for this loan
-    const exists = await dueSoonNotificationExists(loan.id, user.id);
+    // Idempotency: skip if we already sent a due_soon for this loan TODAY
+    const exists = await dueSoonNotificationExists(loan.id, user.id, todayKey);
     if (exists) continue;
 
     const copy = loan.copy as { barcode?: string; book?: { title?: string } } | null;
@@ -53,12 +52,17 @@ export async function POST() {
       year: 'numeric',
     });
 
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const daysLeft = Math.ceil((new Date(loan.due_at).getTime() - now.getTime()) / msPerDay);
+    const daysText =
+      daysLeft <= 0 ? 'today — it may already be overdue' : daysLeft === 1 ? 'tomorrow' : `in ${daysLeft} days`;
+
     await createUserNotification(
       user.id,
       'due_soon',
       'Return reminder',
-      `"${bookTitle}" is due back in ${DUE_SOON_DAYS} days, on ${dueDate}. Please return it on time to avoid late fees.`,
-      { bookTitle, dueAt: loan.due_at, loanId: loan.id, barcode: copy?.barcode ?? '' },
+      `"${bookTitle}" is due back ${daysText}, on ${dueDate}. Please return it on time to avoid late fees.`,
+      { bookTitle, dueAt: loan.due_at, loanId: loan.id, barcode: copy?.barcode ?? '', date: todayKey },
     );
 
     created++;

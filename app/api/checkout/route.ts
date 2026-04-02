@@ -65,12 +65,12 @@ export async function POST(request: Request) {
       noBlock: 'N',
       transactionDate: formatSipDate(now),
       nbDueDate: formatSipDate(due),
-      institutionId: 'LIB001',
-      patronIdentifier,            // 👈 from app
-      itemIdentifier,              // 👈 from app
-      terminalPassword: 'term123',
+      institutionId: process.env.SIP2_INSTITUTION_ID ?? 'LIB001',
+      patronIdentifier,
+      itemIdentifier,
+      terminalPassword: process.env.SIP2_TERMINAL_PASSWORD ?? '',
       itemProperties: 'Web kiosk',
-      patronPassword: 'patron456',
+      patronPassword: process.env.SIP2_PATRON_PASSWORD ?? '',
       feeAcknowledged: 'Y',
       cancel: 'N',
     };

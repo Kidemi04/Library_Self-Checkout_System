@@ -1,6 +1,6 @@
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 
-export type NotificationType = 'checkout' | 'checkin' | 'loan_confirmed' | 'due_soon';
+export type NotificationType = 'checkout' | 'checkin' | 'loan_confirmed' | 'due_soon' | 'hold_ready';
 
 export interface Notification {
   id: string;
@@ -57,15 +57,15 @@ export async function createUserNotification(
   if (error) console.error('[notifications] createUserNotification error:', error.message);
 }
 
-/** Returns true if a due_soon notification already exists for this loan+user (idempotency guard). */
-export async function dueSoonNotificationExists(loanId: string, userId: string): Promise<boolean> {
+/** Returns true if a due_soon notification was already sent for this loan+user TODAY (idempotency guard). */
+export async function dueSoonNotificationExists(loanId: string, userId: string, todayKey: string): Promise<boolean> {
   const supabase = getSupabaseServerClient();
   const { count } = await supabase
     .from('notifications')
     .select('id', { head: true, count: 'exact' })
     .eq('type', 'due_soon')
     .eq('target_user_id', userId)
-    .contains('metadata', { loanId });
+    .contains('metadata', { loanId, date: todayKey });
   return (count ?? 0) > 0;
 }
 

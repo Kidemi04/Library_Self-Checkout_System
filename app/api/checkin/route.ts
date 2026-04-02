@@ -56,14 +56,13 @@ export async function POST(request: Request) {
     const now = new Date();
 
     const sipPayload = {
-      // From your doc's "checkIn" example:
       noBlock: 'N',
       transactionDate: formatSipDate(now),
       returnDate: formatSipDate(now),
       currentLocation,
-      institutionId: 'LIB001',
+      institutionId: process.env.SIP2_INSTITUTION_ID ?? 'LIB001',
       itemIdentifier,
-      terminalPassword: 'term123',
+      terminalPassword: process.env.SIP2_TERMINAL_PASSWORD ?? '',
       itemProperties: 'Web kiosk',
       cancel: 'N',
     };
