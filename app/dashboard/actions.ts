@@ -648,7 +648,7 @@ export async function checkinBookAction(
 
   const { error: copyUpdateError } = await supabase
     .from('Copies')
-    .update({ status: 'avaliable' })
+    .update({ status: 'available' })
     .eq('id', loan.copy_id);
 
   if (copyUpdateError) {
