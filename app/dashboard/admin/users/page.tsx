@@ -536,7 +536,7 @@ export default function UserManagementPage() {
                 : 'bg-swin-red text-white hover:bg-swin-red/90 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500',
             )}
           >
-            {isPending ? 'Adding…' : 'Add user'}
+            {isPending ? 'Adding…' : 'Add User'}
           </button>
         </form>
         <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
