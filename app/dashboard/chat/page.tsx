@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import StudentChat from '@/app/ui/dashboard/studentChat';
+import { userNeedsOnboarding } from '@/app/lib/recommendations/user-context';
 
 const supportFacts = [
   {
@@ -61,6 +62,13 @@ export default async function StudentChatPage() {
 
   const displayName = user.name ?? user.username ?? user.email ?? null;
 
+  let needsOnboarding = false;
+  try {
+    needsOnboarding = await userNeedsOnboarding(user.id);
+  } catch {
+    // Non-fatal: default to not showing onboarding
+  }
+
   return (
     <main className="space-y-8">
       <title>Chat Support | Dashboard</title>
@@ -88,7 +96,7 @@ export default async function StudentChatPage() {
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
-        <StudentChat studentName={displayName} />
+        <StudentChat studentName={displayName} needsOnboarding={needsOnboarding} />
 
         <aside className="space-y-4">
           <div className="rounded-3xl border border-swin-charcoal/10 bg-white p-5 shadow-lg shadow-swin-charcoal/5">

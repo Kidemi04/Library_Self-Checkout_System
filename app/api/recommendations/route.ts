@@ -8,6 +8,8 @@ import {
   tokenizeInterests,
   type Recommendation,
 } from '@/app/lib/recommendations/recommender';
+import { getDashboardSession } from '@/app/lib/auth/session';
+import { fetchUserContext, type UserContext } from '@/app/lib/recommendations/user-context';
 
 type RecommendationRequest = {
   message?: string;
@@ -133,6 +135,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Message is required.' }, { status: 400 });
   }
 
+  // Fetch user context (non-blocking: anonymous users get empty context)
+  let userContext: UserContext = { historyTags: [], savedInterests: [] };
+  try {
+    const { user } = await getDashboardSession();
+    if (user) {
+      userContext = await fetchUserContext(user.id);
+    }
+  } catch {
+    // Session read failure is non-fatal
+  }
+
   const lastInterests =
     Array.isArray(body.context?.lastInterests) && body.context?.lastInterests?.length
       ? body.context.lastInterests.map((value) => String(value).trim()).filter(Boolean)
@@ -143,10 +156,18 @@ export async function POST(request: Request) {
   const extraTokens = isMoreRequest
     ? tokenizeInterests(message).filter((token) => !lastInterestSet.has(token))
     : [];
+  // Merge user context tags (history + saved interests) as background signals.
+  // Capped at 20 tokens so they don't overwhelm the user's current message.
+  const contextTags = [
+    ...new Set([...userContext.historyTags, ...userContext.savedInterests]),
+  ].slice(0, 20);
+
   const inferredMessage =
     isMoreRequest && (lastInterests.length || extraTokens.length)
-      ? [...lastInterestTokens, ...extraTokens].join(', ')
-      : message;
+      ? [...lastInterestTokens, ...extraTokens, ...contextTags].join(', ')
+      : contextTags.length
+        ? `${message}, ${contextTags.join(', ')}`
+        : message;
 
   const clientKey = getClientKey(request);
   const now = Date.now();
@@ -237,7 +258,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const preference = await extractPreferences(inferredMessage);
+    const preference = await extractPreferences(inferredMessage, userContext);
     const interestInput =
       preference.interests.length > 0 ? preference.interests.join(', ') : inferredMessage;
 
@@ -297,6 +318,7 @@ export async function POST(request: Request) {
       interests: preference.interests,
       summary: preference.summary,
       followUpQuestion: preference.followUpQuestion,
+      contextTags,
     });
   } catch (error) {
     console.error('Recommendation service failed', error);

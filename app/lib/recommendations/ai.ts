@@ -50,8 +50,25 @@ const buildFallback = (message: string): AiPreferenceResult => {
   };
 };
 
-const GEMINI_SYSTEM_PROMPT =
+const GEMINI_BASE_SYSTEM_PROMPT =
   'You are a library recommender. Extract reading preferences and return ONLY valid JSON with keys: summary (string), interests (array of 3-8 short tokens), followUpQuestion (short book-specific question). Use English only. No extra text.';
+
+const buildGeminiSystemPrompt = (
+  userContext?: { historyTags?: string[]; savedInterests?: string[] },
+): string => {
+  const history = userContext?.historyTags ?? [];
+  const saved = userContext?.savedInterests ?? [];
+  const allContext = [...new Set([...history, ...saved])].slice(0, 15);
+
+  if (!allContext.length) return GEMINI_BASE_SYSTEM_PROMPT;
+
+  return (
+    GEMINI_BASE_SYSTEM_PROMPT +
+    `\n\nThis user has previously engaged with these topics: ${allContext.join(', ')}. ` +
+    'Use this to bias the interests array toward related topics, but still honour what they say in the current message. ' +
+    'If the current message is unrelated to their history, extract interests from the message alone.'
+  );
+};
 const GEMINI_CHAT_PROMPT =
   'You are a helpful study assistant for a university library. You may answer ONLY about programming, software, computing, math, data, and language learning (English, grammar, writing). Be concise, friendly, and safe. If the user asks about religion, politics, credentials/secrets, the AI model identity, or NSFW content, refuse briefly and redirect to safe study topics. Use English only.';
 
@@ -117,7 +134,10 @@ const localChatFallback = (message: string): string | null => {
   return null;
 };
 
-const extractWithGemini = async (message: string) => {
+const extractWithGemini = async (
+  message: string,
+  userContext?: { historyTags?: string[]; savedInterests?: string[] },
+) => {
   const { geminiBaseUrl, geminiApiKey, geminiModel } = getEnv();
   if (!geminiApiKey || !geminiModel) return null;
   if (geminiDisabled) return null;
@@ -131,7 +151,7 @@ const extractWithGemini = async (message: string) => {
       {
         role: 'user',
         parts: [
-          { text: GEMINI_SYSTEM_PROMPT },
+          { text: buildGeminiSystemPrompt(userContext) },
           { text: message },
         ],
       },
@@ -183,12 +203,15 @@ const extractWithGemini = async (message: string) => {
   return parsed;
 };
 
-export async function extractPreferences(message: string): Promise<AiPreferenceResult> {
+export async function extractPreferences(
+  message: string,
+  userContext?: { historyTags?: string[]; savedInterests?: string[] },
+): Promise<AiPreferenceResult> {
   const { provider, geminiApiKey } = getEnv();
 
   if (provider === 'gemini' || geminiApiKey) {
     try {
-      const geminiResult = await extractWithGemini(message);
+      const geminiResult = await extractWithGemini(message, userContext);
       if (geminiResult) {
         const interests =
           Array.isArray(geminiResult.interests) && geminiResult.interests.length

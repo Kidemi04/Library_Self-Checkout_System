@@ -27,7 +27,14 @@
       "Bash(npx tsc:*)",
       "Bash(find c:/Users/fongk/Documents/Assignment/Library_Self-Checkout_System/.pnpm -name *.d.ts -path *zxing*)",
       "Bash(find c:/Users/fongk/AppData/Local/pnpm/store/v10 -name *.d.ts -path *zxing*reader*)",
-      "Bash(node -e \"import\\(''zxing-wasm/reader''\\).then\\(m => { console.log\\(typeof m.getZXingModule\\); console.log\\(typeof m.prepareZXingModule\\); }\\)\")"
+      "Bash(node -e \"import\\(''zxing-wasm/reader''\\).then\\(m => { console.log\\(typeof m.getZXingModule\\); console.log\\(typeof m.prepareZXingModule\\); }\\)\")",
+      "Bash(find /c/Users/fongk/Documents/Assignment/Library_Self-Checkout_System -type f -name *.prisma)",
+      "Bash(grep -r \"create.*table\\\\|alter.*table\\\\|drop.*table\" /c/Users/fongk/Documents/Assignment/Library_Self-Checkout_System --include=*.sql --include=*.ts)",
+      "Bash(find /c/Users/fongk/Documents/Assignment/Library_Self-Checkout_System -type f -name *.sql)",
+      "Bash(find /c/Users/fongk/Documents/Assignment/Library_Self-Checkout_System -maxdepth 2 -type f \\\\\\(-name *.sql -o -name *.md \\\\\\))",
+      "Bash(find /c/Users/fongk/Documents/Assignment/Library_Self-Checkout_System -type f \\\\\\(-name schema* -o -name *migration* -o -name *seed* \\\\\\))",
+      "Bash(grep -r \"user_preferences\\\\|user_interests\\\\|book_preferences\" /c/Users/fongk/Documents/Assignment/Library_Self-Checkout_System --include=*.ts --include=*.tsx)",
+      "Bash(grep -r \"user_preferences\\\\|user_interests\" /c/Users/fongk/Documents/Assignment/Library_Self-Checkout_System --include=*.ts --include=*.tsx --include=*.md)"
     ]
   }
 }
