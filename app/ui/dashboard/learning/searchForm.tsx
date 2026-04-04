@@ -17,14 +17,14 @@ export default function LinkedInLearningSearchForm({ defaults }: { defaults: Sea
       method="get"
     >
       <label className="text-sm font-medium text-swin-charcoal dark:text-white">
-        Search LinkedIn Learning
+        Search Khan Academy
         <span className="mt-2 flex items-center gap-3 rounded-2xl border border-swin-charcoal/10 bg-swin-charcoal/5 px-4 py-3 text-base dark:border-white/10 dark:bg-white/5">
           <MagnifyingGlassIcon className="h-5 w-5 text-swin-charcoal/60 dark:text-slate-300/80" />
           <input
             type="search"
             name="q"
             defaultValue={query}
-            placeholder="Try “self checkout hardware” or “leadership”"
+            placeholder='Try “algorithms” or “calculus”'
             className="w-full border-none bg-transparent text-base text-swin-charcoal placeholder:text-swin-charcoal/50 focus:outline-none dark:text-white dark:placeholder:text-slate-400"
           />
         </span>
@@ -49,7 +49,7 @@ export default function LinkedInLearningSearchForm({ defaults }: { defaults: Sea
             type="submit"
             className="flex-1 rounded-2xl bg-swin-red px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-swin-red/90"
           >
-            Search courses
+            Search
           </button>
           <Link
             href="/dashboard/learning"

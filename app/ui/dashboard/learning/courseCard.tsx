@@ -102,7 +102,7 @@ export default function LinkedInLearningCourseCard({ course }: Props) {
               By <span className="font-medium text-swin-charcoal dark:text-white">{authorLabel}</span>
             </p>
           ) : (
-            <span className="text-swin-charcoal/50 dark:text-slate-400">LinkedIn Learning</span>
+            <span className="text-swin-charcoal/50 dark:text-slate-400">Khan Academy</span>
           )}
 
           {course.url ? (
