@@ -1,43 +1,50 @@
 import Link from 'next/link';
-import clsx from 'clsx';
-import { InformationCircleIcon, SparklesIcon } from '@heroicons/react/24/outline';
-import { getDashboardSession } from '@/app/lib/auth/session';
+import { SparklesIcon } from '@heroicons/react/24/outline';
 import {
-  getLinkedInLearningCollections,
-  getLinkedInLearningStatus,
-  searchLinkedInLearningCourses,
-} from '@/app/lib/linkedin/service';
+  getLearningStatus,
+  getLearningCollections,
+  searchLearningCourses,
+} from '@/app/lib/learning/service';
 import type { LinkedInLearningLevel, LinkedInLearningTopicDefinition } from '@/app/lib/linkedin/types';
-import LinkedInLearningCourseCard from '@/app/ui/dashboard/learning/courseCard';
 import LinkedInLearningSearchForm from '@/app/ui/dashboard/learning/searchForm';
+import SearchResultsPanel from '@/app/ui/dashboard/learning/searchResultsPanel';
+import CollectionsPanel from '@/app/ui/dashboard/learning/collectionsPanel';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 
-const curatedTopics: LinkedInLearningTopicDefinition[] = [
-  {
-    key: 'ai-literacy',
-    title: 'AI & Automation for Libraries',
-    query: 'ai literacy for librarians',
-    description: 'Guides on applying AI responsibly to cataloguing, search, and self-service flows.',
-  },
-  {
-    key: 'experience-design',
-    title: 'Experience Design & Service Quality',
-    query: 'library customer experience service design',
-    description: 'Improve wayfinding, signage, and customer experience for self-checkout spaces.',
-  },
-  {
-    key: 'leadership',
-    title: 'Leadership & Upskilling',
-    query: 'library leadership team development',
-    description: 'Coaching, change enablement, and skill pathways for front-of-house staff.',
-  },
+// LinkedIn Learning — professional & tech skills focus
+const linkedInTopics: LinkedInLearningTopicDefinition[] = [
+  { key: 'software-dev', title: 'Software Development', query: 'programming software web development', description: 'Web development, APIs, mobile apps, and software engineering fundamentals.' },
+  { key: 'data-ai', title: 'Data Science & AI', query: 'machine learning data science artificial intelligence', description: 'Python, ML, data analysis, and artificial intelligence foundations.' },
+  { key: 'cloud-devops', title: 'Cloud & DevOps', query: 'cloud AWS Azure DevOps kubernetes', description: 'Cloud platforms, containers, CI/CD pipelines, and infrastructure.' },
+  { key: 'business', title: 'Business & Leadership', query: 'leadership management project business', description: 'Project management, leadership, communication, and business strategy.' },
+  { key: 'design', title: 'Design & Creative', query: 'UX UI design creative Figma', description: 'UI/UX, graphic design, Figma, and creative production tools.' },
 ];
 
-const quickFilters = [
-  { label: 'Digital literacy', query: 'digital literacy essentials' },
-  { label: 'Customer experience', query: 'customer experience training' },
-  { label: 'Team leadership', query: 'people leadership coaching' },
-  { label: 'Project delivery', query: 'agile delivery basics' },
+const linkedInQuickFilters = [
+  { label: 'Python', query: 'python' },
+  { label: 'Machine Learning', query: 'machine learning' },
+  { label: 'Cloud', query: 'cloud computing AWS' },
+  { label: 'Project Management', query: 'project management' },
+  { label: 'UX Design', query: 'UX design' },
+  { label: 'JavaScript', query: 'javascript react' },
+];
+
+// Khan Academy — academic subjects focus (used as fallback)
+const khanTopics: LinkedInLearningTopicDefinition[] = [
+  { key: 'computer-science', title: 'Computer Science & Programming', query: 'programming algorithms', description: 'Coding fundamentals, algorithms, HTML, SQL and more.' },
+  { key: 'mathematics', title: 'Mathematics', query: 'calculus statistics mathematics', description: 'From algebra and calculus to statistics and linear algebra.' },
+  { key: 'science', title: 'Science', query: 'biology chemistry physics', description: 'University-level biology, chemistry and physics.' },
+  { key: 'humanities', title: 'Humanities', query: 'history art grammar', description: 'World history, art history, grammar and writing skills.' },
+  { key: 'economics', title: 'Economics & Finance', query: 'economics finance microeconomics', description: 'Micro and macroeconomics, personal finance, and AP economics.' },
+];
+
+const khanQuickFilters = [
+  { label: 'Algorithms', query: 'algorithms' },
+  { label: 'Statistics', query: 'statistics' },
+  { label: 'Web development', query: 'html css programming' },
+  { label: 'Economics', query: 'economics' },
+  { label: 'Biology', query: 'biology' },
+  { label: 'Calculus', query: 'calculus' },
 ];
 
 const parseDifficulty = (value: string | undefined): LinkedInLearningLevel | 'ALL' => {
@@ -55,7 +62,7 @@ const buildSearchHref = (query: string, difficulty: LinkedInLearningLevel | 'ALL
   if (difficulty && difficulty !== 'ALL') {
     params.set('difficulty', difficulty);
   }
-  return `/dashboard/learning?${params.toString()}`;
+  return `/dashboard/learning/linkedin?${params.toString()}`;
 };
 
 const difficultyLabel = (value: LinkedInLearningLevel | 'ALL') => {
@@ -71,109 +78,44 @@ export default async function LinkedInLearningPage({
 }: {
   searchParams?: Promise<Record<string, string | string[]>>;
 }) {
-  const { user } = await getDashboardSession();
-  const role = user?.role ?? 'user';
-  const isPrivileged = role === 'staff' || role === 'admin';
   const params = searchParams ? await searchParams : {};
   const queryParam = typeof params?.q === 'string' ? params.q : '';
   const difficulty = parseDifficulty(typeof params?.difficulty === 'string' ? params.difficulty : undefined);
-
   const trimmedQuery = queryParam.trim();
-  const status = isPrivileged ? await getLinkedInLearningStatus() : null;
+
+  // Determine which provider is active
+  const learningStatus = await getLearningStatus();
+  const isLinkedIn = learningStatus.provider === 'linkedin';
+  const providerLabel = learningStatus.label;
+
+  const curatedTopics = isLinkedIn ? linkedInTopics : khanTopics;
+  const quickFilters = isLinkedIn ? linkedInQuickFilters : khanQuickFilters;
 
   const [searchResult, collections] = trimmedQuery
     ? [
-        await searchLinkedInLearningCourses({
-          query: trimmedQuery,
-          limit: 12,
-          difficulty,
-        }),
+        await searchLearningCourses({ query: trimmedQuery, limit: 12, difficulty }),
         [],
       ]
     : [
         null,
-        await getLinkedInLearningCollections(curatedTopics, {
-          limitPerTopic: 4,
-          difficulty,
-        }),
+        await getLearningCollections(curatedTopics, { limitPerTopic: 4, difficulty }),
       ];
+
+  const titleDescription = isLinkedIn
+    ? 'Access professional courses in technology, business, creative skills, and more — powered by LinkedIn Learning for Swinburne students.'
+    : 'Explore free courses across computer science, mathematics, science, humanities, and economics — curated from Khan Academy for Swinburne students.';
 
   return (
     <main className="space-y-8">
       <DashboardTitleBar
-        subtitle="Professional learning"
-        title="LinkedIn Learning library"
-        description="Surface curated LinkedIn Learning courses that complement library services. Search for topics, share
-        playlists with staff, or recommend skills to members right from the dashboard."
+        subtitle="Online learning resources"
+        title={providerLabel}
+        description={titleDescription}
       />
 
-      {isPrivileged && status ? (
-        <section className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-3xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/60">
-            <p className="text-xs uppercase tracking-wide text-swin-charcoal/60 dark:text-slate-300/80">Status</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span
-                className={clsx(
-                  'rounded-full px-3 py-1 text-xs font-semibold',
-                  status.enabled
-                    ? 'bg-emerald-500/15 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-200'
-                    : 'bg-amber-200/40 text-amber-900 dark:bg-amber-500/10 dark:text-amber-200',
-                )}
-              >
-                {status.enabled ? 'Active' : 'Disabled'}
-              </span>
-              <span className="rounded-full bg-swin-charcoal/5 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:bg-white/10 dark:text-white">
-                {status.usingStub ? 'Sample data' : 'Live API'}
-              </span>
-            </div>
-            <dl className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-swin-charcoal/70 dark:text-slate-300/80">Locale</dt>
-                <dd className="font-semibold text-swin-charcoal dark:text-white">{status.locale}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-swin-charcoal/70 dark:text-slate-300/80">Organization URN</dt>
-                <dd className="font-semibold text-swin-charcoal dark:text-white">
-                  {status.organizationUrn ?? 'Not set'}
-                </dd>
-              </div>
-            </dl>
-            {status.reason ? (
-              <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
-                {status.reason}
-              </p>
-            ) : null}
-          </div>
-          <div className="rounded-3xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/60">
-            <p className="text-xs uppercase tracking-wide text-swin-charcoal/60 dark:text-slate-300/80">Resources</p>
-            <h2 className="mt-2 text-lg font-semibold text-swin-charcoal dark:text-white">
-              Configure LinkedIn Learning API access
-            </h2>
-            <p className="mt-2 text-sm text-swin-charcoal/70 dark:text-slate-300/80">
-              Add your enterprise application credentials to{' '}
-              <code className="rounded bg-slate-100 px-1 py-0.5 text-xs text-swin-charcoal">.env.local</code> and
-              grant the learning scopes listed by Microsoft. Visit the docs for endpoint and permission details.
-            </p>
-            <div className="mt-4 flex flex-col gap-3 text-sm">
-              <Link
-                href="https://learn.microsoft.com/en-us/linkedin/learning/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-swin-red underline-offset-4 hover:underline"
-              >
-                <InformationCircleIcon className="h-4 w-4" />
-                Microsoft Learn: LinkedIn Learning API
-              </Link>
-            </div>
-          </div>
-        </section>
-      ) : null}
-
       <LinkedInLearningSearchForm
-        defaults={{
-          query: trimmedQuery,
-          difficulty,
-        }}
+        defaults={{ query: trimmedQuery, difficulty }}
+        providerLabel={providerLabel}
       />
 
       <section className="space-y-3">
@@ -199,37 +141,24 @@ export default async function LinkedInLearningPage({
                 Search results
               </p>
               <h2 className="text-xl font-semibold text-swin-charcoal dark:text-white">
-                {searchResult?.items.length ?? 0} course{(searchResult?.items.length ?? 0) === 1 ? '' : 's'} for “
-                {trimmedQuery}”
+                {searchResult?.items.length ?? 0} course{(searchResult?.items.length ?? 0) === 1 ? '' : 's'} for &ldquo;
+                {trimmedQuery}&rdquo;
               </h2>
             </div>
             <div className="rounded-full border border-swin-charcoal/10 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-swin-charcoal/70 dark:border-white/10 dark:text-white/70">
-              {searchResult?.source === 'stub'
-                ? 'Sample data'
-                : searchResult?.source === 'disabled'
-                ? 'Disabled'
-                : 'Live API'}
+              {providerLabel}
             </div>
           </div>
           <p className="text-sm text-swin-charcoal/60 dark:text-slate-300/80">
-            Difficulty filter: <span className="font-semibold text-swin-charcoal dark:text-white">{difficultyLabel(difficulty)}</span>
+            Difficulty filter:{' '}
+            <span className="font-semibold text-swin-charcoal dark:text-white">{difficultyLabel(difficulty)}</span>
           </p>
           {searchResult?.error ? (
             <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-100">
               {searchResult.error}
             </div>
           ) : null}
-          {searchResult && searchResult.items.length > 0 ? (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {searchResult.items.map((course) => (
-                <LinkedInLearningCourseCard key={course.urn} course={course} />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-3xl border border-dashed border-swin-charcoal/20 bg-white p-8 text-center text-sm text-swin-charcoal/70 dark:border-white/20 dark:bg-slate-900/40 dark:text-slate-300/80">
-              No courses matched that search. Try a broader keyword or different quick topic.
-            </div>
-          )}
+          <SearchResultsPanel items={searchResult?.items ?? []} query={trimmedQuery} />
         </section>
       ) : (
         <section className="space-y-8">
@@ -239,57 +168,16 @@ export default async function LinkedInLearningPage({
               <p className="text-xs uppercase tracking-[0.3em] text-swin-charcoal/60 dark:text-slate-400">
                 Curated collections
               </p>
-              <h2 className="text-xl font-semibold">Highlighted topics for your team</h2>
+              <h2 className="text-xl font-semibold">Highlighted topics for you</h2>
               <p className="text-sm text-swin-charcoal/70 dark:text-slate-300/80">
-                Browse spotlight playlists. Select a card to open the course inside LinkedIn Learning.
+                Browse spotlight playlists. Select a card to open the course on {providerLabel}.
               </p>
             </div>
           </div>
-          {collections.map(({ definition, result }) => (
-            <div
-              key={definition.key}
-              className="space-y-4 rounded-3xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/50"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-swin-charcoal/60 dark:text-slate-400">
-                    Spotlight topic
-                  </p>
-                  <h3 className="text-lg font-semibold text-swin-charcoal dark:text-white">{definition.title}</h3>
-                  {definition.description ? (
-                    <p className="text-sm text-swin-charcoal/70 dark:text-slate-300/80">{definition.description}</p>
-                  ) : null}
-                </div>
-                <Link
-                  href={buildSearchHref(definition.query, difficulty)}
-                  className="rounded-full border border-swin-charcoal/10 px-4 py-2 text-sm font-medium text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-white/20 dark:text-white"
-                >
-                  Browse all
-                </Link>
-              </div>
-              {result.items.length > 0 ? (
-                <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-                  {result.items.map((course) => (
-                    <LinkedInLearningCourseCard key={`${definition.key}-${course.urn}`} course={course} />
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-dashed border-swin-charcoal/20 bg-white/40 p-6 text-sm text-swin-charcoal/70 dark:border-white/15 dark:bg-slate-900/30 dark:text-slate-300/80">
-                  No courses returned for this topic yet. Configure LinkedIn Learning credentials or try the search form.
-                </div>
-              )}
-              {result.source === 'stub' ? (
-                <p className="text-xs text-swin-charcoal/60 dark:text-slate-400">
-                  Showing bundled sample data until LinkedIn Learning credentials are provided.
-                </p>
-              ) : null}
-            </div>
-          ))}
-          {!collections.length ? (
-            <div className="rounded-3xl border border-dashed border-swin-charcoal/20 bg-white p-6 text-center text-sm text-swin-charcoal/70 dark:border-white/20 dark:bg-slate-900/40 dark:text-slate-300/80">
-              Configure LinkedIn Learning credentials to load curated recommendations.
-            </div>
-          ) : null}
+          <CollectionsPanel
+            collections={collections}
+            difficulty={difficulty}
+          />
         </section>
       )}
     </main>

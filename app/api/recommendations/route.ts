@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { evaluateGuardrails, isChatIntent } from '@/app/lib/recommendations/guardrails';
-import { answerQuestion, extractPreferences } from '@/app/lib/recommendations/ai';
+import { answerQuestion, extractPreferences, suggestLinkedInCourses } from '@/app/lib/recommendations/ai';
 import { retrieveCandidateBooks } from '@/app/lib/recommendations/retrieve';
 import {
   buildAssociationRules,
@@ -258,6 +258,10 @@ export async function POST(request: Request) {
 
     const finalList = diversify(ranked, requestedLimit);
 
+    const [linkedInSuggestions] = await Promise.all([
+      suggestLinkedInCourses(preference.interests),
+    ]);
+
     if (!finalList.length) {
       const fallbackReply =
         'I could not find matches in the catalog. Try broader interests (genre, topic, or course unit).';
@@ -266,6 +270,7 @@ export async function POST(request: Request) {
         kind: 'no_matches',
         reply: buildNoMatchReply(preference.interests, fallbackReply),
         recommendations: [],
+        linkedInSuggestions,
         interests: preference.interests,
         summary: preference.summary,
         followUpQuestion: preference.followUpQuestion,
@@ -294,6 +299,7 @@ export async function POST(request: Request) {
       kind: 'recommendations',
       reply: replyLines.join('\n'),
       recommendations: items,
+      linkedInSuggestions,
       interests: preference.interests,
       summary: preference.summary,
       followUpQuestion: preference.followUpQuestion,

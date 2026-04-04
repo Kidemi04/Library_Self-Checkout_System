@@ -2,18 +2,26 @@
 import { NextResponse } from 'next/server';
 import { checkIn } from '@/lib/sip2';
 
-// Format as: "YYYYMMDDHHmmss000"
+const SIP2_INSTITUTION_ID = process.env.SIP2_INSTITUTION_ID ?? 'LIB001';
+const SIP2_TERMINAL_PASSWORD = process.env.SIP2_TERMINAL_PASSWORD ?? 'term123';
+
+// SIP2 format: YYYYMMDDZZZZHHMMSS (18 chars)
+// ZZZZ = timezone offset in HHMM (e.g. 0800 for UTC+8)
+const pad = (n: number) => n.toString().padStart(2, '0');
+
 function formatSipDate(date: Date): string {
-  const pad = (n: number, len = 2) => n.toString().padStart(len, '0');
-  return (
-    date.getFullYear().toString() +
-    pad(date.getMonth() + 1) +
-    pad(date.getDate()) +
-    pad(date.getHours()) +
-    pad(date.getMinutes()) +
-    pad(date.getSeconds()) +
-    '000'
-  );
+  const yyyy = date.getFullYear();
+  const mm = pad(date.getMonth() + 1);
+  const dd = pad(date.getDate());
+  const hh = pad(date.getHours());
+  const min = pad(date.getMinutes());
+  const ss = pad(date.getSeconds());
+
+  const offsetMinutes = -date.getTimezoneOffset();
+  const abs = Math.abs(offsetMinutes);
+  const zzzz = pad(Math.floor(abs / 60)) + pad(abs % 60);
+
+  return `${yyyy}${mm}${dd}${zzzz}${hh}${min}${ss}`;
 }
 
 export async function POST(request: Request) {
@@ -33,19 +41,21 @@ export async function POST(request: Request) {
     const now = new Date();
 
     const sipPayload = {
-      // From your doc's "checkIn" example:
       noBlock: 'N',
       transactionDate: formatSipDate(now),
       returnDate: formatSipDate(now),
       currentLocation,
-      institutionId: 'LIB001',
+      institutionId: SIP2_INSTITUTION_ID,
       itemIdentifier,
-      terminalPassword: 'term123',
+      terminalPassword: SIP2_TERMINAL_PASSWORD,
       itemProperties: 'Web kiosk',
       cancel: 'N',
     };
 
-    const result = await checkIn(sipPayload);
+    const result = await checkIn(sipPayload) as { status?: number };
+    if (result?.status !== 1) {
+      console.warn('[SIP2] Checkin returned non-OK status', result);
+    }
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
     console.error('Check-in API error', error);
