@@ -6,8 +6,9 @@ import {
   searchLearningCourses,
 } from '@/app/lib/learning/service';
 import type { LinkedInLearningLevel, LinkedInLearningTopicDefinition } from '@/app/lib/linkedin/types';
-import LinkedInLearningCourseCard from '@/app/ui/dashboard/learning/courseCard';
 import LinkedInLearningSearchForm from '@/app/ui/dashboard/learning/searchForm';
+import SearchResultsPanel from '@/app/ui/dashboard/learning/searchResultsPanel';
+import CollectionsPanel from '@/app/ui/dashboard/learning/collectionsPanel';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 
 // LinkedIn Learning — professional & tech skills focus
@@ -157,17 +158,7 @@ export default async function LinkedInLearningPage({
               {searchResult.error}
             </div>
           ) : null}
-          {searchResult && searchResult.items.length > 0 ? (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {searchResult.items.map((course) => (
-                <LinkedInLearningCourseCard key={course.urn} course={course} />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-3xl border border-dashed border-swin-charcoal/20 bg-white p-8 text-center text-sm text-swin-charcoal/70 dark:border-white/20 dark:bg-slate-900/40 dark:text-slate-300/80">
-              No courses found for this topic. Try the search form above.
-            </div>
-          )}
+          <SearchResultsPanel items={searchResult?.items ?? []} query={trimmedQuery} />
         </section>
       ) : (
         <section className="space-y-8">
@@ -183,46 +174,10 @@ export default async function LinkedInLearningPage({
               </p>
             </div>
           </div>
-          {collections.map(({ definition, result }) => (
-            <div
-              key={definition.key}
-              className="space-y-4 rounded-3xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/50"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-swin-charcoal/60 dark:text-slate-400">
-                    Spotlight topic
-                  </p>
-                  <h3 className="text-lg font-semibold text-swin-charcoal dark:text-white">{definition.title}</h3>
-                  {definition.description ? (
-                    <p className="text-sm text-swin-charcoal/70 dark:text-slate-300/80">{definition.description}</p>
-                  ) : null}
-                </div>
-                <Link
-                  href={buildSearchHref(definition.query, difficulty)}
-                  className="rounded-full border border-swin-charcoal/10 px-4 py-2 text-sm font-medium text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-white/20 dark:text-white"
-                >
-                  Browse all
-                </Link>
-              </div>
-              {result.items.length > 0 ? (
-                <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-                  {result.items.map((course) => (
-                    <LinkedInLearningCourseCard key={`${definition.key}-${course.urn}`} course={course} />
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-dashed border-swin-charcoal/20 bg-white/40 p-6 text-sm text-swin-charcoal/70 dark:border-white/15 dark:bg-slate-900/30 dark:text-slate-300/80">
-                  No courses found for this topic. Try the search form above.
-                </div>
-              )}
-            </div>
-          ))}
-          {!collections.length ? (
-            <div className="rounded-3xl border border-dashed border-swin-charcoal/20 bg-white p-6 text-center text-sm text-swin-charcoal/70 dark:border-white/20 dark:bg-slate-900/40 dark:text-slate-300/80">
-              No courses found. Try the search form above.
-            </div>
-          ) : null}
+          <CollectionsPanel
+            collections={collections}
+            difficulty={difficulty}
+          />
         </section>
       )}
     </main>

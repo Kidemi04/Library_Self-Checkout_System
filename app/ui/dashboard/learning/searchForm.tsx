@@ -1,4 +1,7 @@
-import Link from 'next/link';
+'use client';
+
+import { useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
 
 type SearchDefaults = {
@@ -15,22 +18,46 @@ export default function LinkedInLearningSearchForm({
 }) {
   const query = defaults.query ?? '';
   const difficulty = defaults.difficulty ?? 'ALL';
+  const inputRef = useRef<HTMLInputElement>(null);
+  const selectRef = useRef<HTMLSelectElement>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (inputRef.current) inputRef.current.value = query;
+    if (selectRef.current) selectRef.current.value = difficulty;
+  }, [query, difficulty]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const q = inputRef.current?.value.trim() ?? '';
+    const diff = selectRef.current?.value ?? 'ALL';
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (diff && diff !== 'ALL') params.set('difficulty', diff);
+    const qs = params.toString();
+    router.push(`/dashboard/learning/linkedin${qs ? `?${qs}` : ''}`);
+  };
+
+  const handleReset = () => {
+    if (inputRef.current) inputRef.current.value = '';
+    if (selectRef.current) selectRef.current.value = 'ALL';
+    router.push('/dashboard/learning/linkedin');
+  };
 
   return (
     <form
       className="grid gap-4 rounded-3xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/60"
-      action="/dashboard/learning/linkedin"
-      method="get"
+      onSubmit={handleSubmit}
     >
       <label className="text-sm font-medium text-swin-charcoal dark:text-white">
         Search {providerLabel}
         <span className="mt-2 flex items-center gap-3 rounded-2xl border border-swin-charcoal/10 bg-swin-charcoal/5 px-4 py-3 text-base dark:border-white/10 dark:bg-white/5">
           <MagnifyingGlassIcon className="h-5 w-5 text-swin-charcoal/60 dark:text-slate-300/80" />
           <input
+            ref={inputRef}
             type="search"
-            name="q"
             defaultValue={query}
-            placeholder='Try “algorithms” or “calculus”'
+            placeholder='Try "algorithms" or "calculus"'
             className="w-full border-none bg-transparent text-base text-swin-charcoal placeholder:text-swin-charcoal/50 focus:outline-none dark:text-white dark:placeholder:text-slate-400"
           />
         </span>
@@ -40,7 +67,7 @@ export default function LinkedInLearningSearchForm({
         <label className="text-sm font-medium text-swin-charcoal dark:text-white">
           Difficulty
           <select
-            name="difficulty"
+            ref={selectRef}
             defaultValue={difficulty}
             className="mt-2 w-full rounded-2xl border border-swin-charcoal/10 bg-white px-4 py-3 text-sm text-swin-charcoal shadow-sm focus:border-swin-red focus:outline-none dark:border-white/10 dark:bg-slate-900 dark:text-white"
           >
@@ -57,12 +84,13 @@ export default function LinkedInLearningSearchForm({
           >
             Search
           </button>
-          <Link
-            href="/dashboard/learning/linkedin"
+          <button
+            type="button"
+            onClick={handleReset}
             className="rounded-2xl border border-swin-charcoal/15 px-4 py-3 text-sm font-semibold text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-white/20 dark:text-white dark:hover:text-swin-red"
           >
             Reset
-          </Link>
+          </button>
         </div>
       </div>
     </form>
