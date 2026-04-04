@@ -39,14 +39,7 @@ const userLinks: NavItem[] = [
     ]
   },
   { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
-  { 
-    name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon,
-    // sub-titles
-    children: [
-      { name: 'LinkedIn Learning library', href: '/dashboard/learning/linkedin' },
-      { name: 'Learning Path Management', href: '/dashboard/learning/paths' },
-    ]
-  },
+  { name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon },
   { name: 'Social', href: '/dashboard/social', icon: UserGroupIcon,
   children: [
     { name: 'Communities', href: '/dashboard/social/communities' },

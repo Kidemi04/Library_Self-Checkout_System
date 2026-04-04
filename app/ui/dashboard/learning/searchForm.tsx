@@ -6,18 +6,24 @@ type SearchDefaults = {
   difficulty?: string;
 };
 
-export default function LinkedInLearningSearchForm({ defaults }: { defaults: SearchDefaults }) {
+export default function LinkedInLearningSearchForm({
+  defaults,
+  providerLabel = 'LinkedIn Learning',
+}: {
+  defaults: SearchDefaults;
+  providerLabel?: string;
+}) {
   const query = defaults.query ?? '';
   const difficulty = defaults.difficulty ?? 'ALL';
 
   return (
     <form
       className="grid gap-4 rounded-3xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/60"
-      action="/dashboard/learning"
+      action="/dashboard/learning/linkedin"
       method="get"
     >
       <label className="text-sm font-medium text-swin-charcoal dark:text-white">
-        Search Khan Academy
+        Search {providerLabel}
         <span className="mt-2 flex items-center gap-3 rounded-2xl border border-swin-charcoal/10 bg-swin-charcoal/5 px-4 py-3 text-base dark:border-white/10 dark:bg-white/5">
           <MagnifyingGlassIcon className="h-5 w-5 text-swin-charcoal/60 dark:text-slate-300/80" />
           <input
@@ -52,7 +58,7 @@ export default function LinkedInLearningSearchForm({ defaults }: { defaults: Sea
             Search
           </button>
           <Link
-            href="/dashboard/learning"
+            href="/dashboard/learning/linkedin"
             className="rounded-2xl border border-swin-charcoal/15 px-4 py-3 text-sm font-semibold text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-white/20 dark:text-white dark:hover:text-swin-red"
           >
             Reset
