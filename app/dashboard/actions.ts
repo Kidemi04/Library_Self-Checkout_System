@@ -78,7 +78,7 @@ const logAuditEvent = async (
   },
 ) => {
   try {
-    await supabase.from('audit_log').insert({
+    await supabase.from('AuditLog').insert({
       event_type: action,
       entity: table,
       entity_id: recordId,
