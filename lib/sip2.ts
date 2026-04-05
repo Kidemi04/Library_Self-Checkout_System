@@ -5,7 +5,7 @@ if (!BASE || !TOKEN) {
   console.warn('[SIP2] Configuration missing.');
 }
 
-type SipEndpoint = '/login' | '/logout' | '/checkOut' | '/checkIn' | '/item';
+type SipEndpoint = '/login' | '/logout' | '/checkout' | '/checkin' | '/items';
 
 async function request<T>(endpoint: SipEndpoint, payload: unknown): Promise<T> {
   if (!BASE || !TOKEN) {
@@ -16,7 +16,7 @@ async function request<T>(endpoint: SipEndpoint, payload: unknown): Promise<T> {
 
   try {
     response = await fetch(`${BASE}${endpoint}`, {
-      method: 'POST',
+      method: 'post',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${TOKEN}`,
@@ -64,13 +64,13 @@ export async function logout(payload: unknown) {
 }
 
 export async function checkOut(payload: unknown) {
-  return request('/checkOut', payload);
+  return request('/checkout', payload);
 }
 
 export async function checkIn(payload: unknown) {
-  return request('/checkIn', payload);
+  return request('/checkin', payload);
 }
 
 export async function item(payload: unknown) {
-  return request('/item', payload);
+  return request('/items', payload);
 }
