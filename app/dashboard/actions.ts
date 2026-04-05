@@ -706,7 +706,7 @@ export async function checkinBookAction(
   const copyLabel = loan.copy?.barcode ? `copy ${loan.copy.barcode}` : 'the item';
 
   revalidatePath('/dashboard');
-  revalidatePath('/dashboard/check-in');
+  revalidatePath('/dashboard/book/checkin');
   revalidatePath('/dashboard/book/checkout');
   revalidatePath('/dashboard/book/items');
 
