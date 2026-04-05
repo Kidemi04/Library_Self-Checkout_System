@@ -181,7 +181,7 @@ const loadBorrowerByIdentifier = async (
   }
 
   const { data: studentMatch } = await supabase
-    .from('user_profiles')
+    .from('UserProfile')
     .select('user_id')
     .eq('student_id', identifier)
     .maybeSingle<{ user_id: string }>();
@@ -192,7 +192,7 @@ const loadBorrowerByIdentifier = async (
   }
 
   const { data: usernameMatch } = await supabase
-    .from('user_profiles')
+    .from('UserProfile')
     .select('user_id')
     .eq('username', identifier)
     .maybeSingle<{ user_id: string }>();
@@ -219,7 +219,7 @@ const upsertProfileFields = async (
   }
 
   if (Object.keys(payload).length > 1) {
-    await supabase.from('user_profiles').upsert(payload, { onConflict: 'user_id' });
+    await supabase.from('UserProfile').upsert(payload, { onConflict: 'user_id' });
   }
 };
 
@@ -434,14 +434,14 @@ export async function checkoutBookAction(
   const { error: copyUpdateError } = await supabase
     .from('Copies')
     .update({
-      status: 'ON_LOAN',
+      status: 'on_loan',
     })
     .eq('id', copy.id);
 
   if (copyUpdateError) {
     console.error('Failed to update copy status after borrowing', copyUpdateError);
     if (loanId) {
-      await supabase.from('loans').delete().eq('id', loanId);
+      await supabase.from('Loans').delete().eq('id', loanId);
     }
     return failure('Loan cancelled because the copy status could not be updated.');
   }
