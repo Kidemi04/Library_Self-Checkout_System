@@ -743,7 +743,7 @@ export async function updateBookAction(
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await supabase.from('books').update(updatePayload).eq('id', bookId);
+  const { error } = await supabase.from('Books').update(updatePayload).eq('id', bookId);
 
   if (error) {
     console.error('Failed to update book record', error);
@@ -753,7 +753,7 @@ export async function updateBookAction(
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/book/items');
   revalidatePath('/dashboard/book/checkout');
-  revalidatePath('/dashboard/book-list');
+  revalidatePath('/dashboard/book/list');
 
   return success('Book details updated.');
 }
@@ -767,7 +767,7 @@ export async function deleteBookAction(bookId: string): Promise<ActionState> {
       throw new Error(copyError.message);
     }
 
-    const { error } = await supabase.from('books').delete().eq('id', bookId);
+    const { error } = await supabase.from('Books').delete().eq('id', bookId);
 
     if (error) {
       throw new Error(error.message);
@@ -775,7 +775,7 @@ export async function deleteBookAction(bookId: string): Promise<ActionState> {
 
     revalidatePath('/dashboard');
     revalidatePath('/dashboard/book/items');
-    revalidatePath('/dashboard/book-list');
+    revalidatePath('/dashboard/book/list');
 
     return success('Book deleted successfully.');
   } catch (error: any) {
@@ -823,7 +823,7 @@ export async function createBookAction(
 
   if (isbn) {
     const { data: existingByIsbn, error: isbnError } = await supabase
-      .from('books')
+      .from('Books')
       .select('id')
       .eq('isbn', isbn)
       .maybeSingle();
@@ -886,11 +886,11 @@ export async function createBookAction(
     status: 'AVAILABLE',
   }));
 
-  const { error: copyInsertError } = await supabase.from('copies').insert(copyRows);
+  const { error: copyInsertError } = await supabase.from('Copies').insert(copyRows);
 
   if (copyInsertError) {
     console.error('Failed to create copies', copyInsertError);
-    await supabase.from('books').delete().eq('id', bookRow.id);
+    await supabase.from('Books').delete().eq('id', bookRow.id);
     return failure('Unable to create book copies; no records were saved.');
   }
 
