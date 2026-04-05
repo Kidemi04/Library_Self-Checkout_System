@@ -34,6 +34,16 @@ const typeConfig = {
     badge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
     dot: 'bg-amber-500',
   },
+  hold_ready: {
+    label: 'Hold ready',
+    badge: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
+    dot: 'bg-violet-500',
+  },
+  hold_placed: {
+    label: 'Hold placed',
+    badge: 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
+    dot: 'bg-sky-500',
+  },
 } as const;
 
 interface Props {

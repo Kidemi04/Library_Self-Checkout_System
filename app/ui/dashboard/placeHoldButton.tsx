@@ -8,9 +8,10 @@ type HoldState = 'none' | 'queued' | 'ready';
 type PlaceHoldButtonProps = {
   bookId: string;
   patronId?: string;
+  bookTitle?: string;
 };
 
-export default function PlaceHoldButton({ bookId, patronId }: PlaceHoldButtonProps) {
+export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHoldButtonProps) {
   const supabase = supabaseBrowserClient;
   const [holdState, setHoldState] = useState<HoldState>('none');
   const [loading, setLoading] = useState(false);
@@ -96,6 +97,13 @@ export default function PlaceHoldButton({ bookId, patronId }: PlaceHoldButtonPro
       }
 
       setHoldState('queued');
+
+      // Notify the user that their hold was placed
+      fetch('/api/notifications/hold-placed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookTitle: bookTitle ?? '' }),
+      }).catch(() => {});
     } catch (err) {
       console.error(err);
       setError('Something went wrong.');

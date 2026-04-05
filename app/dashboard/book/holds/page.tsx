@@ -33,6 +33,21 @@ async function markReady(formData: FormData) {
 
   if (!firstInQueue || firstInQueue.id !== holdId) return;
 
+  // Guard: at least one copy must be available (returned/not on loan)
+  const { data: availableCopy } = await supabase
+    .from('copies')
+    .select('id, loans(id, returned_at)')
+    .eq('book_id', bookId)
+    .neq('status', 'ON_LOAN')
+    .limit(10);
+
+  const hasAvailable = (availableCopy ?? []).some((copy: any) => {
+    const loans = Array.isArray(copy.loans) ? copy.loans : [];
+    return loans.every((loan: any) => loan.returned_at !== null);
+  });
+
+  if (!hasAvailable) return;
+
   const now = new Date();
   const expires = new Date(now);
   expires.setDate(expires.getDate() + 3);
@@ -93,6 +108,7 @@ export default async function HoldsManagementPage() {
     redirect('/dashboard');
   }
 
+  const supabaseForPage = getSupabaseServerClient();
   const holds = await fetchHoldsForStaff();
 
   // Compute which hold ID is first in queue per book (holds are already ordered by placed_at asc).
@@ -102,6 +118,23 @@ export default async function HoldsManagementPage() {
     if (hold.status === 'QUEUED' && !seenQueuedBooks.has(hold.book_id)) {
       seenQueuedBooks.add(hold.book_id);
       firstInQueueIds.add(hold.id);
+    }
+  }
+
+  // Check which books have at least one available copy (returned/not on loan)
+  const queuedBookIds = [...seenQueuedBooks];
+  const availableBookIds = new Set<string>();
+  if (queuedBookIds.length > 0) {
+    const { data: copies } = await supabaseForPage
+      .from('copies')
+      .select('book_id, loans(id, returned_at)')
+      .in('book_id', queuedBookIds)
+      .neq('status', 'ON_LOAN');
+
+    for (const copy of copies ?? []) {
+      const loans = Array.isArray((copy as any).loans) ? (copy as any).loans : [];
+      const noActiveLoans = loans.every((l: any) => l.returned_at !== null);
+      if (noActiveLoans) availableBookIds.add((copy as any).book_id);
     }
   }
 
@@ -204,6 +237,7 @@ export default async function HoldsManagementPage() {
                           bookId={hold.book_id}
                           bookTitle={hold.book_title ?? ''}
                           action={markReady}
+                          available={availableBookIds.has(hold.book_id)}
                         />
                       )}
 

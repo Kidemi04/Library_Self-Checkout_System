@@ -8,9 +8,10 @@ interface Props {
   bookId: string;
   bookTitle: string;
   action: (formData: FormData) => Promise<void>;
+  available?: boolean;
 }
 
-export default function MarkReadyButton({ holdId, patronId, bookId, bookTitle, action }: Props) {
+export default function MarkReadyButton({ holdId, patronId, bookId, bookTitle, action, available = false }: Props) {
   const [open, setOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -19,10 +20,14 @@ export default function MarkReadyButton({ holdId, patronId, bookId, bookTitle, a
       {/* Trigger button */}
       <button
         type="button"
-        onClick={() => setOpen(true)}
-        className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-emerald-700"
+        onClick={() => available && setOpen(true)}
+        disabled={!available}
+        title={available ? undefined : 'No copies available — book must be returned first'}
+        className={available
+          ? 'rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-emerald-700'
+          : 'rounded-xl bg-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-500 cursor-not-allowed dark:bg-slate-700 dark:text-slate-400'}
       >
-        Mark ready
+        {available ? 'Mark ready' : 'Unavailable'}
       </button>
 
       {/* Confirmation modal */}

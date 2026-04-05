@@ -1,6 +1,6 @@
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 
-export type NotificationType = 'checkout' | 'checkin' | 'loan_confirmed' | 'due_soon' | 'hold_ready';
+export type NotificationType = 'checkout' | 'checkin' | 'loan_confirmed' | 'due_soon' | 'hold_ready' | 'hold_placed';
 
 export interface Notification {
   id: string;

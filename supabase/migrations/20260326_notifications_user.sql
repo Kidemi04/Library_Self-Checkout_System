@@ -13,7 +13,7 @@ ALTER TABLE notifications
 
 ALTER TABLE notifications
   ADD CONSTRAINT notifications_type_check
-  CHECK (type IN ('checkout', 'checkin', 'loan_confirmed', 'due_soon'));
+  CHECK (type IN ('checkout', 'checkin', 'loan_confirmed', 'due_soon', 'hold_ready', 'hold_placed'));
 
 -- Index for fast user-targeted lookups
 CREATE INDEX IF NOT EXISTS idx_notifications_target_user

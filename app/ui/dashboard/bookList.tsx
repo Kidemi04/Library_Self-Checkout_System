@@ -157,7 +157,7 @@ export default function BookList({
                       )}
 
                       <div className="flex gap-2">
-                        {!canBorrow && <PlaceHoldButton bookId={b.id} patronId={patronId} />}
+                        {!canBorrow && <PlaceHoldButton bookId={b.id} patronId={patronId} bookTitle={b.title} />}
                         {canBorrow && (
                           <Link
                             href={`/dashboard/check-out?bookId=${b.id}`}
@@ -207,7 +207,7 @@ export default function BookList({
                     </div>
 
                     <div className="flex justify-end gap-2">
-                      {!canBorrow && <PlaceHoldButton bookId={b.id} patronId={patronId} />}
+                      {!canBorrow && <PlaceHoldButton bookId={b.id} patronId={patronId} bookTitle={b.title} />}
                       {canBorrow && (
                         <Link
                           href={`/dashboard/check-out?bookId=${b.id}`}
