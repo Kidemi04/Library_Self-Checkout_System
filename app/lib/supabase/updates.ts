@@ -48,7 +48,7 @@ const syncBookTags = async (
   const normalized = normalizeTags(tags);
 
   if (normalized.length === 0) {
-    await supabase.from('book_tag_links').delete().eq('book_id', bookId);
+    await supabase.from('BookTagLinks').delete().eq('book_id', bookId);
     return;
   }
 
@@ -129,13 +129,12 @@ export async function updateBook(payload: UpdatePayload) {
     isbn: payload.isbn ?? null,
     classification: payload.classification ?? null,
     publisher: payload.publisher ?? null,
-    publication_year:
-      payload.publication_year == null ? null : String(payload.publication_year),
+    publication_year: payload.publication_year == null ? null : String(payload.publication_year),
     cover_image_url: payload.cover_image_url ?? null,
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await supabase.from('books').update(update).eq('id', payload.id);
+  const { error } = await supabase.from('Books').update(update).eq('id', payload.id);
   if (error) throw new Error(error.message);
 
   if (Array.isArray(payload.tags)) {
