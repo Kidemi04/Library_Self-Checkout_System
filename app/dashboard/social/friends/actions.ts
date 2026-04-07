@@ -23,7 +23,7 @@ export async function sendFriendRequest(targetUserId: string): Promise<ActionSta
 
     // Check if already friends or requested
     const { data: existing } = await supabase
-        .from('friends')
+        .from('Friends')
         .select('id, status')
         .or(`and(follower_id.eq.${userId},followed_id.eq.${targetUserId}),and(follower_id.eq.${targetUserId},followed_id.eq.${userId})`)
         .maybeSingle();
@@ -34,7 +34,7 @@ export async function sendFriendRequest(targetUserId: string): Promise<ActionSta
         if (existing.status === 'blocked') return failure('Unable to send request');
     }
 
-    const { error } = await supabase.from('friends').insert({
+    const { error } = await supabase.from('Friends').insert({
         follower_id: userId,
         followed_id: targetUserId,
         status: 'pending'
@@ -45,7 +45,7 @@ export async function sendFriendRequest(targetUserId: string): Promise<ActionSta
         return failure('Failed to send friend request');
     }
 
-    revalidatePath('/dashboard/friends');
+    revalidatePath('/dashboard/social/friends');
     return success('Friend request sent');
 }
 
@@ -57,7 +57,7 @@ export async function acceptFriendRequest(friendshipId: string): Promise<ActionS
 
     // Verify the request is for this user
     const { data: request } = await supabase
-        .from('friends')
+        .from('Friends')
         .select('followed_id')
         .eq('id', friendshipId)
         .single();
@@ -67,7 +67,7 @@ export async function acceptFriendRequest(friendshipId: string): Promise<ActionS
     }
 
     const { error } = await supabase
-        .from('friends')
+        .from('Friends')
         .update({ status: 'accepted', approved_at: new Date().toISOString() })
         .eq('id', friendshipId);
 
@@ -76,7 +76,7 @@ export async function acceptFriendRequest(friendshipId: string): Promise<ActionS
         return failure('Failed to accept friend request');
     }
 
-    revalidatePath('/dashboard/friends');
+    revalidatePath('/dashboard/social/friends');
     return success('Friend request accepted');
 }
 
@@ -88,7 +88,7 @@ export async function removeFriend(friendshipId: string): Promise<ActionState> {
 
     // Verify the user is part of this friendship
     const { data: friendship } = await supabase
-        .from('friends')
+        .from('Friends')
         .select('follower_id, followed_id')
         .eq('id', friendshipId)
         .single();
@@ -97,13 +97,13 @@ export async function removeFriend(friendshipId: string): Promise<ActionState> {
         return failure('Invalid operation');
     }
 
-    const { error } = await supabase.from('friends').delete().eq('id', friendshipId);
+    const { error } = await supabase.from('Friends').delete().eq('id', friendshipId);
 
     if (error) {
         console.error('Error removing friend', error);
         return failure('Failed to remove friend');
     }
 
-    revalidatePath('/dashboard/friends');
+    revalidatePath('/dashboard/social/friends');
     return success('Friend removed');
 }

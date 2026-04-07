@@ -1,10 +1,11 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { createPost } from '@/app/dashboard/social/communities/actions';
 import { Button } from '@/app/ui/button';
 import { PaperAirplaneIcon } from '@heroicons/react/24/outline';
 import { ActionState } from '@/app/dashboard/actionState';
+import { useActionState } from 'react';
 
 function SubmitButton() {
     const { pending } = useFormStatus();
@@ -24,7 +25,7 @@ function SubmitButton() {
 
 export default function CreatePostForm({ communityId }: { communityId: string }) {
     const initialState: ActionState = { status: 'idle', message: '' };
-    const [state, dispatch] = useFormState(createPost, initialState);
+    const [state, dispatch] = useActionState(createPost, initialState);
 
     return (
         <form action={dispatch} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm dark:bg-gray-800 dark:border-gray-700">

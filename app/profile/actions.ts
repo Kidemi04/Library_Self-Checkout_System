@@ -55,7 +55,7 @@ export async function updateProfileNamesAction(
 
     const supabase = getSupabaseServerClient();
     const { error } = await supabase
-      .from('UserProfiles')
+      .from('UserProfile')
       .upsert(
         {
           user_id: user.id,
@@ -145,7 +145,7 @@ export async function updateProfileAvatar(
 
     // Update user profile with new avatar URL
     const { error: updateError } = await supabase
-      .from('UserProfiles')
+      .from('UserProfile')
       .upsert({
         user_id: session.user.id,
         avatar_url: publicUrl
@@ -207,7 +207,7 @@ export async function updateProfileAction(
 
     const supabase = getSupabaseServerClient();
     const { error } = await supabase
-      .from('UserProfiles')
+      .from('UserProfile')
       .upsert(
         {
           user_id: session.user.id,
