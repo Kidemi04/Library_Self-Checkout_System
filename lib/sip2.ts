@@ -5,7 +5,7 @@ if (!BASE || !TOKEN) {
   console.warn('[SIP2] Configuration missing.');
 }
 
-type SipEndpoint = '/login' | '/logout' | '/checkout' | '/checkin' | '/items';
+type SipEndpoint = '/login' | '/logout' | '/checkOut' | '/checkIn' | '/items';
 
 async function request<T>(endpoint: SipEndpoint, payload: unknown): Promise<T> {
   if (!BASE || !TOKEN) {
@@ -64,11 +64,11 @@ export async function logout(payload: unknown) {
 }
 
 export async function checkOut(payload: unknown) {
-  return request('/checkout', payload);
+  return request('/checkOut', payload);
 }
 
 export async function checkIn(payload: unknown) {
-  return request('/checkin', payload);
+  return request('/checkIn', payload);
 }
 
 export async function item(payload: unknown) {
