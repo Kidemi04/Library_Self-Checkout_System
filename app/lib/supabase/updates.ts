@@ -142,7 +142,7 @@ export async function updateBook(payload: UpdatePayload) {
   }
 
   if (payload.sip_status) {
-    const sipStatusValue = payload.sip_status.toUpperCase();
+    const sipStatusValue = payload.sip_status.toLowerCase();
     const { error: copyStatusError } = await supabase
       .from('Copies')
       .update({ status: sipStatusValue })
