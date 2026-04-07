@@ -883,7 +883,7 @@ export async function createBookAction(
   const copyRows = barcodes.map((barcode) => ({
     book_id: bookRow.id,
     barcode,
-    status: 'avaliable',
+    status: 'available',
   }));
 
   const { error: copyInsertError } = await supabase.from('Copies').insert(copyRows);
