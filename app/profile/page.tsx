@@ -23,8 +23,6 @@ type ProfileRow = {
   student_id?: string | null;
   links?: unknown;
   visibility?: string | null;
-  followers_count?: number | null;
-  following_count?: number | null;
 };
 
 type ProfileLinks = Array<{ label: string; url: string }>;
@@ -121,9 +119,7 @@ export default async function ProfilePage() {
             intake_year,
             student_id,
             links,
-            visibility,
-            followers_count,
-            following_count
+            visibility
           `,
         )
         .eq('user_id', user.id)
@@ -150,14 +146,6 @@ export default async function ProfilePage() {
   const visibilityLabel = formatVisibility(profile.visibility);
   const links = normalizeLinks(profile.links);
   const preferredName = profile.display_name ?? user.name ?? null;
-  const followersCount =
-    typeof profile.followers_count === 'number' && !Number.isNaN(profile.followers_count)
-      ? profile.followers_count
-      : 0;
-  const followingCount =
-    typeof profile.following_count === 'number' && !Number.isNaN(profile.following_count)
-      ? profile.following_count
-      : 0;
 
   const pageBgClass = clsx(
     'min-h-screen py-8 transition-colors sm:py-12',
@@ -209,33 +197,7 @@ export default async function ProfilePage() {
           </div>
         </BlurFade>
 
-        {/* 2. Stats Row */}
-        <BlurFade delay={0.2} yOffset={20}>
-          <div className="grid grid-cols-2 gap-4">
-            <Link href="/profile/follows/followers" className="group block">
-              <GlassCard intensity="low" className="flex flex-col items-center justify-center py-6 transition-transform duration-300 hover:scale-[1.02] hover:bg-white/60 dark:hover:bg-white/10">
-                <span className="text-3xl font-bold text-slate-900 dark:text-white group-hover:text-swin-red transition-colors">
-                  {followersCount}
-                </span>
-                <span className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Followers
-                </span>
-              </GlassCard>
-            </Link>
-            <Link href="/profile/follows/following" className="group block">
-              <GlassCard intensity="low" className="flex flex-col items-center justify-center py-6 transition-transform duration-300 hover:scale-[1.02] hover:bg-white/60 dark:hover:bg-white/10">
-                <span className="text-3xl font-bold text-slate-900 dark:text-white group-hover:text-swin-red transition-colors">
-                  {followingCount}
-                </span>
-                <span className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Following
-                </span>
-              </GlassCard>
-            </Link>
-          </div>
-        </BlurFade>
-
-        {/* 3. Identity Section */}
+        {/* 2. Identity Section */}
         <BlurFade delay={0.3} yOffset={20}>
           <section>
             <h2 className={sectionTitleClass}>Identity</h2>

@@ -44,13 +44,6 @@ const generalLinks: NavItem[] = [
       { name: 'LinkedIn Learning library', href: '/dashboard/learning/linkedin' },
     ]
   },
-  { name: 'Social', href: '/dashboard/social', icon: UserGroupIcon,
-  children: [
-    { name: 'Communities', href: '/dashboard/social/communities' },
-    { name: 'Friends', href: '/dashboard/social/friends' },
-  ]
-},
-
   { name: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];
