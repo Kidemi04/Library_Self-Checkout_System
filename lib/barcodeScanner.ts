@@ -172,7 +172,7 @@ export async function scanBlob(
       img.src = url;
     });
 
-    const result = reader.decodeFromImageElement(img);
+    const result = await reader.decodeFromImageElement(img);
     URL.revokeObjectURL(url);
 
     if (result) {

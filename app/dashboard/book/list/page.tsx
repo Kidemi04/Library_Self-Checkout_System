@@ -13,19 +13,7 @@ import { fetchBooks } from '@/app/lib/supabase/queries';
 import type { Book, CopyStatus } from '@/app/lib/supabase/types';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 import { getDashboardSession } from '@/app/lib/auth/session';
-
-// Keep this list in sync with your SIP / Supabase enum
-type ItemStatus =
-  | 'available'
-  | 'checked_out'
-  | 'borrowed'
-  | 'reserved'
-  | 'on_hold'
-  | 'in_transit'
-  | 'in_process'
-  | 'lost'
-  | 'missing'
-  | 'maintenance';
+import type { ItemStatus } from '@/app/lib/supabase/updates';
 
 const SIP_STATUS_PRIORITY: CopyStatus[] = [
   'on_loan',
@@ -81,11 +69,11 @@ export default async function BookListPage({
   // 2) Normalize DB rows to CatalogBook expected by the table
   const allowed = new Set<ItemStatus>([
     'available',
-    'checked_out',
+    'checked out',
     'borrowed',
     'reserved',
     'on_hold',
-    'in_transit',
+    'in transit',
     'in_process',
     'lost',
     'missing',
@@ -94,7 +82,7 @@ export default async function BookListPage({
 
   const uiBooks: CatalogBook[] = (dbBooks ?? []).map((book) => {
     const status: ItemStatus =
-      book.availableCopies > 0 ? 'available' : 'checked_out';
+      book.availableCopies > 0 ? 'available' : 'checked out';
 
     return {
       id: book.id,

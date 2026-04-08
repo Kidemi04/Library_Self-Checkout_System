@@ -45,7 +45,7 @@ const fallbackSplit = (books: Book[]): Stage[] => {
   const intermediate = books.slice(third, third * 2);
   const advanced = books.slice(third * 2);
 
-  return [
+  const stages: Stage[] = [
     {
       level: 'Beginner',
       description: 'Start here — no prior knowledge needed',
@@ -61,7 +61,8 @@ const fallbackSplit = (books: Book[]): Stage[] => {
       description: 'Deep dive — for those with solid foundations',
       books: advanced.map((b) => toStageBook(b, 'Recommended for this level')),
     },
-  ].filter((stage) => stage.books.length > 0);
+  ];
+  return stages.filter((stage) => stage.books.length > 0);
 };
 
 type GeminiBookEntry = {
@@ -148,11 +149,12 @@ const assignWithGemini = async (
     else advanced.push(stageBook);
   }
 
-  return [
+  const stages: Stage[] = [
     { level: 'Beginner', description: 'Start here — no prior knowledge needed', books: beginner },
     { level: 'Intermediate', description: 'Build on the basics — some experience helpful', books: intermediate },
     { level: 'Advanced', description: 'Deep dive — for those with solid foundations', books: advanced },
-  ].filter((stage) => stage.books.length > 0);
+  ];
+  return stages.filter((stage) => stage.books.length > 0);
 };
 
 export async function POST(request: Request) {

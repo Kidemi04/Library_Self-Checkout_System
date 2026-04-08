@@ -479,10 +479,10 @@ function renderStatusBadge(status?: ItemStatus | null) {
   const s = status ?? 'available';
   const map: Record<ItemStatus, { text: string; cls: string }> = {
     available: { text: 'Available', cls: 'bg-green-100 text-green-700' },
-    checked_out: { text: 'Checked out', cls: 'bg-amber-100 text-amber-800' },
+    'checked out': { text: 'Checked out', cls: 'bg-amber-100 text-amber-800' },
     borrowed: { text: 'Checked out', cls: 'bg-amber-100 text-amber-800' },
     reserved: { text: 'On hold', cls: 'bg-indigo-100 text-indigo-700' },
-    in_transit: { text: 'In transit', cls: 'bg-sky-100 text-sky-700' },
+    'in transit': { text: 'In transit', cls: 'bg-sky-100 text-sky-700' },
     on_hold: { text: 'On hold', cls: 'bg-indigo-100 text-indigo-700' },
     in_process: { text: 'In process', cls: 'bg-slate-100 text-slate-700' },
     lost: { text: 'Lost', cls: 'bg-rose-100 text-rose-700' },
