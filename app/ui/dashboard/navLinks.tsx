@@ -57,6 +57,7 @@ const userLinks: NavItem[] = [
         children: [
           ...(link.children || []), // Keep existing user sub-items
           { name: 'My Reservations', href: '/dashboard/book/reservation' },
+          { name: 'My History', href: '/dashboard/book/history' },
         ],
       };
     }
