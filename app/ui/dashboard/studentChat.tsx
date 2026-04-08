@@ -91,7 +91,24 @@ const formatTimestamp = (timestamp: number) => {
   }
 };
 
-export default function StudentChat({ studentName }: { studentName?: string | null }) {
+const ONBOARDING_TAGS = [
+  'programming', 'data science', 'machine learning', 'software engineering',
+  'algorithms', 'networking', 'databases', 'operating systems',
+  'web development', 'cybersecurity',
+  'business', 'marketing', 'finance', 'accounting', 'economics', 'management',
+  'engineering', 'mathematics', 'statistics', 'physics',
+  'design', 'multimedia', 'art',
+  'english', 'writing', 'communication',
+  'robotics', 'electronics',
+];
+
+export default function StudentChat({
+  studentName,
+  needsOnboarding = false,
+}: {
+  studentName?: string | null;
+  needsOnboarding?: boolean;
+}) {
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
     buildInitialMessages(studentName),
   );
@@ -106,6 +123,9 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [animKey, setAnimKey] = useState(0);
   const [cardsVisible, setCardsVisible] = useState(false);
+  const [onboardingComplete, setOnboardingComplete] = useState(!needsOnboarding);
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [isSavingInterests, setIsSavingInterests] = useState(false);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const recsRef = useRef<HTMLDivElement | null>(null);
@@ -182,6 +202,32 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
     setInputValue('');
     setIsAssistantTyping(false);
     lastSentAtRef.current = 0;
+  };
+
+  const handleSaveInterests = async () => {
+    if (selectedTags.size === 0 || isSavingInterests) return;
+    setIsSavingInterests(true);
+    try {
+      await fetch('/api/user/interests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ interests: Array.from(selectedTags) }),
+      });
+    } catch {
+      // Non-fatal: proceed even if save fails
+    } finally {
+      setIsSavingInterests(false);
+      setOnboardingComplete(true);
+    }
+  };
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(tag)) next.delete(tag);
+      else next.add(tag);
+      return next;
+    });
   };
 
   const scrollToBottom = () => {
@@ -372,6 +418,61 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
         </div>
       </div>
 
+      {!onboardingComplete && (
+        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400/80">
+            Get started
+          </p>
+          <h3 className="mt-1 text-base font-semibold text-slate-900 dark:text-slate-100">
+            Pick topics you are interested in
+          </h3>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300/80">
+            Choose at least one. We will use these to personalize your recommendations.
+          </p>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {ONBOARDING_TAGS.map((tag) => {
+              const active = selectedTags.has(tag);
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  className={clsx(
+                    'rounded-full border px-3 py-1 text-xs font-semibold transition',
+                    active
+                      ? 'border-slate-900 bg-slate-900 text-white dark:border-slate-200 dark:bg-slate-200 dark:text-slate-900'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white',
+                  )}
+                >
+                  {tag}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 flex items-center gap-3">
+            <button
+              type="button"
+              disabled={selectedTags.size === 0 || isSavingInterests}
+              onClick={handleSaveInterests}
+              className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+            >
+              {isSavingInterests
+                ? 'Saving...'
+                : `Continue with ${selectedTags.size} topic${selectedTags.size !== 1 ? 's' : ''}`}
+            </button>
+            <button
+              type="button"
+              onClick={() => setOnboardingComplete(true)}
+              className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+            >
+              Skip for now
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="mt-4 flex flex-wrap gap-2">
         {quickPrompts.map((prompt) => (
           <button
@@ -385,7 +486,7 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
         ))}
       </div>
 
-      <div
+      {onboardingComplete && <div
         ref={messagesRef}
         onScroll={handleScroll}
         className={clsx(
@@ -463,9 +564,9 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
             Library Assistant is typing...
           </div>
         ) : null}
-      </div>
+      </div>}
 
-      {!stickToBottom ? (
+      {onboardingComplete && !stickToBottom ? (
         <button
           type="button"
           onClick={() => {
@@ -478,7 +579,7 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
         </button>
       ) : null}
 
-      <form onSubmit={handleSubmit} className="mt-4 space-y-3">
+      {onboardingComplete && <form onSubmit={handleSubmit} className="mt-4 space-y-3">
         <label htmlFor="student-chat-message" className="sr-only">
           Message
         </label>
@@ -508,9 +609,9 @@ export default function StudentChat({ studentName }: { studentName?: string | nu
             {isAssistantTyping ? 'Sending...' : 'Send message'}
           </button>
         </div>
-      </form>
+      </form>}
 
-      {!isFullscreen && <>
+      {!isFullscreen && onboardingComplete && <>
         <style>{`
           @keyframes recSectionIn {
             from { opacity: 0; transform: translateY(20px); }

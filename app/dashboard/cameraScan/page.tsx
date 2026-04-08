@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { scanImageData, scanBlob } from '@/lib/barcodeScanner';
+import { scanImageData, scanBlob, initScanner } from '@/lib/barcodeScanner';
 
 type ScanState = 'idle' | 'scanning' | 'paused';
 
 export default function QrScanPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  const [wasmReady, setWasmReady] = useState(false);
   const [scanState, setScanState] = useState<ScanState>('idle');
   const [message, setMessage] = useState<string>('');
   const [decoded, setDecoded] = useState<string | null>(null);
@@ -21,6 +22,10 @@ export default function QrScanPage() {
   const addLog = useCallback((msg: string) => {
     const ts = new Date().toLocaleTimeString();
     setDebugLog((prev) => [...prev.slice(-80), `[${ts}] ${msg}`]);
+  }, []);
+
+  useEffect(() => {
+    initScanner().then(() => setWasmReady(true));
   }, []);
 
   useEffect(() => {
@@ -231,6 +236,16 @@ export default function QrScanPage() {
   }, [addLog]);
 
   // ---------- UI ----------
+  if (!wasmReady) {
+    return (
+      <main className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-swin-charcoal dark:text-white">
+        <title>Camera Scanner | Dashboard</title>
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-swin-red" />
+        <p className="text-sm text-slate-500 dark:text-slate-400">Loading scanner...</p>
+      </main>
+    );
+  }
+
   return (
     <main className="space-y-8">
       <title>Camera Scanner | Dashboard</title>

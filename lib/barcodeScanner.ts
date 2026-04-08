@@ -11,6 +11,7 @@
 import {
   readBarcodes,
   prepareZXingModule,
+  getZXingModule,
   type ReaderOptions,
   type ReadResult,
 } from 'zxing-wasm/reader';
@@ -32,17 +33,24 @@ const NATIVE_FORMATS = [
 ] as const;
 
 // ---------------------------------------------------------------------------
-// WASM initialisation (lazy – first call triggers the download)
+// WASM initialisation
 // ---------------------------------------------------------------------------
 let wasmReady = false;
 
 function ensureWasm() {
   if (wasmReady) return;
-  prepareZXingModule({
-    // By default zxing-wasm loads .wasm from jsDelivr CDN, which is fine.
-    // If you want to self-host, set overrides.locateFile here.
-    fireImmediately: false,
-  });
+  prepareZXingModule({ fireImmediately: false });
+  wasmReady = true;
+}
+
+/**
+ * Pre-warm the WASM module. Call this as early as possible (e.g. on page mount)
+ * so the module is ready by the time the user starts scanning.
+ * Returns a promise that resolves when the WASM module is fully loaded.
+ */
+export async function initScanner(): Promise<void> {
+  prepareZXingModule({ fireImmediately: true });
+  await getZXingModule();
   wasmReady = true;
 }
 
