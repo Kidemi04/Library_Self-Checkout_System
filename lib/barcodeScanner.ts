@@ -1,5 +1,5 @@
 /**
- * Shared barcode scanning utility using zxing-wasm (WebAssembly).
+ * Shared barcode scanning utility using @zxing/browser.
  *
  * Provides two main functions:
  *  - scanImageData(imageData)  – for live camera frames
@@ -8,13 +8,8 @@
  * Falls back to native BarcodeDetector when available (Android Chrome).
  */
 
-import {
-  readBarcodes,
-  prepareZXingModule,
-  getZXingModule,
-  type ReaderOptions,
-  type ReadResult,
-} from 'zxing-wasm/reader';
+import { BrowserMultiFormatReader } from '@zxing/browser';
+import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 
 // ---------------------------------------------------------------------------
 // Native BarcodeDetector types (not yet in lib.dom)
@@ -33,52 +28,37 @@ const NATIVE_FORMATS = [
 ] as const;
 
 // ---------------------------------------------------------------------------
-// WASM initialisation
+// @zxing/browser reader
 // ---------------------------------------------------------------------------
-let wasmReady = false;
+const hints = new Map();
+hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+  BarcodeFormat.CODE_128,
+  BarcodeFormat.CODE_39,
+  BarcodeFormat.QR_CODE,
+  BarcodeFormat.EAN_13,
+  BarcodeFormat.EAN_8,
+  BarcodeFormat.UPC_A,
+  BarcodeFormat.UPC_E,
+]);
+hints.set(DecodeHintType.TRY_HARDER, true);
 
-function ensureWasm() {
-  if (wasmReady) return;
-  prepareZXingModule({ fireImmediately: false });
-  wasmReady = true;
+let zxingReader: BrowserMultiFormatReader | null = null;
+
+function getZxingReader(): BrowserMultiFormatReader {
+  if (!zxingReader) {
+    zxingReader = new BrowserMultiFormatReader(hints);
+  }
+  return zxingReader;
 }
 
-/**
- * Pre-warm the WASM module. Call this as early as possible (e.g. on page mount)
- * so the module is ready by the time the user starts scanning.
- * Returns a promise that resolves when the WASM module is fully loaded.
- */
+// ---------------------------------------------------------------------------
+// Init
+// ---------------------------------------------------------------------------
+
+/** Pre-create the reader. Call on page mount for fastest first scan. */
 export async function initScanner(): Promise<void> {
-  prepareZXingModule({ fireImmediately: true });
-  await getZXingModule();
-  wasmReady = true;
+  getZxingReader();
 }
-
-// ---------------------------------------------------------------------------
-// Reader option presets
-// ---------------------------------------------------------------------------
-/** Fast options for live camera scanning (speed over accuracy). */
-const cameraReaderOptions: ReaderOptions = {
-  formats: ['Code128', 'Code39'],
-  tryHarder: false,
-  tryRotate: false,
-  tryInvert: false,
-  tryDownscale: true,
-  maxNumberOfSymbols: 1,
-};
-
-/** Thorough options for uploaded images (accuracy over speed). */
-const uploadReaderOptions: ReaderOptions = {
-  formats: [
-    'Code128', 'Code39', 'QRCode',
-    'EAN-13', 'EAN-8', 'UPC-A', 'UPC-E',
-  ],
-  tryHarder: true,
-  tryRotate: true,
-  tryInvert: true,
-  tryDownscale: true,
-  maxNumberOfSymbols: 1,
-};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -93,26 +73,18 @@ function getNativeDetector(): BarcodeDetectorCtor | null {
   return (window as any).BarcodeDetector as BarcodeDetectorCtor;
 }
 
-function firstText(results: ReadResult[]): string | null {
-  for (const r of results) {
-    const t = r.text?.trim();
-    if (t) return t;
-  }
-  return null;
-}
-
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
 export interface ScanResult {
   text: string;
-  engine: 'native' | 'zxing-wasm';
+  engine: 'native' | 'zxing-browser';
 }
 
 /**
  * Scan an ImageData (typically from a canvas / video frame).
- * Tries native BarcodeDetector first, then zxing-wasm.
+ * Tries native BarcodeDetector first, then @zxing/browser.
  */
 export async function scanImageData(
   imageData: ImageData,
@@ -123,8 +95,6 @@ export async function scanImageData(
   if (Detector) {
     try {
       const detector = new Detector({ formats: [...NATIVE_FORMATS] });
-      // Native detect() needs an ImageBitmap, not ImageData directly on all
-      // platforms, but ImageData is accepted on Chrome. Wrap in bitmap to be safe.
       const bitmap = await createImageBitmap(imageData);
       const results = await detector.detect(bitmap);
       bitmap.close();
@@ -138,17 +108,25 @@ export async function scanImageData(
     }
   }
 
-  // 2. zxing-wasm
-  ensureWasm();
+  // 2. @zxing/browser
   try {
-    const results = await readBarcodes(imageData, cameraReaderOptions);
-    const text = firstText(results);
-    if (text) {
-      log?.(`[zxing-wasm] DETECTED: "${text}"`);
-      return { text, engine: 'zxing-wasm' };
+    const reader = getZxingReader();
+    const canvas = document.createElement('canvas');
+    canvas.width = imageData.width;
+    canvas.height = imageData.height;
+    const ctx = canvas.getContext('2d')!;
+    ctx.putImageData(imageData, 0, 0);
+
+    const result = reader.decodeFromCanvas(canvas);
+    if (result) {
+      const text = result.getText().trim();
+      if (text) {
+        log?.(`[zxing-browser] DETECTED: "${text}" (${result.getBarcodeFormat()})`);
+        return { text, engine: 'zxing-browser' };
+      }
     }
-  } catch (e: any) {
-    log?.(`[zxing-wasm] error: ${e?.message ?? e}`);
+  } catch {
+    // decodeFromCanvas throws NotFoundException when no barcode found — normal
   }
 
   return null;
@@ -156,7 +134,7 @@ export async function scanImageData(
 
 /**
  * Scan a Blob / File (uploaded image).
- * Tries native BarcodeDetector first, then zxing-wasm with thorough options.
+ * Tries native BarcodeDetector first, then @zxing/browser.
  */
 export async function scanBlob(
   blob: Blob,
@@ -182,19 +160,35 @@ export async function scanBlob(
     }
   }
 
-  // 2. zxing-wasm — pass the Blob directly (it supports Blob input)
-  ensureWasm();
+  // 2. @zxing/browser — decode from image element
   try {
-    log?.('[zxing-wasm] Scanning blob (tryHarder + tryRotate)...');
-    const results = await readBarcodes(blob, uploadReaderOptions);
-    const text = firstText(results);
-    if (text) {
-      log?.(`[zxing-wasm] DETECTED: "${text}"`);
-      return { text, engine: 'zxing-wasm' };
+    log?.('[zxing-browser] Scanning uploaded image...');
+    const reader = getZxingReader();
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = url;
+    });
+
+    const result = reader.decodeFromImageElement(img);
+    URL.revokeObjectURL(url);
+
+    if (result) {
+      const text = result.getText().trim();
+      if (text) {
+        log?.(`[zxing-browser] DETECTED: "${text}" (${result.getBarcodeFormat()})`);
+        return { text, engine: 'zxing-browser' };
+      }
     }
-    log?.('[zxing-wasm] No barcode found');
+    log?.('[zxing-browser] No barcode found');
   } catch (e: any) {
-    log?.(`[zxing-wasm] error: ${e?.message ?? e}`);
+    if (e?.name !== 'NotFoundException') {
+      log?.(`[zxing-browser] error: ${e?.message ?? e}`);
+    } else {
+      log?.('[zxing-browser] No barcode found');
+    }
   }
 
   return null;

@@ -1,23 +1,22 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { scanImageData, scanBlob, initScanner } from '@/lib/barcodeScanner';
+import { BrowserMultiFormatReader } from '@zxing/browser';
+import { BarcodeFormat, DecodeHintType } from '@zxing/library';
+import { scanBlob } from '@/lib/barcodeScanner';
 
 type ScanState = 'idle' | 'scanning' | 'paused';
 
 export default function QrScanPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const [wasmReady, setWasmReady] = useState(false);
   const [scanState, setScanState] = useState<ScanState>('idle');
   const [message, setMessage] = useState<string>('');
   const [decoded, setDecoded] = useState<string | null>(null);
   const [debugLog, setDebugLog] = useState<string[]>([]);
 
   const debugEndRef = useRef<HTMLDivElement | null>(null);
-  const stoppedRef = useRef(false);
-  const scanTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const controlsRef = useRef<{ stop: () => void } | null>(null);
 
   const addLog = useCallback((msg: string) => {
     const ts = new Date().toLocaleTimeString();
@@ -25,20 +24,10 @@ export default function QrScanPage() {
   }, []);
 
   useEffect(() => {
-    initScanner().then(() => setWasmReady(true));
-  }, []);
-
-  useEffect(() => {
     debugEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [debugLog]);
 
   // ---------- helpers ----------
-  const ensureSecureContext = () => {
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    const isLocal = /^localhost$|^127\.0\.0\.1$/.test(host);
-    return (typeof window !== 'undefined' && window.isSecureContext) || isLocal;
-  };
-
   const isUrl = (txt: string) => {
     try {
       const u = new URL(txt);
@@ -49,13 +38,12 @@ export default function QrScanPage() {
   };
 
   const stopCamera = useCallback(() => {
-    stoppedRef.current = true;
-    if (scanTimeoutRef.current) clearTimeout(scanTimeoutRef.current);
+    controlsRef.current?.stop();
+    controlsRef.current = null;
     const video = videoRef.current;
-    const stream = streamRef.current || (video?.srcObject as MediaStream | null);
+    const stream = video?.srcObject as MediaStream | null;
     stream?.getTracks().forEach((t) => t.stop());
     if (video) video.srcObject = null;
-    streamRef.current = null;
     setScanState('idle');
     setMessage('');
   }, []);
@@ -63,18 +51,10 @@ export default function QrScanPage() {
   const startCamera = useCallback(async () => {
     setDecoded(null);
     setDebugLog([]);
-    stoppedRef.current = false;
 
     const hasNative = typeof window !== 'undefined' && 'BarcodeDetector' in window;
     addLog(`Native BarcodeDetector: ${hasNative}`);
     addLog(`UA: ${navigator.userAgent.slice(0, 100)}`);
-
-    if (!ensureSecureContext()) {
-      setMessage('Camera requires HTTPS (or localhost). Open this page over https.');
-      addLog('ERROR: not a secure context');
-      setScanState('idle');
-      return;
-    }
 
     // permission pre-check
     try {
@@ -91,117 +71,77 @@ export default function QrScanPage() {
       addLog('Permission query not supported');
     }
 
-    setMessage('Requesting camera access...');
-    addLog('Requesting getUserMedia...');
+    setMessage('Starting scanner...');
+    addLog('Initializing @zxing/browser BrowserMultiFormatReader...');
 
-    let stream: MediaStream | null = null;
     try {
-      stream = await navigator.mediaDevices.getUserMedia({
+      const hints = new Map();
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.CODE_128,
+        BarcodeFormat.CODE_39,
+        BarcodeFormat.QR_CODE,
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+        BarcodeFormat.UPC_A,
+        BarcodeFormat.UPC_E,
+      ]);
+      hints.set(DecodeHintType.TRY_HARDER, true);
+
+      const reader = new BrowserMultiFormatReader(hints, {
+        delayBetweenScanAttempts: 20, // scan every 20ms (~50 fps)
+      });
+
+      setScanState('scanning');
+      setMessage('Point your camera at a code (QR or barcode).');
+      addLog('Starting continuous decode (20ms interval, 1280x720)...');
+
+      const constraints: MediaStreamConstraints = {
         video: {
           facingMode: { ideal: 'environment' },
           width: { ideal: 1280 },
           height: { ideal: 720 },
         },
         audio: false,
-      });
-      streamRef.current = stream;
-      const track = stream.getVideoTracks()[0];
-      const settings = track?.getSettings();
-      addLog(`Stream ready: ${settings?.width}x${settings?.height}, device: ${track?.label?.slice(0, 40)}`);
-    } catch (err: any) {
-      const n = err?.name || '';
-      addLog(`getUserMedia FAILED: ${n} - ${err?.message}`);
-      setMessage(
-        n === 'NotAllowedError'
-          ? 'Permission denied. Please allow camera access.'
-          : n === 'NotFoundError'
-          ? 'No camera found on this device.'
-          : 'Could not access the camera.'
-      );
-      setScanState('idle');
-      return;
-    }
+      };
 
-    try {
-      const video = videoRef.current!;
-      video.srcObject = stream;
-      await video.play();
-      addLog(`Video playing: ${video.videoWidth}x${video.videoHeight}`);
+      const controls = await reader.decodeFromConstraints(
+        constraints,
+        videoRef.current!,
+        (result, error) => {
+          if (result) {
+            const text = result.getText().trim();
+            if (text) {
+              addLog(`DETECTED: "${text}" (format: ${result.getBarcodeFormat()})`);
+              setDecoded(text);
+              setMessage('Code detected.');
 
-      setScanState('scanning');
-      setMessage('Point your camera at a code (QR or barcode).');
-      addLog('Starting scan loop (zxing-wasm + native fallback)');
-
-      // Create offscreen canvas for frame extraction
-      const canvas = document.createElement('canvas');
-      let tickCount = 0;
-      const SCAN_INTERVAL_MS = 150;
-
-      const scanLoop = async () => {
-        if (stoppedRef.current) return;
-        tickCount++;
-
-        try {
-          if (video.readyState >= 2) {
-            const vw = video.videoWidth;
-            const vh = video.videoHeight;
-
-            if (vw > 0 && vh > 0) {
-              const scale = Math.min(1, 640 / Math.max(vw, vh));
-              const cw = Math.round(vw * scale);
-              const ch = Math.round(vh * scale);
-              canvas.width = cw;
-              canvas.height = ch;
-
-              const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
-              ctx.drawImage(video, 0, 0, cw, ch);
-              const imageData = ctx.getImageData(0, 0, cw, ch);
-
-              const tickLog = tickCount % 15 === 1
-                ? (msg: string) => addLog(msg)
-                : undefined;
-
-              if (tickCount % 15 === 1) {
-                addLog(`tick #${tickCount}, scanning...`);
-              }
-
-              const result = await scanImageData(imageData, tickLog);
-
-              if (result && !stoppedRef.current) {
-                addLog(`DETECTED: "${result.text}" (engine: ${result.engine})`);
-                setDecoded(result.text);
-                setMessage('Code detected.');
-
-                if (isUrl(result.text)) {
-                  stopCamera();
-                  window.location.href = result.text;
-                } else {
-                  stream?.getTracks().forEach((t) => t.stop());
-                  setScanState('paused');
-                }
-                return;
+              if (isUrl(text)) {
+                stopCamera();
+                window.location.href = text;
+              } else {
+                // Pause scanning but keep preview
+                controlsRef.current?.stop();
+                controlsRef.current = null;
+                setScanState('paused');
               }
             }
           }
-        } catch (e: any) {
-          if (tickCount % 15 === 1) {
-            addLog(`tick #${tickCount} error: ${e?.message ?? e}`);
-          }
-        }
+          // NotFoundException is expected on frames without barcodes — ignore
+        },
+      );
 
-        if (!stoppedRef.current) {
-          scanTimeoutRef.current = setTimeout(scanLoop, SCAN_INTERVAL_MS);
-        }
-      };
-
-      scanLoop();
+      controlsRef.current = controls;
+      addLog('Scanner running — waiting for barcode...');
     } catch (e: any) {
       addLog(`Scanner start FAILED: ${e?.message ?? e}`);
-      stream?.getTracks().forEach((t) => t.stop());
-      const video = videoRef.current;
-      if (video) video.srcObject = null;
       setScanState('idle');
-      setMessage('Failed to start the scanner.');
+      setMessage(
+        e?.name === 'NotAllowedError'
+          ? 'Permission denied. Please allow camera access.'
+          : e?.name === 'NotFoundError'
+          ? 'No camera found on this device.'
+          : 'Failed to start the scanner.'
+      );
     }
   }, [stopCamera, addLog]);
 
@@ -220,32 +160,18 @@ export default function QrScanPage() {
       origBitmap.close();
     } catch { /* ignore */ }
 
-    const found = (text: string) => {
-      setDecoded(text);
-      setMessage('Code detected from image.');
-      if (isUrl(text)) window.location.href = text;
-    };
-
     const result = await scanBlob(file, addLog);
     if (result) {
       addLog(`DETECTED: "${result.text}" (engine: ${result.engine})`);
-      found(result.text);
+      setDecoded(result.text);
+      setMessage('Code detected from image.');
+      if (isUrl(result.text)) window.location.href = result.text;
     } else {
       setMessage('No code found in that image. Try a clearer, closer photo of the barcode.');
     }
   }, [addLog]);
 
   // ---------- UI ----------
-  if (!wasmReady) {
-    return (
-      <main className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-swin-charcoal dark:text-white">
-        <title>Camera Scanner | Dashboard</title>
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-swin-red" />
-        <p className="text-sm text-slate-500 dark:text-slate-400">Loading scanner...</p>
-      </main>
-    );
-  }
-
   return (
     <main className="space-y-8">
       <title>Camera Scanner | Dashboard</title>

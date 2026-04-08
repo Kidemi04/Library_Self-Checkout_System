@@ -78,7 +78,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
         canvasRef.current = canvas;
 
         let tickCount = 0;
-        const SCAN_INTERVAL_MS = 150; // ~6-7 fps scan rate
+        const SCAN_INTERVAL_MS = 100; // ~10 fps scan rate
 
         const scanLoop = async () => {
           if (stopped) return;
@@ -91,7 +91,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
 
               if (vw > 0 && vh > 0) {
                 // Use a smaller canvas for faster processing in live mode
-                const scale = Math.min(1, 640 / Math.max(vw, vh));
+                const scale = Math.min(1, 800 / Math.max(vw, vh));
                 const cw = Math.round(vw * scale);
                 const ch = Math.round(vh * scale);
                 canvas.width = cw;
@@ -129,7 +129,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
         };
 
         if (tickCount % 15 === 0) {
-          log('Starting scan loop (zxing-wasm + native fallback)');
+          log('Starting scan loop (zxing-browser + native fallback)');
         }
         scanLoop();
       } catch (error: any) {
