@@ -4,7 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { fetchHoldsForStaff, updateHoldStatus } from '@/app/lib/supabase/queries';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
+import { createUserNotification } from '@/app/lib/supabase/notifications';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import MarkReadyButton from '@/app/ui/dashboard/markReadyButton';
 
 // ---------- server actions ----------
 
@@ -13,13 +15,42 @@ async function markReady(formData: FormData) {
 
   const holdId = formData.get('holdId') as string | null;
   const patronId = formData.get('patronId') as string | null;
+  const bookId = formData.get('bookId') as string | null;
   const bookTitle = formData.get('bookTitle') as string | null;
 
-  if (!holdId || !patronId) return;
+  if (!holdId || !patronId || !bookId) return;
+
+  // Guard: only the first QUEUED hold for this book (earliest placed_at) may be marked ready.
+  const supabase = getSupabaseServerClient();
+  const { data: firstInQueue } = await supabase
+    .from('Holds')
+    .select('id')
+    .eq('book_id', bookId)
+    .eq('status', 'queued')
+    .order('placed_at', { ascending: true })
+    .limit(1)
+    .single();
+
+  if (!firstInQueue || firstInQueue.id !== holdId) return;
+
+  // Guard: at least one copy must be available (returned/not on loan)
+  const { data: availableCopy } = await supabase
+    .from('Copies')
+    .select('id, Loans(id, returned_at)')
+    .eq('book_id', bookId)
+    .neq('status', 'on_loan')
+    .limit(10);
+
+  const hasAvailable = (availableCopy ?? []).some((copy: any) => {
+    const loans = Array.isArray(copy.loans) ? copy.loans : [];
+    return loans.every((loan: any) => loan.returned_at !== null);
+  });
+
+  if (!hasAvailable) return;
 
   const now = new Date();
   const expires = new Date(now);
-  expires.setDate(expires.getDate() + 3); // e.g. 3-day pickup window
+  expires.setDate(expires.getDate() + 3);
 
   // 1) Update hold status + timestamps
   await updateHoldStatus(holdId, {
@@ -28,32 +59,24 @@ async function markReady(formData: FormData) {
     expires_at: expires.toISOString(),
   });
 
-  // 2) Enqueue notification job in notification_queue
-  const supabase = getSupabaseServerClient();
-
-  await supabase.from('NotificationQueue').insert({
-    patron_id: patronId,
-    hold_id: holdId,
-    loan_id: null,
-    // ⚠ Make sure these enum values match your Supabase enums exactly
-    type: 'hold_ready',    // notification_type enum value
-    channel: 'in_app',     // notification_channel enum value (or 'EMAIL' etc)
-    title: 'Your hold is ready for pickup',
-    body: bookTitle
+  // 2) Send in-app notification to the patron whose hold is first in queue
+  await createUserNotification(
+    patronId,
+    'hold_ready',
+    'Your hold is ready for pickup',
+    bookTitle
       ? `Your hold for "${bookTitle}" is ready for pickup. Please collect it before ${expires.toLocaleDateString()}.`
       : `One of your holds is ready for pickup. Please collect it before ${expires.toLocaleDateString()}.`,
-    payload: {
-      kind: 'hold_ready',
-      hold_id: holdId,
-      book_title: bookTitle,
-      expires_at: expires.toISOString(),
-    } as any,              // cast to any so TS is happy with JSONB
-    status: 'pending',     // notification_status enum value
-    scheduled_for: now.toISOString(),
-  });
+    {
+      holdId,
+      bookId,
+      bookTitle: bookTitle ?? '',
+      expiresAt: expires.toISOString(),
+    },
+  );
 
   // 3) Refresh staff holds page
-  revalidatePath('/dashboard/holds');
+  revalidatePath('/dashboard/book/holds');
 }
 
 async function cancelHold(formData: FormData) {
@@ -69,7 +92,7 @@ async function cancelHold(formData: FormData) {
     fulfilled_by_copy_id: null,
   });
 
-  revalidatePath('/dashboard/holds');
+  revalidatePath('/dashboard/books/holds');
 }
 
 // ---------- page ----------
@@ -85,7 +108,35 @@ export default async function HoldsManagementPage() {
     redirect('/dashboard');
   }
 
+  const supabaseForPage = getSupabaseServerClient();
   const holds = await fetchHoldsForStaff();
+
+  // Compute which hold ID is first in queue per book (holds are already ordered by placed_at asc).
+  const seenQueuedBooks = new Set<string>();
+  const firstInQueueIds = new Set<string>();
+  for (const hold of holds) {
+    if (hold.status === 'queued' && !seenQueuedBooks.has(hold.book_id)) {
+      seenQueuedBooks.add(hold.book_id);
+      firstInQueueIds.add(hold.id);
+    }
+  }
+
+  // Check which books have at least one available copy (returned/not on loan)
+  const queuedBookIds = [...seenQueuedBooks];
+  const availableBookIds = new Set<string>();
+  if (queuedBookIds.length > 0) {
+    const { data: copies } = await supabaseForPage
+      .from('Copies')
+      .select('book_id, Loans(id, returned_at)')
+      .in('book_id', queuedBookIds)
+      .neq('status', 'on_loan');
+
+    for (const copy of copies ?? []) {
+      const loans = Array.isArray((copy as any).loans) ? (copy as any).loans : [];
+      const noActiveLoans = loans.every((l: any) => l.returned_at !== null);
+      if (noActiveLoans) availableBookIds.add((copy as any).book_id);
+    }
+  }
 
   return (
     <main className="space-y-8">
@@ -179,26 +230,15 @@ export default async function HoldsManagementPage() {
                   {/* Actions */}
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
-                      {hold.status === 'queued' && (
-                        <form action={markReady}>
-                          <input type="hidden" name="holdId" value={hold.id} />
-                          <input
-                            type="hidden"
-                            name="patronId"
-                            value={hold.patron_id}
-                          />
-                          <input
-                            type="hidden"
-                            name="bookTitle"
-                            value={hold.book_title ?? ''}
-                          />
-                          <button
-                            type="submit"
-                            className="rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-emerald-700"
-                          >
-                            Mark ready
-                          </button>
-                        </form>
+                      {hold.status === 'queued' && firstInQueueIds.has(hold.id) && (
+                        <MarkReadyButton
+                          holdId={hold.id}
+                          patronId={hold.patron_id}
+                          bookId={hold.book_id}
+                          bookTitle={hold.book_title ?? ''}
+                          action={markReady}
+                          available={availableBookIds.has(hold.book_id)}
+                        />
                       )}
 
                       {(hold.status === 'queued' || hold.status === 'ready') && (

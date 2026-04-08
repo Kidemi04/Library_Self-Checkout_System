@@ -1,6 +1,8 @@
 // app/api/checkout/route.ts
 import { NextResponse } from 'next/server';
 import { checkOut } from '@/lib/sip2';
+import { getSupabaseServerClient } from '@/app/lib/supabase/server';
+import { createNotification } from '@/app/lib/supabase/notifications';
 
 const SIP2_INSTITUTION_ID = process.env.SIP2_INSTITUTION_ID ?? 'LIB001';
 const SIP2_TERMINAL_PASSWORD = process.env.SIP2_TERMINAL_PASSWORD ?? 'term123';
@@ -23,6 +25,27 @@ function formatSipDate(date: Date): string {
   const zzzz = pad(Math.floor(abs / 60)) + pad(abs % 60);
 
   return `${yyyy}${mm}${dd}${zzzz}${hh}${min}${ss}`;
+}
+
+async function lookupBookByBarcode(barcode: string): Promise<{ title: string; author: string }> {
+  const supabase = getSupabaseServerClient();
+  // Step 1: resolve copy → book_id
+  const { data: copy } = await supabase
+    .from('Copies')
+    .select('book_id')
+    .eq('barcode', barcode)
+    .maybeSingle();
+  if (!copy?.book_id) return { title: barcode, author: '' };
+  // Step 2: fetch book title/author
+  const { data: book } = await supabase
+    .from('Books')
+    .select('title, author')
+    .eq('id', copy.book_id)
+    .maybeSingle();
+  return {
+    title: (book as { title?: string; author?: string } | null)?.title ?? barcode,
+    author: (book as { title?: string; author?: string } | null)?.author ?? '',
+  };
 }
 
 export async function POST(request: Request) {
@@ -64,6 +87,19 @@ export async function POST(request: Request) {
     if (result?.status !== 1) {
       console.warn('[SIP2] Checkout returned non-OK status', result);
     }
+
+    // Fire notification (non-blocking, non-critical)
+    lookupBookByBarcode(itemIdentifier)
+      .then(({ title, author }) =>
+        createNotification(
+          'checkout',
+          'Book Borrowed',
+          `"${title}" was checked out by ${patronIdentifier}.`,
+          { bookTitle: title, bookAuthor: author, barcode: itemIdentifier, patronIdentifier },
+        ),
+      )
+      .catch((err) => console.warn('[notifications] checkout notification failed:', err));
+
     return NextResponse.json({ success: true, data: result });
   } catch (error) {
     console.error('Checkout API error', error);

@@ -91,7 +91,11 @@ export default function ActiveLoansTable({
                     </td>
                     {showActions ? (
                       <td className="px-6 py-4 text-right">
-                        <QuickCheckInButton loanId={loan.id} />
+                        <QuickCheckInButton
+                          loanId={loan.id}
+                          bookTitle={loan.book?.title ?? undefined}
+                          borrowerName={loan.borrowerName ?? undefined}
+                        />
                       </td>
                     ) : null}
                   </tr>

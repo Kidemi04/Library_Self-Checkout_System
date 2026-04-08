@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -44,6 +45,28 @@ export default function MobileNav({
   const pathname = usePathname();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const res = await fetch('/api/notifications?filter=unread&limit=1');
+        if (!res.ok) return;
+        const { notifications } = await res.json();
+        setHasUnread(Array.isArray(notifications) && notifications.length > 0);
+      } catch {
+        // silently ignore
+      }
+    };
+
+    check();
+    const timer = setInterval(check, 30_000);
+    return () => clearInterval(timer);
+  }, [user.role]);
+
+  useEffect(() => {
+    if (pathname === '/dashboard/notifications') setHasUnread(false);
+  }, [pathname]);
 
   const topBarClasses = clsx(
     'sticky top-0 z-40 flex items-center justify-between border-b px-4 py-3 backdrop-blur-md transition-colors md:hidden',
@@ -164,7 +187,12 @@ export default function MobileNav({
                 )}
                 aria-current={isActive ? 'page' : undefined}
               >
-                <Icon className="h-6 w-6" />
+                <span className="relative">
+                  <Icon className="h-6 w-6" />
+                  {item.key === 'notifications' && hasUnread && (
+                    <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-swin-red ring-2 ring-white dark:ring-slate-950" />
+                  )}
+                </span>
                 <span>{item.label}</span>
               </Link>
             );

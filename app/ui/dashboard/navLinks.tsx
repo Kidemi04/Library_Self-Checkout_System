@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -122,6 +122,31 @@ export default function NavLinks({
   const pathname = usePathname();
   const { theme } = useTheme();
   const [openSection, setOpenSection] = useState<string | null>(null); // Track collapsed state
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const res = await fetch('/api/notifications?filter=unread&limit=1');
+        if (!res.ok) return;
+        const { notifications } = await res.json();
+        setHasUnread(Array.isArray(notifications) && notifications.length > 0);
+      } catch {
+        // silently ignore
+      }
+    };
+
+    check();
+    const timer = setInterval(check, 30_000);
+    return () => clearInterval(timer);
+  }, [role]);
+
+  // Clear dot when the user is on the notifications page
+  useEffect(() => {
+    if (pathname === '/dashboard/notifications') {
+      setHasUnread(false);
+    }
+  }, [pathname]);
   
   const links = role === 'admin' ? adminLinks : role === 'staff' ? staffLinks : userLinks;
   const isDarkTheme = theme === 'dark';
@@ -179,7 +204,12 @@ export default function NavLinks({
                   )}
                   onClick={onNavigate}
                 >
-                  <LinkIcon className="w-5" />
+                  <span className="relative flex-shrink-0">
+                    <LinkIcon className="w-5" />
+                    {name === 'Notifications' && hasUnread && (
+                      <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-swin-red ring-2 ring-swin-charcoal/80 dark:ring-slate-950" />
+                    )}
+                  </span>
                   <span className={clsx(showLabels ? 'block' : 'hidden md:block')}>{name}</span>
                 </Link>
               )}
