@@ -33,6 +33,8 @@ export default async function CommunitiesPage(props: {
 	];
     return (
         <main className="w-full space-y-8">
+            <title>Community | Social</title>
+
 					<DashboardTitleBar
 						subtitle="Social"
 						title="Communities"

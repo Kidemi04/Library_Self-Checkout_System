@@ -8,9 +8,9 @@ import type { CopyStatus } from '@/app/lib/supabase/types';
 export type ItemStatus =
   | 'available'
   | 'borrowed'
-  | 'checked_out'
+  | 'checked out'
   | 'reserved'
-  | 'in_transit'
+  | 'in transit'
   | 'on_hold'
   | 'in_process'
   | 'lost'
@@ -53,7 +53,7 @@ const syncBookTags = async (
   }
 
   const { data: existingTags, error: fetchTagsError } = await supabase
-    .from('book_tags')
+    .from('BookTags')
     .select('id, name')
     .in('name', normalized);
 
@@ -70,7 +70,7 @@ const syncBookTags = async (
 
   if (tagsToCreate.length > 0) {
     const { data: createdTags, error: createError } = await supabase
-      .from('book_tags')
+      .from('BookTags')
       .insert(tagsToCreate.map((name) => ({ name })))
       .select('id, name');
 
@@ -88,7 +88,7 @@ const syncBookTags = async (
     .filter((id): id is string => typeof id === 'string');
 
   const { data: currentLinks, error: fetchLinksError } = await supabase
-    .from('book_tag_links')
+    .from('BookTagLinks')
     .select('tag_id')
     .eq('book_id', bookId);
 
@@ -107,7 +107,7 @@ const syncBookTags = async (
 
   if (tagIdsToRemove.length > 0) {
     await supabase
-      .from('book_tag_links')
+      .from('BookTagLinks')
       .delete()
       .eq('book_id', bookId)
       .in('tag_id', tagIdsToRemove);
@@ -115,7 +115,7 @@ const syncBookTags = async (
 
   if (tagIdsToAdd.length > 0) {
     await supabase
-      .from('book_tag_links')
+      .from('BookTagLinks')
       .insert(tagIdsToAdd.map((tagId) => ({ book_id: bookId, tag_id: tagId })));
   }
 };
@@ -145,7 +145,7 @@ export async function updateBook(payload: UpdatePayload) {
   if (payload.sip_status) {
     const sipStatusValue = payload.sip_status.toUpperCase();
     const { error: copyStatusError } = await supabase
-      .from('copies')
+      .from('Copies')
       .update({ status: sipStatusValue })
       .eq('book_id', payload.id);
     if (copyStatusError) throw new Error(copyStatusError.message);
@@ -157,10 +157,10 @@ export async function updateBook(payload: UpdatePayload) {
 export async function deleteBook(id: string) {
   const supabase = getSupabaseServerClient();
 
-  const { error: copyError } = await supabase.from('copies').delete().eq('book_id', id);
+  const { error: copyError } = await supabase.from('Copies').delete().eq('book_id', id);
   if (copyError) throw new Error(copyError.message);
 
-  const { error } = await supabase.from('books').delete().eq('id', id);
+  const { error } = await supabase.from('Books').delete().eq('id', id);
   if (error) throw new Error(error.message);
 
   revalidatePath('/dashboard/book/items');

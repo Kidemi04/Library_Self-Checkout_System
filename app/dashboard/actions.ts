@@ -103,17 +103,17 @@ type AvailableCopy = {
 const normalizeCopyStatus = (value: string | null | undefined) => {
   if (typeof value !== 'string') return 'available';
   switch (value.trim().toUpperCase()) {
-    case 'ON_LOAN':
+    case 'on_loan':
       return 'on_loan';
-    case 'LOST':
+    case 'lost':
       return 'lost';
-    case 'DAMAGED':
+    case 'damaged':
       return 'damaged';
-    case 'PROCESSING':
+    case 'processing':
       return 'processing';
-    case 'HOLD_SHELF':
+    case 'hold_shelf':
       return 'hold_shelf';
-    case 'AVAILABLE':
+    case 'available':
     default:
       return 'available';
   }
@@ -138,13 +138,13 @@ type BorrowerRecord = {
 
 const fetchUserWithProfile = async (supabase: SupabaseClient, filters: Record<string, string>) => {
   const query = supabase
-    .from('users')
+    .from('Users')
     .select(
       `
         id,
         email,
         role,
-        profile:user_profiles(
+        profile:UserProfile(
           display_name,
           student_id
         )
@@ -231,15 +231,15 @@ const activeLoanSelect = `
   due_at,
   returned_at,
   handled_by,
-  copy:copies(
+  copy:Copies(
     id,
     book_id,
     barcode
   ),
-  borrower:users!loans_user_id_fkey(
+  borrower:Users!Loans_user_id_fkey(
     id,
     email,
-    profile:user_profiles(
+    profile:UserProfile(
       display_name,
       student_id
     )
@@ -270,7 +270,7 @@ const findAvailableCopyForBook = async (
   bookId: string,
 ): Promise<AvailableCopy | null> => {
   const { data, error } = await supabase
-    .from('copies')
+    .from('Copies')
     .select(
       `
         id,
@@ -349,14 +349,14 @@ export async function checkoutBookAction(
 
   if (copyId) {
     const { data: copyRow, error: copyError } = await supabase
-      .from('copies')
+      .from('Copies')
       .select(
         `
           id,
           book_id,
           barcode,
           status,
-          loans:loans(
+          loans:Loans(
             id,
             returned_at
           )
@@ -413,7 +413,7 @@ export async function checkoutBookAction(
 
   // ---------- Supabase: record loan ----------
   const { data: loanRow, error: insertLoanError } = await supabase
-    .from('loans')
+    .from('Loans')
     .insert({
       copy_id: copy.id,
       user_id: borrower.id,
@@ -432,7 +432,7 @@ export async function checkoutBookAction(
   const loanId = loanRow?.id;
 
   const { error: copyUpdateError } = await supabase
-    .from('copies')
+    .from('Copies')
     .update({
       status: 'ON_LOAN',
     })
@@ -466,7 +466,7 @@ export async function checkoutBookAction(
 
   if (loanId) {
     await logAuditEvent(supabase, {
-      table: 'loans',
+      table: 'Loans',
       recordId: loanId,
       action: 'create',
       performedBy: handlerId,
@@ -537,7 +537,7 @@ export async function checkinBookAction(
 
   if (loanId) {
     const { data, error } = await supabase
-      .from('loans')
+      .from('Loans')
       .select(activeLoanSelect)
       .eq('id', loanId)
       .is('returned_at', null)
@@ -559,7 +559,7 @@ export async function checkinBookAction(
 
   if (!loan && identifier) {
     const { data: copyMatch, error: copyError } = await supabase
-      .from('copies')
+      .from('Copies')
       .select('id, book_id, barcode')
       .eq('barcode', identifier)
       .maybeSingle<{ id: string; book_id: string | null; barcode: string | null }>();
@@ -571,7 +571,7 @@ export async function checkinBookAction(
 
     if (copyMatch) {
       const { data, error } = await supabase
-        .from('loans')
+        .from('Loans')
         .select(activeLoanSelect)
         .eq('copy_id', copyMatch.id)
         .is('returned_at', null)
@@ -592,7 +592,7 @@ export async function checkinBookAction(
     const borrower = await loadBorrowerByIdentifier(supabase, identifier);
     if (borrower) {
       const { data, error } = await supabase
-        .from('loans')
+        .from('Loans')
         .select(activeLoanSelect)
         .eq('user_id', borrower.id)
         .is('returned_at', null)
@@ -634,7 +634,7 @@ export async function checkinBookAction(
   }
 
   const { error: loanUpdateError } = await supabase
-    .from('loans')
+    .from('Loans')
     .update(loanUpdatePayload)
     .eq('id', loan.id);
 
@@ -644,21 +644,21 @@ export async function checkinBookAction(
   }
 
   const { error: copyUpdateError } = await supabase
-    .from('copies')
-    .update({ status: 'AVAILABLE' })
+    .from('Copies')
+    .update({ status: 'available' })
     .eq('id', loan.copy_id);
 
   if (copyUpdateError) {
     console.error('Failed to update copy during return processing', copyUpdateError);
     await supabase
-      .from('loans')
+      .from('Loans')
       .update({ returned_at: null, handled_by: loan.handled_by ?? null })
       .eq('id', loan.id);
     return failure('Copy status update failed; the loan remains active.');
   }
 
   await logAuditEvent(supabase, {
-    table: 'loans',
+    table: 'Loans',
     recordId: loan.id,
     action: 'update',
     performedBy: handlerId,
@@ -836,7 +836,7 @@ export async function createBookAction(
   }
 
   const { data: conflictingCopies, error: copyConflictError } = await supabase
-    .from('copies')
+    .from('Copies')
     .select('id, barcode')
     .in('barcode', barcodes);
 
@@ -852,7 +852,7 @@ export async function createBookAction(
   const nowIso = new Date().toISOString();
 
   const { data: bookRow, error: bookInsertError } = await supabase
-    .from('books')
+    .from('Books')
     .insert({
       title,
       author,

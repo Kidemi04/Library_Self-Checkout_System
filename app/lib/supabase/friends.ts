@@ -6,17 +6,17 @@ export async function fetchFriends(userId: string): Promise<Friend[]> {
 
     // Fetch where user is follower
     const { data: following, error: followingError } = await supabase
-        .from('friends')
+        .from('Friends')
         .select(`
       id,
       follower_id,
       followed_id,
       status,
       created_at,
-      friend:users!friends_friend_id_fkey(
+      friend:Users!Friends_followed_id_fkey(
         id,
         email,
-        profile:user_profiles(
+        profile:UserProfile(
           display_name,
           avatar_url,
           bio
@@ -33,17 +33,17 @@ export async function fetchFriends(userId: string): Promise<Friend[]> {
 
     // Fetch where user is followed
     const { data: followers, error: followersError } = await supabase
-        .from('friends')
+        .from('Friends')
         .select(`
       id,
       follower_id,
       followed_id,
       status,
       created_at,
-      friend:users!friends_user_id_fkey(
+      friend:Users!Friends_follower_id_fkey(
         id,
         email,
-        profile:user_profiles(
+        profile:UserProfile(
           display_name,
           avatar_url,
           bio
@@ -96,17 +96,17 @@ export async function fetchFriendRequests(userId: string): Promise<Friend[]> {
 
     // Incoming requests: user is 'followed_id' and status is 'pending'
     const { data, error } = await supabase
-        .from('friends')
+        .from('Friends')
         .select(`
       id,
       follower_id,
       followed_id,
       status,
       created_at,
-      friend:users!friends_user_id_fkey(
+      friend:Users!Friends_follower_id_fkey(
         id,
         email,
-        profile:user_profiles(
+        profile:UserProfile(
           display_name,
           avatar_url,
           bio
@@ -143,13 +143,13 @@ export async function searchUsers(query: string, currentUserId: string) {
     if (!query || query.length < 2) return [];
 
     const { data, error } = await supabase
-        .from('user_profiles')
+        .from('UserProfile')
         .select(`
       user_id,
       display_name,
       avatar_url,
       bio,
-      user:users(email)
+      user:Users(email)
     `)
         .or(`display_name.ilike.%${query}%,student_id.ilike.%${query}%`)
         .neq('user_id', currentUserId)
@@ -164,7 +164,7 @@ export async function searchUsers(query: string, currentUserId: string) {
     const results = await Promise.all((data || []).map(async (profile: any) => {
         // Check if there is a friendship record
         const { data: friendship } = await supabase
-            .from('friends')
+            .from('Friends')
             .select('status, follower_id, followed_id')
             .or(`and(follower_id.eq.${currentUserId},followed_id.eq.${profile.user_id}),and(follower_id.eq.${profile.user_id},followed_id.eq.${currentUserId})`)
             .maybeSingle();
@@ -187,7 +187,7 @@ export async function fetchSuggestedUsers(currentUserId: string) {
 
     // Get IDs of people already friends or requested
     const { data: existing } = await supabase
-        .from('friends')
+        .from('Friends')
         .select('follower_id, followed_id')
         .or(`follower_id.eq.${currentUserId},followed_id.eq.${currentUserId}`);
 
@@ -199,13 +199,13 @@ export async function fetchSuggestedUsers(currentUserId: string) {
 
     // Fetch random users (limit 20)
     const { data: profiles } = await supabase
-        .from('user_profiles')
+        .from('UserProfile')
         .select(`
             user_id,
             display_name,
             avatar_url,
             bio,
-            user:users(email)
+            user:Users(email)
         `)
         .limit(20);
 

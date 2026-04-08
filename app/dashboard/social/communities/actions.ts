@@ -45,7 +45,7 @@ export async function createCommunity(prevState: ActionState, formData: FormData
     }
 
     // Auto-join the creator
-    await supabase.from('community_members').insert({
+    await supabase.from('CommunityMembers').insert({
         community_id: data.id,
         user_id: userId,
         role: 'admin',
@@ -63,7 +63,7 @@ export async function joinCommunity(communityId: string): Promise<ActionState> {
 
     const supabase = getSupabaseServerClient();
 
-    const { error } = await supabase.from('community_members').insert({
+    const { error } = await supabase.from('CommunityMembers').insert({
         community_id: communityId,
         user_id: userId,
         role: 'member',
@@ -88,7 +88,7 @@ export async function leaveCommunity(communityId: string): Promise<ActionState> 
     const supabase = getSupabaseServerClient();
 
     const { error } = await supabase
-        .from('community_members')
+        .from('CommunityMembers')
         .delete()
         .eq('community_id', communityId)
         .eq('user_id', userId);
@@ -115,7 +115,7 @@ export async function createPost(prevState: ActionState, formData: FormData): Pr
 
     const supabase = getSupabaseServerClient();
 
-    const { error } = await supabase.from('community_posts').insert({
+    const { error } = await supabase.from('CommunityPosts').insert({
         community_id: communityId,
         author_id: userId,
         title: title || null,
