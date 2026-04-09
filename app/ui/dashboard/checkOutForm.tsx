@@ -416,17 +416,17 @@ const normalizeCopyStatus = (
 ): Book['copies'][number]['status'] => {
   if (typeof value !== 'string') return 'available';
   switch (value.trim().toUpperCase()) {
-    case 'ON_LOAN':
+    case 'on_loan':
       return 'on_loan';
-    case 'LOST':
+    case 'lost':
       return 'lost';
-    case 'DAMAGED':
+    case 'damaged':
       return 'damaged';
-    case 'PROCESSING':
+    case 'processing':
       return 'processing';
-    case 'HOLD_SHELF':
+    case 'hold_shelf':
       return 'hold_shelf';
-    case 'AVAILABLE':
+    case 'available':
     default:
       return 'available';
   }

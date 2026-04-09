@@ -135,7 +135,7 @@ export async function updateBook(payload: UpdatePayload) {
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await supabase.from('books').update(update).eq('id', payload.id);
+  const { error } = await supabase.from('Books').update(update).eq('id', payload.id);
   if (error) throw new Error(error.message);
 
   if (Array.isArray(payload.tags)) {
@@ -143,7 +143,7 @@ export async function updateBook(payload: UpdatePayload) {
   }
 
   if (payload.sip_status) {
-    const sipStatusValue = payload.sip_status.toUpperCase();
+    const sipStatusValue = payload.sip_status.toLowerCase();
     const { error: copyStatusError } = await supabase
       .from('Copies')
       .update({ status: sipStatusValue })
