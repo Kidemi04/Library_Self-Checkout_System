@@ -948,3 +948,35 @@ export async function createBookAction(
 
   return success('Book has been added to the catalogue.');
 }
+
+export async function updateUserInterest(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const interest = formData.get('interest')?.toString();
+  
+  const validInterests = ['computer_science', 'business', 'design', 'engineering'];
+  if (!interest || !validInterests.includes(interest)) {
+    return failure('Please select a valid interest.');
+  }
+
+  const supabase = getSupabaseServerClient();
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    return failure('User session not found.');
+  }
+
+  const { error } = await supabase
+    .from('UserProfile')
+    .update({ interest: interest })
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Failed to update interest:', error);
+    return failure('Database update failed.');
+  }
+
+  revalidatePath('/');
+  return success('Interest updated successfully.');
+}
