@@ -112,9 +112,9 @@ export async function fetchUserContext(userId: string): Promise<UserContext> {
     ),
   ]);
 
-  // Extract and deduplicate history tags
+  // Extract and sort history tags by frequency
   const historyTags: string[] = [];
-  const tagSeen = new Set<string>();
+  const tagCounts = new Map<string, number>();
 
   if (!loansResult.error && loansResult.data) {
     const rows = loansResult.data as unknown as RawLoanHistoryRow[];
@@ -124,14 +124,18 @@ export async function fetchUserContext(userId: string): Promise<UserContext> {
         const name = link?.tag?.name;
         if (typeof name === 'string' && name.trim().length > 0) {
           const normalized = name.trim().toLowerCase();
-          if (!tagSeen.has(normalized)) {
-            tagSeen.add(normalized);
-            historyTags.push(normalized);
-          }
+          tagCounts.set(normalized, (tagCounts.get(normalized) ?? 0) + 1);
         }
       }
     }
   }
+
+  // Sort by highest count first
+  historyTags.push(
+    ...Array.from(tagCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([tag]) => tag)
+  );
 
   // Extract saved interests
   const savedInterests: string[] = [];

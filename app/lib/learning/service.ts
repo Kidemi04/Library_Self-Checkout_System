@@ -21,11 +21,11 @@ export type LearningStatus = {
 
 export const getLearningStatus = async (): Promise<LearningStatus> => {
   const status = await getLinkedInLearningStatus();
-  const isLinkedIn = status.enabled && status.isConfigured && !status.usingStub;
+  const isLinkedIn = status.enabled && (status.isConfigured || status.usingStub);
   return {
     provider: isLinkedIn ? 'linkedin' : 'khan',
     label: isLinkedIn ? 'LinkedIn Learning' : 'Khan Academy',
-    isLive: isLinkedIn,
+    isLive: isLinkedIn && status.isConfigured && !status.usingStub,
   };
 };
 
@@ -33,7 +33,7 @@ export const searchLearningCourses = async (
   options: LinkedInLearningSearchOptions = {},
 ): Promise<LinkedInLearningSearchResult & { provider: LearningProvider; label: string }> => {
   const status = await getLearningStatus();
-  const result = status.isLive
+  const result = status.provider === 'linkedin'
     ? await searchLinkedInLearningCourses(options)
     : await searchKhanAcademyCourses(options);
   return { ...result, provider: status.provider, label: status.label };
@@ -46,7 +46,7 @@ export const getLearningCollections = async (
   } = {},
 ): Promise<Array<LinkedInLearningTopicCollection & { provider: LearningProvider; label: string }>> => {
   const status = await getLearningStatus();
-  const collections = status.isLive
+  const collections = status.provider === 'linkedin'
     ? await getLinkedInLearningCollections(definitions, options)
     : await getKhanAcademyCollections(definitions, options);
   return collections.map((c) => ({ ...c, provider: status.provider, label: status.label }));

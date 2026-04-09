@@ -102,3 +102,31 @@ export interface Course {
   updatedAt: string | null;
 }
 
+export type LearningPathDifficulty = 'Beginner' | 'Intermediate' | 'Advanced';
+
+export interface LearningPathStep {
+  id: string;
+  pathId: string;
+  stepOrder: number;
+  resourceType: 'BOOK' | 'LINKEDIN';
+  resourceId: string;
+  title: string;
+  difficulty: LearningPathDifficulty | null;
+}
+
+export interface LearningPath {
+  id: string;
+  title: string;
+  description: string | null;
+  targetBachelor: string | null;
+  createdAt: string;
+  createdBy: string | null;
+  steps?: LearningPathStep[];
+}
+
+export interface UserLearningProgress {
+  id: string;
+  userId: string;
+  stepId: string;
+  completedAt: string;
+}

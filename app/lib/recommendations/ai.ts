@@ -58,13 +58,23 @@ const buildGeminiSystemPrompt = (
 ): string => {
   const history = userContext?.historyTags ?? [];
   const saved = userContext?.savedInterests ?? [];
-  const allContext = [...new Set([...history, ...saved])].slice(0, 15);
+  
+  let allContext: string[] = [];
+  let sourceLabel = 'engaged with these topics';
+
+  if (history.length > 0) {
+    allContext = history.slice(0, 8);
+    sourceLabel = 'borrowed books related to these topics';
+  } else if (saved.length > 0) {
+    allContext = saved.slice(0, 8);
+    sourceLabel = 'selected these topics as their primary interests';
+  }
 
   if (!allContext.length) return GEMINI_BASE_SYSTEM_PROMPT;
 
   return (
     GEMINI_BASE_SYSTEM_PROMPT +
-    `\n\nThis user has previously engaged with these topics: ${allContext.join(', ')}. ` +
+    `\n\nThis user has previously ${sourceLabel}: ${allContext.join(', ')}. ` +
     'Use this to bias the interests array toward related topics, but still honour what they say in the current message. ' +
     'If the current message is unrelated to their history, extract interests from the message alone.'
   );

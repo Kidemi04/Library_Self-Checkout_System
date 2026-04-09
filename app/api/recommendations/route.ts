@@ -156,11 +156,14 @@ export async function POST(request: Request) {
   const extraTokens = isMoreRequest
     ? tokenizeInterests(message).filter((token) => !lastInterestSet.has(token))
     : [];
-  // Merge user context tags (history + saved interests) as background signals.
-  // Capped at 20 tokens so they don't overwhelm the user's current message.
-  const contextTags = [
-    ...new Set([...userContext.historyTags, ...userContext.savedInterests]),
-  ].slice(0, 20);
+  // Prioritize history tags if available, otherwise fallback to saved interests.
+  // Capped at 8 tokens so they don't overwhelm the user's current message.
+  let contextTags: string[] = [];
+  if (userContext.historyTags.length > 0) {
+    contextTags = userContext.historyTags.slice(0, 8);
+  } else if (userContext.savedInterests.length > 0) {
+    contextTags = userContext.savedInterests.slice(0, 8);
+  }
 
   const inferredMessage =
     isMoreRequest && (lastInterests.length || extraTokens.length)
