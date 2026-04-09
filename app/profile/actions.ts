@@ -207,7 +207,7 @@ export async function updateProfileAction(
 
     const supabase = getSupabaseServerClient();
     const { error } = await supabase
-      .from('UserProfiles')
+      .from('UserProfile')
       .upsert(
         {
           user_id: session.user.id,
