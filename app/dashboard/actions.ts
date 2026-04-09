@@ -182,7 +182,7 @@ const loadBorrowerByIdentifier = async (
   }
 
   const { data: studentMatch } = await supabase
-    .from('user_profiles')
+    .from('UserProfile')
     .select('user_id')
     .eq('student_id', identifier)
     .maybeSingle<{ user_id: string }>();
@@ -193,7 +193,7 @@ const loadBorrowerByIdentifier = async (
   }
 
   const { data: usernameMatch } = await supabase
-    .from('user_profiles')
+    .from('UserProfile')
     .select('user_id')
     .eq('username', identifier)
     .maybeSingle<{ user_id: string }>();
@@ -220,7 +220,7 @@ const upsertProfileFields = async (
   }
 
   if (Object.keys(payload).length > 1) {
-    await supabase.from('user_profiles').upsert(payload, { onConflict: 'user_id' });
+    await supabase.from('UserProfile').upsert(payload, { onConflict: 'user_id' });
   }
 };
 
@@ -278,7 +278,7 @@ const findAvailableCopyForBook = async (
         book_id,
         barcode,
         status,
-        loans:loans(
+        loans:Loans(
           id,
           returned_at
         )
@@ -343,6 +343,10 @@ export async function checkoutBookAction(
 
   const borrower = await loadBorrowerByIdentifier(supabase, borrowerIdentifier);
   if (!borrower) {
+    // testing use
+    console.log('borrowerIdentifier:', borrowerIdentifier);
+    console.log(borrower);
+
     return failure('No patron matches that ID or email.');
   }
 
@@ -435,14 +439,14 @@ export async function checkoutBookAction(
   const { error: copyUpdateError } = await supabase
     .from('Copies')
     .update({
-      status: 'ON_LOAN',
+      status: 'on_loan',
     })
     .eq('id', copy.id);
 
   if (copyUpdateError) {
     console.error('Failed to update copy status after borrowing', copyUpdateError);
     if (loanId) {
-      await supabase.from('loans').delete().eq('id', loanId);
+      await supabase.from('Loans').delete().eq('id', loanId);
     }
     return failure('Loan cancelled because the copy status could not be updated.');
   }
@@ -749,7 +753,7 @@ export async function checkinBookAction(
   const copyLabel = loan.copy?.barcode ? `copy ${loan.copy.barcode}` : 'the item';
 
   revalidatePath('/dashboard');
-  revalidatePath('/dashboard/check-in');
+  revalidatePath('/dashboard/book/checkin');
   revalidatePath('/dashboard/book/checkout');
   revalidatePath('/dashboard/book/items');
 
@@ -763,7 +767,7 @@ export async function updateBookAction(
 ): Promise<ActionState> {
   const bookId = formData.get('bookId')?.toString();
   const title = formData.get('title')?.toString().trim();
-  const author = formData.get('author')?.toString().trim() || null;
+  const author = formData.get('author')?.toString().trim();
   const isbn = formData.get('isbn')?.toString().trim() || null;
   const classificationRaw = formData.get('classification')?.toString();
   const publisherRaw = formData.get('publisher')?.toString();
@@ -772,6 +776,7 @@ export async function updateBookAction(
 
   if (!bookId) return failure('Book reference is missing.');
   if (!title) return failure('Book title is required.');
+  if (!author) return failure('Book author is required.');
 
   const supabase = getSupabaseServerClient();
 
@@ -786,7 +791,7 @@ export async function updateBookAction(
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await supabase.from('books').update(updatePayload).eq('id', bookId);
+  const { error } = await supabase.from('Books').update(updatePayload).eq('id', bookId);
 
   if (error) {
     console.error('Failed to update book record', error);
@@ -796,7 +801,7 @@ export async function updateBookAction(
   revalidatePath('/dashboard');
   revalidatePath('/dashboard/book/items');
   revalidatePath('/dashboard/book/checkout');
-  revalidatePath('/dashboard/book-list');
+  revalidatePath('/dashboard/book/list');
 
   return success('Book details updated.');
 }
@@ -805,12 +810,12 @@ export async function deleteBookAction(bookId: string): Promise<ActionState> {
   const supabase = getSupabaseServerClient();
 
   try {
-    const { error: copyError } = await supabase.from('copies').delete().eq('book_id', bookId);
+    const { error: copyError } = await supabase.from('Copies').delete().eq('book_id', bookId);
     if (copyError) {
       throw new Error(copyError.message);
     }
 
-    const { error } = await supabase.from('books').delete().eq('id', bookId);
+    const { error } = await supabase.from('Books').delete().eq('id', bookId);
 
     if (error) {
       throw new Error(error.message);
@@ -818,7 +823,7 @@ export async function deleteBookAction(bookId: string): Promise<ActionState> {
 
     revalidatePath('/dashboard');
     revalidatePath('/dashboard/book/items');
-    revalidatePath('/dashboard/book-list');
+    revalidatePath('/dashboard/book/list');
 
     return success('Book deleted successfully.');
   } catch (error: any) {
@@ -866,7 +871,7 @@ export async function createBookAction(
 
   if (isbn) {
     const { data: existingByIsbn, error: isbnError } = await supabase
-      .from('books')
+      .from('Books')
       .select('id')
       .eq('isbn', isbn)
       .maybeSingle();
@@ -926,14 +931,14 @@ export async function createBookAction(
   const copyRows = barcodes.map((barcode) => ({
     book_id: bookRow.id,
     barcode,
-    status: 'AVAILABLE',
+    status: 'available',
   }));
 
-  const { error: copyInsertError } = await supabase.from('copies').insert(copyRows);
+  const { error: copyInsertError } = await supabase.from('Copies').insert(copyRows);
 
   if (copyInsertError) {
     console.error('Failed to create copies', copyInsertError);
-    await supabase.from('books').delete().eq('id', bookRow.id);
+    await supabase.from('Books').delete().eq('id', bookRow.id);
     return failure('Unable to create book copies; no records were saved.');
   }
 
