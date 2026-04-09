@@ -34,6 +34,19 @@ const loadProfileFromView = async (
 ): Promise<{ profile: DashboardUserProfile | null; profileLoaded: boolean }> => {
   const supabase = getSupabaseServerClient();
 
+  const logError = (message: string, error: unknown) => {
+    const errMessage =
+      error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string'
+        ? (error as any).message
+        : String(error);
+    const details =
+      error && typeof error === 'object'
+        ? JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
+        : undefined;
+
+    console.error(message, errMessage, details ? `Details: ${details}` : undefined);
+  };
+
   try {
     const { data, error } = await supabase
       .from('MyProfile')
@@ -52,7 +65,52 @@ const loadProfileFromView = async (
       .maybeSingle<MyProfileRow>();
 
     if (error) {
-      console.error('Failed to load profile view for user', error);
+      logError('Failed to load profile view for user', error);
+
+      if (error && typeof error === 'object' && 'code' in error && (error as any).code === 'PGRST205') {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('Users')
+          .select(
+            `
+              id,
+              email,
+              role,
+              UserProfile (
+                username,
+                display_name
+              )
+            `,
+          )
+          .eq('id', userId)
+          .maybeSingle<
+            MyProfileRow & {
+              UserProfile?: { username?: string | null; display_name?: string | null } | null;
+            }
+          >();
+
+        if (fallbackError) {
+          logError('Failed to load fallback profile for user', fallbackError);
+          return { profile: null, profileLoaded: false };
+        }
+
+        if (!fallbackData) {
+          return { profile: null, profileLoaded: true };
+        }
+
+        return {
+          profile: {
+            id: fallbackData.id,
+            email: fallbackData.email ?? null,
+            name: fallbackData.UserProfile?.display_name ?? null,
+            role: toDashboardRole(fallbackData.role),
+            username: fallbackData.UserProfile?.username ?? null,
+            faculty: null,
+            department: null,
+          },
+          profileLoaded: true,
+        };
+      }
+
       return { profile: null, profileLoaded: false };
     }
 
@@ -75,7 +133,7 @@ const loadProfileFromView = async (
       profileLoaded: true,
     };
   } catch (error) {
-    console.error('Unexpected failure while reading profile view', error);
+    logError('Unexpected failure while reading profile view', error);
     return { profile: null, profileLoaded: false };
   }
 };

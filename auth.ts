@@ -58,7 +58,7 @@ type UserRow = {
 const fetchUserByEmail = async (email: string) => {
   const supabase = getSupabaseServerClient();
   const { data, error } = await supabase
-    .from('Users')
+    .from('users')
     .select('id, email, role')
     .eq('email', email)
     .maybeSingle<UserRow>();
@@ -88,7 +88,7 @@ const ensureUserRecord = async (email: string): Promise<SessionUser> => {
 
   const supabase = getSupabaseServerClient();
   const { data, error } = await supabase
-    .from('Users')
+    .from('users')
     .insert({ email: normalizedEmail, role: 'user' })
     .select('id, email, role')
     .single<UserRow>();
@@ -228,15 +228,31 @@ export const authOptions: NextAuthOptions = {
           if (record) {
             token.sub = record.id;
             (token as JWT & { role?: DashboardRole }).role = record.role;
+            return token;
           }
         } catch (error) {
-          console.error('Failed to refresh JWT payload from Supabase', error);
+          const message =
+            error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string'
+              ? (error as any).message
+              : String(error);
+          const details =
+            error && typeof error === 'object'
+              ? JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
+              : undefined;
+
+          console.error(
+            'Failed to refresh JWT payload from Supabase by email',
+            message,
+            details ? `Details: ${details}` : undefined,
+          );
         }
-      } else if (!currentRole && token.sub) {
+      }
+
+      if (!currentRole && token.sub) {
         try {
           const supabase = getSupabaseServerClient();
           const { data, error } = await supabase
-            .from('Users')
+            .from('users')
             .select('role')
             .eq('id', token.sub)
             .maybeSingle<{ role: string | null }>();

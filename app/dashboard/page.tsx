@@ -46,7 +46,6 @@ export default async function UserDashboardPage() {
     redirect('/dashboard/admin');
   }
 
-  // Check if user has interests set
   const supabase = getSupabaseServerClient();
   const { data: interestsData } = await supabase
     .from('UserInterests')
@@ -55,8 +54,9 @@ export default async function UserDashboardPage() {
     .maybeSingle();
 
   const hasInterests = interestsData?.interests && interestsData.interests.length > 0;
+  const isStudent = user.role === 'user';
 
-  if (!hasInterests) {
+  if (isStudent && !hasInterests) {
     return (
       <main className="flex min-h-screen items-center justify-center p-6">
         <div className="w-full max-w-md">
@@ -66,7 +66,7 @@ export default async function UserDashboardPage() {
     );
   }
 
-  const isUser = user.role === 'user';
+  const isUser = isStudent;
 
   const [books, activeLoans, summary, recentLoans] = await Promise.all([
     fetchAvailableBooks(),

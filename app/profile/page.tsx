@@ -266,14 +266,16 @@ export default async function ProfilePage() {
         </BlurFade>
 
         {/* 4.5. Interests Section */}
-        <BlurFade delay={0.45} yOffset={20}>
-          <section>
-            <h2 className={sectionTitleClass}>Interests</h2>
-            <GlassCard intensity="medium" className="p-4 sm:p-6">
-              <InterestsForm userId={user.id} currentInterests={interests} />
-            </GlassCard>
-          </section>
-        </BlurFade>
+        {user.role === 'user' ? (
+          <BlurFade delay={0.45} yOffset={20}>
+            <section>
+              <h2 className={sectionTitleClass}>Interests</h2>
+              <GlassCard intensity="medium" className="p-4 sm:p-6">
+                <InterestsForm userId={user.id} currentInterests={interests} />
+              </GlassCard>
+            </section>
+          </BlurFade>
+        ) : null}
 
         {/* 5. Links Section */}
         <BlurFade delay={0.5} yOffset={20}>
