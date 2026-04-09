@@ -55,7 +55,7 @@ const CATEGORIES: CategoryKey[] = ['cs', 'engineering', 'art', 'business'];
 
 export default function InterestsForm({ userId, currentInterests = [], onComplete }: InterestsFormProps) {
   const [selected, setSelected] = useState<string[]>(currentInterests.slice(0, 1));
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [pending, setPending] = useState(false);
   const router = useRouter();
 
@@ -120,16 +120,16 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
 
       <div className="rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-slate-950">
         {selected.length > 0 ? (
-          <div className="rounded-t-3xl border-b border-slate-200 bg-slate-50 px-5 py-5 dark:border-white/10 dark:bg-slate-900">
-            <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-              Selected Program
-            </div>
-            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="text-lg font-semibold text-slate-900 dark:text-white">
+          <div className="rounded-t-3xl border-b border-slate-200 bg-slate-50 px-5 py-4 dark:border-white/10 dark:bg-slate-900">
+            <div className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-slate-950">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-swin-red/10 text-swin-red dark:bg-emerald-400/10 dark:text-emerald-200">
+                ★
+              </div>
+              <div className="min-w-0">
+                <div className="text-base font-semibold text-slate-900 dark:text-white">
                   {PROGRAM_OPTIONS.find((option) => option.key === selected[0])?.label}
                 </div>
-                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                <p className="mt-1 truncate text-sm text-slate-600 dark:text-slate-300">
                   {PROGRAM_OPTIONS.find((option) => option.key === selected[0])?.description}
                 </p>
               </div>
@@ -145,42 +145,47 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
         )}
 
         <div className="space-y-4 px-4 py-5 sm:px-5">
-          <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-            Available programs
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+              Available programs
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen((current) => !current)}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-200 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-white/20 dark:hover:bg-slate-800"
+            >
+              <span>{open ? 'Hide' : 'Show'}</span>
+              <span className="text-base">{open ? '−' : '+'}</span>
+            </button>
           </div>
-          <div className="max-h-[520px] overflow-y-auto pr-1">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {PROGRAM_OPTIONS.map((option) => {
+          {open ? (
+            <div className="max-h-[520px] overflow-y-auto pr-1">
+              <div className="flex flex-col gap-3">
+                {PROGRAM_OPTIONS.map((option) => {
                 const isSelected = selected.includes(option.key);
                 return (
                   <button
                     key={option.key}
                     type="button"
                     onClick={() => handleToggle(option.key)}
-                    className={`group flex flex-col justify-between rounded-3xl border p-5 text-left transition duration-300 ease-out transform focus:outline-none focus:ring-2 focus:ring-swin-red/40 dark:focus:ring-emerald-400/40 ${
+                    className={`group flex items-center justify-between rounded-3xl border px-5 py-4 text-left transition duration-300 ease-out transform focus:outline-none focus:ring-2 focus:ring-swin-red/40 dark:focus:ring-emerald-400/40 ${
                       isSelected
                         ? 'border-swin-red bg-swin-red/5 shadow-lg dark:border-emerald-400 dark:bg-emerald-400/10'
                         : 'border-slate-200 bg-slate-50 shadow-sm hover:-translate-y-1 hover:border-slate-300 hover:bg-slate-100 hover:shadow-lg dark:border-white/10 dark:bg-slate-900 dark:hover:border-white/20 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="text-base font-semibold text-slate-900 dark:text-white">{option.label}</div>
-                        <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">{option.description}</div>
-                      </div>
-                      <div className={`flex h-9 w-9 items-center justify-center rounded-full border text-xs font-semibold uppercase tracking-[0.18em] ${
-                        isSelected
-                          ? 'border-swin-red bg-swin-red text-white dark:border-emerald-400 dark:bg-emerald-400 dark:text-slate-950'
-                          : 'border-slate-300 bg-slate-100 text-slate-700 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300'
-                      }`}>
-                        {isSelected ? 'Selected' : 'Select'}
-                      </div>
+                    <div className="min-w-0">
+                      <div className="text-base font-semibold text-slate-900 dark:text-white">{option.label}</div>
+                      <p className="mt-1 truncate text-sm text-slate-600 dark:text-slate-300">
+                        {option.description}
+                      </p>
                     </div>
                   </button>
                 );
               })}
             </div>
           </div>
+        ) : null}
         </div>
       </div>
 
