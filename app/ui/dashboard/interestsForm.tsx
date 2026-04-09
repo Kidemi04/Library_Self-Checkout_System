@@ -54,7 +54,7 @@ const PROGRAM_OPTIONS: ProgramOption[] = [
 const CATEGORIES: CategoryKey[] = ['cs', 'engineering', 'art', 'business'];
 
 export default function InterestsForm({ userId, currentInterests = [], onComplete }: InterestsFormProps) {
-  const [selected, setSelected] = useState<string[]>(currentInterests);
+  const [selected, setSelected] = useState<string[]>(currentInterests.slice(0, 1));
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const router = useRouter();
@@ -69,13 +69,7 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
   }, [selected]);
 
   const handleToggle = (key: string) => {
-    setSelected((prev) =>
-      prev.includes(key)
-        ? prev.filter((k) => k !== key)
-        : prev.length < 3
-          ? [...prev, key]
-          : prev,
-    );
+    setSelected((prev) => (prev.includes(key) ? [] : [key]));
   };
 
   const handleSubmit = async () => {
@@ -93,15 +87,15 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-swin-charcoal dark:text-white">
           {currentInterests.length > 0 ? 'Update Your Program Selection' : 'Welcome! Choose your bachelor program'}
         </h2>
         <p className="mt-2 text-swin-charcoal/70 dark:text-slate-300">
           {currentInterests.length > 0
-            ? 'Select up to 3 bachelor programs to personalize recommendations'
-            : 'Choose up to 3 bachelor programs to personalize book and learning recommendations'
+            ? 'Choose one bachelor program to personalize recommendations'
+            : 'Select one bachelor program to personalize book and learning recommendations'
           }
         </p>
       </div>
@@ -124,76 +118,81 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
         })}
       </div>
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition dark:border-white/10 dark:bg-slate-950">
-        <button
-          type="button"
-          onClick={() => setOpen((current) => !current)}
-          className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-base font-semibold text-swin-charcoal transition hover:bg-slate-50 dark:text-white dark:hover:bg-slate-900"
-        >
-          <div>
-            <div>Choose bachelor programs</div>
-            <div className="mt-1 text-sm font-normal text-slate-500 dark:text-slate-400">
-              {selected.length > 0
-                ? `${selected.length} program${selected.length === 1 ? '' : 's'} selected`
-                : 'Tap to expand and choose programs'}
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-slate-950">
+        {selected.length > 0 ? (
+          <div className="rounded-t-3xl border-b border-slate-200 bg-slate-50 px-5 py-5 dark:border-white/10 dark:bg-slate-900">
+            <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+              Selected Program
+            </div>
+            <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="text-lg font-semibold text-slate-900 dark:text-white">
+                  {PROGRAM_OPTIONS.find((option) => option.key === selected[0])?.label}
+                </div>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                  {PROGRAM_OPTIONS.find((option) => option.key === selected[0])?.description}
+                </p>
+              </div>
+              <span className="inline-flex items-center rounded-full bg-swin-red/10 px-3 py-1 text-sm font-semibold text-swin-red dark:bg-emerald-400/10 dark:text-emerald-200">
+                {CATEGORY_LABELS[PROGRAM_OPTIONS.find((option) => option.key === selected[0])?.category ?? 'cs']}
+              </span>
             </div>
           </div>
-          <span className={`text-xl transition-transform ${open ? 'rotate-180' : ''}`}>&#x25BC;</span>
-        </button>
-        {open && (
-          <div className="space-y-3 border-t border-slate-200 px-4 py-4 dark:border-white/10">
-            {CATEGORIES.map((category) => {
-              const programs = PROGRAM_OPTIONS.filter((option) => option.category === category);
-              return (
-                <div key={category} className="space-y-3">
-                  <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                    {CATEGORY_LABELS[category]}
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {programs.map((option) => {
-                      const isSelected = selected.includes(option.key);
-                      return (
-                        <button
-                          key={option.key}
-                          type="button"
-                          onClick={() => handleToggle(option.key)}
-                          className={`group flex flex-col justify-between rounded-2xl border p-4 text-left transition focus:outline-none focus:ring-2 focus:ring-swin-red/40 dark:focus:ring-emerald-400/40 ${
-                            isSelected
-                              ? 'border-swin-red bg-swin-red/5 dark:border-emerald-400 dark:bg-emerald-400/10'
-                              : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100 dark:border-white/10 dark:bg-slate-900 dark:hover:border-white/20 dark:hover:bg-slate-800'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="font-semibold text-slate-900 dark:text-white">{option.label}</span>
-                            <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.18em] ${
-                              isSelected
-                                ? 'bg-swin-red text-white dark:bg-emerald-400 dark:text-slate-950'
-                                : 'bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                            }`}>
-                              {isSelected ? 'Selected' : 'Choose'}
-                            </span>
-                          </div>
-                          <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                            {option.description}
-                          </p>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+        ) : (
+          <div className="rounded-t-3xl border-b border-slate-200 px-5 py-5 text-slate-600 dark:border-white/10 dark:text-slate-300">
+            Select one program below to personalize your experience.
           </div>
         )}
+
+        <div className="space-y-4 px-4 py-5 sm:px-5">
+          <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+            Available programs
+          </div>
+          <div className="max-h-[520px] overflow-y-auto pr-1">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {PROGRAM_OPTIONS.map((option) => {
+                const isSelected = selected.includes(option.key);
+                return (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() => handleToggle(option.key)}
+                    className={`group flex flex-col justify-between rounded-3xl border p-5 text-left transition duration-300 ease-out transform focus:outline-none focus:ring-2 focus:ring-swin-red/40 dark:focus:ring-emerald-400/40 ${
+                      isSelected
+                        ? 'border-swin-red bg-swin-red/5 shadow-lg dark:border-emerald-400 dark:bg-emerald-400/10'
+                        : 'border-slate-200 bg-slate-50 shadow-sm hover:-translate-y-1 hover:border-slate-300 hover:bg-slate-100 hover:shadow-lg dark:border-white/10 dark:bg-slate-900 dark:hover:border-white/20 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-base font-semibold text-slate-900 dark:text-white">{option.label}</div>
+                        <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">{option.description}</div>
+                      </div>
+                      <div className={`flex h-9 w-9 items-center justify-center rounded-full border text-xs font-semibold uppercase tracking-[0.18em] ${
+                        isSelected
+                          ? 'border-swin-red bg-swin-red text-white dark:border-emerald-400 dark:bg-emerald-400 dark:text-slate-950'
+                          : 'border-slate-300 bg-slate-100 text-slate-700 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300'
+                      }`}>
+                        {isSelected ? 'Selected' : 'Select'}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
-      <button
-        onClick={handleSubmit}
-        disabled={selected.length === 0 || pending}
-        className="w-full rounded-lg bg-swin-red px-6 py-3 text-white font-semibold transition-all hover:bg-swin-red/90 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-emerald-600 dark:hover:bg-emerald-500"
-      >
-        {pending ? 'Saving...' : 'Continue'}
-      </button>
+      <div className="sticky bottom-0 z-20 -mx-4 rounded-b-3xl border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur dark:border-white/10 dark:bg-slate-950/95 sm:mx-0">
+        <button
+          onClick={handleSubmit}
+          disabled={selected.length === 0 || pending}
+          className="w-full rounded-lg bg-swin-red px-6 py-3 text-white font-semibold transition-all hover:bg-swin-red/90 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-emerald-600 dark:hover:bg-emerald-500"
+        >
+          {pending ? 'Saving...' : 'Continue'}
+        </button>
+      </div>
     </div>
   );
 }
