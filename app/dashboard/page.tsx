@@ -48,7 +48,7 @@ export default async function UserDashboardPage() {
 
   const supabase = getSupabaseServerClient();
   const { data: interestsData } = await supabase
-    .from('UserInterests')
+    .from('user_interests')
     .select('interests')
     .eq('user_id', user.id)
     .maybeSingle();

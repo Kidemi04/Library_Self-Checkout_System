@@ -49,7 +49,7 @@ const loadProfileFromView = async (
 
   try {
     const { data, error } = await supabase
-      .from('MyProfile')
+      .from('my_profile')
       .select(
         `
           user_id,
@@ -69,13 +69,13 @@ const loadProfileFromView = async (
 
       if (error && typeof error === 'object' && 'code' in error && (error as any).code === 'PGRST205') {
         const { data: fallbackData, error: fallbackError } = await supabase
-          .from('Users')
+          .from('users')
           .select(
             `
               id,
               email,
               role,
-              UserProfile (
+              user_profile (
                 username,
                 display_name
               )

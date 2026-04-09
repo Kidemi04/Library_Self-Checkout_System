@@ -39,6 +39,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, interests });
   } catch (error) {
     console.error('Failed to save user interests', error);
-    return NextResponse.json({ error: 'Failed to save interests.' }, { status: 500 });
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === 'string'
+        ? error
+        : 'Failed to save interests.';
+    return NextResponse.json(
+      {
+        error: message,
+        code: error && typeof error === 'object' && 'code' in error ? (error as any).code : undefined,
+      },
+      { status: 500 },
+    );
   }
 }

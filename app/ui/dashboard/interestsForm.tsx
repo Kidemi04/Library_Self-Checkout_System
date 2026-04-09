@@ -1,8 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { saveUserInterests } from '@/app/lib/recommendations/user-context';
 
 type InterestsFormProps = {
   userId: string;
@@ -57,7 +55,8 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
   const [selected, setSelected] = useState<string[]>(currentInterests.slice(0, 1));
   const [open, setOpen] = useState(true);
   const [pending, setPending] = useState(false);
-  const router = useRouter();
+  const [saved, setSaved] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const selectedCategories = useMemo(() => {
     const categories = new Set<CategoryKey>();
@@ -75,11 +74,30 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
   const handleSubmit = async () => {
     if (selected.length === 0) return;
     setPending(true);
+    setErrorMessage(null);
     try {
-      await saveUserInterests(userId, selected);
+      const response = await fetch('/api/user/interests', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ interests: selected }),
+      });
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(
+          body?.error || `Request failed with status ${response.status}`,
+        );
+      }
+
+      setSaved(true);
       onComplete?.();
-      router.refresh();
     } catch (error) {
+      const message =
+        error instanceof Error ? error.message : String(error ?? 'Unknown error');
+      setErrorMessage(message);
       console.error('Failed to save interests:', error);
     } finally {
       setPending(false);
@@ -188,6 +206,18 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
         ) : null}
         </div>
       </div>
+
+      {saved && (
+        <div className="rounded-3xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-100">
+          Your program choice has been saved. You can stay here and continue reviewing recommendations.
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-900 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-100">
+          {errorMessage}
+        </div>
+      )}
 
       <div className="sticky bottom-0 z-20 -mx-4 rounded-b-3xl border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur dark:border-white/10 dark:bg-slate-950/95 sm:mx-0">
         <button

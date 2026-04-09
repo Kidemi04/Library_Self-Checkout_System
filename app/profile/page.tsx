@@ -134,7 +134,7 @@ export default async function ProfilePage() {
       .eq('id', user.id)
       .maybeSingle<{ created_at: string | null }>(),
     supabase
-      .from('UserInterests')
+      .from('user_interests')
       .select('interests')
       .eq('user_id', user.id)
       .maybeSingle<{ interests: string[] | null }>(),
@@ -153,7 +153,11 @@ export default async function ProfilePage() {
   }
 
   const profile = profileRow ?? {};
-  const interests = interestsRow?.interests ?? [];
+  const interests = interestsRow?.interests
+    ? Array.isArray(interestsRow.interests)
+      ? interestsRow.interests
+      : [interestsRow.interests]
+    : [];
   const isPrivileged = user.role === 'staff' || user.role === 'admin';
   const roleLabel = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User';
   const memberSince = formatMemberSince(userRow?.created_at ?? null);

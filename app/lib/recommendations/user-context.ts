@@ -1,3 +1,4 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 
 export type UserContext = {
@@ -14,12 +15,70 @@ type RawLoanHistoryRow = {
 };
 
 type RawUserInterestsRow = {
-  interests: string[] | null;
+  interests: string[] | string | null;
+};
+
+const INTEREST_TABLE_NAMES = [
+  'user_interests',
+  'UserInterest',
+  'UserInterests',
+  'userinterest',
+];
+
+const isTableNotFoundError = (error: unknown): boolean => {
+  if (!error || typeof error !== 'object') return false;
+  const message =
+    'message' in error && typeof (error as any).message === 'string'
+      ? (error as any).message
+      : '';
+  const code = 'code' in error ? String((error as any).code) : '';
+  return (
+    /does not exist/i.test(message) ||
+    /relation .* does not exist/i.test(message) ||
+    code === 'PGRST116' ||
+    code === '42P01'
+  );
+};
+
+const tryInterestTableQuery = async <T extends { data: any; error: any }>(
+  supabase: SupabaseClient,
+  callback: (table: string) => PromiseLike<T> | T,
+): Promise<T> => {
+  let lastResult: T | null = null;
+
+  for (const table of INTEREST_TABLE_NAMES) {
+    const result = await callback(table);
+    if (!result.error) {
+      return result;
+    }
+
+    lastResult = result;
+    if (!isTableNotFoundError(result.error)) {
+      return result;
+    }
+  }
+
+  return lastResult as T;
+};
+
+const resolveInterestTableName = async (supabase: SupabaseClient): Promise<string> => {
+  for (const tableName of INTEREST_TABLE_NAMES) {
+    const { error } = await supabase.from(tableName).select('user_id').limit(1);
+    if (!error) {
+      return tableName;
+    }
+
+    if (!isTableNotFoundError(error)) {
+      throw error;
+    }
+  }
+
+  return 'user_interests';
 };
 
 /**
  * Fetches the user's loan history tags (from borrowed books' BookTags) and
- * their saved interests from UserInterests. Both DB calls run in parallel.
+ * their saved interests from the interest table. Both DB calls run in parallel.
  */
 export async function fetchUserContext(userId: string): Promise<UserContext> {
   if (!userId) return { historyTags: [], savedInterests: [] };
@@ -44,11 +103,13 @@ export async function fetchUserContext(userId: string): Promise<UserContext> {
       .order('borrowed_at', { ascending: false })
       .limit(20),
 
-    supabase
-      .from('UserInterests')
-      .select('interests')
-      .eq('user_id', userId)
-      .maybeSingle<RawUserInterestsRow>(),
+    tryInterestTableQuery(supabase, (table) =>
+      supabase
+        .from(table)
+        .select('interests')
+        .eq('user_id', userId)
+        .maybeSingle<RawUserInterestsRow>(),
+    ),
   ]);
 
   // Extract and deduplicate history tags
@@ -76,20 +137,19 @@ export async function fetchUserContext(userId: string): Promise<UserContext> {
   const savedInterests: string[] = [];
   if (!interestsResult.error && interestsResult.data?.interests) {
     const raw = interestsResult.data.interests;
-    if (Array.isArray(raw)) {
-      savedInterests.push(
-        ...raw
-          .map((v) => String(v).trim().toLowerCase())
-          .filter((v) => v.length > 0),
-      );
-    }
+    const values = Array.isArray(raw) ? raw : [raw];
+    savedInterests.push(
+      ...values
+        .map((v) => String(v).trim().toLowerCase())
+        .filter((v) => v.length > 0),
+    );
   }
 
   return { historyTags, savedInterests };
 }
 
 /**
- * Saves (upserts) the user's interests into UserInterests table.
+ * Saves (upserts) the user's interests into the configured interest table.
  */
 export async function saveUserInterests(
   userId: string,
@@ -101,14 +161,41 @@ export async function saveUserInterests(
     .filter((v) => v.length > 0 && v.length <= 60)
     .slice(0, 30);
 
-  const { error } = await supabase
-    .from('UserInterests')
+  const tableName = await resolveInterestTableName(supabase);
+  const interestsPayload = sanitized;
+
+  let { error } = await supabase
+    .from(tableName)
     .upsert(
-      { user_id: userId, interests: sanitized, updated_at: new Date().toISOString() },
+      { user_id: userId, interests: interestsPayload, updated_at: new Date().toISOString() },
       { onConflict: 'user_id' },
     );
 
-  if (error) throw error;
+  if (error) {
+    const message = String(error.message ?? '');
+    const code = String(error.code ?? '');
+    
+    // If table not found, provide helpful error message
+    if (code === 'PGRST205' || /does not exist|could not find the table/.test(message)) {
+      const helpMsg = 'user_interests table not found. Please run the migration in Supabase SQL Editor. See SUPABASE_SETUP_REQUIRED.md for instructions.';
+      throw new Error(helpMsg);
+    }
+    
+    // If type mismatch, retry with text fallback
+    if (/invalid input syntax for type text|cannot cast|column .* is of type text/.test(message)) {
+      const fallbackPayload = sanitized[0] ?? '';
+      const fallbackResult = await supabase
+        .from(tableName)
+        .upsert(
+          { user_id: userId, interests: fallbackPayload, updated_at: new Date().toISOString() },
+          { onConflict: 'user_id' },
+        );
+      if (fallbackResult.error) throw fallbackResult.error;
+      return;
+    }
+
+    throw error;
+  }
 }
 
 /**
@@ -121,11 +208,13 @@ export async function userNeedsOnboarding(userId: string): Promise<boolean> {
   const supabase = getSupabaseServerClient();
 
   const [interestsResult, loansResult] = await Promise.all([
-    supabase
-      .from('UserInterests')
-      .select('interests')
-      .eq('user_id', userId)
-      .maybeSingle<RawUserInterestsRow>(),
+    tryInterestTableQuery(supabase, (table) =>
+      supabase
+        .from(table)
+        .select('interests')
+        .eq('user_id', userId)
+        .maybeSingle<RawUserInterestsRow>(),
+    ),
 
     supabase
       .from('Loans')
@@ -134,10 +223,11 @@ export async function userNeedsOnboarding(userId: string): Promise<boolean> {
       .limit(1),
   ]);
 
+  const savedInterestValue = interestsResult.data?.interests;
   const hasSavedInterests =
     !interestsResult.error &&
-    Array.isArray(interestsResult.data?.interests) &&
-    (interestsResult.data?.interests?.length ?? 0) > 0;
+    ((Array.isArray(savedInterestValue) && (savedInterestValue.length ?? 0) > 0) ||
+      (typeof savedInterestValue === 'string' && savedInterestValue.trim().length > 0));
 
   const hasLoanHistory =
     !loansResult.error && (loansResult.count ?? 0) > 0;
