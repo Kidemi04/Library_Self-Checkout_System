@@ -10,6 +10,8 @@ import LinkedInLearningSearchForm from '@/app/ui/dashboard/learning/searchForm';
 import SearchResultsPanel from '@/app/ui/dashboard/learning/searchResultsPanel';
 import CollectionsPanel from '@/app/ui/dashboard/learning/collectionsPanel';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import { getDashboardSession } from '@/app/lib/auth/session';
+import { fetchUserContext } from '@/app/lib/recommendations/user-context';
 
 // LinkedIn Learning — professional & tech skills focus
 const linkedInTopics: LinkedInLearningTopicDefinition[] = [
@@ -19,6 +21,22 @@ const linkedInTopics: LinkedInLearningTopicDefinition[] = [
   { key: 'business', title: 'Business & Leadership', query: 'leadership management project business', description: 'Project management, leadership, communication, and business strategy.' },
   { key: 'design', title: 'Design & Creative', query: 'UX UI design creative Figma', description: 'UI/UX, graphic design, Figma, and creative production tools.' },
 ];
+
+const interestToTopics: Record<string, string[]> = {
+  cs: ['software-dev', 'data-ai', 'cloud-devops'],
+  engineer: ['software-dev', 'cloud-devops', 'data-ai'],
+  art: ['business'],
+  design: ['design'],
+};
+
+const getRecommendedTopics = (interests: string[]): LinkedInLearningTopicDefinition[] => {
+  const recommendedKeys = new Set<string>();
+  interests.forEach(interest => {
+    const topics = interestToTopics[interest] || [];
+    topics.forEach(key => recommendedKeys.add(key));
+  });
+  return linkedInTopics.filter(topic => recommendedKeys.has(topic.key));
+};
 
 const linkedInQuickFilters = [
   { label: 'Python', query: 'python' },
@@ -78,6 +96,11 @@ export default async function LinkedInLearningPage({
 }: {
   searchParams?: Promise<Record<string, string | string[]>>;
 }) {
+  const { user } = await getDashboardSession();
+  if (!user) return null;
+
+  const userContext = await fetchUserContext(user.id);
+  const userInterests = userContext.savedInterests;
   const params = searchParams ? await searchParams : {};
   const queryParam = typeof params?.q === 'string' ? params.q : '';
   const difficulty = parseDifficulty(typeof params?.difficulty === 'string' ? params.difficulty : undefined);
@@ -88,7 +111,9 @@ export default async function LinkedInLearningPage({
   const isLinkedIn = learningStatus.provider === 'linkedin';
   const providerLabel = learningStatus.label;
 
-  const curatedTopics = isLinkedIn ? linkedInTopics : khanTopics;
+  const curatedTopics = isLinkedIn
+    ? (userInterests.length > 0 ? getRecommendedTopics(userInterests) : linkedInTopics)
+    : khanTopics;
   const quickFilters = isLinkedIn ? linkedInQuickFilters : khanQuickFilters;
 
   const [searchResult, collections] = trimmedQuery

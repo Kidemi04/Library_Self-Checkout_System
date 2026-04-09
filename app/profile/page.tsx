@@ -6,6 +6,7 @@ import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import ProfileNameForm from '@/app/profile/profileNameForm';
 import ProfileAvatarForm from '@/app/profile/profileAvatarForm';
 import ProfileEditForm from '@/app/profile/profileEditForm';
+import InterestsForm from '@/app/ui/dashboard/interestsForm';
 import GlassCard from '@/app/ui/magicUi/glassCard';
 import BlurFade from '@/app/ui/magicUi/blurFade';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
@@ -102,34 +103,42 @@ export default async function ProfilePage() {
   }
 
   const supabase = getSupabaseServerClient();
-  const [{ data: profileRow, error: profileError }, { data: userRow, error: userError }] =
-    await Promise.all([
-      supabase
-        .from('UserProfile')
-        .select(
-          `
-            display_name,
-            username,
-            avatar_url,
-            phone,
-            preferred_language,
-            bio,
-            faculty,
-            department,
-            intake_year,
-            student_id,
-            links,
-            visibility
-          `,
-        )
-        .eq('user_id', user.id)
-        .maybeSingle<ProfileRow>(),
-      supabase
-        .from('Users')
-        .select('created_at')
-        .eq('id', user.id)
-        .maybeSingle<{ created_at: string | null }>(),
-    ]);
+  const [
+    { data: profileRow, error: profileError },
+    { data: userRow, error: userError },
+    { data: interestsRow, error: interestsError }
+  ] = await Promise.all([
+    supabase
+      .from('UserProfile')
+      .select(
+        `
+          display_name,
+          username,
+          avatar_url,
+          phone,
+          preferred_language,
+          bio,
+          faculty,
+          department,
+          intake_year,
+          student_id,
+          links,
+          visibility
+        `,
+      )
+      .eq('user_id', user.id)
+      .maybeSingle<ProfileRow>(),
+    supabase
+      .from('Users')
+      .select('created_at')
+      .eq('id', user.id)
+      .maybeSingle<{ created_at: string | null }>(),
+    supabase
+      .from('UserInterests')
+      .select('interests')
+      .eq('user_id', user.id)
+      .maybeSingle<{ interests: string[] | null }>(),
+  ]);
 
   if (profileError) {
     console.error('Failed to load profile for current user', profileError);
@@ -139,7 +148,12 @@ export default async function ProfilePage() {
     console.error('Failed to load metadata for current user', userError);
   }
 
+  if (interestsError) {
+    console.error('Failed to load interests for current user', interestsError);
+  }
+
   const profile = profileRow ?? {};
+  const interests = interestsRow?.interests ?? [];
   const isPrivileged = user.role === 'staff' || user.role === 'admin';
   const roleLabel = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User';
   const memberSince = formatMemberSince(userRow?.created_at ?? null);
@@ -247,6 +261,16 @@ export default async function ProfilePage() {
                 bio={profile.bio ?? null}
                 isPrivileged={isPrivileged}
               />
+            </GlassCard>
+          </section>
+        </BlurFade>
+
+        {/* 4.5. Interests Section */}
+        <BlurFade delay={0.45} yOffset={20}>
+          <section>
+            <h2 className={sectionTitleClass}>Interests</h2>
+            <GlassCard intensity="medium" className="p-4 sm:p-6">
+              <InterestsForm userId={user.id} currentInterests={interests} />
             </GlassCard>
           </section>
         </BlurFade>

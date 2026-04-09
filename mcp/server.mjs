@@ -101,7 +101,7 @@ const fetchBooks = async (searchTerm, limit = DEFAULT_LIMIT) => {
   const sanitizedLimit = clamp(limit, 20, DEFAULT_LIMIT);
 
   let query = supabase
-    .from('books')
+    .from('Books')
     .select(
       `
         id,

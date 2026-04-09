@@ -487,7 +487,7 @@ export async function checkoutBookAction(
   // ---------- Notification ----------
   ;(async () => {
     const { data: bookRow } = await supabase
-      .from('books')
+      .from('Books')
       .select('title')
       .eq('id', bookId)
       .maybeSingle<{ title: string }>();
@@ -709,7 +709,7 @@ export async function checkinBookAction(
     let bookTitle = loan.copy?.barcode ?? 'Unknown book';
     if (bookId) {
       const { data: bookRow } = await supabase
-        .from('books')
+        .from('Books')
         .select('title')
         .eq('id', bookId)
         .maybeSingle<{ title: string }>();

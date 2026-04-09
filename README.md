@@ -147,11 +147,8 @@ Configure these in `tailwind.config.ts`.
 ```sql
 -- Enums
 CREATE TYPE public.user_role AS ENUM ('user','staff','admin');
-CREATE TYPE public.copy_status AS ENUM ('AVAILABLE','ON_LOAN','LOST','DAMAGED','PROCESSING','HOLD_SHELF');
-CREATE TYPE public.profile_visibility AS ENUM ('PUBLIC','CAMPUS','PRIVATE');
-
 -- Books and Copies
-CREATE TABLE books (
+CREATE TABLE "Books" (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
   author text,
@@ -164,9 +161,9 @@ CREATE TABLE books (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE copies (
+CREATE TABLE "Copies" (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  book_id uuid NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+  book_id uuid NOT NULL REFERENCES "Books"(id) ON DELETE CASCADE,
   barcode text NOT NULL UNIQUE,
   status public.copy_status NOT NULL DEFAULT 'AVAILABLE',
   created_at timestamptz NOT NULL DEFAULT now(),
@@ -174,7 +171,7 @@ CREATE TABLE copies (
 );
 
 -- User Management
-CREATE TABLE users (
+CREATE TABLE "Users" (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   email citext NOT NULL UNIQUE,
   display_name text,
@@ -183,8 +180,8 @@ CREATE TABLE users (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE TABLE user_profiles (
-  user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+CREATE TABLE "UserProfile" (
+  user_id uuid PRIMARY KEY REFERENCES "Users"(id) ON DELETE CASCADE,
   username citext UNIQUE,
   display_name text,
   avatar_url text,
@@ -193,16 +190,24 @@ CREATE TABLE user_profiles (
   visibility public.profile_visibility NOT NULL DEFAULT 'CAMPUS'
 );
 
+-- User Interests
+CREATE TABLE "UserInterests" (
+  user_id uuid PRIMARY KEY REFERENCES "Users"(id) ON DELETE CASCADE,
+  interests text[] NOT NULL DEFAULT '{}',
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- Circulation
-CREATE TABLE loans (
+CREATE TABLE "Loans" (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  copy_id uuid NOT NULL REFERENCES copies(id) ON DELETE RESTRICT,
-  user_id uuid NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  copy_id uuid NOT NULL REFERENCES "Copies"(id) ON DELETE RESTRICT,
+  user_id uuid NOT NULL REFERENCES "Users"(id) ON DELETE RESTRICT,
   borrowed_at timestamptz NOT NULL DEFAULT now(),
   due_at timestamptz NOT NULL,
   returned_at timestamptz,
   renewed_count int NOT NULL DEFAULT 0,
-  handled_by uuid REFERENCES users(id) ON DELETE SET NULL
+  handled_by uuid REFERENCES "Users"(id) ON DELETE SET NULL
 );
 ```
 

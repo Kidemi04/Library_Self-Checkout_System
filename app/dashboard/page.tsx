@@ -17,6 +17,8 @@ import {
 import { getDashboardSession } from '@/app/lib/auth/session';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 import DashboardUserCard from '@/app/ui/dashboard/dashboardUserCard';
+import InterestsForm from '@/app/ui/dashboard/interestsForm';
+import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 
 const roleLabel = (role: string): string => {
   if (role === 'admin') return 'Admin';
@@ -42,6 +44,26 @@ export default async function UserDashboardPage() {
 
   if (user.role === 'admin') {
     redirect('/dashboard/admin');
+  }
+
+  // Check if user has interests set
+  const supabase = getSupabaseServerClient();
+  const { data: interestsData } = await supabase
+    .from('UserInterests')
+    .select('interests')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  const hasInterests = interestsData?.interests && interestsData.interests.length > 0;
+
+  if (!hasInterests) {
+    return (
+      <main className="flex min-h-screen items-center justify-center p-6">
+        <div className="w-full max-w-md">
+          <InterestsForm userId={user.id} />
+        </div>
+      </main>
+    );
   }
 
   const isUser = user.role === 'user';
