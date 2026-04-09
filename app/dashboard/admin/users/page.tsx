@@ -38,7 +38,7 @@ const roleOptions: ManagedRole[] = ['user', 'staff', 'admin'];
 const PAGE_SIZE = 25;
 
 const visibilityOptions = [
-  { value: 'publiv', label: 'Public' },
+  { value: 'public', label: 'Public' },
   { value: 'campus', label: 'Campus' },
   { value: 'private', label: 'Private' },
 ];
