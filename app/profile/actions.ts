@@ -179,14 +179,14 @@ export async function updateProfileAction(
       };
     }
 
+    const interestValue = formData.get('interest')?.toString().trim() || null;
     const phoneNumber = formData.get('phone')?.toString().trim();
 
     const updateData = {
       username: formData.get('username')?.toString().trim() || null,
       phone: phoneNumber || null,
       preferred_language: formData.get('preferred_language')?.toString().trim() || null,
-      faculty: formData.get('faculty')?.toString().trim() || null,
-      department: formData.get('department')?.toString().trim() || null,
+      interest: interestValue,
       bio: formData.get('bio')?.toString().trim() || null,
     };
 

@@ -17,8 +17,7 @@ type ProfileRow = {
   phone?: string | null;
   preferred_language?: string | null;
   bio?: string | null;
-  faculty?: string | null;
-  department?: string | null;
+  interest?: string | null;
   intake_year?: number | null;
   student_id?: string | null;
   links?: unknown;
@@ -114,8 +113,7 @@ export default async function ProfilePage() {
             phone,
             preferred_language,
             bio,
-            faculty,
-            department,
+            interest,
             intake_year,
             student_id,
             links,
@@ -242,8 +240,7 @@ export default async function ProfilePage() {
                 username={profile.username ?? null}
                 phone={profile.phone ?? null}
                 preferredLanguage={profile.preferred_language ?? null}
-                faculty={profile.faculty ?? null}
-                department={profile.department ?? null}
+                interest={profile.interest ?? null}
                 bio={profile.bio ?? null}
                 isPrivileged={isPrivileged}
               />

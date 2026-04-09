@@ -10,8 +10,7 @@ type ProfileEditFormProps = {
   username: string | null;
   phone: string | null;
   preferredLanguage: string | null;
-  faculty: string | null;
-  department: string | null;
+  interest: string | null;
   bio: string | null;
   isPrivileged: boolean;
 };
@@ -76,8 +75,7 @@ export default function ProfileEditForm({
   username,
   phone,
   preferredLanguage,
-  faculty,
-  department,
+  interest,
   bio,
   isPrivileged,
 }: ProfileEditFormProps) {
@@ -154,36 +152,35 @@ export default function ProfileEditForm({
           />
         </div>
 
-        {/* Faculty */}
+        {/* Field of Interest */}
         <div>
-          <label htmlFor="faculty" className={labelClass}>
-            Faculty
+          <label htmlFor="interest" className={labelClass}>
+            Field of Interest
           </label>
-          <input
-            id="faculty"
-            name="faculty"
-            type="text"
-            defaultValue={faculty ?? ''}
-            placeholder="Your faculty"
-            className={inputClass}
-            maxLength={100}
-          />
-        </div>
-
-        {/* Department */}
-        <div className="sm:col-span-2">
-          <label htmlFor="department" className={labelClass}>
-            Department
-          </label>
-          <input
-            id="department"
-            name="department"
-            type="text"
-            defaultValue={department ?? ''}
-            placeholder="Your department"
-            className={inputClass}
-            maxLength={100}
-          />
+          <div className="relative">
+            <select
+            key={interest}
+              id="interest"
+              name="interest"
+              defaultValue={interest ?? ''}
+              className={clsx(
+                inputClass,
+                "appearance-none bg-none pr-10 cursor-pointer" 
+              )}
+            >
+              <option value="" disabled>Select your interest</option>
+              <option value="computer_science">Computer Science</option>
+              <option value="engineering">Engineering</option>
+              <option value="business">Business</option>
+              <option value="design">Design</option>
+            </select>
+            
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+              <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
 
