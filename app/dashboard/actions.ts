@@ -767,7 +767,7 @@ export async function updateBookAction(
 ): Promise<ActionState> {
   const bookId = formData.get('bookId')?.toString();
   const title = formData.get('title')?.toString().trim();
-  const author = formData.get('author')?.toString().trim() || null;
+  const author = formData.get('author')?.toString().trim();
   const isbn = formData.get('isbn')?.toString().trim() || null;
   const classificationRaw = formData.get('classification')?.toString();
   const publisherRaw = formData.get('publisher')?.toString();
@@ -776,6 +776,7 @@ export async function updateBookAction(
 
   if (!bookId) return failure('Book reference is missing.');
   if (!title) return failure('Book title is required.');
+  if (!author) return failure('Book author is required.');
 
   const supabase = getSupabaseServerClient();
 
@@ -790,7 +791,7 @@ export async function updateBookAction(
     updated_at: new Date().toISOString(),
   };
 
-  const { error } = await supabase.from('books').update(updatePayload).eq('id', bookId);
+  const { error } = await supabase.from('Books').update(updatePayload).eq('id', bookId);
 
   if (error) {
     console.error('Failed to update book record', error);
@@ -809,12 +810,12 @@ export async function deleteBookAction(bookId: string): Promise<ActionState> {
   const supabase = getSupabaseServerClient();
 
   try {
-    const { error: copyError } = await supabase.from('copies').delete().eq('book_id', bookId);
+    const { error: copyError } = await supabase.from('Copies').delete().eq('book_id', bookId);
     if (copyError) {
       throw new Error(copyError.message);
     }
 
-    const { error } = await supabase.from('books').delete().eq('id', bookId);
+    const { error } = await supabase.from('Books').delete().eq('id', bookId);
 
     if (error) {
       throw new Error(error.message);
@@ -930,14 +931,14 @@ export async function createBookAction(
   const copyRows = barcodes.map((barcode) => ({
     book_id: bookRow.id,
     barcode,
-    status: 'avaliable',
+    status: 'available',
   }));
 
-  const { error: copyInsertError } = await supabase.from('copies').insert(copyRows);
+  const { error: copyInsertError } = await supabase.from('Copies').insert(copyRows);
 
   if (copyInsertError) {
     console.error('Failed to create copies', copyInsertError);
-    await supabase.from('books').delete().eq('id', bookRow.id);
+    await supabase.from('Books').delete().eq('id', bookRow.id);
     return failure('Unable to create book copies; no records were saved.');
   }
 
