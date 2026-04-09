@@ -588,7 +588,7 @@ export default function UserManagementPage() {
         </header>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-100 dark:divide-slate-800">
+          <table className="hidden md:table min-w-full divide-y divide-slate-100 dark:divide-slate-800">
             <thead className="bg-white text-xs font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-900 dark:text-slate-200">
               <tr>
                 <th className="px-6 py-3 text-left">Email</th>
@@ -707,6 +707,96 @@ export default function UserManagementPage() {
               )}
             </tbody>
           </table>
+
+          {/* Mobile View: Card-based layout */}
+          <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-950">
+            {loading ? (
+              <div className="p-4 text-center text-slate-500">Loading users…</div>
+            ) : (
+              paginatedUsers.map((user) => (
+                <div key={user.id} className="p-4 space-y-4">
+                  
+                  {/* Header Grid: Aligns Name and Role on the same horizontal line */}
+                  <div className="grid grid-cols-12 gap-3 items-end">
+                    <div className="col-span-8">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={user.fullName}
+                        onChange={(e) => updateLocalUser(user.id, { 
+                          fullName: e.target.value, 
+                          profile: { display_name: e.target.value } 
+                        })}
+                        className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                      />
+                    </div>
+                    <div className="col-span-4">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1 text-right">
+                        Role
+                      </label>
+                      <select
+                        value={user.role}
+                        onChange={(e) => updateLocalUser(user.id, { role: e.target.value as ManagedRole })}
+                        className="w-full rounded-md border border-slate-200 px-2 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                      >
+                        {roleOptions.map((role) => (
+                          <option key={role} value={role}>
+                            {role.charAt(0).toUpperCase() + role.slice(1)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Email Section: Full width below Name/Role */}
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                      Email Address
+                    </label>
+                    <input
+                      type="email"
+                      value={user.email}
+                      onChange={(e) => updateLocalUser(user.id, { email: e.target.value })}
+                      className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                    />
+                  </div>
+
+                  {/* Action Buttons: Uniform heights and spacing */}
+                  <div className="flex gap-2 pt-2 border-t border-slate-50 dark:border-slate-800">
+                    <button
+                      onClick={() => setExpandedUserId((prev) => (prev === user.id ? null : user.id))}
+                      className="flex-1 rounded-md border border-slate-300 py-2 text-xs font-semibold uppercase dark:border-white/20 dark:text-slate-200"
+                    >
+                      {expandedUserId === user.id ? 'Hide' : 'Details'}
+                    </button>
+                    <button
+                      onClick={() => handleSave(user)}
+                      disabled={isPending}
+                      className="flex-1 rounded-md bg-slate-900 py-2 text-xs font-semibold uppercase text-white dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:opacity-50"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => handleDelete(user.id)}
+                      disabled={isPending}
+                      className="px-3 rounded-md border border-rose-200 py-2 text-xs font-semibold uppercase text-rose-600 dark:border-rose-500/30 dark:text-rose-400"
+                    >
+                      Delete
+                    </button>
+                  </div>
+
+                  {/* Expandable Detail Panel */}
+                  {expandedUserId === user.id && (
+                    <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
+                      <UserDetailEditor user={user} onChange={updateLocalUser} isPending={isPending} />
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
         {!loading && filteredUsers.length > 0 && (
