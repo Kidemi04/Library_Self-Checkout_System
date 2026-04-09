@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
-import LoginClient from '@/app/login/LoginClient';
+import LoginClient from '@/app/login/loginClient';
 
 type LoginPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
