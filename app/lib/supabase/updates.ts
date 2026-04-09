@@ -48,7 +48,7 @@ const syncBookTags = async (
   const normalized = normalizeTags(tags);
 
   if (normalized.length === 0) {
-    await supabase.from('book_tag_links').delete().eq('book_id', bookId);
+    await supabase.from('BookTagLinks').delete().eq('book_id', bookId);
     return;
   }
 

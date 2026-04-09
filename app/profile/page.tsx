@@ -134,7 +134,7 @@ export default async function ProfilePage() {
       .eq('id', user.id)
       .maybeSingle<{ created_at: string | null }>(),
     supabase
-      .from('user_interests')
+      .from('UserInterests')
       .select('interests')
       .eq('user_id', user.id)
       .maybeSingle<{ interests: string[] | null }>(),

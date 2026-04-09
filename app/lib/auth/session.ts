@@ -49,7 +49,7 @@ const loadProfileFromView = async (
 
   try {
     const { data, error } = await supabase
-      .from('my_profile')
+      .from('MyProfile')
       .select(
         `
           user_id,
@@ -69,24 +69,25 @@ const loadProfileFromView = async (
 
       if (error && typeof error === 'object' && 'code' in error && (error as any).code === 'PGRST205') {
         const { data: fallbackData, error: fallbackError } = await supabase
-          .from('users')
+          .from('Users')
           .select(
             `
               id,
               email,
               role,
-              user_profile (
+              UserProfile (
                 username,
                 display_name
               )
             `,
           )
           .eq('id', userId)
-          .maybeSingle<
-            MyProfileRow & {
-              UserProfile?: { username?: string | null; display_name?: string | null } | null;
-            }
-          >();
+          .maybeSingle<{
+            id: string;
+            email?: string | null;
+            role?: string | null;
+            UserProfile?: { username?: string | null; display_name?: string | null } | null;
+          }>();
 
         if (fallbackError) {
           logError('Failed to load fallback profile for user', fallbackError);

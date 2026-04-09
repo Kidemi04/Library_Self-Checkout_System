@@ -19,7 +19,7 @@ type RawUserInterestsRow = {
 };
 
 const INTEREST_TABLE_NAMES = [
-  'user_interests',
+  'UserInterests',
   'UserInterest',
   'UserInterests',
   'userinterest',
@@ -73,7 +73,7 @@ const resolveInterestTableName = async (supabase: SupabaseClient): Promise<strin
     }
   }
 
-  return 'user_interests';
+  return 'UserInterests';
 };
 
 /**
@@ -177,7 +177,7 @@ export async function saveUserInterests(
     
     // If table not found, provide helpful error message
     if (code === 'PGRST205' || /does not exist|could not find the table/.test(message)) {
-      const helpMsg = 'user_interests table not found. Please run the migration in Supabase SQL Editor. See SUPABASE_SETUP_REQUIRED.md for instructions.';
+      const helpMsg = 'UserInterests table not found. Please run the migration in Supabase SQL Editor. See SUPABASE_SETUP_REQUIRED.md for instructions.';
       throw new Error(helpMsg);
     }
     

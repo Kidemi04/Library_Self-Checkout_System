@@ -140,7 +140,7 @@ export async function updateProfileAvatar(
 
     // Get public URL for the uploaded file
     const { data: { publicUrl } } = supabase.storage
-      .from('Avatars')
+      .from('avatars')
       .getPublicUrl(fileName);
 
     // Update user profile with new avatar URL

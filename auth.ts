@@ -58,7 +58,7 @@ type UserRow = {
 const fetchUserByEmail = async (email: string) => {
   const supabase = getSupabaseServerClient();
   const { data, error } = await supabase
-    .from('users')
+    .from('Users')
     .select('id, email, role')
     .eq('email', email)
     .maybeSingle<UserRow>();
@@ -88,7 +88,7 @@ const ensureUserRecord = async (email: string): Promise<SessionUser> => {
 
   const supabase = getSupabaseServerClient();
   const { data, error } = await supabase
-    .from('users')
+    .from('Users')
     .insert({ email: normalizedEmail, role: 'user' })
     .select('id, email, role')
     .single<UserRow>();
@@ -252,7 +252,7 @@ export const authOptions: NextAuthOptions = {
         try {
           const supabase = getSupabaseServerClient();
           const { data, error } = await supabase
-            .from('users')
+            .from('Users')
             .select('role')
             .eq('id', token.sub)
             .maybeSingle<{ role: string | null }>();
