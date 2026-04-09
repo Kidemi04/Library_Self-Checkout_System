@@ -74,7 +74,7 @@ export default function AdminPathsPage() {
               </div>
             ))}
           </div>
-          <Button variant="outline" className="w-full mt-4" onClick={() => alert('Supabase insertion binding would be wired here for physical path generation!')}>
+          <Button className="w-full mt-4" onClick={() => alert('Supabase insertion binding would be wired here for physical path generation!')}>
             Save to Database
           </Button>
         </section>
