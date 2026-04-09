@@ -21,7 +21,7 @@ export default async function ReturningBooksPage({
   const searchTerm = Array.isArray(raw) ? raw[0]?.trim() ?? '' : raw?.trim() ?? '';
 
   const [activeLoans, summary] = await Promise.all([
-    fetchActiveLoans(searchTerm),
+    fetchActiveLoans(searchTerm, !canProcessReturns && user ? user.id : undefined),
     fetchDashboardSummary(),
   ]);
 
@@ -62,10 +62,12 @@ export default async function ReturningBooksPage({
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">
-            Books currently not available
+            {canProcessReturns ? 'Books currently not available' : 'Your return book history'}
           </h2>
           <p className="text-sm text-swin-charcoal/60 dark:text-slate-300">
-            Showing {activeLoans.length} of {totalBorrowed} borrowed books
+            {canProcessReturns
+              ? `Showing ${activeLoans.length} of ${totalBorrowed} borrowed books`
+              : `Showing ${activeLoans.length} borrowed books`}
           </p>
         </div>
         <ActiveLoansTable loans={activeLoans} showActions={canProcessReturns} />

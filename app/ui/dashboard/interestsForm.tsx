@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type InterestsFormProps = {
   userId: string;
@@ -52,6 +53,7 @@ const PROGRAM_OPTIONS: ProgramOption[] = [
 const CATEGORIES: CategoryKey[] = ['cs', 'engineering', 'art', 'business'];
 
 export default function InterestsForm({ userId, currentInterests = [], onComplete }: InterestsFormProps) {
+  const router = useRouter();
   const [selected, setSelected] = useState<string[]>(currentInterests.slice(0, 1));
   const [open, setOpen] = useState(true);
   const [pending, setPending] = useState(false);
@@ -93,7 +95,12 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
       }
 
       setSaved(true);
-      onComplete?.();
+      if (onComplete) {
+        onComplete();
+      } else {
+        router.push('/dashboard');
+        router.refresh();
+      }
     } catch (error) {
       const message =
         error instanceof Error ? error.message : String(error ?? 'Unknown error');
