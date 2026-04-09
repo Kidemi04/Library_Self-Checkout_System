@@ -267,10 +267,10 @@ export async function fetchDashboardSummary(): Promise<DashboardSummary> {
   };
 }
 
-export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
+export async function fetchRecentLoans(limit = 6, userId?: string): Promise<Loan[]> {
   const supabase = getSupabaseServerClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from('Loans')
     .select(
       `
@@ -315,6 +315,12 @@ export async function fetchRecentLoans(limit = 6): Promise<Loan[]> {
     )
     .order('borrowed_at', { ascending: false })
     .limit(limit);
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }
+
+  const { data, error } = await query;
 
   if (error) throw error;
 

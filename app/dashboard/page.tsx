@@ -72,7 +72,7 @@ export default async function UserDashboardPage() {
     fetchAvailableBooks(),
     fetchActiveLoans(undefined, isUser ? user.id : undefined),
     fetchDashboardSummary(),
-    fetchRecentLoans(6),
+    fetchRecentLoans(6, isUser ? user.id : undefined),
   ]);
 
   const defaultDueDate = buildDefaultDueDate();
@@ -157,9 +157,11 @@ export default async function UserDashboardPage() {
       </section>
 
       {/* Desktop view - Hidden on mobile */}
-      <div className="hidden md:block">
-        <SummaryCards summary={summary} />
-      </div>
+      {!isUser && (
+        <div className="hidden md:block">
+          <SummaryCards summary={summary} />
+        </div>
+      )}
 
       {/* Mobile view - Forms */}
       <div className="grid gap-6 md:hidden xl:grid-cols-2">

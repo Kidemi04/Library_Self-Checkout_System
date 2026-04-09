@@ -40,23 +40,24 @@ class SIP2Client {
 
   private sendMessage(message: string): Promise<string> {
     return new Promise(async (resolve, reject) => {
-      if (!this.socket) {
-        await this.connect();
-      }
+      try {
+        if (!this.socket) {
+          await this.connect();
+        }
 
-      if (!this.socket) {
-        reject(new Error('Failed to connect to SIP2 server'));
-        return;
-      }
-
-      const fullMessage = message + '\r';
-
-      this.socket.write(fullMessage, 'utf8', (err) => {
-        if (err) {
-          reject(err);
+        if (!this.socket) {
+          reject(new Error('Failed to connect to SIP2 server'));
           return;
         }
-      });
+
+        const fullMessage = message + '\r';
+
+        this.socket.write(fullMessage, 'utf8', (err) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+        });
 
       let response = '';
       const onData = (data: Buffer) => {
@@ -69,13 +70,16 @@ class SIP2Client {
 
       this.socket.on('data', onData);
 
-      // Timeout after 10 seconds
-      setTimeout(() => {
-        if (this.socket) {
-          this.socket.removeListener('data', onData);
-        }
-        reject(new Error('SIP2 response timeout'));
-      }, 10000);
+        // Timeout after 10 seconds
+        setTimeout(() => {
+          if (this.socket) {
+            this.socket.removeListener('data', onData);
+          }
+          reject(new Error('SIP2 response timeout'));
+        }, 10000);
+      } catch (err) {
+        reject(err);
+      }
     });
   }
 
