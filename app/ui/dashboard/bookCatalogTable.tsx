@@ -2,6 +2,70 @@
 
 import React from 'react';
 import ManageBookModal from './manageBookModal';
+
+// ---- Category mapping ----
+type BookCategory = 'Computer Science' | 'Business' | 'Art & Design' | 'Engineering';
+
+const TAG_CATEGORY_MAP: Record<string, BookCategory> = {
+  // Computer Science
+  'machine learning': 'Computer Science', 'software development': 'Computer Science',
+  'computer science': 'Computer Science', 'algorithms': 'Computer Science',
+  'data science': 'Computer Science', 'programming': 'Computer Science',
+  'web development': 'Computer Science', 'database management': 'Computer Science',
+  'computer networks': 'Computer Science', 'network protocols': 'Computer Science',
+  'software engineering': 'Computer Science', 'computer programming': 'Computer Science',
+  'information security': 'Computer Science', 'distributed systems': 'Computer Science',
+  'parallel computing': 'Computer Science', 'scripting': 'Computer Science',
+  'software architecture': 'Computer Science', 'software design': 'Computer Science',
+  'data visualization': 'Computer Science', 'information visualization': 'Computer Science',
+  'computer graphics': 'Computer Science', 'internet technology': 'Computer Science',
+  'information systems': 'Computer Science', 'intelligent systems': 'Computer Science',
+  'predictive analytics': 'Computer Science', 'programming languages': 'Computer Science',
+  'automation': 'Computer Science', 'pytorch': 'Computer Science',
+  'information technology': 'Computer Science', 'cybersecurity': 'Computer Science',
+  'artificial intelligence': 'Computer Science',
+  // Business
+  'organizational behavior': 'Business', 'business statistics': 'Business',
+  'financial markets': 'Business', 'business economics': 'Business',
+  'accounting': 'Business', 'business ethics': 'Business',
+  'marketing management': 'Business', 'consumer behavior': 'Business',
+  'managerial accounting': 'Business', 'strategic management': 'Business',
+  'business administration': 'Business', 'global finance': 'Business',
+  'global trade': 'Business', 'banking': 'Business',
+  'project management': 'Business', 'product development': 'Business',
+  'innovation': 'Business', 'presentation skills': 'Business',
+  'portfolio development': 'Business', 'workshop': 'Business',
+  'finance': 'Business', 'economics': 'Business', 'marketing': 'Business',
+  // Art & Design
+  'ux design': 'Art & Design', 'human computer interaction': 'Art & Design',
+  'user experience': 'Art & Design', 'visual arts': 'Art & Design',
+  'web design': 'Art & Design', 'interface design': 'Art & Design',
+  'drawing': 'Art & Design', 'design principles': 'Art & Design',
+  'design thinking': 'Art & Design', 'art and design': 'Art & Design',
+  'usability engineering': 'Art & Design', 'user experience design': 'Art & Design',
+  'multimedia': 'Art & Design', 'graphic design': 'Art & Design',
+  // Engineering
+  'electronics': 'Engineering', 'circuit analysis': 'Engineering',
+  'robotics': 'Engineering', 'control systems': 'Engineering',
+  'materials science': 'Engineering', 'engineering mathematics': 'Engineering',
+  'applied mathematics': 'Engineering', 'applied thermodynamics': 'Engineering',
+  'engineering physics': 'Engineering', 'bioengineering': 'Engineering',
+  'differential equations': 'Engineering', 'automatic control': 'Engineering',
+  'applied statistics': 'Engineering', 'statistical models': 'Engineering',
+  'mechatronics': 'Engineering', 'mechanical engineering': 'Engineering',
+  'electrical engineering': 'Engineering', 'civil engineering': 'Engineering',
+};
+
+const CATEGORIES: BookCategory[] = ['Computer Science', 'Business', 'Art & Design', 'Engineering'];
+
+const getBookCategory = (tags?: string[] | null): BookCategory | null => {
+  if (!tags?.length) return null;
+  for (const tag of tags) {
+    const category = TAG_CATEGORY_MAP[tag.toLowerCase()];
+    if (category) return category;
+  }
+  return null;
+};
 import { updateBook, deleteBook, type ItemStatus } from '@/app/lib/supabase/updates';
 import type { CopyStatus } from '@/app/lib/supabase/types';
 import { Pagination } from '@/app/ui/dashboard/pagination';
@@ -14,6 +78,7 @@ export type CatalogBook = {
   classification?: string | null;
   publication_year?: string | number | null;
   publisher?: string | null;
+  category?: string | null;
   tags?: string[] | null;
   /** SIP-aligned status */
   status?: ItemStatus | null; // 'available' | 'checked_out' | 'borrowed' | 'reserved' | ...
@@ -59,17 +124,29 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
     return clone;
   }, [books, sortKey, sortDir]);
 
+  const [selectedCategory, setSelectedCategory] = React.useState<BookCategory | null>(null);
+
+  const filtered = React.useMemo(() => {
+    if (!selectedCategory) return sorted;
+    return sorted.filter((b) => getBookCategory(b.tags) === selectedCategory);
+  }, [sorted, selectedCategory]);
+
   const [currentPage, setCurrentPage] = React.useState(1);
   const itemsPerPage = 10; // default 10 books per page
 
+  // Reset to page 1 when category filter changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory]);
+
   // Compute total pages
-  const totalPages = Math.ceil(sorted.length / itemsPerPage);
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
 
   // Slice the books for current page
   const paginated = React.useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
-    return sorted.slice(start, start + itemsPerPage);
-  }, [sorted, currentPage]);
+    return filtered.slice(start, start + itemsPerPage);
+  }, [filtered, currentPage]);
 
   function toggleSort(nextKey: typeof sortKey) {
     if (nextKey === sortKey) {
@@ -94,8 +171,20 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
     publication_year: '',
     publisher: '',
     tags: '' as string, // comma-separated
+    category: '' as string,
     sip_status: 'available' as CopyStatus,
   });
+  const [autoTagging, setAutoTagging] = React.useState(false);
+  const [autoTagError, setAutoTagError] = React.useState<string | null>(null);
+  const [bulkTagging, setBulkTagging] = React.useState(false);
+  const [bulkTagMessage, setBulkTagMessage] = React.useState<string | null>(null);
+  const [bulkTagError, setBulkTagError] = React.useState<string | null>(null);
+  const [bulkRetagging, setBulkRetagging] = React.useState(false);
+  const [bulkRetagMessage, setBulkRetagMessage] = React.useState<string | null>(null);
+  const [bulkRetagError, setBulkRetagError] = React.useState<string | null>(null);
+  const [autoCategorizing, setAutoCategorizing] = React.useState(false);
+  const [autoCategoryMessage, setAutoCategoryMessage] = React.useState<string | null>(null);
+  const [autoCategoryError, setAutoCategoryError] = React.useState<string | null>(null);
 
   function onManage(b: CatalogBook) {
     setActive(b);
@@ -107,6 +196,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
       publication_year: b.publication_year ? String(b.publication_year) : '',
       publisher: b.publisher ?? '',
       tags: (b.tags ?? []).join(', '),
+      category: b.category ?? '',
       sip_status: (b.sip_status as CopyStatus) ?? 'available',
     });
     setOpen(true);
@@ -115,6 +205,8 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
   function onClose() {
     setOpen(false);
     setActive(null);
+    setAutoTagError(null);
+    setAutoTagging(false);
   }
 
   async function onSave(e: React.FormEvent) {
@@ -134,11 +226,98 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
         .split(',')
         .map((t) => t.trim())
         .filter(Boolean),
+      category: form.category || null,
       sip_status: form.sip_status,
     };
 
     await updateBook(payload);
     onClose();
+  }
+
+  async function onAutoTag() {
+    if (!active) return;
+    setAutoTagError(null);
+    setAutoTagging(true);
+    try {
+      const res = await fetch('/api/book/auto-tag', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookId: active.id }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Auto-tag failed');
+
+      if (Array.isArray(data?.tags) && data.tags.length) {
+        setForm((f) => ({ ...f, tags: data.tags.join(', ') }));
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Auto-tag failed';
+      setAutoTagError(msg);
+    } finally {
+      setAutoTagging(false);
+    }
+  }
+
+  async function onAutoTagAll() {
+    setBulkTagMessage(null);
+    setBulkTagError(null);
+    setBulkTagging(true);
+    try {
+      const res = await fetch('/api/book/auto-tag', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Auto-tag failed');
+      const tagged = Number(data?.tagged ?? 0);
+      setBulkTagMessage(`Auto-tagged ${tagged} book${tagged === 1 ? '' : 's'}.`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Auto-tag failed';
+      setBulkTagError(msg);
+    } finally {
+      setBulkTagging(false);
+    }
+  }
+
+  async function onReTagAll() {
+    setBulkRetagMessage(null);
+    setBulkRetagError(null);
+    setBulkRetagging(true);
+    try {
+      const res = await fetch('/api/book/auto-tag', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ retag: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Re-tag failed');
+      const tagged = Number(data?.tagged ?? 0);
+      setBulkRetagMessage(`Re-tagged ${tagged} book${tagged === 1 ? '' : 's'}.`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Re-tag failed';
+      setBulkRetagError(msg);
+    } finally {
+      setBulkRetagging(false);
+    }
+  }
+
+  async function onAutoCategorizeAll(recategorize = false) {
+    setAutoCategoryMessage(null);
+    setAutoCategoryError(null);
+    setAutoCategorizing(true);
+    try {
+      const res = await fetch('/api/book/auto-category', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recategorize }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Auto-categorize failed');
+      const n = Number(data?.categorized ?? 0);
+      setAutoCategoryMessage(`Categorized ${n} book${n === 1 ? '' : 's'}.`);
+    } catch (err) {
+      setAutoCategoryError(err instanceof Error ? err.message : 'Auto-categorize failed');
+    } finally {
+      setAutoCategorizing(false);
+    }
   }
 
   async function onDelete(id: string) {
@@ -148,6 +327,98 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
 
   return (
     <>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={onAutoTagAll}
+          disabled={bulkTagging}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
+          {bulkTagging ? 'Auto-tagging…' : 'Auto-tag all untagged'}
+        </button>
+        {bulkTagMessage && <span className="text-xs text-green-600">{bulkTagMessage}</span>}
+        {bulkTagError && <span className="text-xs text-red-500">{bulkTagError}</span>}
+
+        <button
+          type="button"
+          onClick={onReTagAll}
+          disabled={bulkRetagging}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
+          {bulkRetagging ? 'Re-tagging…' : 'Re-tag all (overwrite)'}
+        </button>
+        {bulkRetagMessage && <span className="text-xs text-green-600">{bulkRetagMessage}</span>}
+        {bulkRetagError && <span className="text-xs text-red-500">{bulkRetagError}</span>}
+
+        <button
+          type="button"
+          onClick={() => onAutoCategorizeAll(false)}
+          disabled={autoCategorizing}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
+          {autoCategorizing ? 'Categorizing…' : 'Auto-categorize uncategorized'}
+        </button>
+        <button
+          type="button"
+          onClick={() => onAutoCategorizeAll(true)}
+          disabled={autoCategorizing}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
+          {autoCategorizing ? 'Categorizing…' : 'Re-categorize all (overwrite)'}
+        </button>
+        {autoCategoryMessage && <span className="text-xs text-green-600">{autoCategoryMessage}</span>}
+        {autoCategoryError && <span className="text-xs text-red-500">{autoCategoryError}</span>}
+      </div>
+
+      {/* Category filter chips */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Filter:</span>
+        <button
+          type="button"
+          onClick={() => setSelectedCategory(null)}
+          className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+            selectedCategory === null
+              ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+          }`}
+        >
+          All
+        </button>
+        {CATEGORIES.map((cat) => {
+          const colors: Record<BookCategory, string> = {
+            'Computer Science': 'bg-blue-600 text-white',
+            'Business': 'bg-emerald-600 text-white',
+            'Art & Design': 'bg-purple-600 text-white',
+            'Engineering': 'bg-orange-600 text-white',
+          };
+          const borders: Record<BookCategory, string> = {
+            'Computer Science': 'border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950',
+            'Business': 'border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950',
+            'Art & Design': 'border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-950',
+            'Engineering': 'border-orange-300 text-orange-700 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-300 dark:hover:bg-orange-950',
+          };
+          return (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+              className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+                selectedCategory === cat
+                  ? colors[cat]
+                  : `border bg-white dark:bg-slate-900 ${borders[cat]}`
+              }`}
+            >
+              {cat}
+            </button>
+          );
+        })}
+        {selectedCategory && (
+          <span className="ml-1 text-xs text-slate-500 dark:text-slate-400">
+            {filtered.length} book{filtered.length === 1 ? '' : 's'} found
+          </span>
+        )}
+      </div>
+
       {/* Desktop/tablet: classic table */}
     <div className="hidden md:block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:shadow-black/20">
         <div className="overflow-x-auto">
@@ -423,6 +694,20 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
         </div>
 
         <div>
+          <label className="block text-sm font-medium text-slate-900 dark:text-slate-200">Category</label>
+          <select
+            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            value={form.category}
+            onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+          >
+            <option value="">— None —</option>
+            {CATEGORIES.map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
           <label className="block text-sm font-medium text-slate-900 dark:text-slate-200">Tags</label>
           <input
             className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
@@ -431,6 +716,19 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
             onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))}
           />
           <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Separate with commas</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={autoTagging || !active}
+              onClick={onAutoTag}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+            >
+              {autoTagging ? 'Tagging…' : 'Auto-tag with AI'}
+            </button>
+            {autoTagError && (
+              <span className="text-xs text-red-500">{autoTagError}</span>
+            )}
+          </div>
         </div>
 
           <div className="mt-2 flex flex-wrap justify-between gap-2">

@@ -7,6 +7,94 @@ import { Pagination } from '@/app/ui/dashboard/pagination';
 import GlassCard from '@/app/ui/magicUi/glassCard';
 import BlurFade from '@/app/ui/magicUi/blurFade';
 
+// ---- Category filter ----
+type BookCategory = 'Computer Science' | 'Business' | 'Art & Design' | 'Engineering';
+
+const TAG_CATEGORY_MAP: Record<string, BookCategory> = {
+  'machine learning': 'Computer Science', 'software development': 'Computer Science',
+  'computer science': 'Computer Science', 'algorithms': 'Computer Science',
+  'data science': 'Computer Science', 'programming': 'Computer Science',
+  'web development': 'Computer Science', 'database management': 'Computer Science',
+  'computer networks': 'Computer Science', 'network protocols': 'Computer Science',
+  'software engineering': 'Computer Science', 'computer programming': 'Computer Science',
+  'information security': 'Computer Science', 'distributed systems': 'Computer Science',
+  'parallel computing': 'Computer Science', 'scripting': 'Computer Science',
+  'software architecture': 'Computer Science', 'software design': 'Computer Science',
+  'data visualization': 'Computer Science', 'information visualization': 'Computer Science',
+  'computer graphics': 'Computer Science', 'internet technology': 'Computer Science',
+  'information systems': 'Computer Science', 'intelligent systems': 'Computer Science',
+  'predictive analytics': 'Computer Science', 'programming languages': 'Computer Science',
+  'automation': 'Computer Science', 'pytorch': 'Computer Science',
+  'information technology': 'Computer Science', 'cybersecurity': 'Computer Science',
+  'artificial intelligence': 'Computer Science',
+  'organizational behavior': 'Business', 'business statistics': 'Business',
+  'financial markets': 'Business', 'business economics': 'Business',
+  'accounting': 'Business', 'business ethics': 'Business',
+  'marketing management': 'Business', 'consumer behavior': 'Business',
+  'managerial accounting': 'Business', 'strategic management': 'Business',
+  'business administration': 'Business', 'global finance': 'Business',
+  'global trade': 'Business', 'banking': 'Business',
+  'project management': 'Business', 'product development': 'Business',
+  'innovation': 'Business', 'presentation skills': 'Business',
+  'portfolio development': 'Business', 'workshop': 'Business',
+  'finance': 'Business', 'economics': 'Business', 'marketing': 'Business',
+  'ux design': 'Art & Design', 'human computer interaction': 'Art & Design',
+  'user experience': 'Art & Design', 'visual arts': 'Art & Design',
+  'web design': 'Art & Design', 'interface design': 'Art & Design',
+  'drawing': 'Art & Design', 'design principles': 'Art & Design',
+  'design thinking': 'Art & Design', 'art and design': 'Art & Design',
+  'usability engineering': 'Art & Design', 'user experience design': 'Art & Design',
+  'multimedia': 'Art & Design', 'graphic design': 'Art & Design',
+  'electronics': 'Engineering', 'circuit analysis': 'Engineering',
+  'robotics': 'Engineering', 'control systems': 'Engineering',
+  'materials science': 'Engineering', 'engineering mathematics': 'Engineering',
+  'applied mathematics': 'Engineering', 'applied thermodynamics': 'Engineering',
+  'engineering physics': 'Engineering', 'bioengineering': 'Engineering',
+  'differential equations': 'Engineering', 'automatic control': 'Engineering',
+  'applied statistics': 'Engineering', 'statistical models': 'Engineering',
+  'mechatronics': 'Engineering', 'mechanical engineering': 'Engineering',
+  'electrical engineering': 'Engineering', 'civil engineering': 'Engineering',
+};
+
+const CATEGORIES: BookCategory[] = ['Computer Science', 'Business', 'Art & Design', 'Engineering'];
+
+const CATEGORY_STYLES: Record<BookCategory, { active: string; inactive: string; tag: string }> = {
+  'Computer Science': {
+    active: 'bg-blue-600 text-white',
+    inactive: 'border border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-300 dark:hover:bg-blue-950',
+    tag: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  },
+  'Business': {
+    active: 'bg-emerald-600 text-white',
+    inactive: 'border border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-700 dark:text-emerald-300 dark:hover:bg-emerald-950',
+    tag: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+  },
+  'Art & Design': {
+    active: 'bg-purple-600 text-white',
+    inactive: 'border border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-700 dark:text-purple-300 dark:hover:bg-purple-950',
+    tag: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300',
+  },
+  'Engineering': {
+    active: 'bg-orange-600 text-white',
+    inactive: 'border border-orange-300 text-orange-700 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-300 dark:hover:bg-orange-950',
+    tag: 'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300',
+  },
+};
+
+const getBookCategory = (book: UIBook): BookCategory | null => {
+  // Prefer DB category column
+  if (book.category) {
+    const cat = CATEGORIES.find((c) => c === book.category);
+    if (cat) return cat;
+  }
+  // Fall back to tag inference
+  for (const tag of book.tags ?? []) {
+    const cat = TAG_CATEGORY_MAP[tag.toLowerCase()];
+    if (cat) return cat;
+  }
+  return null;
+};
+
 /** SIP-aligned item status (match your Supabase column) */
 export type ItemStatus =
   | 'available'
@@ -21,6 +109,7 @@ export type UIBook = {
   author: string;
   cover?: string | null;
   tags?: string[] | null;
+  category?: string | null;
   // catalogue metadata (optional)
   classification?: string | null; // call number
   isbn?: string | null;
@@ -59,15 +148,25 @@ export default function BookList({
   pageSize,
 }: Props) {
   const [currentPage, setCurrentPage] = React.useState(1);
+  const [selectedCategory, setSelectedCategory] = React.useState<BookCategory | null>(null);
+
+  const filteredBooks = React.useMemo(() => {
+    if (!selectedCategory) return books;
+    return books.filter((b) => getBookCategory(b) === selectedCategory);
+  }, [books, selectedCategory]);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory]);
 
   // Determine number of books per page based on variant or prop
   const booksPerPage =
     pageSize ?? (variant === 'grid' ? 4 * 4 : 5); // 4 rows of 4 = 16 for grid, 5 for list
 
-  const totalPages = Math.ceil(books.length / booksPerPage);
+  const totalPages = Math.ceil(filteredBooks.length / booksPerPage);
 
   // Slice books for current page
-  const paginatedBooks = books.slice(
+  const paginatedBooks = filteredBooks.slice(
     (currentPage - 1) * booksPerPage,
     currentPage * booksPerPage
   );
@@ -89,6 +188,41 @@ export default function BookList({
 
   return (
     <>
+      {/* Category filter chips */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <span className="text-sm font-medium text-swin-charcoal/60 dark:text-slate-400">Filter:</span>
+        <button
+          type="button"
+          onClick={() => setSelectedCategory(null)}
+          className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+            selectedCategory === null
+              ? 'bg-swin-charcoal text-white dark:bg-slate-100 dark:text-slate-900'
+              : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+          }`}
+        >
+          All
+        </button>
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
+            className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
+              selectedCategory === cat
+                ? CATEGORY_STYLES[cat].active
+                : `bg-white dark:bg-slate-900 ${CATEGORY_STYLES[cat].inactive}`
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+        {selectedCategory && (
+          <span className="ml-1 text-xs text-swin-charcoal/50 dark:text-slate-400">
+            {filteredBooks.length} book{filteredBooks.length === 1 ? '' : 's'}
+          </span>
+        )}
+      </div>
+
       <Wrapper>
         {paginatedBooks.map((b, idx) => {
           const status = (b.status ?? 'available') as ItemStatus;
@@ -143,6 +277,26 @@ export default function BookList({
                         {b.year && <span>{b.year}</span>}
                         {b.classification && <span>• {b.classification}</span>}
                       </div>
+
+                      {/* Category + tags */}
+                      {(() => {
+                        const cat = getBookCategory(b);
+                        const visibleTags = (b.tags ?? []).slice(0, 2);
+                        return (cat || visibleTags.length > 0) ? (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {cat && (
+                              <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide ${CATEGORY_STYLES[cat].tag}`}>
+                                {cat}
+                              </span>
+                            )}
+                            {visibleTags.map((tag) => (
+                              <span key={tag} className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null;
+                      })()}
                     </div>
 
                     {/* Actions */}

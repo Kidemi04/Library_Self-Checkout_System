@@ -43,6 +43,43 @@ type ChatMessage = {
   timestamp: number;
 };
 
+type StageBook = {
+  id: string;
+  title: string;
+  author: string | null;
+  availableCopies: number;
+  totalCopies: number;
+  reason: string;
+};
+
+type LearningStage = {
+  level: 'Beginner' | 'Intermediate' | 'Advanced';
+  description: string;
+  books: StageBook[];
+};
+
+type LearningPathResponse = {
+  ok: boolean;
+  topic?: string;
+  stages?: LearningStage[];
+  error?: string;
+};
+
+const STAGE_STYLES: Record<LearningStage['level'], { bg: string; badge: string }> = {
+  Beginner: {
+    bg: 'bg-emerald-50/60 border-emerald-200 dark:bg-emerald-900/10 dark:border-emerald-800/40',
+    badge: 'text-emerald-700 dark:text-emerald-300',
+  },
+  Intermediate: {
+    bg: 'bg-amber-50/60 border-amber-200 dark:bg-amber-900/10 dark:border-amber-800/40',
+    badge: 'text-amber-600 dark:text-amber-300',
+  },
+  Advanced: {
+    bg: 'bg-rose-50/60 border-rose-200 dark:bg-rose-900/10 dark:border-rose-800/40',
+    badge: 'text-rose-700 dark:text-rose-300',
+  },
+};
+
 type QuickPrompt = {
   id: string;
   label: string;
@@ -119,6 +156,8 @@ export default function StudentChat({
   const [bookRecommendations, setBookRecommendations] = useState<RecommendationItem[]>([]);
   const [activeInterests, setActiveInterests] = useState<string[]>([]);
   const [linkedInSuggestions, setLinkedInSuggestions] = useState<LinkedInSuggestion[]>([]);
+  const [learningPath, setLearningPath] = useState<LearningPathResponse | null>(null);
+  const [learningPathLoading, setLearningPathLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [animKey, setAnimKey] = useState(0);
@@ -314,6 +353,25 @@ export default function StudentChat({
       setLinkedInSuggestions(data?.linkedInSuggestions ?? []);
       if ((data?.recommendations ?? []).length > 0) setAnimKey((k) => k + 1);
 
+      // Auto-generate learning path from top interest when recommendations arrive
+      const interests = data?.interests ?? [];
+      if (interests.length > 0 && (data?.recommendations ?? []).length > 0) {
+        const topic = interests[0];
+        setLearningPath(null);
+        setLearningPathLoading(true);
+        fetch('/api/learning-path', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic }),
+        })
+          .then((r) => r.json())
+          .then((lp: LearningPathResponse) => setLearningPath(lp))
+          .catch(() => setLearningPath(null))
+          .finally(() => setLearningPathLoading(false));
+      } else {
+        setLearningPath(null);
+      }
+
       if (response.status === 429 && data?.reply) {
         setSendNotice(data.reply);
       } else {
@@ -332,6 +390,7 @@ export default function StudentChat({
       setBookRecommendations([]);
       setActiveInterests([]);
       setLinkedInSuggestions([]);
+      setLearningPath(null);
       setSendNotice('Unable to send right now. Please try again.');
     } finally {
       setIsAssistantTyping(false);
@@ -726,6 +785,74 @@ export default function StudentChat({
           </div>
         )}
       </div>
+
+      {/* Learning path — auto-generated from top interest */}
+      {(learningPathLoading || learningPath) && (
+        <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+          <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
+            Your learning path
+          </p>
+          <h3 className="mt-0.5 text-base font-semibold text-slate-900 dark:text-slate-100">
+            {learningPath?.topic ? (
+              <>Books arranged for <span className="text-swin-red">&ldquo;{learningPath.topic}&rdquo;</span></>
+            ) : 'Building your learning path…'}
+          </h3>
+          <p className="text-xs text-slate-600 dark:text-slate-300/80">
+            From beginner to advanced — based on what you asked for.
+          </p>
+
+          {learningPathLoading && (
+            <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-swin-red border-t-transparent" />
+              Arranging books by difficulty…
+            </div>
+          )}
+
+          {learningPath?.stages && (
+            <div className="mt-4 space-y-3">
+              {learningPath.stages.map((stage, stageIndex) => {
+                const styles = STAGE_STYLES[stage.level];
+                return (
+                  <div key={stage.level} className={`rounded-2xl border p-4 ${styles.bg}`}>
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-swin-red text-xs font-bold text-white">
+                        {stageIndex + 1}
+                      </span>
+                      <div>
+                        <p className={`text-sm font-semibold ${styles.badge}`}>{stage.level}</p>
+                        <p className="text-xs text-swin-charcoal/60 dark:text-slate-400">{stage.description}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 space-y-2">
+                      {stage.books.map((book) => (
+                        <div
+                          key={book.id}
+                          className="flex items-start justify-between gap-3 rounded-xl border border-swin-charcoal/10 bg-white px-3 py-2.5 shadow-sm dark:border-white/10 dark:bg-slate-900/50"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-swin-charcoal dark:text-white">{book.title}</p>
+                            {book.author && (
+                              <p className="text-xs text-swin-charcoal/60 dark:text-slate-400">by {book.author}</p>
+                            )}
+                            <p className="mt-0.5 text-xs text-swin-charcoal/50 dark:text-slate-500">{book.reason}</p>
+                          </div>
+                          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                            book.availableCopies > 0
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                              : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                          }`}>
+                            {book.availableCopies > 0 ? `${book.availableCopies} available` : 'On loan'}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </>}
     </section>
   );

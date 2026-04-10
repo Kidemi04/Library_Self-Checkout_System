@@ -26,6 +26,7 @@ export type UpdatePayload = {
   publisher?: string | null;
   publication_year?: string | number | null;
   tags?: string[] | null;
+  category?: string | null;
   cover_image_url?: string | null;
   sip_status?: CopyStatus | null;
 };
@@ -88,7 +89,7 @@ const syncBookTags = async (
     .filter((id): id is string => typeof id === 'string');
 
   const { data: currentLinks, error: fetchLinksError } = await supabase
-    .from('BookTagLinks')
+    .from('BookTagsLinks')
     .select('tag_id')
     .eq('book_id', bookId);
 
@@ -107,7 +108,7 @@ const syncBookTags = async (
 
   if (tagIdsToRemove.length > 0) {
     await supabase
-      .from('BookTagLinks')
+      .from('BookTagsLinks')
       .delete()
       .eq('book_id', bookId)
       .in('tag_id', tagIdsToRemove);
@@ -115,7 +116,7 @@ const syncBookTags = async (
 
   if (tagIdsToAdd.length > 0) {
     await supabase
-      .from('BookTagLinks')
+      .from('BookTagsLinks')
       .insert(tagIdsToAdd.map((tagId) => ({ book_id: bookId, tag_id: tagId })));
   }
 };
@@ -132,6 +133,7 @@ export async function updateBook(payload: UpdatePayload) {
     publication_year:
       payload.publication_year == null ? null : String(payload.publication_year),
     cover_image_url: payload.cover_image_url ?? null,
+    category: payload.category ?? null,
     updated_at: new Date().toISOString(),
   };
 
