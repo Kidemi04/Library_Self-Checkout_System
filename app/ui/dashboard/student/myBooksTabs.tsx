@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import type { Loan } from '@/app/lib/supabase/types';
-import type { PatronHold } from '@/app/lib/supabase/queries';
+import type { BorrowingHistoryLoan, PatronHold } from '@/app/lib/supabase/queries';
 import MyBooksCards from './myBooksCard';
 import BlurFade from '@/app/ui/magicUi/blurFade';
 
@@ -31,7 +31,7 @@ const tabs: { id: Tab; label: string }[] = [
 
 type MyBooksTabsProps = {
   activeLoans: Loan[];
-  loanHistory: Loan[];
+  loanHistory: BorrowingHistoryLoan[];
   holds: PatronHold[];
   defaultTab?: Tab;
   /** Map of bookId -> number of queued holds (for renewal validation) */
@@ -110,7 +110,7 @@ export default function MyBooksTabs({
   );
 }
 
-function HistoryList({ loans }: { loans: Loan[] }) {
+function HistoryList({ loans }: { loans: BorrowingHistoryLoan[] }) {
   if (loans.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900">
