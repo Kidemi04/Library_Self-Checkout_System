@@ -92,7 +92,7 @@ async function cancelHold(formData: FormData) {
     fulfilled_by_copy_id: null,
   });
 
-  revalidatePath('/dashboard/books/holds');
+  revalidatePath('/dashboard/book/holds');
 }
 
 // ---------- page ----------

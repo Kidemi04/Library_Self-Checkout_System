@@ -35,7 +35,7 @@ export default function BookList({ books }: { books?: Book[] }) {
 						>
 							{/* Cover Page */}
 							<img
-								src={b.cover ?? '/a.txt'}
+								src={b.cover ?? ''}
 								alt={`Cover of ${b.title}`}
 								className="h-48 w-full sm:h-40 sm:w-28 flex-none rounded object-cover border border-gray-100"
 							/>
