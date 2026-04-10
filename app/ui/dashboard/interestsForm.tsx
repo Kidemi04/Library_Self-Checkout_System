@@ -95,16 +95,16 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
       }
 
       setSaved(true);
+      router.refresh();
+      
       if (onComplete) {
         onComplete();
       } else {
+        setOpen(false);
         router.push('/dashboard');
-        router.refresh();
       }
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : String(error ?? 'Unknown error');
-      setErrorMessage(message);
+      setErrorMessage(error instanceof Error ? error.message : "Error");
       console.error('Failed to save interests:', error);
     } finally {
       setPending(false);

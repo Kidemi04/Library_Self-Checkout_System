@@ -54,9 +54,10 @@ export default async function UserDashboardPage() {
     .maybeSingle();
 
   const hasInterests = interestsData?.interests && interestsData.interests.length > 0;
-  const isStudent = user.role === 'user';
+  const isUser = user.role === 'user';
 
-  if (isStudent && !hasInterests) {
+  if (isUser && !hasInterests) {
+    console.log("---------------------")
     return (
       <main className="flex min-h-screen items-center justify-center p-6">
         <div className="w-full max-w-md">
@@ -65,8 +66,6 @@ export default async function UserDashboardPage() {
       </main>
     );
   }
-
-  const isUser = isStudent;
 
   const [books, activeLoans, summary, recentLoans] = await Promise.all([
     fetchAvailableBooks(),
