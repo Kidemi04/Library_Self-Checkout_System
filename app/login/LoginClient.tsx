@@ -17,7 +17,7 @@ export default function LoginClient({ callbackUrl }: LoginClientProps) {
   const handleSignIn = () => {
     if (pending) return;
     setPending(true);
-    void signIn('azure-ad', { callbackUrl }).finally(() => {
+    void signIn('azure-ad', { callbackUrl }, { prompt: 'select_account' }).finally(() => {
       setPending(false);
     });
   };
