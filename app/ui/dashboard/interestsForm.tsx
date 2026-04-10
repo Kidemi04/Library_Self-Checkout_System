@@ -96,7 +96,7 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
 
       setSaved(true);
       router.refresh();
-      
+
       if (onComplete) {
         onComplete();
       } else {

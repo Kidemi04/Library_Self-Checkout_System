@@ -20,12 +20,6 @@ import DashboardUserCard from '@/app/ui/dashboard/dashboardUserCard';
 import InterestsForm from '@/app/ui/dashboard/interestsForm';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 
-const roleLabel = (role: string): string => {
-  if (role === 'admin') return 'Admin';
-  if (role === 'staff') return 'Staff';
-  return 'User';
-};
-
 const defaultLoanDurationDays = 14;
 
 const buildDefaultDueDate = () => {
@@ -57,7 +51,6 @@ export default async function UserDashboardPage() {
   const isUser = user.role === 'user';
 
   if (isUser && !hasInterests) {
-    console.log("---------------------")
     return (
       <main className="flex min-h-screen items-center justify-center p-6">
         <div className="w-full max-w-md">
