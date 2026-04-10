@@ -823,6 +823,24 @@ export async function fetchBorrowingStats(userId: string): Promise<BorrowingStat
   };
 }
 
+export async function fetchLoanHistory(userId: string, limit?: number): Promise<BorrowingHistoryLoan[]> {
+  const history = await fetchBorrowingHistory(userId);
+  return limit ? history.slice(0, limit) : history;
+}
+
+export async function fetchHoldsForBook(bookId: string): Promise<number> {
+  const supabase = getSupabaseServerClient();
+
+  const { count, error } = await supabase
+    .from('Holds')
+    .select('id', { count: 'exact', head: true })
+    .eq('book_id', bookId)
+    .in('status', ['queued', 'ready']);
+
+  if (error) throw error;
+  return count ?? 0;
+}
+
 export async function cancelHoldForPatron(holdId: string, patronId: string): Promise<boolean> {
   const supabase = getSupabaseServerClient();
 

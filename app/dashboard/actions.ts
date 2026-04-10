@@ -851,6 +851,45 @@ const parseCopyBarcodes = (raw: string | null | undefined, fallback: string | nu
   return unique;
 };
 
+export async function renewLoanAction(
+  _prevState: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const loanId = formData.get('loanId')?.toString();
+  if (!loanId) return failure('Loan ID is required.');
+
+  const supabase = getSupabaseServerClient();
+
+  const { data: loan, error: fetchError } = await supabase
+    .from('Loans')
+    .select('id, due_at, renewed_count, returned_at')
+    .eq('id', loanId)
+    .is('returned_at', null)
+    .maybeSingle<{ id: string; due_at: string; renewed_count: number | null; returned_at: string | null }>();
+
+  if (fetchError || !loan) return failure('Active loan not found.');
+
+  const renewedCount = loan.renewed_count ?? 0;
+  if (renewedCount >= 2) return failure('Maximum renewals reached (2/2).');
+
+  const newDueAt = new Date(loan.due_at);
+  newDueAt.setDate(newDueAt.getDate() + 14);
+
+  const { error: updateError } = await supabase
+    .from('Loans')
+    .update({ due_at: newDueAt.toISOString(), renewed_count: renewedCount + 1 })
+    .eq('id', loanId);
+
+  if (updateError) {
+    console.error('Failed to renew loan', updateError);
+    return failure('Unable to renew loan. Try again.');
+  }
+
+  revalidatePath('/dashboard/my-books');
+  revalidatePath('/dashboard');
+  return success(`Loan renewed. New due date: ${newDueAt.toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}.`);
+}
+
 export async function createBookAction(
   _prevState: ActionState,
   formData: FormData,
