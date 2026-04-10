@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "dev",
-      "runtimeExecutable": "cmd",
-      "runtimeArgs": ["/c", "pnpm", "dev"],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev", "--port", "3001"],
       "port": 3001
     }
   ]

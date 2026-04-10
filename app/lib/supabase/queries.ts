@@ -646,6 +646,183 @@ export async function fetchActiveHoldsForPatron(patronId: string): Promise<Patro
     });
 }
 
+// ------------------- BORROWING HISTORY (STUDENT VIEW) -------------------
+
+export type TimePeriod = 'all' | '30d' | '6m' | 'semester';
+
+export interface BorrowingHistoryLoan {
+  id: string;
+  borrowedAt: string;
+  returnedAt: string;
+  dueAt: string;
+  renewedCount: number;
+  loanDurationDays: number;
+  book: {
+    id: string;
+    title: string;
+    author: string | null;
+    isbn: string | null;
+    coverImageUrl: string | null;
+  };
+}
+
+export interface BorrowingStats {
+  totalBorrowed: number;
+  thisYearCount: number;
+  avgLoanDays: number;
+}
+
+const getSemesterStart = (): Date => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  return month < 6 ? new Date(year, 0, 1) : new Date(year, 6, 1);
+};
+
+const getPeriodCutoff = (period: TimePeriod): Date | null => {
+  if (period === 'all') return null;
+  if (period === 'semester') return getSemesterStart();
+  const now = new Date();
+  if (period === '30d') {
+    now.setDate(now.getDate() - 30);
+    return now;
+  }
+  // 6m
+  now.setMonth(now.getMonth() - 6);
+  return now;
+};
+
+type RawHistoryRow = {
+  id: string;
+  borrowed_at: string;
+  returned_at: string;
+  due_at: string;
+  renewed_count: number | null;
+  copy?: {
+    id: string;
+    book?: {
+      id: string;
+      title: string;
+      author: string | null;
+      isbn: string | null;
+      cover_image_url: string | null;
+    } | null;
+  } | null;
+};
+
+export async function fetchBorrowingHistory(
+  userId: string,
+  searchTerm?: string,
+  period?: TimePeriod,
+): Promise<BorrowingHistoryLoan[]> {
+  const supabase = getSupabaseServerClient();
+
+  let query = supabase
+    .from('Loans')
+    .select(
+      `
+        id,
+        borrowed_at,
+        due_at,
+        returned_at,
+        renewed_count,
+        copy:Copies(
+          id,
+          book:Books(
+            id,
+            title,
+            author,
+            isbn,
+            cover_image_url
+          )
+        )
+      `,
+    )
+    .not('returned_at', 'is', null)
+    .eq('user_id', userId)
+    .order('returned_at', { ascending: false });
+
+  const cutoff = getPeriodCutoff(period ?? 'all');
+  if (cutoff) {
+    query = query.gte('borrowed_at', cutoff.toISOString());
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const rows = ((data ?? []) as unknown) as RawHistoryRow[];
+
+  const mapped = rows
+    .filter((row) => row.copy?.book != null)
+    .map((row) => {
+      const book = row.copy!.book!;
+      const borrowed = new Date(row.borrowed_at);
+      const returned = new Date(row.returned_at);
+      const diffMs = returned.getTime() - borrowed.getTime();
+      const loanDurationDays = Math.max(1, Math.round(diffMs / (1000 * 60 * 60 * 24)));
+
+      return {
+        id: row.id,
+        borrowedAt: row.borrowed_at,
+        returnedAt: row.returned_at,
+        dueAt: row.due_at,
+        renewedCount: row.renewed_count ?? 0,
+        loanDurationDays,
+        book: {
+          id: book.id,
+          title: book.title,
+          author: book.author ?? null,
+          isbn: book.isbn ?? null,
+          coverImageUrl: book.cover_image_url ?? null,
+        },
+      };
+    });
+
+  const sanitized = sanitizeSearchTerm(searchTerm);
+  if (!sanitized) return mapped;
+
+  const lowered = sanitized.toLowerCase();
+  return mapped.filter((loan) => {
+    return (
+      loan.book.title.toLowerCase().includes(lowered) ||
+      (loan.book.author?.toLowerCase().includes(lowered) ?? false)
+    );
+  });
+}
+
+export async function fetchBorrowingStats(userId: string): Promise<BorrowingStats> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('Loans')
+    .select('borrowed_at, returned_at')
+    .not('returned_at', 'is', null)
+    .eq('user_id', userId);
+
+  if (error) throw error;
+
+  const rows = (data ?? []) as Array<{ borrowed_at: string; returned_at: string }>;
+  const currentYear = new Date().getFullYear();
+
+  let totalDays = 0;
+  let thisYearCount = 0;
+
+  for (const row of rows) {
+    const borrowed = new Date(row.borrowed_at);
+    const returned = new Date(row.returned_at);
+    totalDays += Math.max(1, Math.round((returned.getTime() - borrowed.getTime()) / (1000 * 60 * 60 * 24)));
+    if (borrowed.getFullYear() === currentYear) {
+      thisYearCount++;
+    }
+  }
+
+  return {
+    totalBorrowed: rows.length,
+    thisYearCount,
+    avgLoanDays: rows.length > 0 ? Math.round(totalDays / rows.length) : 0,
+  };
+}
+
 export async function cancelHoldForPatron(holdId: string, patronId: string): Promise<boolean> {
   const supabase = getSupabaseServerClient();
 

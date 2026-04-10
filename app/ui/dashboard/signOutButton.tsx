@@ -1,7 +1,6 @@
 'use client';
 
 import { useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 import { signOut } from 'next-auth/react';
 import { PowerIcon } from '@heroicons/react/24/outline';
@@ -14,16 +13,13 @@ export default function SignOutButton({
   labelClassName?: string;
 }) {
   const [pending, startTransition] = useTransition();
-  const router = useRouter();
 
   const handleClick = () => {
     startTransition(async () => {
-      // ⛔ stop next-auth client redirect
+      // Clear the NextAuth session cookie
       await signOut({ redirect: false });
-
-      // ✅ force server re-render (critical)
-      router.refresh();
-      router.push('/login');
+      // Then end the Azure AD SSO session so the next sign-in shows the account picker
+      window.location.href = '/api/auth/azure-signout';
     });
   };
 
