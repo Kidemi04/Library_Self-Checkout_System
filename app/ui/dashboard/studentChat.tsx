@@ -125,6 +125,7 @@ export default function StudentChat({
   const [cardsVisible, setCardsVisible] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(!needsOnboarding);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [aiProvider, setAiProvider] = useState<'lmstudio' | 'gemini'>('lmstudio');
   const [isSavingInterests, setIsSavingInterests] = useState(false);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -292,7 +293,7 @@ export default function StudentChat({
       const response = await fetch('/api/recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({ message: content, provider: aiProvider }),
       });
 
       const data = (await response.json()) as RecommendationResponse;
@@ -335,14 +336,21 @@ export default function StudentChat({
       setSendNotice('Unable to send right now. Please try again.');
     } finally {
       setIsAssistantTyping(false);
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto';
+          textareaRef.current.focus();
+        }
+      }, 50);
     }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (await sendMessage(inputValue)) {
-      setInputValue('');
-    }
+    const value = inputValue;
+    setInputValue('');
+    const sent = await sendMessage(value);
+    if (!sent) setInputValue(value);
   };
 
   const handleQuickPrompt = (prompt: QuickPrompt) => {
@@ -363,10 +371,10 @@ export default function StudentChat({
 
     if (event.key !== 'Enter' || event.shiftKey) return;
     event.preventDefault();
-    sendMessage(inputValue).then((sent) => {
-      if (sent) {
-        setInputValue('');
-      }
+    const value = inputValue;
+    setInputValue('');
+    sendMessage(value).then((sent) => {
+      if (!sent) setInputValue(value);
     });
   };
 
@@ -392,6 +400,32 @@ export default function StudentChat({
           </div>
         )}
         <div className="ml-auto flex items-center gap-2">
+          <div className="flex items-center rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900/70 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setAiProvider('lmstudio')}
+              className={clsx(
+                'px-3 py-2 text-xs font-semibold transition',
+                aiProvider === 'lmstudio'
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
+              )}
+            >
+              Local AI
+            </button>
+            <button
+              type="button"
+              onClick={() => setAiProvider('gemini')}
+              className={clsx(
+                'px-3 py-2 text-xs font-semibold transition',
+                aiProvider === 'gemini'
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
+              )}
+            >
+              Gemini
+            </button>
+          </div>
           <button
             type="button"
             title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
@@ -587,18 +621,23 @@ export default function StudentChat({
           ref={textareaRef}
           id="student-chat-message"
           name="message"
-          rows={3}
+          rows={1}
           value={inputValue}
-          onChange={(event) => setInputValue(event.target.value)}
+          onChange={(event) => {
+            setInputValue(event.target.value);
+            event.target.style.height = 'auto';
+            event.target.style.height = `${event.target.scrollHeight}px`;
+          }}
           onKeyDown={handleKeyDown}
-          placeholder="Example: cozy mystery, short reads"
+          placeholder="Ask a question or search for books..."
+          style={{ resize: 'none', overflow: 'hidden', minHeight: '44px', maxHeight: '160px' }}
           className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100 dark:focus:border-slate-500 dark:focus:ring-slate-700/50"
         />
         <div className="flex flex-wrap items-center justify-end gap-3 text-xs text-slate-500 dark:text-slate-400">
           {(!isFullscreen || sendNotice) && (
             <p>
               {sendNotice ??
-                'English only. Book recommendations only. Based on the current library catalog.'}
+                'English only. Ask academic questions or search for books from the library catalog.'}
             </p>
           )}
           <button

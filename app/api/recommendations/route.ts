@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
-import { evaluateGuardrails, isChatIntent } from '@/app/lib/recommendations/guardrails';
-import { answerQuestion, extractPreferences, suggestLinkedInCourses } from '@/app/lib/recommendations/ai';
+import { isSensitiveContent } from '@/app/lib/recommendations/guardrails';
+import { classifyAndExtract, suggestLinkedInCourses, facultyToCategory } from '@/app/lib/recommendations/ai';
 import { retrieveCandidateBooks } from '@/app/lib/recommendations/retrieve';
 import {
   buildAssociationRules,
   recommendBooks,
-  tokenizeInterests,
   type Recommendation,
 } from '@/app/lib/recommendations/recommender';
 import { getDashboardSession } from '@/app/lib/auth/session';
@@ -14,9 +13,7 @@ import { fetchUserContext, type UserContext } from '@/app/lib/recommendations/us
 type RecommendationRequest = {
   message?: string;
   limit?: number;
-  context?: {
-    lastInterests?: string[];
-  };
+  provider?: 'lmstudio' | 'gemini';
 };
 
 type RecommendationItem = {
@@ -40,8 +37,17 @@ const RATE_LIMIT_MAX = 5;
 const MIN_INTERVAL_MS = 1200;
 const rateLimiter = new Map<string, RateLimitEntry>();
 
+const GREETING_PATTERNS = [
+  /^\s*(hi|hello|hey|yo|hiya|halo|hai|morning|afternoon|evening)\b/i,
+  /^\s*(good\s+(morning|afternoon|evening|night))\b/i,
+  /^\s*(how\s+are\s+you|what'?s\s+up|how'?s\s+it\s+going)\b/i,
+];
+
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
+
+const isGreeting = (message: string) =>
+  GREETING_PATTERNS.some((p) => p.test(message.trim()));
 
 const getClientKey = (request: Request) => {
   const forwarded = request.headers.get('x-forwarded-for');
@@ -71,54 +77,83 @@ const diversify = (recs: Recommendation[], limit: number): Recommendation[] => {
   for (const rec of recs) {
     const titleKey = rec.book.title?.toLowerCase() ?? '';
     if (titleKey && seenTitles.has(titleKey)) continue;
-
     const authorKey = rec.book.author?.toLowerCase() ?? '';
     const authorCount = authorKey ? authorCounts.get(authorKey) ?? 0 : 0;
     if (authorKey && authorCount >= 2) continue;
-
     if (titleKey) seenTitles.add(titleKey);
     if (authorKey) authorCounts.set(authorKey, authorCount + 1);
     result.push(rec);
-
     if (result.length >= limit) break;
   }
 
-  if (result.length >= limit) return result;
-
-  for (const rec of recs) {
-    if (result.includes(rec)) continue;
-    result.push(rec);
-    if (result.length >= limit) break;
+  if (result.length < limit) {
+    for (const rec of recs) {
+      if (!result.includes(rec)) result.push(rec);
+      if (result.length >= limit) break;
+    }
   }
 
   return result;
 };
 
-const buildNoMatchReply = (interests: string[], fallback: string) => {
-  const token = interests[0]?.toLowerCase();
-  if (!token) return fallback;
+const applyRateLimit = (
+  clientKey: string,
+  now: number,
+): { limited: boolean; reply?: string; status?: number } => {
+  const existing = rateLimiter.get(clientKey);
+  const entry: RateLimitEntry = existing
+    ? { ...existing }
+    : { windowStart: now, count: 0, lastAt: 0 };
 
-  const suggestions: Record<string, string> = {
-    programming:
-      'Try related topics like software engineering, algorithms, data structures, or web development.',
-    software:
-      'Try related topics like software engineering, algorithms, data structures, or web development.',
-    code: 'Try related topics like programming, software engineering, or web development.',
-    coding: 'Try related topics like programming, software engineering, or web development.',
-    python: 'Try related topics like programming, data science, or automation.',
-    javascript: 'Try related topics like web development, HTML, or CSS.',
-    typescript: 'Try related topics like web development, JavaScript, or frontend.',
-    ai: 'Try related topics like machine learning, data science, or algorithms.',
-    marketing: 'Try related topics like business, management, or digital marketing.',
-    finance: 'Try related topics like accounting, economics, or investment.',
-    accounting: 'Try related topics like finance, auditing, or business.',
-    art: 'Try related topics like design, multimedia, or visual communication.',
-    design: 'Try related topics like art, multimedia, or creative computing.',
-    multimedia: 'Try related topics like design, media studies, or digital content.',
-  };
+  if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
+    entry.windowStart = now;
+    entry.count = 0;
+  }
 
-  const hint = suggestions[token];
-  return hint ? `${fallback} ${hint}` : fallback;
+  if (entry.lastAt && now - entry.lastAt < MIN_INTERVAL_MS) {
+    return { limited: true, reply: 'Please wait a moment before sending another message.', status: 429 };
+  }
+
+  entry.count += 1;
+  entry.lastAt = now;
+  rateLimiter.set(clientKey, entry);
+
+  if (rateLimiter.size > 1000) {
+    for (const [key, value] of rateLimiter.entries()) {
+      if (now - value.windowStart > RATE_LIMIT_WINDOW_MS * 2) rateLimiter.delete(key);
+    }
+  }
+
+  if (entry.count > RATE_LIMIT_MAX) {
+    return { limited: true, reply: 'Too many messages in a short time. Please wait and try again.', status: 429 };
+  }
+
+  return { limited: false };
+};
+
+const findBooks = async (
+  searchTerms: string[],
+  userContext: UserContext,
+  requestedLimit: number,
+): Promise<{ items: RecommendationItem[]; linkedIn: Awaited<ReturnType<typeof suggestLinkedInCourses>> }> => {
+  const searchInput = searchTerms.join(', ');
+  const preferredCategory = facultyToCategory(userContext.faculty);
+  const intakeYear = userContext.intakeYear;
+
+  const books = await retrieveCandidateBooks(searchInput, 200, preferredCategory, intakeYear);
+  const associations = buildAssociationRules(books);
+  const ranked = recommendBooks(
+    books,
+    searchInput,
+    { onlyAvailable: true, favorPopular: true, limit: Math.max(12, requestedLimit * 2), requireMatch: true },
+    associations,
+  );
+
+  const finalList = diversify(ranked, requestedLimit);
+  const items = finalList.map(toRecommendationItem);
+  const linkedIn = await suggestLinkedInCourses(searchTerms);
+
+  return { items, linkedIn };
 };
 
 export async function POST(request: Request) {
@@ -135,121 +170,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Message is required.' }, { status: 400 });
   }
 
-  // Fetch user context (non-blocking: anonymous users get empty context)
-  let userContext: UserContext = { historyTags: [], savedInterests: [] };
-  try {
-    const { user } = await getDashboardSession();
-    if (user) {
-      userContext = await fetchUserContext(user.id);
-    }
-  } catch {
-    // Session read failure is non-fatal
-  }
+  const provider = body.provider === 'gemini' ? 'gemini' : 'lmstudio';
 
-  const lastInterests =
-    Array.isArray(body.context?.lastInterests) && body.context?.lastInterests?.length
-      ? body.context.lastInterests.map((value) => String(value).trim()).filter(Boolean)
-      : [];
-  const isMoreRequest = /^\s*(any\s*more|more|another|next|what\s*else|else)\b/i.test(message);
-  const lastInterestTokens = lastInterests.map((value) => value.toLowerCase());
-  const lastInterestSet = new Set(lastInterestTokens);
-  const extraTokens = isMoreRequest
-    ? tokenizeInterests(message).filter((token) => !lastInterestSet.has(token))
-    : [];
-  // Merge user context tags (history + saved interests) as background signals.
-  // Capped at 20 tokens so they don't overwhelm the user's current message.
-  const contextTags = [
-    ...new Set([...userContext.historyTags, ...userContext.savedInterests]),
-  ].slice(0, 20);
-
-  const inferredMessage =
-    isMoreRequest && (lastInterests.length || extraTokens.length)
-      ? [...lastInterestTokens, ...extraTokens, ...contextTags].join(', ')
-      : contextTags.length
-        ? `${message}, ${contextTags.join(', ')}`
-        : message;
-
+  // Step 1: Rate limiting
   const clientKey = getClientKey(request);
   const now = Date.now();
-  const existing = rateLimiter.get(clientKey);
-  const entry: RateLimitEntry = existing
-    ? { ...existing }
-    : { windowStart: now, count: 0, lastAt: 0 };
-
-  if (now - entry.windowStart > RATE_LIMIT_WINDOW_MS) {
-    entry.windowStart = now;
-    entry.count = 0;
-  }
-
-  if (entry.lastAt && now - entry.lastAt < MIN_INTERVAL_MS) {
+  const rateResult = applyRateLimit(clientKey, now);
+  if (rateResult.limited) {
     return NextResponse.json(
-      {
-        ok: false,
-        kind: 'rate_limited',
-        reply: 'Please wait a moment before sending another message.',
-      },
-      { status: 429 },
+      { ok: false, kind: 'rate_limited', reply: rateResult.reply },
+      { status: rateResult.status },
     );
   }
 
-  entry.count += 1;
-  entry.lastAt = now;
-  rateLimiter.set(clientKey, entry);
-
-  if (entry.count > RATE_LIMIT_MAX) {
-    return NextResponse.json(
-      {
-        ok: false,
-        kind: 'rate_limited',
-        reply: 'Too many messages in a short time. Please wait and try again.',
-      },
-      { status: 429 },
-    );
-  }
-
-  if (rateLimiter.size > 1000) {
-    for (const [key, value] of rateLimiter.entries()) {
-      if (now - value.windowStart > RATE_LIMIT_WINDOW_MS * 2) {
-        rateLimiter.delete(key);
-      }
-    }
-  }
-
-  if (isChatIntent(message)) {
-    try {
-      const answer = await answerQuestion(message);
-      const reply =
-        answer ??
-        'I can help with programming or language questions, but the chat service is unavailable right now.';
-      return NextResponse.json({
-        ok: true,
-        kind: 'chat',
-        reply,
-        recommendations: [],
-        interests: [],
-        summary: null,
-        followUpQuestion: null,
-      });
-    } catch {
-      return NextResponse.json({
-        ok: true,
-        kind: 'chat',
-        reply:
-          'I can help with programming or language questions, but the chat service is unavailable right now.',
-        recommendations: [],
-        interests: [],
-        summary: null,
-        followUpQuestion: null,
-      });
-    }
-  }
-
-  const guardrail = evaluateGuardrails(inferredMessage);
-  if (guardrail.kind !== 'accept') {
+  // Step 2: Instant greeting check — no AI needed
+  if (isGreeting(message)) {
     return NextResponse.json({
       ok: true,
-      kind: guardrail.kind,
-      reply: guardrail.reply,
+      kind: 'chat',
+      reply: 'Hi there! I can help you find books from the library catalog or answer academic questions. What are you looking for today?',
       recommendations: [],
       interests: [],
       summary: null,
@@ -257,83 +196,140 @@ export async function POST(request: Request) {
     });
   }
 
-  try {
-    const preference = await extractPreferences(inferredMessage, userContext);
-    const interestInput =
-      preference.interests.length > 0 ? preference.interests.join(', ') : inferredMessage;
-
-    const requestedLimit = clamp(Number(body.limit ?? 6), 3, 8);
-    const books = await retrieveCandidateBooks(interestInput);
-    const associations = buildAssociationRules(books);
-    const ranked = recommendBooks(
-      books,
-      interestInput,
-      {
-        onlyAvailable: true,
-        favorPopular: true,
-        limit: Math.max(12, requestedLimit * 2),
-        requireMatch: true,
-      },
-      associations,
-    );
-
-    const finalList = diversify(ranked, requestedLimit);
-
-    const [linkedInSuggestions] = await Promise.all([
-      suggestLinkedInCourses(preference.interests),
-    ]);
-
-    if (!finalList.length) {
-      const fallbackReply =
-        'I could not find matches in the catalog. Try broader interests (genre, topic, or course unit).';
-      return NextResponse.json({
-        ok: true,
-        kind: 'no_matches',
-        reply: buildNoMatchReply(preference.interests, fallbackReply),
-        recommendations: [],
-        linkedInSuggestions,
-        interests: preference.interests,
-        summary: preference.summary,
-        followUpQuestion: preference.followUpQuestion,
-      });
-    }
-
-    const items = finalList.map(toRecommendationItem);
-    const introLine =
-      isMoreRequest && lastInterests.length
-        ? `**More picks.** ${preference.summary}`
-        : `**Got it.** ${preference.summary}`;
-    const replyLines = [
-      introLine,
-      '',
-      `Here are ${items.length} picks from the catalog:`,
-      ...items.map(
-        (item, index) =>
-          `${index + 1}. ${item.title}${item.author ? ` - ${item.author}` : ''}`,
-      ),
-      '',
-      `**Question:** ${preference.followUpQuestion}`,
-    ];
-
+  // Step 3: Sensitive content check — no AI needed
+  if (isSensitiveContent(message)) {
     return NextResponse.json({
       ok: true,
-      kind: 'recommendations',
-      reply: replyLines.join('\n'),
-      recommendations: items,
-      linkedInSuggestions,
-      interests: preference.interests,
-      summary: preference.summary,
-      followUpQuestion: preference.followUpQuestion,
-      contextTags,
+      kind: 'reject',
+      reply: 'Sorry, I cannot help with that topic. Feel free to ask about books or academic subjects.',
+      recommendations: [],
+      interests: [],
+      summary: null,
+      followUpQuestion: null,
     });
+  }
+
+  // Step 4: Fetch user context
+  let userContext: UserContext = { historyTags: [], savedInterests: [], faculty: null, department: null, intakeYear: null };
+  try {
+    const { user } = await getDashboardSession();
+    if (user) userContext = await fetchUserContext(user.id);
+  } catch {
+    // Non-fatal
+  }
+
+  // Step 5: Single AI call — classify intent + extract everything
+  const requestedLimit = clamp(Number(body.limit ?? 6), 3, 8);
+
+  try {
+    const aiResult = await classifyAndExtract(message, userContext, provider);
+
+    switch (aiResult.intent) {
+      case 'greeting': {
+        return NextResponse.json({
+          ok: true,
+          kind: 'chat',
+          reply: aiResult.reply,
+          recommendations: [],
+          interests: [],
+          summary: null,
+          followUpQuestion: null,
+        });
+      }
+
+      case 'off_topic': {
+        return NextResponse.json({
+          ok: true,
+          kind: 'reject',
+          reply: aiResult.reply,
+          recommendations: [],
+          interests: [],
+          summary: null,
+          followUpQuestion: null,
+        });
+      }
+
+      case 'answer': {
+        // Answer the question and try to find a few related books
+        const { items, linkedIn } = await findBooks(
+          aiResult.searchTerms.length ? aiResult.searchTerms : [message],
+          userContext,
+          3,
+        );
+
+        return NextResponse.json({
+          ok: true,
+          kind: items.length ? 'recommendations' : 'chat',
+          reply: aiResult.reply,
+          recommendations: items,
+          linkedInSuggestions: linkedIn,
+          interests: aiResult.searchTerms,
+          summary: aiResult.reply,
+          followUpQuestion: aiResult.followUpQuestion,
+        });
+      }
+
+      case 'find_books':
+      case 'both': {
+        if (!aiResult.searchTerms.length) {
+          return NextResponse.json({
+            ok: true,
+            kind: 'clarify',
+            reply: aiResult.reply || 'Could you tell me more about what topics or subjects you are interested in?',
+            recommendations: [],
+            interests: [],
+            summary: null,
+            followUpQuestion: null,
+          });
+        }
+
+        const { items, linkedIn } = await findBooks(aiResult.searchTerms, userContext, requestedLimit);
+
+        if (!items.length) {
+          return NextResponse.json({
+            ok: true,
+            kind: 'no_matches',
+            reply: `I could not find matching books in the catalog for "${aiResult.searchTerms.slice(0, 3).join(', ')}". Try broader topic keywords.`,
+            recommendations: [],
+            linkedInSuggestions: linkedIn,
+            interests: aiResult.searchTerms,
+            summary: null,
+            followUpQuestion: aiResult.followUpQuestion,
+          });
+        }
+
+        const introReply = aiResult.intent === 'both' && aiResult.reply
+          ? aiResult.reply
+          : `Here are some books on ${aiResult.searchTerms.slice(0, 3).join(', ')} from our catalog.`;
+
+        return NextResponse.json({
+          ok: true,
+          kind: 'recommendations',
+          reply: introReply,
+          recommendations: items,
+          linkedInSuggestions: linkedIn,
+          interests: aiResult.searchTerms,
+          summary: introReply,
+          followUpQuestion: aiResult.followUpQuestion,
+        });
+      }
+
+      default: {
+        return NextResponse.json({
+          ok: true,
+          kind: 'clarify',
+          reply: 'Could you tell me what topic or subject you are looking for? I can recommend books or answer academic questions.',
+          recommendations: [],
+          interests: [],
+          summary: null,
+          followUpQuestion: null,
+        });
+      }
+    }
   } catch (error) {
     console.error('Recommendation service failed', error);
     return NextResponse.json(
-      {
-        ok: false,
-        kind: 'error',
-        reply: 'Recommendation service is unavailable. Please try again.',
-      },
+      { ok: false, kind: 'error', reply: 'The recommendation service is temporarily unavailable. Please try again.' },
       { status: 500 },
     );
   }

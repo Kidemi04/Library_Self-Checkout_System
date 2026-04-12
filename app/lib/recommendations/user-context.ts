@@ -3,6 +3,9 @@ import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 export type UserContext = {
   historyTags: string[];
   savedInterests: string[];
+  faculty: string | null;
+  department: string | null;
+  intakeYear: number | null;
 };
 
 type RawLoanHistoryRow = {
@@ -17,16 +20,18 @@ type RawUserInterestsRow = {
   interests: string[] | null;
 };
 
-/**
- * Fetches the user's loan history tags (from borrowed books' BookTags) and
- * their saved interests from UserInterests. Both DB calls run in parallel.
- */
+type RawUserProfileRow = {
+  faculty: string | null;
+  department: string | null;
+  intake_year: number | null;
+};
+
 export async function fetchUserContext(userId: string): Promise<UserContext> {
-  if (!userId) return { historyTags: [], savedInterests: [] };
+  if (!userId) return { historyTags: [], savedInterests: [], faculty: null, department: null, intakeYear: null };
 
   const supabase = getSupabaseServerClient();
 
-  const [loansResult, interestsResult] = await Promise.all([
+  const [loansResult, interestsResult, profileResult] = await Promise.all([
     supabase
       .from('Loans')
       .select(
@@ -49,6 +54,12 @@ export async function fetchUserContext(userId: string): Promise<UserContext> {
       .select('interests')
       .eq('user_id', userId)
       .maybeSingle<RawUserInterestsRow>(),
+
+    supabase
+      .from('UserProfile')
+      .select('faculty, department, intake_year')
+      .eq('user_id', userId)
+      .maybeSingle<RawUserProfileRow>(),
   ]);
 
   // Extract and deduplicate history tags
@@ -85,12 +96,14 @@ export async function fetchUserContext(userId: string): Promise<UserContext> {
     }
   }
 
-  return { historyTags, savedInterests };
+  // Extract profile info
+  const faculty = profileResult.data?.faculty?.trim() || null;
+  const department = profileResult.data?.department?.trim() || null;
+  const intakeYear = profileResult.data?.intake_year ?? null;
+
+  return { historyTags, savedInterests, faculty, department, intakeYear };
 }
 
-/**
- * Saves (upserts) the user's interests into UserInterests table.
- */
 export async function saveUserInterests(
   userId: string,
   interests: string[],
@@ -111,10 +124,6 @@ export async function saveUserInterests(
   if (error) throw error;
 }
 
-/**
- * Returns true if the user has at least one saved interest OR any loan history.
- * Used by the chat page to decide whether to show the onboarding tag selector.
- */
 export async function userNeedsOnboarding(userId: string): Promise<boolean> {
   if (!userId) return true;
 
