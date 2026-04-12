@@ -52,7 +52,28 @@ type QuickPrompt = {
   message: string;
 };
 
-const quickPrompts: QuickPrompt[] = [];
+const quickPrompts: QuickPrompt[] = [
+  {
+    id: 'faculty',
+    label: '📚 Recommend for my faculty',
+    message: 'Recommend books based on my faculty and interests',
+  },
+  {
+    id: 'assignment',
+    label: '📝 Books for my assignment',
+    message: 'I need book recommendations for my academic assignment',
+  },
+  {
+    id: 'available',
+    label: '✅ Show me what\'s available now',
+    message: 'What books are available to borrow right now?',
+  },
+  {
+    id: 'interesting',
+    label: '✨ Just something interesting',
+    message: 'Suggest something interesting I might enjoy reading',
+  },
+];
 
 const buildGreeting = (name?: string | null) => {
   const friendlyName =
@@ -128,6 +149,7 @@ export default function StudentChat({
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [aiProvider, setAiProvider] = useState<'lmstudio' | 'gemini'>('lmstudio');
   const [isSavingInterests, setIsSavingInterests] = useState(false);
+  const [showQuickPrompts, setShowQuickPrompts] = useState(true);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lastSentAtRef = useRef<number>(0);
@@ -187,6 +209,7 @@ export default function StudentChat({
     setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
     setLinkedInSuggestions([]);
     setSendNotice(null);
+    setShowQuickPrompts(true);
     setStickToBottom(true);
     setInputValue('');
     setIsAssistantTyping(false);
@@ -267,6 +290,7 @@ export default function StudentChat({
       timestamp: Date.now(),
     };
     setMessages((prev) => [...prev, newMessage]);
+    setShowQuickPrompts(false);
     setStickToBottom(true);
     scheduleScrollToBottom();
     lastSentAtRef.current = now;
@@ -492,18 +516,6 @@ export default function StudentChat({
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {quickPrompts.map((prompt) => (
-          <button
-            key={prompt.id}
-            type="button"
-            className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
-            onClick={() => handleQuickPrompt(prompt)}
-          >
-            {prompt.label}
-          </button>
-        ))}
-      </div>
 
       {onboardingComplete && <div
         ref={messagesRef}
@@ -603,6 +615,37 @@ export default function StudentChat({
                               />
                             )}
                           </div>
+                          {/* YouTube + Google search links */}
+                          <div className="mt-2 flex items-center gap-2 border-t border-slate-100 pt-2 dark:border-slate-700">
+                            <a
+                              href={`https://www.youtube.com/results?search_query=${encodeURIComponent(rec.title)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Search on YouTube"
+                              className="flex items-center gap-1 text-[11px] font-medium text-slate-400 transition hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400"
+                            >
+                              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 shrink-0">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                              </svg>
+                              YouTube
+                            </a>
+                            <span className="text-slate-200 dark:text-slate-700">|</span>
+                            <a
+                              href={`https://www.google.com/search?q=${encodeURIComponent(rec.title + ' book')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Search on Google"
+                              className="flex items-center gap-1 text-[11px] font-medium text-slate-400 transition hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400"
+                            >
+                              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 shrink-0">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                              </svg>
+                              Google
+                            </a>
+                          </div>
                         </div>
                       </div>
                     );
@@ -664,6 +707,21 @@ export default function StudentChat({
           Scroll to latest
         </button>
       ) : null}
+
+      {onboardingComplete && showQuickPrompts && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {quickPrompts.map((prompt) => (
+            <button
+              key={prompt.id}
+              type="button"
+              onClick={() => handleQuickPrompt(prompt)}
+              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:border-red-500/50 dark:hover:bg-red-950/20 dark:hover:text-red-400"
+            >
+              {prompt.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       {onboardingComplete && <form onSubmit={handleSubmit} className="mt-4 space-y-3">
         <label htmlFor="student-chat-message" className="sr-only">
