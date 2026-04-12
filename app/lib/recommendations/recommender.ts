@@ -282,10 +282,16 @@ export function recommendBooks(
       (tag) => !AMBIGUOUS_TEXT_TOKENS.has(tag) || hasComputingHint,
     );
 
+    // A book must have at least one meaningful signal to be recommended:
+    //   - a direct tag match, OR
+    //   - an association-rule related tag, OR
+    //   - the interest token appears in the book TITLE (not just body/author/publisher)
+    // Pure corpus matches (publisher, ISBN, author name substring) are too noisy.
+    const titleLower = (book.title ?? '').toLowerCase();
     const textMatches = interestTokens.filter(
       (token) =>
         token.length > 2 &&
-        textCorpus.includes(token) &&
+        titleLower.includes(token) &&
         (!AMBIGUOUS_TEXT_TOKENS.has(token) || hasComputingHint),
     );
 

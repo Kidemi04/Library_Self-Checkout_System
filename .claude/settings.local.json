@@ -30,7 +30,29 @@
       "Bash(del \"c:\\\\Users\\\\User\\\\Documents\\\\GitHub\\\\Library_Self-Checkout_System\\\\AGENTS.md\")",
       "Bash(grep -l \"role === 'admin'\" c:/Users/User/Documents/GitHub/Library_Self-Checkout_System/app/dashboard/**/*.tsx c:/Users/User/Documents/GitHub/Library_Self-Checkout_System/app/dashboard/*.tsx)",
       "WebSearch",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(nvidia-smi)",
+      "Bash(ollama list:*)",
+      "Bash(curl -s http://localhost:11434/api/tags)",
+      "Bash(curl -s http://localhost:11434/api/chat -d \"{\\\\\"model\\\\\":\\\\\"gemma4\\\\\",\\\\\"messages\\\\\":[{\\\\\"role\\\\\":\\\\\"user\\\\\",\\\\\"content\\\\\":\\\\\"say hi\\\\\"}],\\\\\"stream\\\\\":false}\")",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(d.get\\('message',{}\\).get\\('content',''\\)\\)\")",
+      "Bash(setx OLLAMA_FLASH_ATTENTION 1)",
+      "Bash(setx OLLAMA_NUM_GPU 99)",
+      "Bash(taskkill /F /IM \"ollama.exe\")",
+      "Bash(taskkill /F /IM \"ollama_llama_server.exe\")",
+      "Bash(powershell -Command \"Stop-Process -Name 'ollama' -Force -ErrorAction SilentlyContinue; Stop-Process -Name 'ollama_llama_server' -Force -ErrorAction SilentlyContinue; Write-Host 'Stopped'\")",
+      "Bash(powershell -Command \"Start-Process 'ollama' -ArgumentList 'serve' -WindowStyle Hidden; Start-Sleep 3; Write-Host 'Ollama started'\")",
+      "Bash(powershell -Command 'Stop-Process -Name '\\\\''ollama'\\\\'' -Force -ErrorAction SilentlyContinue; Stop-Process -Name '\\\\''ollama_llama_server'\\\\'' -Force -ErrorAction SilentlyContinue; Start-Sleep 2; $env:OLLAMA_FLASH_ATTENTION='\\\\''1'\\\\''; $env:OLLAMA_NUM_GPU='\\\\''99'\\\\''; $env:OLLAMA_GPU_OVERHEAD='\\\\''0'\\\\''; Start-Process '\\\\''ollama'\\\\'' -ArgumentList '\\\\''serve'\\\\'' -WindowStyle Hidden; Start-Sleep 4; Write-Host '\\\\''Ollama restarted'\\\\''')",
+      "Bash(curl -s http://localhost:11434/api/chat -d \"{\\\\\"model\\\\\":\\\\\"gemma4\\\\\",\\\\\"messages\\\\\":[{\\\\\"role\\\\\":\\\\\"user\\\\\",\\\\\"content\\\\\":\\\\\"say hi in one sentence\\\\\"}],\\\\\"stream\\\\\":false}\")",
+      "Bash('$_.TotalVisibleMemorySize/1MB,' 1)",
+      "Bash('$_.FreePhysicalMemory/1MB,' 1)",
+      "Bash(powershell -Command 'Get-CimInstance Win32_OperatingSystem | Select-Object TotalVisibleMemorySize, FreePhysicalMemory | ForEach-Object { Write-Host \"Total RAM: __CMDSUB_OUTPUT__\\) GB\"; Write-Host \"Free RAM:  __CMDSUB_OUTPUT__\\) GB\" }')",
+      "Bash(powershell -Command \"systeminfo | findstr /C:'Available Physical Memory'\")",
+      "Bash(ollama create:*)",
+      "Bash(curl -s http://localhost:11434/api/chat -d \"{\\\\\"model\\\\\":\\\\\"gemma4-lib\\\\\",\\\\\"messages\\\\\":[{\\\\\"role\\\\\":\\\\\"user\\\\\",\\\\\"content\\\\\":\\\\\"say hi in one sentence\\\\\"}],\\\\\"stream\\\\\":false}\")",
+      "Bash(nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader)",
+      "Bash(nvidia-smi --query-gpu=memory.used,memory.free,utilization.gpu --format=csv,noheader)",
+      "Bash(time curl:*)"
     ]
   }
 }

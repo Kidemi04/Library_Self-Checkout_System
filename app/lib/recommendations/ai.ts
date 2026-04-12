@@ -8,10 +8,11 @@ export type AiPreferenceResult = {
 
 const DEFAULT_FOLLOW_UP = 'Any authors or series you already like?';
 
-type Provider = 'gemini';
+type Provider = 'gemini' | 'ollama';
 
 let geminiDisabled = false;
 let geminiDisabledReason: string | null = null;
+let ollamaDisabled = false;
 
 const getEnv = () => ({
   provider: (process.env.LLM_PROVIDER?.trim().toLowerCase() as Provider | undefined) ?? undefined,
@@ -20,6 +21,8 @@ const getEnv = () => ({
     'https://generativelanguage.googleapis.com/v1beta',
   geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
   geminiModel: process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash',
+  ollamaBaseUrl: process.env.OLLAMA_BASE_URL?.trim() || 'http://localhost:11434',
+  ollamaModel: process.env.OLLAMA_MODEL?.trim() || 'gemma4',
 });
 
 const safeJsonParse = (content: string): AiPreferenceResult | null => {
@@ -51,7 +54,7 @@ const buildFallback = (message: string): AiPreferenceResult => {
 };
 
 const GEMINI_BASE_SYSTEM_PROMPT =
-  'You are a library recommender. Extract reading preferences and return ONLY valid JSON with keys: summary (string), interests (array of 3-8 short tokens), followUpQuestion (short book-specific question). Use English only. No extra text.';
+  'You are a library recommender. Extract reading preferences and return ONLY valid JSON with keys: summary (string), interests (array of 3-8 short tokens that are CLOSELY related to what the user said — do NOT add unrelated domains), followUpQuestion (short book-specific question). If the user says a single word like "art", interests must stay within that topic only. Use English only. No extra text. No markdown. Output JSON only.';
 
 const buildGeminiSystemPrompt = (
   userContext?: { historyTags?: string[]; savedInterests?: string[] },
@@ -79,6 +82,80 @@ const buildGeminiSystemPrompt = (
     'If the current message is unrelated to their history, extract interests from the message alone.'
   );
 };
+// ---------------------------------------------------------------------------
+// Ollama integration
+// ---------------------------------------------------------------------------
+
+type OllamaMessage = { role: 'system' | 'user' | 'assistant'; content: string };
+
+const callOllamaChat = async (
+  messages: OllamaMessage[],
+  options?: { temperature?: number; maxTokens?: number },
+): Promise<string | null> => {
+  if (ollamaDisabled) return null;
+  const { ollamaBaseUrl, ollamaModel } = getEnv();
+
+  const url = `${ollamaBaseUrl.replace(/\/+$/, '')}/api/chat`;
+  const body = {
+    model: ollamaModel,
+    messages,
+    stream: false,
+    options: {
+      temperature: options?.temperature ?? 0.2,
+      ...(options?.maxTokens ? { num_predict: options.maxTokens } : {}),
+    },
+  };
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    console.error('[Ollama] Connection failed — is Ollama running?', err);
+    ollamaDisabled = true;
+    return null;
+  }
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => '');
+    console.error('[Ollama] API error', response.status, errText);
+    if (response.status >= 500) ollamaDisabled = true;
+    return null;
+  }
+
+  const data = (await response.json()) as {
+    message?: { content?: string };
+  };
+
+  return data?.message?.content?.trim() || null;
+};
+
+const extractWithOllama = async (
+  message: string,
+  userContext?: { historyTags?: string[]; savedInterests?: string[] },
+): Promise<AiPreferenceResult | null> => {
+  const systemPrompt = buildGeminiSystemPrompt(userContext);
+  const text = await callOllamaChat(
+    [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: message },
+    ],
+    { temperature: 0.1, maxTokens: 120 }, // JSON reply is tiny — cap tokens for speed
+  );
+  if (!text) return null;
+  const parsed = safeJsonParse(text);
+  if (!parsed) {
+    console.error('[Ollama] Non-JSON response for preference extraction');
+    return null;
+  }
+  return parsed;
+};
+
+// ---------------------------------------------------------------------------
+
 const GEMINI_CHAT_PROMPT =
   'You are a helpful study assistant for a university library. You may answer ONLY about programming, software, computing, math, data, and language learning (English, grammar, writing). Be concise, friendly, and safe. If the user asks about religion, politics, credentials/secrets, the AI model identity, or NSFW content, refuse briefly and redirect to safe study topics. Use English only.';
 
@@ -213,28 +290,36 @@ const extractWithGemini = async (
   return parsed;
 };
 
+const normalisePreference = (raw: AiPreferenceResult, message: string): AiPreferenceResult => ({
+  summary: raw.summary?.toString().trim() || buildFallback(message).summary,
+  interests:
+    Array.isArray(raw.interests) && raw.interests.length
+      ? raw.interests.map((v) => String(v).trim()).filter(Boolean)
+      : buildFallback(message).interests,
+  followUpQuestion: raw.followUpQuestion?.toString().trim() || DEFAULT_FOLLOW_UP,
+});
+
 export async function extractPreferences(
   message: string,
   userContext?: { historyTags?: string[]; savedInterests?: string[] },
 ): Promise<AiPreferenceResult> {
   const { provider, geminiApiKey } = getEnv();
 
+  // 1. Try Ollama (local) when configured
+  if (provider === 'ollama') {
+    try {
+      const ollamaResult = await extractWithOllama(message, userContext);
+      if (ollamaResult) return normalisePreference(ollamaResult, message);
+    } catch {
+      // fall through to Gemini / fallback
+    }
+  }
+
+  // 2. Try Gemini (cloud)
   if (provider === 'gemini' || geminiApiKey) {
     try {
       const geminiResult = await extractWithGemini(message, userContext);
-      if (geminiResult) {
-        const interests =
-          Array.isArray(geminiResult.interests) && geminiResult.interests.length
-            ? geminiResult.interests.map((value) => String(value).trim()).filter(Boolean)
-            : buildFallback(message).interests;
-
-        return {
-          summary: geminiResult.summary?.toString().trim() || buildFallback(message).summary,
-          interests,
-          followUpQuestion:
-            geminiResult.followUpQuestion?.toString().trim() || DEFAULT_FOLLOW_UP,
-        };
-      }
+      if (geminiResult) return normalisePreference(geminiResult, message);
     } catch {
       return buildFallback(message);
     }
@@ -251,11 +336,34 @@ export type LinkedInCourseSuggestion = {
 const GEMINI_LINKEDIN_PROMPT =
   'You are a library assistant. Given a list of reading interests, suggest exactly 3 LinkedIn Learning course titles that complement those topics. Return ONLY valid JSON with key: courses (array of objects, each with title (string) and query (string — the search keywords to use on LinkedIn Learning)). Keep titles concise and realistic. Use English only. No extra text.';
 
+const parseLinkedInCourses = (text: string): LinkedInCourseSuggestion[] => {
+  const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  let parsed: { courses?: Array<{ title?: string; query?: string }> } | null = null;
+  try {
+    parsed = JSON.parse(stripped);
+  } catch {
+    const match = stripped.match(/\{[\s\S]*\}/);
+    if (match) {
+      try { parsed = JSON.parse(match[0]); } catch { return []; }
+    }
+  }
+  if (!parsed || !Array.isArray(parsed.courses)) return [];
+  return parsed.courses
+    .filter((c) => c.title && c.query)
+    .map((c) => ({ title: c.title!.trim(), query: c.query!.trim() }))
+    .slice(0, 3);
+};
+
 export async function suggestLinkedInCourses(
   interests: string[],
 ): Promise<LinkedInCourseSuggestion[]> {
   if (!interests.length) return [];
-  const { geminiApiKey, geminiBaseUrl, geminiModel } = getEnv();
+  const { provider, geminiApiKey, geminiBaseUrl, geminiModel } = getEnv();
+
+  // When using Ollama, skip the local LLM for LinkedIn suggestions (slow second call).
+  // Fall through to Gemini if a key is available, otherwise return empty.
+
+  // Try Gemini
   if (!geminiApiKey || !geminiModel || geminiDisabled) return [];
 
   try {
@@ -291,32 +399,8 @@ export async function suggestLinkedInCourses(
 
     const text =
       data?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
-    console.log('[LinkedIn suggestions] raw Gemini text:', text);
     if (!text.trim()) return [];
-
-    // Strip markdown code fences (```json ... ``` or ``` ... ```)
-    const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-
-    let parsed: { courses?: Array<{ title?: string; query?: string }> } | null = null;
-    try {
-      parsed = JSON.parse(stripped);
-    } catch {
-      const match = stripped.match(/\{[\s\S]*\}/);
-      if (match) {
-        try {
-          parsed = JSON.parse(match[0]);
-        } catch {
-          console.error('[LinkedIn suggestions] JSON parse failed, stripped text:', stripped);
-          return [];
-        }
-      }
-    }
-
-    if (!parsed || !Array.isArray(parsed.courses)) return [];
-    return parsed.courses
-      .filter((c) => c.title && c.query)
-      .map((c) => ({ title: c.title!.trim(), query: c.query!.trim() }))
-      .slice(0, 3);
+    return parseLinkedInCourses(text);
   } catch {
     return [];
   }
@@ -326,10 +410,24 @@ export async function answerQuestion(message: string): Promise<string | null> {
   const { provider, geminiApiKey } = getEnv();
   const localFallback = localChatFallback(message);
 
+  // 1. Try Ollama (local)
+  if (provider === 'ollama') {
+    try {
+      const answer = await callOllamaChat([
+        { role: 'system', content: GEMINI_CHAT_PROMPT },
+        { role: 'user', content: message },
+      ], { temperature: 0.2, maxTokens: 220 });
+      if (answer) return answer;
+    } catch {
+      // fall through
+    }
+  }
+
   if (geminiDisabled) {
     return localFallback;
   }
 
+  // 2. Try Gemini (cloud)
   if (provider === 'gemini' || geminiApiKey) {
     try {
       const { geminiBaseUrl, geminiModel } = getEnv();
