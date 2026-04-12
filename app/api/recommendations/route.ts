@@ -219,7 +219,7 @@ export async function POST(request: Request) {
   }
 
   // Step 5: Single AI call — classify intent + extract everything
-  const requestedLimit = clamp(Number(body.limit ?? 6), 3, 8);
+  const requestedLimit = clamp(Number(body.limit ?? 3), 1, 6);
 
   try {
     const aiResult = await classifyAndExtract(message, userContext, provider);

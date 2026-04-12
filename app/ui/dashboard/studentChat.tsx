@@ -1,7 +1,9 @@
 'use client';
 
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import clsx from 'clsx';
+import PlaceHoldButton from '@/app/ui/dashboard/placeHoldButton';
 
 type RecommendationItem = {
   id: string;
@@ -41,6 +43,7 @@ type ChatMessage = {
   sender: 'student' | 'assistant';
   text: string;
   timestamp: number;
+  recommendations?: RecommendationItem[];
 };
 
 type QuickPrompt = {
@@ -105,9 +108,11 @@ const ONBOARDING_TAGS = [
 export default function StudentChat({
   studentName,
   needsOnboarding = false,
+  userId,
 }: {
   studentName?: string | null;
   needsOnboarding?: boolean;
+  userId?: string;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
     buildInitialMessages(studentName),
@@ -116,20 +121,15 @@ export default function StudentChat({
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [sendNotice, setSendNotice] = useState<string | null>(null);
   const [stickToBottom, setStickToBottom] = useState(true);
-  const [bookRecommendations, setBookRecommendations] = useState<RecommendationItem[]>([]);
-  const [activeInterests, setActiveInterests] = useState<string[]>([]);
   const [linkedInSuggestions, setLinkedInSuggestions] = useState<LinkedInSuggestion[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [animKey, setAnimKey] = useState(0);
-  const [cardsVisible, setCardsVisible] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(!needsOnboarding);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [aiProvider, setAiProvider] = useState<'lmstudio' | 'gemini'>('lmstudio');
   const [isSavingInterests, setIsSavingInterests] = useState(false);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const recsRef = useRef<HTMLDivElement | null>(null);
   const lastSentAtRef = useRef<number>(0);
   const initialNameRef = useRef(studentName);
 
@@ -167,16 +167,6 @@ export default function StudentChat({
     };
   }, [isFullscreen]);
 
-  useEffect(() => {
-    if (animKey === 0 || isFullscreen) return;
-    const isMobile = window.innerWidth < 768;
-    if (!isMobile) return;
-    const timer = setTimeout(() => {
-      recsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [animKey, isFullscreen]);
-
   const handleCopy = (message: ChatMessage) => {
     navigator.clipboard.writeText(message.text).then(() => {
       setCopiedId(message.id);
@@ -195,8 +185,6 @@ export default function StudentChat({
 
   const resetChat = () => {
     setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
-    setBookRecommendations([]);
-    setActiveInterests([]);
     setLinkedInSuggestions([]);
     setSendNotice(null);
     setStickToBottom(true);
@@ -300,6 +288,7 @@ export default function StudentChat({
       const replyText =
         response.ok && data?.reply ? data.reply : data?.reply ?? buildErrorReply();
 
+      const recs = data?.recommendations ?? [];
       setMessages((prev) => [
         ...prev,
         {
@@ -307,13 +296,11 @@ export default function StudentChat({
           sender: 'assistant',
           text: replyText,
           timestamp: Date.now(),
+          recommendations: recs.length ? recs : undefined,
         },
       ]);
 
-      setBookRecommendations(data?.recommendations ?? []);
-      setActiveInterests(data?.interests ?? []);
       setLinkedInSuggestions(data?.linkedInSuggestions ?? []);
-      if ((data?.recommendations ?? []).length > 0) setAnimKey((k) => k + 1);
 
       if (response.status === 429 && data?.reply) {
         setSendNotice(data.reply);
@@ -330,8 +317,6 @@ export default function StudentChat({
           timestamp: Date.now(),
         },
       ]);
-      setBookRecommendations([]);
-      setActiveInterests([]);
       setLinkedInSuggestions([]);
       setSendNotice('Unable to send right now. Please try again.');
     } finally {
@@ -557,6 +542,73 @@ export default function StudentChat({
                   </p>
                 ))}
               </div>
+              {message.sender === 'assistant' && message.recommendations?.length ? (
+                <div className="mt-2 w-full max-w-[85%] space-y-2 md:max-w-[70%]">
+                  {message.recommendations.map((rec) => {
+                    const searchUrl = `/dashboard/book/items?q=${encodeURIComponent(rec.title)}`;
+                    return (
+                      <div
+                        key={rec.id}
+                        className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/70"
+                      >
+                        {/* Cover image */}
+                        <div className="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                          {rec.coverImageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={rec.coverImageUrl}
+                              alt={rec.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-slate-400 dark:text-slate-500">
+                              <path d="M11.25 4.533A9.707 9.707 0 0 0 6 3a9.735 9.735 0 0 0-3.25.555.75.75 0 0 0-.5.707v14.25a.75.75 0 0 0 1 .707A8.237 8.237 0 0 1 6 18.75c1.995 0 3.823.707 5.25 1.886V4.533ZM12.75 20.636A8.214 8.214 0 0 1 18 18.75c.966 0 1.89.166 2.75.47a.75.75 0 0 0 1-.708V4.262a.75.75 0 0 0-.5-.707A9.735 9.735 0 0 0 18 3a9.707 9.707 0 0 0-5.25 1.533v16.103Z" />
+                            </svg>
+                          )}
+                        </div>
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <Link
+                            href={searchUrl}
+                            className="block text-sm font-semibold text-slate-900 hover:text-red-600 dark:text-slate-100 dark:hover:text-red-400 line-clamp-2 leading-snug"
+                          >
+                            {rec.title}
+                          </Link>
+                          {rec.author && (
+                            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 truncate">{rec.author}</p>
+                          )}
+                          <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
+                            <span className={clsx(
+                              'text-xs font-medium',
+                              rec.availableCopies > 0
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-red-500 dark:text-red-400',
+                            )}>
+                              {rec.availableCopies > 0
+                                ? `${rec.availableCopies} / ${rec.totalCopies} available`
+                                : 'All copies checked out'}
+                            </span>
+                            {rec.availableCopies > 0 ? (
+                              <Link
+                                href={searchUrl}
+                                className="shrink-0 rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-700 transition"
+                              >
+                                Borrow
+                              </Link>
+                            ) : (
+                              <PlaceHoldButton
+                                bookId={rec.id}
+                                patronId={userId}
+                                bookTitle={rec.title}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
               {message.sender === 'student' && (
                 <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                   <button
@@ -650,122 +702,35 @@ export default function StudentChat({
         </div>
       </form>}
 
-      {!isFullscreen && onboardingComplete && <>
-        <style>{`
-          @keyframes recSectionIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to   { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes recCardIn {
-            from { opacity: 0; transform: translateY(18px) scale(0.96); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
-          }
-          .rec-section-anim {
-            animation: recSectionIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-          }
-          .rec-card-anim {
-            animation: recCardIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
-          }
-        `}</style>
-        <div ref={recsRef} className="rec-section-anim mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-black/20">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
-              Your recommendations
-            </p>
-            <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-              Books matched to your interests
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-300/80">
-              Send a message to refresh the list.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          {activeInterests.length ? (
-            activeInterests.map((token) => (
-              <span
-                key={token}
-                className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+      {!isFullscreen && onboardingComplete && linkedInSuggestions.length > 0 && (
+        <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+          <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
+            Go deeper
+          </p>
+          <h3 className="mt-0.5 text-base font-semibold text-slate-900 dark:text-slate-100">
+            Courses on LinkedIn Learning
+          </h3>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            Suggested based on your interests. Opens LinkedIn Learning search.
+          </p>
+          <div className="mt-3 flex flex-col gap-2">
+            {linkedInSuggestions.map((suggestion) => (
+              <a
+                key={suggestion.query}
+                href={`https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(suggestion.query)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-sm transition hover:border-[#0A66C2] hover:text-[#0A66C2] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-[#0A66C2] dark:hover:text-[#70B5F9]"
               >
-                {token}
-              </span>
-            ))
-          ) : (
-            <p className="text-xs text-slate-600 dark:text-slate-300/80">
-              Send a message to see the key interests we detected.
-            </p>
-          )}
-        </div>
-
-        {bookRecommendations.length ? (
-          <div key={animKey} className="mt-4 grid gap-3 sm:grid-cols-2">
-            {bookRecommendations.map((rec, index) => (
-              <div
-                key={rec.id}
-                className="rec-card-anim group flex cursor-default flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-red-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-black/20 dark:hover:border-red-900/60 dark:hover:shadow-red-950/20"
-                style={{ animationDelay: `${index * 120}ms` }}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400/80">
-                      Recommendation
-                    </p>
-                    <h4 className="text-sm font-semibold text-slate-900 transition-colors group-hover:text-red-600 dark:text-slate-100 dark:group-hover:text-red-400">
-                      {rec.title ?? 'Untitled'}
-                    </h4>
-                    <p className="text-xs text-slate-600 dark:text-slate-300/80">
-                      {rec.author ?? 'Unknown author'}
-                    </p>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700 transition-colors group-hover:bg-red-50 group-hover:text-red-600 dark:bg-slate-800 dark:text-slate-200 dark:group-hover:bg-red-950/40 dark:group-hover:text-red-400">
-                    {rec.availableCopies} available
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 dark:text-slate-300/90">
-                  {rec.reason ?? 'Good match based on your interests'}
-                </p>
-              </div>
+                <span>{suggestion.title}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 shrink-0 opacity-50">
+                  <path fillRule="evenodd" d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h4a.75.75 0 010 1.5h-4zm6.5-1a.75.75 0 010-1.5h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V5.56l-3.72 3.72a.75.75 0 11-1.06-1.06l3.72-3.72H10.75z" clipRule="evenodd" />
+                </svg>
+              </a>
             ))}
           </div>
-        ) : (
-          <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300/80">
-            No recommendations yet. Mention a genre, topic, or mood to get started.
-          </div>
-        )}
-
-        {linkedInSuggestions.length > 0 && (
-          <div className="mt-5 border-t border-slate-100 pt-4 dark:border-slate-800">
-            <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
-              Go deeper
-            </p>
-            <h3 className="mt-0.5 text-base font-semibold text-slate-900 dark:text-slate-100">
-              Courses on LinkedIn Learning
-            </h3>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-              Suggested based on your interests. Opens LinkedIn Learning search.
-            </p>
-            <div className="mt-3 flex flex-col gap-2">
-              {linkedInSuggestions.map((suggestion) => (
-                <a
-                  key={suggestion.query}
-                  href={`https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(suggestion.query)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-sm transition hover:border-[#0A66C2] hover:text-[#0A66C2] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-[#0A66C2] dark:hover:text-[#70B5F9]"
-                >
-                  <span>{suggestion.title}</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 shrink-0 opacity-50">
-                    <path fillRule="evenodd" d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h4a.75.75 0 010 1.5h-4zm6.5-1a.75.75 0 010-1.5h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V5.56l-3.72 3.72a.75.75 0 11-1.06-1.06l3.72-3.72H10.75z" clipRule="evenodd" />
-                  </svg>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </>}
+        </div>
+      )}
     </section>
   );
 }
