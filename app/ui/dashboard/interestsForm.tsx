@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 type InterestsFormProps = {
@@ -51,10 +51,19 @@ const PROGRAM_OPTIONS: ProgramOption[] = [
 
 const CATEGORIES: CategoryKey[] = ['cs', 'engineering', 'art', 'business'];
 
+function getInitialCategory(currentInterests: string[]): CategoryKey {
+  if (currentInterests.length > 0) {
+    const saved = PROGRAM_OPTIONS.find((o) => o.key === currentInterests[0]);
+    if (saved) return saved.category;
+  }
+  return 'cs';
+}
+
 export default function InterestsForm({ currentInterests = [], onComplete }: InterestsFormProps) {
   const router = useRouter();
+  const successRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string[]>(currentInterests.slice(0, 1));
-  const [open, setOpen] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<CategoryKey>(() => getInitialCategory(currentInterests));
   const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -64,14 +73,17 @@ export default function InterestsForm({ currentInterests = [], onComplete }: Int
     [selected],
   );
 
-  const selectedCategories = useMemo(() => {
-    const categories = new Set<CategoryKey>();
-    if (selectedProgram) categories.add(selectedProgram.category);
-    return categories;
-  }, [selectedProgram]);
+  const visiblePrograms = useMemo(
+    () => PROGRAM_OPTIONS.filter((o) => o.category === activeCategory),
+    [activeCategory],
+  );
 
   const handleToggle = (key: string) => {
     setSelected((prev) => (prev.includes(key) ? [] : [key]));
+  };
+
+  const handleCategoryChange = (category: CategoryKey) => {
+    setActiveCategory(category);
   };
 
   const handleSubmit = async () => {
@@ -82,27 +94,26 @@ export default function InterestsForm({ currentInterests = [], onComplete }: Int
       const response = await fetch('/api/user/interests', {
         method: 'POST',
         credentials: 'same-origin',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ interests: selected }),
       });
 
       if (!response.ok) {
         const body = await response.json().catch(() => null);
-        throw new Error(
-          body?.error || `Request failed with status ${response.status}`,
-        );
+        throw new Error(body?.error || `Request failed with status ${response.status}`);
       }
 
       setSaved(true);
       router.refresh();
+      setTimeout(() => {
+        successRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
 
       if (onComplete) {
         onComplete();
       }
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Error");
+      setErrorMessage(error instanceof Error ? error.message : 'Error');
       console.error('Failed to save interests:', error);
     } finally {
       setPending(false);
@@ -110,129 +121,124 @@ export default function InterestsForm({ currentInterests = [], onComplete }: Int
   };
 
   return (
-    <div className="space-y-6 relative">
+    <div className="space-y-5 relative">
+      {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-swin-charcoal dark:text-white">
-          {currentInterests.length > 0 ? 'Update Your Program Selection' : 'Welcome! Choose your bachelor program'}
+        <h2 className="text-xl font-bold text-swin-charcoal dark:text-white sm:text-2xl">
+          {currentInterests.length > 0 ? 'Update Your Program Selection' : 'Choose your bachelor program'}
         </h2>
-        <p className="mt-2 text-swin-charcoal/70 dark:text-slate-300">
-          {currentInterests.length > 0
-            ? 'Choose one bachelor program to personalize recommendations'
-            : 'Select one bachelor program to personalize book and learning recommendations'
-          }
+        <p className="mt-1.5 text-sm text-swin-charcoal/70 dark:text-slate-300">
+          Select one program to personalize your recommendations
         </p>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-2">
+      {/* Selected program preview */}
+      {selected.length > 0 ? (
+        <div className="flex items-center gap-3 rounded-2xl border border-swin-red/30 bg-swin-red/5 px-4 py-3 dark:border-emerald-400/30 dark:bg-emerald-400/10">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-swin-red/10 text-swin-red dark:bg-emerald-400/10 dark:text-emerald-300">
+            ★
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+              {selectedProgram?.label ?? selected[0]}
+            </div>
+            {selectedProgram && (
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                {CATEGORY_LABELS[selectedProgram.category]}
+              </div>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setSelected([])}
+            className="shrink-0 rounded-full p-1 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+            aria-label="Clear selection"
+          >
+            ✕
+          </button>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-3 text-center text-sm text-slate-400 dark:border-white/10 dark:text-slate-500">
+          No program selected yet
+        </div>
+      )}
+
+      {/* Category tabs */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {CATEGORIES.map((category) => {
-          const active = selectedCategories.has(category);
+          const isActive = activeCategory === category;
+          const hasSelection = selectedProgram?.category === category;
           return (
-            <span
+            <button
               key={category}
-              className={`rounded-full border px-3 py-1 text-sm font-semibold transition ${
-                active
-                  ? 'border-swin-red bg-swin-red/10 text-swin-red dark:border-emerald-400 dark:bg-emerald-400/10 dark:text-emerald-200'
-                  : 'border-slate-300 bg-slate-50 text-slate-600 dark:border-white/10 dark:bg-slate-900/80 dark:text-slate-300'
+              type="button"
+              onClick={() => handleCategoryChange(category)}
+              className={`relative flex flex-col items-center rounded-2xl border px-3 py-3 text-center transition-all duration-200 ${
+                isActive
+                  ? 'border-swin-red bg-swin-red text-white shadow-md dark:border-emerald-500 dark:bg-emerald-600 dark:text-white'
+                  : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 hover:bg-slate-100 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
               }`}
             >
-              {CATEGORY_LABELS[category]}
-            </span>
+              <span className="text-xs font-semibold leading-tight">{CATEGORY_LABELS[category]}</span>
+              {hasSelection && (
+                <span className={`mt-1 h-1.5 w-1.5 rounded-full ${isActive ? 'bg-white/70' : 'bg-swin-red dark:bg-emerald-400'}`} />
+              )}
+            </button>
           );
         })}
       </div>
 
-      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-slate-950">
-        {selected.length > 0 ? (
-          <div className="rounded-t-3xl border-b border-slate-200 bg-slate-50 px-5 py-4 dark:border-white/10 dark:bg-slate-900">
-            <div className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-slate-950">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-swin-red/10 text-swin-red dark:bg-emerald-400/10 dark:text-emerald-200">
-                ★
-              </div>
-              <div className="min-w-0">
-                <div className="text-base font-semibold text-slate-900 dark:text-white">
-                  {selectedProgram?.label ?? selected[0]}
-                </div>
-                {selectedProgram && (
-                  <p className="mt-1 truncate text-sm text-slate-600 dark:text-slate-300">
-                    {selectedProgram.description}
-                  </p>
-                )}
-              </div>
-              {selectedProgram && (
-                <span className="inline-flex items-center rounded-full bg-swin-red/10 px-3 py-1 text-sm font-semibold text-swin-red dark:bg-emerald-400/10 dark:text-emerald-200">
-                  {CATEGORY_LABELS[selectedProgram.category]}
-                </span>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="rounded-t-3xl border-b border-slate-200 px-5 py-5 text-slate-600 dark:border-white/10 dark:text-slate-300">
-            Select one program below to personalize your experience.
-          </div>
-        )}
-
-        <div className="space-y-4 px-4 py-5 sm:px-5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-              Available programs
-            </div>
+      {/* Program list — filtered by active category */}
+      <div className="flex flex-col gap-2">
+        {visiblePrograms.map((option) => {
+          const isSelected = selected.includes(option.key);
+          return (
             <button
+              key={option.key}
               type="button"
-              onClick={() => setOpen((current) => !current)}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-200 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-white/20 dark:hover:bg-slate-800"
+              onClick={() => handleToggle(option.key)}
+              className={`flex items-center justify-between rounded-2xl border px-4 py-3.5 text-left transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-swin-red/40 dark:focus:ring-emerald-400/40 ${
+                isSelected
+                  ? 'border-swin-red bg-swin-red/5 shadow-sm dark:border-emerald-400 dark:bg-emerald-400/10'
+                  : 'border-slate-200 bg-slate-50 hover:border-slate-300 hover:bg-slate-100 dark:border-white/10 dark:bg-slate-900 dark:hover:bg-slate-800'
+              }`}
             >
-              <span>{open ? 'Hide' : 'Show'}</span>
-              <span className="text-base">{open ? '−' : '+'}</span>
+              <div className="min-w-0 flex-1 pr-3">
+                <div className="text-sm font-semibold text-slate-900 dark:text-white">{option.label}</div>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{option.description}</p>
+              </div>
+              <div className={`shrink-0 flex h-5 w-5 items-center justify-center rounded-full border-2 transition-colors ${
+                isSelected
+                  ? 'border-swin-red bg-swin-red dark:border-emerald-400 dark:bg-emerald-400'
+                  : 'border-slate-300 dark:border-white/20'
+              }`}>
+                {isSelected && <span className="text-[10px] font-bold text-white">✓</span>}
+              </div>
             </button>
-          </div>
-          {open ? (
-            <div className="max-h-[520px] overflow-y-auto pr-1">
-              <div className="flex flex-col gap-3">
-                {PROGRAM_OPTIONS.map((option) => {
-                const isSelected = selected.includes(option.key);
-                return (
-                  <button
-                    key={option.key}
-                    type="button"
-                    onClick={() => handleToggle(option.key)}
-                    className={`group flex items-center justify-between rounded-3xl border px-5 py-4 text-left transition duration-300 ease-out transform focus:outline-none focus:ring-2 focus:ring-swin-red/40 dark:focus:ring-emerald-400/40 ${
-                      isSelected
-                        ? 'border-swin-red bg-swin-red/5 shadow-lg dark:border-emerald-400 dark:bg-emerald-400/10'
-                        : 'border-slate-200 bg-slate-50 shadow-sm hover:-translate-y-1 hover:border-slate-300 hover:bg-slate-100 hover:shadow-lg dark:border-white/10 dark:bg-slate-900 dark:hover:border-white/20 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <div className="min-w-0">
-                      <div className="text-base font-semibold text-slate-900 dark:text-white">{option.label}</div>
-                      <p className="mt-1 truncate text-sm text-slate-600 dark:text-slate-300">
-                        {option.description}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        ) : null}
-        </div>
+          );
+        })}
       </div>
 
+      {/* Success message */}
       {saved && (
-        <div className="rounded-3xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-100">
-          Your program choice has been saved. You can stay here and continue reviewing recommendations.
+        <div ref={successRef} className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-sm text-emerald-800 dark:border-emerald-400/30 dark:bg-emerald-400/10 dark:text-emerald-100">
+          ✓ Program saved successfully.
         </div>
       )}
 
+      {/* Error message */}
       {errorMessage && (
-        <div className="rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-900 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-100">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3.5 text-sm text-rose-800 dark:border-rose-400/30 dark:bg-rose-500/10 dark:text-rose-100">
           {errorMessage}
         </div>
       )}
 
-      <div className="sticky bottom-0 z-20 -mx-4 rounded-b-3xl border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur dark:border-white/10 dark:bg-slate-950/95 sm:mx-0">
+      {/* Save button */}
+      <div className="sticky bottom-0 z-20 -mx-4 border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur dark:border-white/10 dark:bg-slate-950/95 sm:mx-0">
         <button
           onClick={handleSubmit}
           disabled={!selectedProgram || pending}
-          className="w-full rounded-lg bg-swin-red px-6 py-3 text-white font-semibold transition-all hover:bg-swin-red/90 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-emerald-600 dark:hover:bg-emerald-500"
+          className="w-full rounded-xl bg-swin-red px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-swin-red/90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-emerald-600 dark:hover:bg-emerald-500"
         >
           {pending ? 'Saving...' : currentInterests.length > 0 ? 'Save' : 'Continue'}
         </button>
