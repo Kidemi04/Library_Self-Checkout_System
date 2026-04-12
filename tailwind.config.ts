@@ -22,6 +22,9 @@ const config: Config = {
       gridTemplateColumns: {
         '13': 'repeat(13, minmax(0, 1fr))',
       },
+      fontFamily: {
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', 'Segoe UI', 'Arial', 'sans-serif'],
+      },
       colors: {
         swin: {
           red: '#C82333',

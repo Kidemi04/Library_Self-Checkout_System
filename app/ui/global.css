@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Apple system font stack — SF Pro on Apple, Segoe UI on Windows */
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+}
+
 input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
