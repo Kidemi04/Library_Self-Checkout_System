@@ -4,7 +4,6 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 type InterestsFormProps = {
-  userId: string;
   currentInterests?: string[];
   onComplete?: () => void;
 };
@@ -52,7 +51,7 @@ const PROGRAM_OPTIONS: ProgramOption[] = [
 
 const CATEGORIES: CategoryKey[] = ['cs', 'engineering', 'art', 'business'];
 
-export default function InterestsForm({ userId, currentInterests = [], onComplete }: InterestsFormProps) {
+export default function InterestsForm({ currentInterests = [], onComplete }: InterestsFormProps) {
   const router = useRouter();
   const [selected, setSelected] = useState<string[]>(currentInterests.slice(0, 1));
   const [open, setOpen] = useState(true);
@@ -60,14 +59,16 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
   const [saved, setSaved] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const selectedProgram = useMemo(
+    () => PROGRAM_OPTIONS.find((option) => option.key === selected[0]) ?? null,
+    [selected],
+  );
+
   const selectedCategories = useMemo(() => {
     const categories = new Set<CategoryKey>();
-    selected.forEach((key) => {
-      const program = PROGRAM_OPTIONS.find((option) => option.key === key);
-      if (program) categories.add(program.category);
-    });
+    if (selectedProgram) categories.add(selectedProgram.category);
     return categories;
-  }, [selected]);
+  }, [selectedProgram]);
 
   const handleToggle = (key: string) => {
     setSelected((prev) => (prev.includes(key) ? [] : [key]));
@@ -99,9 +100,6 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
 
       if (onComplete) {
         onComplete();
-      } else {
-        setOpen(false);
-        router.push('/dashboard');
       }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Error");
@@ -152,15 +150,19 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
               </div>
               <div className="min-w-0">
                 <div className="text-base font-semibold text-slate-900 dark:text-white">
-                  {PROGRAM_OPTIONS.find((option) => option.key === selected[0])?.label}
+                  {selectedProgram?.label ?? selected[0]}
                 </div>
-                <p className="mt-1 truncate text-sm text-slate-600 dark:text-slate-300">
-                  {PROGRAM_OPTIONS.find((option) => option.key === selected[0])?.description}
-                </p>
+                {selectedProgram && (
+                  <p className="mt-1 truncate text-sm text-slate-600 dark:text-slate-300">
+                    {selectedProgram.description}
+                  </p>
+                )}
               </div>
-              <span className="inline-flex items-center rounded-full bg-swin-red/10 px-3 py-1 text-sm font-semibold text-swin-red dark:bg-emerald-400/10 dark:text-emerald-200">
-                {CATEGORY_LABELS[PROGRAM_OPTIONS.find((option) => option.key === selected[0])?.category ?? 'cs']}
-              </span>
+              {selectedProgram && (
+                <span className="inline-flex items-center rounded-full bg-swin-red/10 px-3 py-1 text-sm font-semibold text-swin-red dark:bg-emerald-400/10 dark:text-emerald-200">
+                  {CATEGORY_LABELS[selectedProgram.category]}
+                </span>
+              )}
             </div>
           </div>
         ) : (
@@ -229,10 +231,10 @@ export default function InterestsForm({ userId, currentInterests = [], onComplet
       <div className="sticky bottom-0 z-20 -mx-4 rounded-b-3xl border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur dark:border-white/10 dark:bg-slate-950/95 sm:mx-0">
         <button
           onClick={handleSubmit}
-          disabled={selected.length === 0 || pending}
+          disabled={!selectedProgram || pending}
           className="w-full rounded-lg bg-swin-red px-6 py-3 text-white font-semibold transition-all hover:bg-swin-red/90 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-emerald-600 dark:hover:bg-emerald-500"
         >
-          {pending ? 'Saving...' : 'Continue'}
+          {pending ? 'Saving...' : currentInterests.length > 0 ? 'Save' : 'Continue'}
         </button>
       </div>
     </div>

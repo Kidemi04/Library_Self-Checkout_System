@@ -21,7 +21,6 @@ type RawUserInterestsRow = {
 const INTEREST_TABLE_NAMES = [
   'UserInterests',
   'UserInterest',
-  'UserInterests',
   'userinterest',
 ];
 

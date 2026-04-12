@@ -275,7 +275,7 @@ export default async function ProfilePage() {
             <section>
               <h2 className={sectionTitleClass}>Interests</h2>
               <GlassCard intensity="medium" className="p-4 sm:p-6">
-                <InterestsForm userId={user.id} currentInterests={interests} />
+                <InterestsForm currentInterests={interests} />
               </GlassCard>
             </section>
           </BlurFade>
