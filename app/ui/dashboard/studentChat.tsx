@@ -1,7 +1,9 @@
 'use client';
 
 import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import clsx from 'clsx';
+import PlaceHoldButton from '@/app/ui/dashboard/placeHoldButton';
 
 type RecommendationItem = {
   id: string;
@@ -41,6 +43,7 @@ type ChatMessage = {
   sender: 'student' | 'assistant';
   text: string;
   timestamp: number;
+  recommendations?: RecommendationItem[];
 };
 
 type QuickPrompt = {
@@ -49,7 +52,28 @@ type QuickPrompt = {
   message: string;
 };
 
-const quickPrompts: QuickPrompt[] = [];
+const quickPrompts: QuickPrompt[] = [
+  {
+    id: 'faculty',
+    label: '📚 Recommend for my faculty',
+    message: 'Recommend books based on my faculty and interests',
+  },
+  {
+    id: 'assignment',
+    label: '📝 Books for my assignment',
+    message: 'I need book recommendations for my academic assignment',
+  },
+  {
+    id: 'available',
+    label: '✅ Show me what\'s available now',
+    message: 'What books are available to borrow right now?',
+  },
+  {
+    id: 'interesting',
+    label: '✨ Just something interesting',
+    message: 'Suggest something interesting I might enjoy reading',
+  },
+];
 
 const buildGreeting = (name?: string | null) => {
   const friendlyName =
@@ -105,9 +129,11 @@ const ONBOARDING_TAGS = [
 export default function StudentChat({
   studentName,
   needsOnboarding = false,
+  userId,
 }: {
   studentName?: string | null;
   needsOnboarding?: boolean;
+  userId?: string;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
     buildInitialMessages(studentName),
@@ -116,19 +142,16 @@ export default function StudentChat({
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [sendNotice, setSendNotice] = useState<string | null>(null);
   const [stickToBottom, setStickToBottom] = useState(true);
-  const [bookRecommendations, setBookRecommendations] = useState<RecommendationItem[]>([]);
-  const [activeInterests, setActiveInterests] = useState<string[]>([]);
   const [linkedInSuggestions, setLinkedInSuggestions] = useState<LinkedInSuggestion[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [animKey, setAnimKey] = useState(0);
-  const [cardsVisible, setCardsVisible] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(!needsOnboarding);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [aiProvider, setAiProvider] = useState<'lmstudio' | 'gemini'>('lmstudio');
   const [isSavingInterests, setIsSavingInterests] = useState(false);
+  const [showQuickPrompts, setShowQuickPrompts] = useState(true);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const recsRef = useRef<HTMLDivElement | null>(null);
   const lastSentAtRef = useRef<number>(0);
   const initialNameRef = useRef(studentName);
 
@@ -166,16 +189,6 @@ export default function StudentChat({
     };
   }, [isFullscreen]);
 
-  useEffect(() => {
-    if (animKey === 0 || isFullscreen) return;
-    const isMobile = window.innerWidth < 768;
-    if (!isMobile) return;
-    const timer = setTimeout(() => {
-      recsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [animKey, isFullscreen]);
-
   const handleCopy = (message: ChatMessage) => {
     navigator.clipboard.writeText(message.text).then(() => {
       setCopiedId(message.id);
@@ -194,10 +207,9 @@ export default function StudentChat({
 
   const resetChat = () => {
     setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
-    setBookRecommendations([]);
-    setActiveInterests([]);
     setLinkedInSuggestions([]);
     setSendNotice(null);
+    setShowQuickPrompts(true);
     setStickToBottom(true);
     setInputValue('');
     setIsAssistantTyping(false);
@@ -278,6 +290,7 @@ export default function StudentChat({
       timestamp: Date.now(),
     };
     setMessages((prev) => [...prev, newMessage]);
+    setShowQuickPrompts(false);
     setStickToBottom(true);
     scheduleScrollToBottom();
     lastSentAtRef.current = now;
@@ -292,13 +305,14 @@ export default function StudentChat({
       const response = await fetch('/api/recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: content }),
+        body: JSON.stringify({ message: content, provider: aiProvider }),
       });
 
       const data = (await response.json()) as RecommendationResponse;
       const replyText =
         response.ok && data?.reply ? data.reply : data?.reply ?? buildErrorReply();
 
+      const recs = data?.recommendations ?? [];
       setMessages((prev) => [
         ...prev,
         {
@@ -306,13 +320,11 @@ export default function StudentChat({
           sender: 'assistant',
           text: replyText,
           timestamp: Date.now(),
+          recommendations: recs.length ? recs : undefined,
         },
       ]);
 
-      setBookRecommendations(data?.recommendations ?? []);
-      setActiveInterests(data?.interests ?? []);
       setLinkedInSuggestions(data?.linkedInSuggestions ?? []);
-      if ((data?.recommendations ?? []).length > 0) setAnimKey((k) => k + 1);
 
       if (response.status === 429 && data?.reply) {
         setSendNotice(data.reply);
@@ -329,20 +341,25 @@ export default function StudentChat({
           timestamp: Date.now(),
         },
       ]);
-      setBookRecommendations([]);
-      setActiveInterests([]);
       setLinkedInSuggestions([]);
       setSendNotice('Unable to send right now. Please try again.');
     } finally {
       setIsAssistantTyping(false);
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto';
+          textareaRef.current.focus();
+        }
+      }, 50);
     }
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (await sendMessage(inputValue)) {
-      setInputValue('');
-    }
+    const value = inputValue;
+    setInputValue('');
+    const sent = await sendMessage(value);
+    if (!sent) setInputValue(value);
   };
 
   const handleQuickPrompt = (prompt: QuickPrompt) => {
@@ -363,10 +380,10 @@ export default function StudentChat({
 
     if (event.key !== 'Enter' || event.shiftKey) return;
     event.preventDefault();
-    sendMessage(inputValue).then((sent) => {
-      if (sent) {
-        setInputValue('');
-      }
+    const value = inputValue;
+    setInputValue('');
+    sendMessage(value).then((sent) => {
+      if (!sent) setInputValue(value);
     });
   };
 
@@ -392,6 +409,32 @@ export default function StudentChat({
           </div>
         )}
         <div className="ml-auto flex items-center gap-2">
+          <div className="flex items-center rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900/70 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setAiProvider('lmstudio')}
+              className={clsx(
+                'px-3 py-2 text-xs font-semibold transition',
+                aiProvider === 'lmstudio'
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
+              )}
+            >
+              Local AI
+            </button>
+            <button
+              type="button"
+              onClick={() => setAiProvider('gemini')}
+              className={clsx(
+                'px-3 py-2 text-xs font-semibold transition',
+                aiProvider === 'gemini'
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
+              )}
+            >
+              Gemini
+            </button>
+          </div>
           <button
             type="button"
             title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
@@ -473,18 +516,6 @@ export default function StudentChat({
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        {quickPrompts.map((prompt) => (
-          <button
-            key={prompt.id}
-            type="button"
-            className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
-            onClick={() => handleQuickPrompt(prompt)}
-          >
-            {prompt.label}
-          </button>
-        ))}
-      </div>
 
       {onboardingComplete && <div
         ref={messagesRef}
@@ -523,6 +554,104 @@ export default function StudentChat({
                   </p>
                 ))}
               </div>
+              {message.sender === 'assistant' && message.recommendations?.length ? (
+                <div className="mt-2 w-full max-w-[85%] space-y-2 md:max-w-[70%]">
+                  {message.recommendations.map((rec) => {
+                    const searchUrl = `/dashboard/book/items?q=${encodeURIComponent(rec.title)}`;
+                    return (
+                      <div
+                        key={rec.id}
+                        className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/70"
+                      >
+                        {/* Cover image */}
+                        <div className="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                          {rec.coverImageUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={rec.coverImageUrl}
+                              alt={rec.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-slate-400 dark:text-slate-500">
+                              <path d="M11.25 4.533A9.707 9.707 0 0 0 6 3a9.735 9.735 0 0 0-3.25.555.75.75 0 0 0-.5.707v14.25a.75.75 0 0 0 1 .707A8.237 8.237 0 0 1 6 18.75c1.995 0 3.823.707 5.25 1.886V4.533ZM12.75 20.636A8.214 8.214 0 0 1 18 18.75c.966 0 1.89.166 2.75.47a.75.75 0 0 0 1-.708V4.262a.75.75 0 0 0-.5-.707A9.735 9.735 0 0 0 18 3a9.707 9.707 0 0 0-5.25 1.533v16.103Z" />
+                            </svg>
+                          )}
+                        </div>
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <Link
+                            href={searchUrl}
+                            className="block text-sm font-semibold text-slate-900 hover:text-red-600 dark:text-slate-100 dark:hover:text-red-400 line-clamp-2 leading-snug"
+                          >
+                            {rec.title}
+                          </Link>
+                          {rec.author && (
+                            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 truncate">{rec.author}</p>
+                          )}
+                          <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
+                            <span className={clsx(
+                              'text-xs font-medium',
+                              rec.availableCopies > 0
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-red-500 dark:text-red-400',
+                            )}>
+                              {rec.availableCopies > 0
+                                ? `${rec.availableCopies} / ${rec.totalCopies} available`
+                                : 'All copies checked out'}
+                            </span>
+                            {rec.availableCopies > 0 ? (
+                              <Link
+                                href={searchUrl}
+                                className="shrink-0 rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-700 transition"
+                              >
+                                Borrow
+                              </Link>
+                            ) : (
+                              <PlaceHoldButton
+                                bookId={rec.id}
+                                patronId={userId}
+                                bookTitle={rec.title}
+                              />
+                            )}
+                          </div>
+                          {/* YouTube + Google search links */}
+                          <div className="mt-2 flex items-center gap-2 border-t border-slate-100 pt-2 dark:border-slate-700">
+                            <a
+                              href={`https://www.youtube.com/results?search_query=${encodeURIComponent(rec.title)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Search on YouTube"
+                              className="flex items-center gap-1 text-[11px] font-medium text-slate-400 transition hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400"
+                            >
+                              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 shrink-0">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                              </svg>
+                              YouTube
+                            </a>
+                            <span className="text-slate-200 dark:text-slate-700">|</span>
+                            <a
+                              href={`https://www.google.com/search?q=${encodeURIComponent(rec.title + ' book')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Search on Google"
+                              className="flex items-center gap-1 text-[11px] font-medium text-slate-400 transition hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400"
+                            >
+                              <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 shrink-0">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                              </svg>
+                              Google
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
               {message.sender === 'student' && (
                 <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
                   <button
@@ -579,6 +708,21 @@ export default function StudentChat({
         </button>
       ) : null}
 
+      {onboardingComplete && showQuickPrompts && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {quickPrompts.map((prompt) => (
+            <button
+              key={prompt.id}
+              type="button"
+              onClick={() => handleQuickPrompt(prompt)}
+              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:border-red-500/50 dark:hover:bg-red-950/20 dark:hover:text-red-400"
+            >
+              {prompt.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {onboardingComplete && <form onSubmit={handleSubmit} className="mt-4 space-y-3">
         <label htmlFor="student-chat-message" className="sr-only">
           Message
@@ -587,18 +731,23 @@ export default function StudentChat({
           ref={textareaRef}
           id="student-chat-message"
           name="message"
-          rows={3}
+          rows={1}
           value={inputValue}
-          onChange={(event) => setInputValue(event.target.value)}
+          onChange={(event) => {
+            setInputValue(event.target.value);
+            event.target.style.height = 'auto';
+            event.target.style.height = `${event.target.scrollHeight}px`;
+          }}
           onKeyDown={handleKeyDown}
-          placeholder="Example: cozy mystery, short reads"
+          placeholder="Ask a question or search for books..."
+          style={{ resize: 'none', overflow: 'hidden', minHeight: '44px', maxHeight: '160px' }}
           className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100 dark:focus:border-slate-500 dark:focus:ring-slate-700/50"
         />
         <div className="flex flex-wrap items-center justify-end gap-3 text-xs text-slate-500 dark:text-slate-400">
           {(!isFullscreen || sendNotice) && (
             <p>
               {sendNotice ??
-                'English only. Book recommendations only. Based on the current library catalog.'}
+                'English only. Ask academic questions or search for books from the library catalog.'}
             </p>
           )}
           <button
@@ -611,122 +760,35 @@ export default function StudentChat({
         </div>
       </form>}
 
-      {!isFullscreen && onboardingComplete && <>
-        <style>{`
-          @keyframes recSectionIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to   { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes recCardIn {
-            from { opacity: 0; transform: translateY(18px) scale(0.96); }
-            to   { opacity: 1; transform: translateY(0) scale(1); }
-          }
-          .rec-section-anim {
-            animation: recSectionIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
-          }
-          .rec-card-anim {
-            animation: recCardIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
-          }
-        `}</style>
-        <div ref={recsRef} className="rec-section-anim mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 dark:shadow-black/20">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
-              Your recommendations
-            </p>
-            <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-              Books matched to your interests
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-300/80">
-              Send a message to refresh the list.
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          {activeInterests.length ? (
-            activeInterests.map((token) => (
-              <span
-                key={token}
-                className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+      {!isFullscreen && onboardingComplete && linkedInSuggestions.length > 0 && (
+        <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+          <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
+            Go deeper
+          </p>
+          <h3 className="mt-0.5 text-base font-semibold text-slate-900 dark:text-slate-100">
+            Courses on LinkedIn Learning
+          </h3>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            Suggested based on your interests. Opens LinkedIn Learning search.
+          </p>
+          <div className="mt-3 flex flex-col gap-2">
+            {linkedInSuggestions.map((suggestion) => (
+              <a
+                key={suggestion.query}
+                href={`https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(suggestion.query)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-sm transition hover:border-[#0A66C2] hover:text-[#0A66C2] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-[#0A66C2] dark:hover:text-[#70B5F9]"
               >
-                {token}
-              </span>
-            ))
-          ) : (
-            <p className="text-xs text-slate-600 dark:text-slate-300/80">
-              Send a message to see the key interests we detected.
-            </p>
-          )}
-        </div>
-
-        {bookRecommendations.length ? (
-          <div key={animKey} className="mt-4 grid gap-3 sm:grid-cols-2">
-            {bookRecommendations.map((rec, index) => (
-              <div
-                key={rec.id}
-                className="rec-card-anim group flex cursor-default flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-500 hover:-translate-y-1 hover:border-red-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900/70 dark:shadow-black/20 dark:hover:border-red-900/60 dark:hover:shadow-red-950/20"
-                style={{ animationDelay: `${index * 120}ms` }}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400/80">
-                      Recommendation
-                    </p>
-                    <h4 className="text-sm font-semibold text-slate-900 transition-colors group-hover:text-red-600 dark:text-slate-100 dark:group-hover:text-red-400">
-                      {rec.title ?? 'Untitled'}
-                    </h4>
-                    <p className="text-xs text-slate-600 dark:text-slate-300/80">
-                      {rec.author ?? 'Unknown author'}
-                    </p>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700 transition-colors group-hover:bg-red-50 group-hover:text-red-600 dark:bg-slate-800 dark:text-slate-200 dark:group-hover:bg-red-950/40 dark:group-hover:text-red-400">
-                    {rec.availableCopies} available
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 dark:text-slate-300/90">
-                  {rec.reason ?? 'Good match based on your interests'}
-                </p>
-              </div>
+                <span>{suggestion.title}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 shrink-0 opacity-50">
+                  <path fillRule="evenodd" d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h4a.75.75 0 010 1.5h-4zm6.5-1a.75.75 0 010-1.5h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V5.56l-3.72 3.72a.75.75 0 11-1.06-1.06l3.72-3.72H10.75z" clipRule="evenodd" />
+                </svg>
+              </a>
             ))}
           </div>
-        ) : (
-          <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300/80">
-            No recommendations yet. Mention a genre, topic, or mood to get started.
-          </div>
-        )}
-
-        {linkedInSuggestions.length > 0 && (
-          <div className="mt-5 border-t border-slate-100 pt-4 dark:border-slate-800">
-            <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
-              Go deeper
-            </p>
-            <h3 className="mt-0.5 text-base font-semibold text-slate-900 dark:text-slate-100">
-              Courses on LinkedIn Learning
-            </h3>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-              Suggested based on your interests. Opens LinkedIn Learning search.
-            </p>
-            <div className="mt-3 flex flex-col gap-2">
-              {linkedInSuggestions.map((suggestion) => (
-                <a
-                  key={suggestion.query}
-                  href={`https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(suggestion.query)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-sm transition hover:border-[#0A66C2] hover:text-[#0A66C2] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-[#0A66C2] dark:hover:text-[#70B5F9]"
-                >
-                  <span>{suggestion.title}</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 shrink-0 opacity-50">
-                    <path fillRule="evenodd" d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h4a.75.75 0 010 1.5h-4zm6.5-1a.75.75 0 010-1.5h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V5.56l-3.72 3.72a.75.75 0 11-1.06-1.06l3.72-3.72H10.75z" clipRule="evenodd" />
-                  </svg>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </>}
+        </div>
+      )}
     </section>
   );
 }

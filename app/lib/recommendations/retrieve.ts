@@ -7,9 +7,6 @@ const DEFAULT_LIMIT = 200;
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
-const shouldFallbackToFullCatalog = (books: Book[], requestedTerm: string) =>
-  books.length < 40 && requestedTerm.trim().length > 0;
-
 const sanitizeSearchTerm = (value: string) =>
   value
     .replace(/[,;]+/g, ' ')
@@ -18,25 +15,19 @@ const sanitizeSearchTerm = (value: string) =>
 
 const unique = <T,>(values: T[]): T[] => Array.from(new Set(values));
 
-// Strip # prefix, punctuation, lowercase — handles "science?" → "science"
 const normalizeToken = (token: string) =>
   token.toLowerCase().replace(/^#+/, '').replace(/[^a-z0-9\-]/g, '').trim();
 
 const STOPWORDS = new Set([
-  // articles / conjunctions / prepositions
   'the', 'and', 'but', 'for', 'with', 'from', 'into', 'about', 'that',
   'this', 'these', 'those', 'than', 'then', 'only', 'just', 'very',
-  // pronouns
   'you', 'your', 'our', 'his', 'her', 'its', 'they', 'them', 'their',
-  // common verbs with no topic signal
   'can', 'could', 'would', 'should', 'will', 'shall', 'may', 'might',
   'want', 'like', 'need', 'know', 'think', 'look', 'find', 'use',
   'get', 'got', 'give', 'take', 'make', 'see', 'come', 'say', 'let',
   'share', 'show', 'tell', 'help', 'ask',
-  // library-specific noise
   'book', 'books', 'read', 'reading',
   'recommend', 'recommendation', 'recommendations', 'suggest', 'suggestions',
-  // misc / filler
   'some', 'more', 'most', 'each', 'every', 'please', 'thanks', 'learn', 'learning',
   'me', 'yo', 'hi', 'hey', 'something', 'anything', 'everything', 'nothing',
   'sure', 'okay',
@@ -62,8 +53,28 @@ const collectSearchText = (book: Book) =>
     .join(' ')
     .toLowerCase();
 
-const scoreBook = (book: Book, tokens: string[]): number => {
+// Derive the expected study year from intake year (1-4, clamped)
+const getStudyYear = (intakeYear: number | null): number | null => {
+  if (!intakeYear) return null;
+  const year = new Date().getFullYear() - intakeYear + 1;
+  return Math.min(Math.max(year, 1), 4);
+};
+
+// Map study year to expected book level
+const studyYearToLevel = (studyYear: number): number => {
+  if (studyYear <= 1) return 1;
+  if (studyYear <= 2) return 2;
+  return 3;
+};
+
+const scoreBook = (
+  book: Book,
+  tokens: string[],
+  preferredCategory: string | null,
+  studyYear: number | null,
+): number => {
   if (!tokens.length) return 0;
+
   const title = (book.title ?? '').toLowerCase();
   const author = (book.author ?? '').toLowerCase();
   const tags = (book.tags ?? []).map((tag) => tag.toLowerCase());
@@ -73,6 +84,8 @@ const scoreBook = (book: Book, tokens: string[]): number => {
   const corpus = collectSearchText(book);
 
   let score = 0;
+
+  // Token matching
   for (const token of tokens) {
     if (title.includes(token)) score += 6;
     if (tags.some((tag) => tag.includes(token))) score += 5;
@@ -82,51 +95,54 @@ const scoreBook = (book: Book, tokens: string[]): number => {
     if (isbn.includes(token)) score += 2;
     if (corpus.includes(token)) score += 1;
   }
-  return score;
-};
 
-const mergeById = (books: Book[]): Book[] => {
-  const map = new Map<string, Book>();
-  for (const book of books) {
-    map.set(book.id, book);
+  // Faculty/category bonus — books matching the student's faculty get priority
+  if (preferredCategory && book.category === preferredCategory) {
+    score += 3;
   }
-  return Array.from(map.values());
+
+  // Level bonus — books matching the student's study year level get priority
+  if (studyYear && book.level) {
+    const expectedLevel = studyYearToLevel(studyYear);
+    if (book.level === expectedLevel) score += 2;
+    else if (Math.abs(book.level - expectedLevel) === 1) score += 1; // adjacent level is ok
+  }
+
+  return score;
 };
 
 export async function retrieveCandidateBooks(
   searchTerm: string,
   limit = DEFAULT_LIMIT,
+  preferredCategory: string | null = null,
+  intakeYear: number | null = null,
 ): Promise<Book[]> {
   const sanitizedLimit = clamp(limit, 20, DEFAULT_LIMIT);
-
   const sanitizedTerm = sanitizeSearchTerm(searchTerm);
   const tokens = buildTokens(sanitizedTerm);
-  const primaryToken = tokens.sort((a, b) => b.length - a.length)[0];
+  const studyYear = getStudyYear(intakeYear);
 
-  // Always fetch full catalog so books matched only by hashtags are included.
-  // SQL pre-filter searches title/author/isbn only and misses tag-only matches.
   const allBooks = await fetchBooks();
   console.info(
     '[recommendations] catalog size:', allBooks.length,
     '| tokens:', tokens.length ? tokens.join(', ') : '(none)',
+    '| category:', preferredCategory ?? 'any',
+    '| study year:', studyYear ?? 'unknown',
   );
-  const candidates = allBooks;
 
   if (!tokens.length) {
-    return candidates.slice(0, sanitizedLimit);
+    return allBooks.slice(0, sanitizedLimit);
   }
 
-  const scored = candidates
-    .map((book) => ({ book, score: scoreBook(book, tokens) }))
+  const scored = allBooks
+    .map((book) => ({ book, score: scoreBook(book, tokens, preferredCategory, studyYear) }))
     .sort((a, b) => {
-      if (b.score === a.score) {
-        return a.book.title.localeCompare(b.book.title);
-      }
-      return b.score - a.score;
+      if (b.score !== a.score) return b.score - a.score;
+      return a.book.title.localeCompare(b.book.title);
     });
 
-  const filteredScored = scored.filter((entry) => entry.score > 0);
-  const finalList = filteredScored.length ? filteredScored : scored;
+  const filtered = scored.filter((e) => e.score > 0);
+  const finalList = filtered.length ? filtered : scored;
 
-  return finalList.slice(0, sanitizedLimit).map((entry) => entry.book);
+  return finalList.slice(0, sanitizedLimit).map((e) => e.book);
 }

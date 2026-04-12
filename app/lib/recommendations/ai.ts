@@ -1,17 +1,57 @@
+import type { UserContext } from '@/app/lib/recommendations/user-context';
 import { tokenizeInterests } from '@/app/lib/recommendations/recommender';
 
-export type AiPreferenceResult = {
-  summary: string;
-  interests: string[];
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export type AiIntent = 'find_books' | 'answer' | 'both' | 'greeting' | 'off_topic';
+
+export type AiResult = {
+  intent: AiIntent;
+  reply: string;
+  searchTerms: string[];
   followUpQuestion: string;
 };
 
-const DEFAULT_FOLLOW_UP = 'Any authors or series you already like?';
+export type LinkedInCourseSuggestion = {
+  title: string;
+  query: string;
+};
 
-type Provider = 'gemini';
+// ─── Faculty → Book Category mapping ─────────────────────────────────────────
+
+const FACULTY_CATEGORY_MAP: Record<string, string> = {
+  'information technology': 'Computer Science',
+  'computer science': 'Computer Science',
+  'computing': 'Computer Science',
+  'software engineering': 'Computer Science',
+  'it': 'Computer Science',
+  'business': 'Business',
+  'business administration': 'Business',
+  'management': 'Business',
+  'accounting': 'Business',
+  'finance': 'Business',
+  'marketing': 'Business',
+  'engineering': 'Engineering',
+  'electrical engineering': 'Engineering',
+  'mechanical engineering': 'Engineering',
+  'civil engineering': 'Engineering',
+  'art': 'Art & Design',
+  'design': 'Art & Design',
+  'art & design': 'Art & Design',
+  'multimedia': 'Art & Design',
+  'creative media': 'Art & Design',
+};
+
+export function facultyToCategory(faculty: string | null): string | null {
+  if (!faculty) return null;
+  return FACULTY_CATEGORY_MAP[faculty.toLowerCase()] ?? null;
+}
+
+// ─── Env ──────────────────────────────────────────────────────────────────────
+
+type Provider = 'gemini' | 'lmstudio';
 
 let geminiDisabled = false;
-let geminiDisabledReason: string | null = null;
 
 const getEnv = () => ({
   provider: (process.env.LLM_PROVIDER?.trim().toLowerCase() as Provider | undefined) ?? undefined,
@@ -20,127 +60,147 @@ const getEnv = () => ({
     'https://generativelanguage.googleapis.com/v1beta',
   geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
   geminiModel: process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash',
+  lmstudioBaseUrl: process.env.LMSTUDIO_BASE_URL?.trim() || 'http://localhost:1234/v1',
+  lmstudioModel: process.env.LMSTUDIO_MODEL?.trim() || 'google/gemma-4-e4b',
 });
 
-const safeJsonParse = (content: string): AiPreferenceResult | null => {
-  const trimmed = content.trim();
+// ─── JSON helpers ─────────────────────────────────────────────────────────────
+
+const stripMarkdown = (text: string): string =>
+  text
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/#{1,6}\s+/g, '')
+    .replace(/`{1,3}[^`]*`{1,3}/g, '')
+    .replace(/^\s*[-*+]\s+/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+
+const extractJson = (raw: string): string => {
+  const stripped = raw.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+  const match = stripped.match(/\{[\s\S]*\}/);
+  return match ? match[0] : stripped;
+};
+
+// ─── Build student context string for prompts ─────────────────────────────────
+
+const buildStudentContext = (userContext?: UserContext): string => {
+  if (!userContext) return '';
+
+  const parts: string[] = [];
+
+  if (userContext.faculty) parts.push(`Faculty: ${userContext.faculty}`);
+  if (userContext.department) parts.push(`Department: ${userContext.department}`);
+
+  if (userContext.intakeYear) {
+    const studyYear = new Date().getFullYear() - userContext.intakeYear + 1;
+    const clampedYear = Math.min(Math.max(studyYear, 1), 4);
+    parts.push(`Study year: Year ${clampedYear}`);
+  }
+
+  const allInterests = [
+    ...new Set([...userContext.historyTags, ...userContext.savedInterests]),
+  ].slice(0, 12);
+  if (allInterests.length) parts.push(`Known interests: ${allInterests.join(', ')}`);
+
+  return parts.length ? `\n\nStudent profile:\n${parts.join('\n')}` : '';
+};
+
+// ─── System prompts ───────────────────────────────────────────────────────────
+
+const buildUnifiedSystemPrompt = (userContext?: UserContext): string => {
+  const studentCtx = buildStudentContext(userContext);
+  const currentYear = new Date().getFullYear();
+
+  return `You are a helpful university library assistant. Your job is to help students find books and answer academic questions.
+
+You must respond ONLY with a valid JSON object — no markdown, no extra text, no code fences.
+
+Classify the student's message into one of these intents:
+- "find_books": student wants book recommendations (e.g. "recommend books on marketing", "I need books for my data science assignment")
+- "answer": student has an academic question (e.g. "what is machine learning?", "explain supply and demand")
+- "both": student asks a question AND wants books (e.g. "what is blockchain and can you recommend books?")
+- "greeting": hi, hello, how are you, or other small talk
+- "off_topic": requests unrelated to studying or books (e.g. write my essay, personal advice, harmful content)
+
+Response format:
+{
+  "intent": "find_books" | "answer" | "both" | "greeting" | "off_topic",
+  "reply": "Your natural, friendly response. Plain text only — no asterisks, no bullet points, no markdown.",
+  "searchTerms": ["term1", "term2"],
+  "followUpQuestion": "One short follow-up question (only for find_books or both, else empty string)"
+}
+
+Rules:
+- reply must always be plain text. Never use **bold**, *italic*, bullet points, or markdown.
+- For "find_books" or "both": searchTerms should be 3-8 short topic keywords useful for searching a library catalog. Empty array otherwise.
+- For "answer" or "both": give a concise, clear academic explanation in reply (2-4 sentences max).
+- For "greeting": reply warmly and invite the student to ask for books or academic help.
+- For "off_topic": politely decline and redirect to books or academic topics.
+- You can answer questions from ALL academic fields: computer science, business, engineering, art, mathematics, science, humanities, etc.
+- Never reveal what AI model you are. You are the library assistant.
+- Current year: ${currentYear}.${studentCtx}
+
+Prioritize book search terms that match the student's faculty and department when relevant.`;
+};
+
+const LINKEDIN_SYSTEM_PROMPT = `You are a university library assistant. Given a student's reading interests, suggest exactly 3 LinkedIn Learning course titles that complement those topics.
+Return ONLY valid JSON — no markdown, no code fences, no extra text.
+Format: { "courses": [{ "title": "...", "query": "..." }, ...] }
+Keep titles concise and realistic. Use English only.`;
+
+// ─── LM Studio (OpenAI-compatible) ───────────────────────────────────────────
+
+const callLMStudio = async (
+  systemPrompt: string,
+  userMessage: string,
+  options?: { temperature?: number; maxTokens?: number },
+): Promise<string | null> => {
+  const { lmstudioBaseUrl, lmstudioModel } = getEnv();
+
   try {
-    return JSON.parse(trimmed) as AiPreferenceResult;
-  } catch {
-    const match = trimmed.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    try {
-      return JSON.parse(match[0]) as AiPreferenceResult;
-    } catch {
+    const response = await fetch(`${lmstudioBaseUrl.replace(/\/+$/, '')}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: lmstudioModel,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userMessage },
+        ],
+        temperature: options?.temperature ?? 0.3,
+        max_tokens: options?.maxTokens ?? 512,
+        stream: false,
+        reasoning: { effort: 'none' },
+      }),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text().catch(() => '');
+      console.error('[LM Studio] API error', response.status, errText);
       return null;
     }
+
+    const data = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+
+    return data?.choices?.[0]?.message?.content?.trim() ?? null;
+  } catch (err) {
+    console.error('[LM Studio] fetch error', err);
+    return null;
   }
 };
 
-const buildFallback = (message: string): AiPreferenceResult => {
-  const tokens = tokenizeInterests(message);
-  const interests = tokens.slice(0, 6);
-  const summary = interests.length
-    ? `Interests: ${interests.join(', ')}`
-    : 'Interests captured from your message';
-  return {
-    summary,
-    interests,
-    followUpQuestion: DEFAULT_FOLLOW_UP,
-  };
-};
+// ─── Gemini ───────────────────────────────────────────────────────────────────
 
-const GEMINI_BASE_SYSTEM_PROMPT =
-  'You are a library recommender. Extract reading preferences and return ONLY valid JSON with keys: summary (string), interests (array of 3-8 short tokens), followUpQuestion (short book-specific question). Use English only. No extra text.';
-
-const buildGeminiSystemPrompt = (
-  userContext?: { historyTags?: string[]; savedInterests?: string[] },
-): string => {
-  const history = userContext?.historyTags ?? [];
-  const saved = userContext?.savedInterests ?? [];
-  const allContext = [...new Set([...history, ...saved])].slice(0, 15);
-
-  if (!allContext.length) return GEMINI_BASE_SYSTEM_PROMPT;
-
-  return (
-    GEMINI_BASE_SYSTEM_PROMPT +
-    `\n\nThis user has previously engaged with these topics: ${allContext.join(', ')}. ` +
-    'Use this to bias the interests array toward related topics, but still honour what they say in the current message. ' +
-    'If the current message is unrelated to their history, extract interests from the message alone.'
-  );
-};
-const GEMINI_CHAT_PROMPT =
-  'You are a helpful study assistant for a university library. You may answer ONLY about programming, software, computing, math, data, and language learning (English, grammar, writing). Be concise, friendly, and safe. If the user asks about religion, politics, credentials/secrets, the AI model identity, or NSFW content, refuse briefly and redirect to safe study topics. Use English only.';
-
-const localChatFallback = (message: string): string | null => {
-  const input = message.trim().toLowerCase();
-  const canned: Array<{ pattern: RegExp; reply: string }> = [
-    {
-      pattern: /\bwhat\s+is\s+coding\b/i,
-      reply:
-        'Coding is writing instructions that tell a computer what to do. It involves using a programming language to solve problems or build software.',
-    },
-    {
-      pattern: /\bcode\b/i,
-      reply:
-        'In programming, code is a set of instructions written in a language like Python, JavaScript, or C++ to make a computer perform tasks.',
-    },
-    {
-      pattern: /\bwhat\s+is\s+programming\b/i,
-      reply:
-        'Programming is the process of designing and writing code to create software or automate tasks. It includes planning, coding, testing, and fixing bugs.',
-    },
-    {
-      pattern: /\bwhat\s+is\s+python\b/i,
-      reply:
-        'Python is a popular, beginner-friendly programming language used for web apps, data analysis, automation, and AI.',
-    },
-    {
-      pattern: /c\+\+/i,
-      reply:
-        'C++ is a fast, compiled programming language used for systems, games, and performance-critical software.',
-    },
-    {
-      pattern: /\bjava(script)?\b/i,
-      reply:
-        'JavaScript is the language of the web. It runs in browsers to add interactivity and can also run on servers (Node.js).',
-    },
-    {
-      pattern: /\bhtml\b/i,
-      reply:
-        'HTML structures web pages. It defines headings, paragraphs, links, images, and other page content.',
-    },
-    {
-      pattern: /\bcss\b/i,
-      reply:
-        'CSS styles web pages. It controls colors, fonts, spacing, layout, and responsiveness.',
-    },
-    {
-      pattern: /\bwhat\s+is\s+algorithm\b/i,
-      reply:
-        'An algorithm is a step-by-step set of instructions for solving a problem or performing a task.',
-    },
-    {
-      pattern: /\boperating\s+system\b/i,
-      reply:
-        'An operating system (OS) manages a computer’s hardware and provides services for applications. Examples include Windows, macOS, and Linux.',
-    },
-  ];
-
-  for (const item of canned) {
-    if (item.pattern.test(input)) return item.reply;
-  }
-
-  return null;
-};
-
-const extractWithGemini = async (
-  message: string,
-  userContext?: { historyTags?: string[]; savedInterests?: string[] },
-) => {
+const callGemini = async (
+  systemPrompt: string,
+  userMessage: string,
+  options?: { temperature?: number; maxOutputTokens?: number },
+): Promise<string | null> => {
   const { geminiBaseUrl, geminiApiKey, geminiModel } = getEnv();
-  if (!geminiApiKey || !geminiModel) return null;
-  if (geminiDisabled) return null;
+  if (!geminiApiKey || !geminiModel || geminiDisabled) return null;
 
   const url = `${geminiBaseUrl.replace(/\/+$/, '')}/models/${encodeURIComponent(
     geminiModel,
@@ -150,119 +210,16 @@ const extractWithGemini = async (
     contents: [
       {
         role: 'user',
-        parts: [
-          { text: buildGeminiSystemPrompt(userContext) },
-          { text: message },
-        ],
+        parts: [{ text: systemPrompt }, { text: userMessage }],
       },
     ],
     generationConfig: {
-      temperature: 0.2,
+      temperature: options?.temperature ?? 0.3,
+      ...(options?.maxOutputTokens ? { maxOutputTokens: options.maxOutputTokens } : {}),
     },
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    let errorText = '';
-    try {
-      errorText = await response.text();
-    } catch {
-      errorText = '';
-    }
-    if (response.status === 403) {
-      geminiDisabled = true;
-      geminiDisabledReason = errorText || 'Gemini API key rejected (403).';
-      console.error('Gemini API disabled:', geminiDisabledReason);
-      return null;
-    }
-    console.error('Gemini API error', response.status, errorText);
-    return null;
-  }
-
-  const data = (await response.json()) as {
-    candidates?: Array<{
-      content?: { parts?: Array<{ text?: string }> };
-    }>;
-  };
-
-  const text =
-    data?.candidates?.[0]?.content?.parts
-      ?.map((part) => part.text ?? '')
-      .join('') ?? '';
-
-  if (!text.trim()) return null;
-  const parsed = safeJsonParse(text);
-  if (!parsed) {
-    console.error('Gemini API returned non-JSON content');
-  }
-  return parsed;
-};
-
-export async function extractPreferences(
-  message: string,
-  userContext?: { historyTags?: string[]; savedInterests?: string[] },
-): Promise<AiPreferenceResult> {
-  const { provider, geminiApiKey } = getEnv();
-
-  if (provider === 'gemini' || geminiApiKey) {
-    try {
-      const geminiResult = await extractWithGemini(message, userContext);
-      if (geminiResult) {
-        const interests =
-          Array.isArray(geminiResult.interests) && geminiResult.interests.length
-            ? geminiResult.interests.map((value) => String(value).trim()).filter(Boolean)
-            : buildFallback(message).interests;
-
-        return {
-          summary: geminiResult.summary?.toString().trim() || buildFallback(message).summary,
-          interests,
-          followUpQuestion:
-            geminiResult.followUpQuestion?.toString().trim() || DEFAULT_FOLLOW_UP,
-        };
-      }
-    } catch {
-      return buildFallback(message);
-    }
-  }
-
-  return buildFallback(message);
-}
-
-export type LinkedInCourseSuggestion = {
-  title: string;
-  query: string;
-};
-
-const GEMINI_LINKEDIN_PROMPT =
-  'You are a library assistant. Given a list of reading interests, suggest exactly 3 LinkedIn Learning course titles that complement those topics. Return ONLY valid JSON with key: courses (array of objects, each with title (string) and query (string — the search keywords to use on LinkedIn Learning)). Keep titles concise and realistic. Use English only. No extra text.';
-
-export async function suggestLinkedInCourses(
-  interests: string[],
-): Promise<LinkedInCourseSuggestion[]> {
-  if (!interests.length) return [];
-  const { geminiApiKey, geminiBaseUrl, geminiModel } = getEnv();
-  if (!geminiApiKey || !geminiModel || geminiDisabled) return [];
-
   try {
-    const url = `${geminiBaseUrl.replace(/\/+$/, '')}/models/${encodeURIComponent(geminiModel)}:generateContent?key=${encodeURIComponent(geminiApiKey)}`;
-    const body = {
-      contents: [
-        {
-          role: 'user',
-          parts: [
-            { text: GEMINI_LINKEDIN_PROMPT },
-            { text: `Interests: ${interests.join(', ')}` },
-          ],
-        },
-      ],
-      generationConfig: { temperature: 0.4 },
-    };
-
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -270,36 +227,139 @@ export async function suggestLinkedInCourses(
     });
 
     if (!response.ok) {
-      const errText = await response.text().catch(() => '');
-      console.error('[LinkedIn suggestions] Gemini API error', response.status, errText);
-      return [];
+      const errorText = await response.text().catch(() => '');
+      if (response.status === 403) {
+        geminiDisabled = true;
+        console.error('Gemini API disabled:', errorText);
+        return null;
+      }
+      console.error('Gemini API error', response.status, errorText);
+      return null;
     }
 
     const data = (await response.json()) as {
       candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
     };
 
-    const text =
-      data?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('') ?? '';
-    console.log('[LinkedIn suggestions] raw Gemini text:', text);
-    if (!text.trim()) return [];
+    return (
+      data?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('').trim() ?? null
+    );
+  } catch (err) {
+    console.error('[Gemini] fetch error', err);
+    return null;
+  }
+};
 
-    // Strip markdown code fences (```json ... ``` or ``` ... ```)
-    const stripped = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+// ─── Provider router ──────────────────────────────────────────────────────────
 
-    let parsed: { courses?: Array<{ title?: string; query?: string }> } | null = null;
+const callAI = async (
+  systemPrompt: string,
+  userMessage: string,
+  options?: { temperature?: number; maxTokens?: number },
+  providerOverride?: 'lmstudio' | 'gemini',
+): Promise<string | null> => {
+  const { provider, geminiApiKey } = getEnv();
+  const resolved = providerOverride ?? provider;
+
+  if (resolved === 'lmstudio') {
+    return callLMStudio(systemPrompt, userMessage, options);
+  }
+
+  if (resolved === 'gemini' || geminiApiKey) {
+    const result = await callGemini(systemPrompt, userMessage, {
+      temperature: options?.temperature,
+      maxOutputTokens: options?.maxTokens,
+    });
+    if (result) return result;
+  }
+
+  // Fallback to LM Studio if Gemini fails
+  return callLMStudio(systemPrompt, userMessage, options);
+};
+
+// ─── Fallback when AI is unavailable ─────────────────────────────────────────
+
+const buildFallbackResult = (message: string): AiResult => {
+  const tokens = tokenizeInterests(message);
+  return {
+    intent: 'find_books',
+    reply: 'Let me search the catalog based on your interests.',
+    searchTerms: tokens.slice(0, 6),
+    followUpQuestion: 'Any authors or topics you already enjoy?',
+  };
+};
+
+// ─── Main unified AI call ─────────────────────────────────────────────────────
+
+export async function classifyAndExtract(
+  message: string,
+  userContext?: UserContext,
+  providerOverride?: 'lmstudio' | 'gemini',
+): Promise<AiResult> {
+  try {
+    const systemPrompt = buildUnifiedSystemPrompt(userContext);
+    const raw = await callAI(systemPrompt, message, { temperature: 0.3, maxTokens: 512 }, providerOverride);
+
+    if (!raw) return buildFallbackResult(message);
+
+    const jsonStr = extractJson(raw);
+    let parsed: Partial<AiResult> | null = null;
+
     try {
-      parsed = JSON.parse(stripped);
+      parsed = JSON.parse(jsonStr) as Partial<AiResult>;
     } catch {
-      const match = stripped.match(/\{[\s\S]*\}/);
-      if (match) {
-        try {
-          parsed = JSON.parse(match[0]);
-        } catch {
-          console.error('[LinkedIn suggestions] JSON parse failed, stripped text:', stripped);
-          return [];
-        }
-      }
+      console.error('[AI] JSON parse failed:', jsonStr);
+      return buildFallbackResult(message);
+    }
+
+    const intent: AiIntent =
+      ['find_books', 'answer', 'both', 'greeting', 'off_topic'].includes(parsed.intent as string)
+        ? (parsed.intent as AiIntent)
+        : 'find_books';
+
+    const reply = stripMarkdown(
+      typeof parsed.reply === 'string' && parsed.reply.trim()
+        ? parsed.reply.trim()
+        : 'Here are some books that might help you.',
+    );
+
+    const searchTerms = Array.isArray(parsed.searchTerms)
+      ? parsed.searchTerms.map((t) => String(t).trim()).filter(Boolean).slice(0, 8)
+      : [];
+
+    const followUpQuestion =
+      typeof parsed.followUpQuestion === 'string' ? parsed.followUpQuestion.trim() : '';
+
+    return { intent, reply, searchTerms, followUpQuestion };
+  } catch {
+    return buildFallbackResult(message);
+  }
+}
+
+// ─── LinkedIn course suggestions ──────────────────────────────────────────────
+
+export async function suggestLinkedInCourses(
+  interests: string[],
+  providerOverride?: 'lmstudio' | 'gemini',
+): Promise<LinkedInCourseSuggestion[]> {
+  if (!interests.length) return [];
+
+  try {
+    const raw = await callAI(
+      LINKEDIN_SYSTEM_PROMPT,
+      `Student interests: ${interests.join(', ')}`,
+      { temperature: 0.4, maxTokens: 256 },
+      providerOverride,
+    );
+    if (!raw) return [];
+
+    const jsonStr = extractJson(raw);
+    let parsed: { courses?: Array<{ title?: string; query?: string }> } | null = null;
+
+    try {
+      parsed = JSON.parse(jsonStr);
+    } catch {
+      return [];
     }
 
     if (!parsed || !Array.isArray(parsed.courses)) return [];
@@ -312,78 +372,31 @@ export async function suggestLinkedInCourses(
   }
 }
 
-export async function answerQuestion(message: string): Promise<string | null> {
-  const { provider, geminiApiKey } = getEnv();
-  const localFallback = localChatFallback(message);
+// ─── Legacy exports (kept for compatibility) ──────────────────────────────────
 
-  if (geminiDisabled) {
-    return localFallback;
-  }
+export type AiPreferenceResult = {
+  summary: string;
+  interests: string[];
+  followUpQuestion: string;
+};
 
-  if (provider === 'gemini' || geminiApiKey) {
-    try {
-      const { geminiBaseUrl, geminiModel } = getEnv();
-      if (!geminiApiKey || !geminiModel) return localFallback;
+export async function extractPreferences(
+  message: string,
+  userContext?: UserContext,
+  providerOverride?: 'lmstudio' | 'gemini',
+): Promise<AiPreferenceResult> {
+  const result = await classifyAndExtract(message, userContext, providerOverride);
+  return {
+    summary: result.reply,
+    interests: result.searchTerms.length ? result.searchTerms : tokenizeInterests(message).slice(0, 6),
+    followUpQuestion: result.followUpQuestion || 'Any authors or series you already like?',
+  };
+}
 
-      const url = `${geminiBaseUrl.replace(/\/+$/, '')}/models/${encodeURIComponent(
-        geminiModel,
-      )}:generateContent?key=${encodeURIComponent(geminiApiKey)}`;
-
-      const body = {
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { text: GEMINI_CHAT_PROMPT },
-              { text: message },
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.2,
-          maxOutputTokens: 220,
-        },
-      };
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        let errorText = '';
-        try {
-          errorText = await response.text();
-        } catch {
-          errorText = '';
-        }
-        if (response.status === 403) {
-          geminiDisabled = true;
-          geminiDisabledReason = errorText || 'Gemini API key rejected (403).';
-          console.error('Gemini API disabled:', geminiDisabledReason);
-          return null;
-        }
-        console.error('Gemini API error', response.status, errorText);
-        return null;
-      }
-
-      const data = (await response.json()) as {
-        candidates?: Array<{
-          content?: { parts?: Array<{ text?: string }> };
-        }>;
-      };
-
-      const text =
-        data?.candidates?.[0]?.content?.parts
-          ?.map((part) => part.text ?? '')
-          .join('') ?? '';
-
-      return text.trim() || localFallback;
-    } catch {
-      return localFallback;
-    }
-  }
-
-  return localFallback;
+export async function answerQuestion(
+  message: string,
+  providerOverride?: 'lmstudio' | 'gemini',
+): Promise<string | null> {
+  const result = await classifyAndExtract(message, undefined, providerOverride);
+  return result.reply || null;
 }
