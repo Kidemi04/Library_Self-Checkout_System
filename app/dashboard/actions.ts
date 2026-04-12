@@ -487,7 +487,7 @@ export async function checkoutBookAction(
   // ---------- Notification ----------
   ;(async () => {
     const { data: bookRow } = await supabase
-      .from('books')
+      .from('Books')
       .select('title')
       .eq('id', bookId)
       .maybeSingle<{ title: string }>();
