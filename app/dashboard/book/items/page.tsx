@@ -33,7 +33,9 @@ function isItemStatus(x: unknown): x is ItemStatus {
 function toUIBook(db: any) {
   const available = db.availableCopies ?? db.available_copies ?? 0;
   const total = db.totalCopies ?? db.total_copies ?? db.copies?.length ?? 0;
-  const derivedStatus: ItemStatus = available > 0 ? 'available' : 'checked_out';
+  const onLoan = (db.copies ?? []).filter((c: any) => c.status === 'on_loan').length;
+  const derivedStatus: ItemStatus =
+    available > 0 ? 'available' : onLoan > 0 ? 'checked_out' : 'maintenance';
 
   return {
     id: db.id,
@@ -49,6 +51,7 @@ function toUIBook(db: any) {
     status: isItemStatus(db.status) ? (db.status as ItemStatus) : derivedStatus,
     copies_available: available,
     total_copies: total,
+    copies_on_loan: (db.copies ?? []).filter((c: any) => c.status === 'on_loan').length,
   };
 }
 

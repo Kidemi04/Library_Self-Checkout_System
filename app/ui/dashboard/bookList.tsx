@@ -119,6 +119,7 @@ export type UIBook = {
   status?: ItemStatus | null;
   copies_available?: number | null;
   total_copies?: number | null;
+  copies_on_loan?: number | null;
 };
 
 type Props = {
@@ -189,7 +190,7 @@ export default function BookList({
   return (
     <>
       {/* Category filter chips */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="mb-8 mt-2 flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium text-swin-charcoal/60 dark:text-slate-400">Filter:</span>
         <button
           type="button"
@@ -226,7 +227,11 @@ export default function BookList({
       <Wrapper>
         {paginatedBooks.map((b, idx) => {
           const status = (b.status ?? 'available') as ItemStatus;
-          const meta = STATUS_META[status] ?? STATUS_META.available;
+          const noCopies = (b.total_copies ?? 0) === 0;
+          const baseMeta = STATUS_META[status] ?? STATUS_META.available;
+          const meta = noCopies
+            ? { ...baseMeta, label: 'No copies', chip: 'bg-slate-200 text-slate-500' }
+            : baseMeta;
           const canBorrow = meta.canBorrow && (b.copies_available ?? 1) > 0;
           const showCopies =
             typeof b.copies_available === 'number' && typeof b.total_copies === 'number';
@@ -311,7 +316,7 @@ export default function BookList({
                       )}
 
                       <div className="flex gap-2">
-                        {!canBorrow && <PlaceHoldButton bookId={b.id} patronId={patronId} bookTitle={b.title} />}
+                        {!canBorrow && !noCopies && <PlaceHoldButton bookId={b.id} patronId={patronId} bookTitle={b.title} />}
                         {canBorrow && (
                           <Link
                             href={`/dashboard/book/checkout?bookId=${b.id}`}
@@ -361,7 +366,7 @@ export default function BookList({
                     </div>
 
                     <div className="flex justify-end gap-2">
-                      {!canBorrow && <PlaceHoldButton bookId={b.id} patronId={patronId} bookTitle={b.title} />}
+                      {!canBorrow && !noCopies && <PlaceHoldButton bookId={b.id} patronId={patronId} bookTitle={b.title} />}
                       {canBorrow && (
                         <Link
                           href={`/dashboard/book/checkout?bookId=${b.id}`}

@@ -499,7 +499,7 @@ export async function checkoutBookAction(
       'checkout',
       'Book Borrowed',
       `"${bookTitle}" was checked out by ${patron}.`,
-      { bookTitle, barcode: copy.barcode ?? '', patronIdentifier: borrowerIdentifier },
+      { bookTitle, barcode: copy.barcode ?? '', patronIdentifier: borrowerIdentifier, patronName: patron },
     );
 
     // User confirmation — notify the borrower directly (skip staff/admin/librarian)
@@ -715,11 +715,13 @@ export async function checkinBookAction(
         .maybeSingle<{ title: string }>();
       bookTitle = bookRow?.title ?? bookTitle;
     }
+    const patronName = loan.borrower?.profile?.display_name ?? loan.borrower?.email ?? '';
+    const patronIdentifier = loan.borrower?.profile?.student_id ?? loan.borrower?.email ?? '';
     await createNotification(
       'checkin',
       'Book Returned',
       `"${bookTitle}" has been returned.`,
-      { bookTitle, barcode: loan.copy?.barcode ?? '' },
+      { bookTitle, barcode: loan.copy?.barcode ?? '', patronName, patronIdentifier },
     );
   })().catch((err) => console.warn('[notifications] checkin notification failed:', err));
 
@@ -756,6 +758,7 @@ export async function checkinBookAction(
   revalidatePath('/dashboard/book/checkin');
   revalidatePath('/dashboard/book/checkout');
   revalidatePath('/dashboard/book/items');
+  revalidatePath('/dashboard/book/holds');
 
   return success(`Marked ${copyLabel} as returned for ${borrowerLabel}.`);
 }

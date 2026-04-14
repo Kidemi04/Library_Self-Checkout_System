@@ -33,20 +33,15 @@ async function markReady(formData: FormData) {
 
   if (!firstInQueue || firstInQueue.id !== holdId) return;
 
-  // Guard: at least one copy must be available (returned/not on loan)
+  // Guard: at least one copy must have been returned (status = 'available')
   const { data: availableCopy } = await supabase
     .from('Copies')
-    .select('id, Loans(id, returned_at)')
+    .select('id')
     .eq('book_id', bookId)
-    .neq('status', 'on_loan')
-    .limit(10);
+    .eq('status', 'available')
+    .limit(1);
 
-  const hasAvailable = (availableCopy ?? []).some((copy: any) => {
-    const loans = Array.isArray(copy.loans) ? copy.loans : [];
-    return loans.every((loan: any) => loan.returned_at !== null);
-  });
-
-  if (!hasAvailable) return;
+  if (!availableCopy || availableCopy.length === 0) return;
 
   const now = new Date();
   const expires = new Date(now);
@@ -109,7 +104,10 @@ export default async function HoldsManagementPage() {
   }
 
   const supabaseForPage = getSupabaseServerClient();
-  const holds = await fetchHoldsForStaff();
+  const allHolds = await fetchHoldsForStaff();
+
+  // Only show holds that are still actionable — hide ready/canceled records.
+  const holds = allHolds.filter((h: any) => h.status === 'queued');
 
   // Compute which hold ID is first in queue per book (holds are already ordered by placed_at asc).
   const seenQueuedBooks = new Set<string>();
@@ -121,22 +119,26 @@ export default async function HoldsManagementPage() {
     }
   }
 
-  // Check which books have at least one available copy (returned/not on loan)
+  // Check copy states per book: available (ready to mark) and on_loan (at least being borrowed)
   const queuedBookIds = [...seenQueuedBooks];
   const availableBookIds = new Set<string>();
+  const onLoanBookIds = new Set<string>();
   if (queuedBookIds.length > 0) {
     const { data: copies } = await supabaseForPage
       .from('Copies')
-      .select('book_id, Loans(id, returned_at)')
-      .in('book_id', queuedBookIds)
-      .neq('status', 'on_loan');
+      .select('book_id, status')
+      .in('book_id', queuedBookIds);
 
     for (const copy of copies ?? []) {
-      const loans = Array.isArray((copy as any).loans) ? (copy as any).loans : [];
-      const noActiveLoans = loans.every((l: any) => l.returned_at !== null);
-      if (noActiveLoans) availableBookIds.add((copy as any).book_id);
+      const c = copy as any;
+      if (c.status === 'available') availableBookIds.add(c.book_id);
+      if (c.status === 'on_loan')   onLoanBookIds.add(c.book_id);
     }
   }
+
+  // Holds where the book has no copies at all (or none on loan) — these are stuck
+  const stuckHolds = holds.filter((h: any) => !onLoanBookIds.has(h.book_id) && !availableBookIds.has(h.book_id));
+  const activeHolds = holds.filter((h: any) => onLoanBookIds.has(h.book_id) || availableBookIds.has(h.book_id));
 
   return (
     <main className="space-y-8">
@@ -148,11 +150,70 @@ export default async function HoldsManagementPage() {
         description="View the reservation queue for each book and mark holds as ready or cancelled."
       />
 
+      {/* Stuck holds warning */}
+      {stuckHolds.length > 0 && (
+        <section className="space-y-3">
+          <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-700 dark:bg-amber-950/40">
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+              {stuckHolds.length} hold{stuckHolds.length !== 1 ? 's' : ''} cannot be fulfilled
+            </p>
+            <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
+              The following books have no copies currently on loan or available in the system. These holds should be cancelled.
+            </p>
+          </div>
+          <div className="overflow-x-auto rounded-2xl border border-amber-200 bg-white shadow-sm dark:border-amber-900/50 dark:bg-slate-900">
+            <table className="min-w-full text-sm text-slate-900 dark:text-slate-100">
+              <thead className="bg-amber-50 dark:bg-slate-900">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                  <th className="px-4 py-3">Book</th>
+                  <th className="px-4 py-3">Patron</th>
+                  <th className="px-4 py-3">Placed at</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stuckHolds.map((hold: any) => (
+                  <tr key={hold.id} className="border-t border-slate-100 dark:border-slate-800">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        {hold.book_cover ? (
+                          <img src={hold.book_cover} alt="" className="h-10 w-8 rounded object-cover ring-1 ring-slate-300 dark:ring-slate-700" />
+                        ) : (
+                          <div className="h-10 w-8 rounded bg-slate-200 dark:bg-slate-800" />
+                        )}
+                        <div>
+                          <span className="font-medium text-slate-900 dark:text-slate-100">{hold.book_title ?? 'Unknown title'}</span>
+                          <p className="text-xs text-amber-600 dark:text-amber-400">No copies in system</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-slate-900 dark:text-slate-200">{hold.patron_name ?? 'Unknown patron'}</td>
+                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400">
+                      {hold.placed_at ? new Date(hold.placed_at).toLocaleString() : '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end">
+                        <form action={cancelHold}>
+                          <input type="hidden" name="holdId" value={hold.id} />
+                          <button type="submit" className="rounded-xl border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/30">
+                            Cancel hold
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-slate-100">All holds</h2>
+          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-slate-100">Pending holds</h2>
           <p className="text-sm text-swin-charcoal/60 dark:text-slate-400">
-            {holds.length} record{holds.length === 1 ? '' : 's'}
+            {activeHolds.length} queued
           </p>
         </div>
 
@@ -169,7 +230,7 @@ export default async function HoldsManagementPage() {
               </tr>
             </thead>
             <tbody>
-              {holds.map((hold: any) => (
+              {activeHolds.map((hold: any) => (
                 <tr key={hold.id} className="border-t border-slate-100 dark:border-slate-800">
                   {/* Book */}
                   <td className="px-4 py-3">
@@ -257,13 +318,13 @@ export default async function HoldsManagementPage() {
                 </tr>
               ))}
 
-              {holds.length === 0 && (
+              {activeHolds.length === 0 && (
                 <tr>
                   <td
                     colSpan={6}
                     className="px-4 py-6 text-center text-sm text-slate-500"
                   >
-                    No holds yet.
+                    No pending holds.
                   </td>
                 </tr>
               )}

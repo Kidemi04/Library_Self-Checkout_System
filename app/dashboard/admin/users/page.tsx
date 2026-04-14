@@ -467,9 +467,20 @@ export default function UserManagementPage() {
     });
   };
 
-  const handleDelete = (id: string) => {
-    if (!window.confirm('Delete this user account?')) return;
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
 
+  const handleDelete = (id: string) => {
+    const target = users.find((u) => u.id === id);
+    setDeleteTarget({
+      id,
+      label: target?.fullName || target?.accountDisplayName || target?.email || id,
+    });
+  };
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    const { id } = deleteTarget;
+    setDeleteTarget(null);
     setStatusMessage(null);
     setErrorMessage(null);
 
@@ -741,6 +752,49 @@ export default function UserManagementPage() {
           </footer>
         )}
       </section>
+
+      {/* Delete confirmation modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+            {/* Icon */}
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-500/10">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-rose-600 dark:text-rose-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+              </svg>
+            </div>
+
+            <h3 className="text-left text-base font-semibold text-slate-900 dark:text-slate-100">
+              Delete user account?
+            </h3>
+            <p className="mt-2 text-left text-sm text-slate-600 dark:text-slate-400">
+              You are about to permanently delete{' '}
+              <span className="font-medium text-slate-900 dark:text-slate-100">
+                {deleteTarget.label}
+              </span>
+              . This cannot be undone.
+            </p>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                disabled={isPending}
+                className="flex-1 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Yes, delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
