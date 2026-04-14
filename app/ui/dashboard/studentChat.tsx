@@ -56,29 +56,29 @@ const quickPrompts: QuickPrompt[] = [
   {
     id: 'faculty',
     label: '📚 Recommend for my faculty',
-    message: 'Recommend books based on my faculty and interests',
+    message: 'Recommend books from the library catalog that match my faculty, department, and academic interests. Use my profile to suggest the most relevant titles.',
   },
   {
     id: 'assignment',
     label: '📝 Books for my assignment',
-    message: 'I need book recommendations for my academic assignment',
+    message: 'I need books from the library catalog to help with my academic assignment or coursework. Recommend titles that cover core concepts in my study area.',
   },
   {
     id: 'available',
     label: '✅ Show me what\'s available now',
-    message: 'What books are available to borrow right now?',
+    message: 'Show me books that are currently available to borrow from the library catalog right now. I want titles I can check out today.',
   },
   {
     id: 'interesting',
     label: '✨ Just something interesting',
-    message: 'Suggest something interesting I might enjoy reading',
+    message: 'Surprise me with an interesting book I might enjoy reading. Pick something engaging — fiction, non-fiction, science, history, technology, or anything compelling.',
   },
 ];
 
 const buildGreeting = (name?: string | null) => {
   const friendlyName =
     name && name.trim().length > 0 ? name.trim().split(/\s+/)[0] : 'there';
-  return `Hi ${friendlyName}! Tell me what you like to read and I will recommend books from the catalog.`;
+  return `Hi ${friendlyName}! I am your library reading assistant. I can recommend books from the catalog based on your faculty, assignments, or interests.`;
 };
 
 const buildInitialMessages = (name?: string | null): ChatMessage[] => {
@@ -93,7 +93,7 @@ const buildInitialMessages = (name?: string | null): ChatMessage[] => {
     {
       id: 'assistant-2',
       sender: 'assistant',
-      text: 'English only. Book recommendations only. Share genres, topics, mood, or course units.',
+      text: 'Here is what the quick buttons do:\n📚 Recommend for my faculty — I look at your faculty and suggest books that match your subject area.\n📝 Books for my assignment — Tell me your topic and I will find relevant titles you can borrow.\n✅ Show me what\'s available now — I search the catalog and show books you can check out today.\n✨ Just something interesting — I pick something engaging outside your usual reading.',
       timestamp: now - 60000,
     },
   ];
@@ -149,7 +149,6 @@ export default function StudentChat({
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [aiProvider, setAiProvider] = useState<'lmstudio' | 'gemini'>('lmstudio');
   const [isSavingInterests, setIsSavingInterests] = useState(false);
-  const [showQuickPrompts, setShowQuickPrompts] = useState(true);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lastSentAtRef = useRef<number>(0);
@@ -209,7 +208,6 @@ export default function StudentChat({
     setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
     setLinkedInSuggestions([]);
     setSendNotice(null);
-    setShowQuickPrompts(true);
     setStickToBottom(true);
     setInputValue('');
     setIsAssistantTyping(false);
@@ -290,7 +288,6 @@ export default function StudentChat({
       timestamp: Date.now(),
     };
     setMessages((prev) => [...prev, newMessage]);
-    setShowQuickPrompts(false);
     setStickToBottom(true);
     scheduleScrollToBottom();
     lastSentAtRef.current = now;
@@ -708,7 +705,7 @@ export default function StudentChat({
         </button>
       ) : null}
 
-      {onboardingComplete && showQuickPrompts && (
+      {onboardingComplete && (
         <div className="mt-3 flex flex-wrap gap-2">
           {quickPrompts.map((prompt) => (
             <button

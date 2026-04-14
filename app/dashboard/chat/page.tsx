@@ -4,23 +4,6 @@ import { getDashboardSession } from '@/app/lib/auth/session';
 import StudentChat from '@/app/ui/dashboard/studentChat';
 import { userNeedsOnboarding } from '@/app/lib/recommendations/user-context';
 
-const supportFacts = [
-  {
-    title: 'Weekday coverage',
-    detail: 'Mon-Fri | 8:00 AM - 9:00 PM',
-    description: 'Librarians monitor every conversation during staffed hours.',
-  },
-  {
-    title: 'After-hours follow up',
-    detail: 'Auto replies + email handoff',
-    description: 'Leave your question and we will email your student account within one business day.',
-  },
-  {
-    title: 'Call us directly',
-    detail: '+6082 260936',
-    description: 'Use the hotline for urgent equipment, facility, or access issues.',
-  },
-];
 
 const resourceLinks = [
   {
@@ -73,36 +56,18 @@ export default async function StudentChatPage() {
     <main className="space-y-8">
       <title>Chat Support | Dashboard</title>
 
-      <header className="relative overflow-hidden rounded-3xl p-8 text-white shadow-2xl shadow-swin-red/25">
-        {/* Gradient background — matches DashboardTitleBar */}
+      <header className="relative overflow-hidden rounded-3xl p-5 md:p-8 text-white shadow-2xl shadow-swin-red/25">
         <div className="absolute inset-0 bg-gradient-to-r from-swin-charcoal via-swin-red to-[#3b0b14]" />
-        {/* Decorative blurs */}
-        <div className="pointer-events-none absolute inset-0 opacity-30">
-          <div className="absolute -right-10 -top-10 h-52 w-52 rounded-full bg-white/20 blur-3xl" />
-          <div className="absolute left-1/3 top-1/2 h-64 w-64 rounded-full bg-swin-red/30 blur-[120px]" />
-          <div className="absolute bottom-0 right-0 h-52 w-52 rounded-full bg-black/20 blur-3xl" />
+        <div className="pointer-events-none absolute inset-0 opacity-25">
+          <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/20 blur-3xl" />
+          <div className="absolute bottom-0 left-0 h-40 w-40 rounded-full bg-black/20 blur-3xl" />
         </div>
-
         <div className="relative">
-          <p className="text-xs uppercase tracking-[0.35em] text-white/60">Talk to us</p>
-          <h1 className="mt-2 text-3xl font-semibold">Student chat support</h1>
-          <p className="mt-3 max-w-2xl text-sm text-white/75">
-            Get real-time help with loans, holds, or account issues. Messages stay synced with your student account so
-            you can pick up the conversation on any device.
+          <p className="text-[10px] uppercase tracking-[0.35em] text-white/60">AI Assistant</p>
+          <h1 className="mt-1 text-xl font-semibold md:text-2xl">How can I help you?</h1>
+          <p className="mt-2 max-w-xl text-sm text-white/70">
+            Ask me anything about borrowing, returning, fines, or using the library system — I will guide you step by step.
           </p>
-
-          <div className="mt-6 grid gap-4 md:grid-cols-3">
-            {supportFacts.map((fact) => (
-              <div
-                key={fact.title}
-                className="rounded-2xl border border-white/15 bg-white/10 p-4 text-sm shadow-inner backdrop-blur-sm"
-              >
-                <p className="text-xs uppercase tracking-wide text-white/55">{fact.title}</p>
-                <p className="mt-2 text-base font-semibold text-white">{fact.detail}</p>
-                <p className="mt-1 text-xs text-white/65">{fact.description}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </header>
 
