@@ -22,10 +22,12 @@ type QuickPrompt = {
 const QUICK_PROMPTS: QuickPrompt[] = [
   { id: 'borrow', label: 'How do I borrow a book?', message: 'How do I borrow a book?' },
   { id: 'return', label: 'How do I return a book?', message: 'How do I return a book?' },
+  { id: 'renew', label: 'How do I renew my loan?', message: 'How do I renew my loan?' },
   { id: 'scanner', label: 'How to use the barcode scanner?', message: 'How do I use the barcode scanner?' },
-  { id: 'due', label: 'How long can I keep a book?', message: 'How long can I keep a borrowed book and can I renew it?' },
-  { id: 'overdue', label: 'What happens if I return late?', message: 'What happens if I return a book late?' },
-  { id: 'login', label: 'I cannot log in', message: 'I cannot log in to the dashboard, what should I do?' },
+  { id: 'due', label: 'Loan periods & limits?', message: 'What are the loan periods and borrowing limits for students?' },
+  { id: 'overdue', label: 'What are the fines?', message: 'What happens if I return a book late and what are the fines?' },
+  { id: 'lost', label: 'I lost a book', message: 'What do I do if I lost or damaged a library book?' },
+  { id: 'payment', label: 'How do I pay fines?', message: 'How do I pay library fines?' },
 ];
 
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;

@@ -73,25 +73,36 @@ export default async function StudentChatPage() {
     <main className="space-y-8">
       <title>Chat Support | Dashboard</title>
 
-      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
-        <p className="text-xs uppercase tracking-[0.35em] text-swin-ivory/70">Talk to us</p>
-        <h1 className="mt-2 text-3xl font-semibold">Student chat support</h1>
-        <p className="mt-3 max-w-2xl text-sm text-swin-ivory/70">
-          Get real-time help with loans, holds, or account issues. Messages stay synced with your student account so
-          you can pick up the conversation on any device.
-        </p>
+      <header className="relative overflow-hidden rounded-3xl p-8 text-white shadow-2xl shadow-swin-red/25">
+        {/* Gradient background — matches DashboardTitleBar */}
+        <div className="absolute inset-0 bg-gradient-to-r from-swin-charcoal via-swin-red to-[#3b0b14]" />
+        {/* Decorative blurs */}
+        <div className="pointer-events-none absolute inset-0 opacity-30">
+          <div className="absolute -right-10 -top-10 h-52 w-52 rounded-full bg-white/20 blur-3xl" />
+          <div className="absolute left-1/3 top-1/2 h-64 w-64 rounded-full bg-swin-red/30 blur-[120px]" />
+          <div className="absolute bottom-0 right-0 h-52 w-52 rounded-full bg-black/20 blur-3xl" />
+        </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          {supportFacts.map((fact) => (
-            <div
-              key={fact.title}
-              className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm shadow-inner shadow-swin-charcoal/20"
-            >
-              <p className="text-xs uppercase tracking-wide text-swin-ivory/70">{fact.title}</p>
-              <p className="mt-2 text-base font-semibold text-white">{fact.detail}</p>
-              <p className="mt-1 text-xs text-swin-ivory/70">{fact.description}</p>
-            </div>
-          ))}
+        <div className="relative">
+          <p className="text-xs uppercase tracking-[0.35em] text-white/60">Talk to us</p>
+          <h1 className="mt-2 text-3xl font-semibold">Student chat support</h1>
+          <p className="mt-3 max-w-2xl text-sm text-white/75">
+            Get real-time help with loans, holds, or account issues. Messages stay synced with your student account so
+            you can pick up the conversation on any device.
+          </p>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            {supportFacts.map((fact) => (
+              <div
+                key={fact.title}
+                className="rounded-2xl border border-white/15 bg-white/10 p-4 text-sm shadow-inner backdrop-blur-sm"
+              >
+                <p className="text-xs uppercase tracking-wide text-white/55">{fact.title}</p>
+                <p className="mt-2 text-base font-semibold text-white">{fact.detail}</p>
+                <p className="mt-1 text-xs text-white/65">{fact.description}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </header>
 
@@ -99,41 +110,44 @@ export default async function StudentChatPage() {
         <StudentChat studentName={displayName} needsOnboarding={needsOnboarding} userId={user.id} />
 
         <aside className="space-y-4">
-          <div className="rounded-3xl border border-swin-charcoal/10 bg-white p-5 shadow-lg shadow-swin-charcoal/5">
-            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-swin-charcoal/60">When to use chat</p>
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-swin-charcoal/80">
+          {/* When to use chat */}
+          <div className="rounded-3xl border border-swin-charcoal/10 bg-white p-5 shadow-lg shadow-swin-charcoal/5 dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/30">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.35em] text-swin-charcoal/50 dark:text-slate-400">When to use chat</p>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-swin-charcoal/80 dark:text-slate-300">
               <li>Need help locating or renewing an item while you are on the go.</li>
               <li>Want to confirm fines, holds, or equipment availability.</li>
               <li>Have issues with the barcode scanner or the self-checkout flow.</li>
             </ul>
-            <p className="mt-4 text-sm text-swin-charcoal/70">
+            <p className="mt-4 text-sm text-swin-charcoal/60 dark:text-slate-400">
               For official paperwork or appeals, please follow up via email so we can send attachments.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-swin-charcoal/10 bg-swin-ivory/70 p-5 shadow-inner shadow-swin-charcoal/10">
-            <h3 className="text-base font-semibold text-swin-charcoal">Helpful links</h3>
+          {/* Helpful links */}
+          <div className="rounded-3xl border border-swin-charcoal/10 bg-white p-5 shadow-lg shadow-swin-charcoal/5 dark:border-slate-700 dark:bg-slate-900/60 dark:shadow-black/20">
+            <h3 className="text-base font-semibold text-swin-charcoal dark:text-slate-100">Helpful links</h3>
             <div className="mt-3 space-y-3 text-sm">
               {resourceLinks.map((link) => (
                 <Link
                   key={link.title}
                   href={link.href}
-                  className="block rounded-2xl border border-swin-charcoal/10 bg-white px-4 py-3 text-swin-charcoal shadow-sm transition hover:border-swin-red/60 hover:-translate-y-0.5"
+                  className="block rounded-2xl border border-swin-charcoal/10 bg-swin-ivory/60 px-4 py-3 text-swin-charcoal shadow-sm transition hover:border-swin-red/50 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:border-swin-red/50"
                 >
                   <p className="text-sm font-semibold">{link.title}</p>
-                  <p className="text-xs text-swin-charcoal/70">{link.description}</p>
+                  <p className="text-xs text-swin-charcoal/60 dark:text-slate-400">{link.description}</p>
                   <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-swin-red">
                     {link.action}
-                    <span aria-hidden="true">-&gt;</span>
+                    <span aria-hidden="true">→</span>
                   </span>
                 </Link>
               ))}
             </div>
           </div>
 
-          <div className="rounded-3xl border border-swin-charcoal/10 bg-white p-5 text-sm text-swin-charcoal shadow-lg shadow-swin-charcoal/5">
-            <h3 className="text-base font-semibold text-swin-charcoal">Need a transcript?</h3>
-            <p className="mt-2 text-sm text-swin-charcoal/80">
+          {/* Need a transcript? */}
+          <div className="rounded-3xl border border-swin-charcoal/10 bg-white p-5 shadow-lg shadow-swin-charcoal/5 dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/30">
+            <h3 className="text-base font-semibold text-swin-charcoal dark:text-slate-100">Need a transcript?</h3>
+            <p className="mt-2 text-sm text-swin-charcoal/70 dark:text-slate-300">
               Email the library team and mention the chat so we can attach the conversation log for your records.
             </p>
             <a
@@ -142,7 +156,7 @@ export default async function StudentChatPage() {
             >
               library@swinburne.edu.my
             </a>
-            <p className="mt-2 text-xs text-swin-charcoal/60">Include your student ID for faster assistance.</p>
+            <p className="mt-2 text-xs text-swin-charcoal/50 dark:text-slate-500">Include your student ID for faster assistance.</p>
           </div>
         </aside>
       </div>
