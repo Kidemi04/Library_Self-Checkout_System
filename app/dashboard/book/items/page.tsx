@@ -147,7 +147,8 @@ export default async function BookItemsPage({
         <BookList
           books={books}
           variant={view}
-          patronId={patronId} // used by PlaceHoldButton
+          patronId={patronId}
+          isStaff={user.role !== 'user'}
         />
       </section>
     </main>

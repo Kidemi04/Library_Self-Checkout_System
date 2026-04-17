@@ -7,6 +7,7 @@ import { addUserAction } from '@/app/actions/addUser';
 import { updateUserAction } from '@/app/actions/updateUser';
 import { deleteUserAction } from '@/app/actions/deleteUser';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import ConfirmModal from '@/app/ui/dashboard/confirmModal';
 
 type ManagedRole = 'user' | 'staff' | 'admin';
 
@@ -362,6 +363,12 @@ export default function UserManagementPage() {
 
   const handleAddUser = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!newUser.email.trim()) return;
+    setShowAddConfirm(true);
+  };
+
+  const confirmAddUser = () => {
+    setShowAddConfirm(false);
     setStatusMessage(null);
     setErrorMessage(null);
 
@@ -468,6 +475,8 @@ export default function UserManagementPage() {
   };
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; label: string } | null>(null);
+  const [showAddConfirm, setShowAddConfirm] = useState(false);
+  const [saveTarget, setSaveTarget] = useState<ManagedUser | null>(null);
 
   const handleDelete = (id: string) => {
     const target = users.find((u) => u.id === id);
@@ -689,7 +698,7 @@ export default function UserManagementPage() {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleSave(user)}
+                          onClick={() => setSaveTarget(user)}
                           disabled={isPending}
                           className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                         >
@@ -752,6 +761,35 @@ export default function UserManagementPage() {
           </footer>
         )}
       </section>
+
+      {/* Add user confirmation modal */}
+      <ConfirmModal
+        isOpen={showAddConfirm}
+        type="info"
+        title="Add new user?"
+        message={`You are about to create an account for "${newUser.email}" with the role "${newUser.role}". Proceed?`}
+        confirmText="Yes, add user"
+        cancelText="Go back"
+        onConfirm={confirmAddUser}
+        onCancel={() => setShowAddConfirm(false)}
+      />
+
+      {/* Save user confirmation modal */}
+      <ConfirmModal
+        isOpen={saveTarget !== null}
+        type="info"
+        title="Save changes?"
+        message={`You are about to update the account for "${saveTarget?.email ?? ''}". This will overwrite the current details.`}
+        confirmText="Yes, save changes"
+        cancelText="Go back"
+        onConfirm={() => {
+          if (saveTarget) {
+            handleSave(saveTarget);
+            setSaveTarget(null);
+          }
+        }}
+        onCancel={() => setSaveTarget(null)}
+      />
 
       {/* Delete confirmation modal */}
       {deleteTarget && (

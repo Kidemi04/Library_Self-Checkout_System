@@ -51,7 +51,6 @@ export async function createUserNotification(
     title,
     message,
     target_user_id: userId,
-    target_roles: [],
     metadata: metadata ?? null,
   });
   if (error) console.error('[notifications] createUserNotification error:', error.message);
@@ -112,6 +111,7 @@ export async function fetchNotificationsForRole(
     .from('Notifications')
     .select('*')
     .contains('target_roles', [role])
+    .is('target_user_id', null)
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -174,7 +174,8 @@ export async function markAllNotificationsRead(role: string, userId: string): Pr
   const { data: notifs } = await supabase
     .from('Notifications')
     .select('id')
-    .contains('target_roles', [role]);
+    .contains('target_roles', [role])
+    .is('target_user_id', null);
 
   if (!notifs?.length) return;
   const rows = notifs.map((n) => ({ notification_id: n.id as string, user_id: userId }));

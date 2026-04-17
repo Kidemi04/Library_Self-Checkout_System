@@ -2,7 +2,9 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import PlaceHoldButton from './placeHoldButton';
+import ManageCopiesModal from './manageCopiesModal';
 import { Pagination } from '@/app/ui/dashboard/pagination';
 import GlassCard from '@/app/ui/magicUi/glassCard';
 import BlurFade from '@/app/ui/magicUi/blurFade';
@@ -126,6 +128,7 @@ type Props = {
   books: UIBook[];
   variant?: 'grid' | 'list';               // card grid or compact list
   patronId?: string;                       // who is browsing (for holds)
+  isStaff?: boolean;                       // show copy-management controls
   onDetailsClick?: (book: UIBook) => void; // optional: "View details"
   onBorrowClick?: (book: UIBook) => void;  // optional: "Borrow / Request" (deprecated, use Quick Borrow Link instead)
   pageSize?: number; // optional: number of books per page
@@ -146,10 +149,14 @@ export default function BookList({
   books,
   variant = 'grid',
   patronId,
+  isStaff = false,
   pageSize,
 }: Props) {
+  const router = useRouter();
   const [currentPage, setCurrentPage] = React.useState(1);
   const [selectedCategory, setSelectedCategory] = React.useState<BookCategory | null>(null);
+  const [managingBookId, setManagingBookId] = React.useState<string | null>(null);
+  const managingBook = managingBookId ? books.find((b) => b.id === managingBookId) : null;
 
   const filteredBooks = React.useMemo(() => {
     if (!selectedCategory) return books;
@@ -325,6 +332,16 @@ export default function BookList({
                             Borrow
                           </Link>
                         )}
+                        {isStaff && (
+                          <button
+                            type="button"
+                            onClick={() => setManagingBookId(b.id)}
+                            title="Manage copies"
+                            className="rounded-full border border-slate-300 px-2.5 py-1 text-[10px] font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-800"
+                          >
+                            Copies
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -375,6 +392,15 @@ export default function BookList({
                           Borrow
                         </Link>
                       )}
+                      {isStaff && (
+                        <button
+                          type="button"
+                          onClick={() => setManagingBookId(b.id)}
+                          className="rounded-full border border-slate-300 px-3 py-1.5 text-[10px] font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-800"
+                        >
+                          Copies
+                        </button>
+                      )}
                     </div>
                   </div>
                 </GlassCard>
@@ -393,6 +419,17 @@ export default function BookList({
             onPageChange={setCurrentPage}
           />
         </div>
+      )}
+
+      {/* Manage copies modal (staff/admin only) */}
+      {isStaff && (
+        <ManageCopiesModal
+          bookId={managingBookId ?? ''}
+          bookTitle={managingBook?.title ?? ''}
+          isOpen={managingBookId !== null}
+          onClose={() => setManagingBookId(null)}
+          onChanged={() => router.refresh()}
+        />
       )}
     </>
   );
