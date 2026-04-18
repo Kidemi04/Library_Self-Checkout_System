@@ -5,6 +5,9 @@ import ManageBookModal from './manageBookModal';
 import { updateBook, deleteBook, type ItemStatus } from '@/app/lib/supabase/updates';
 import type { CopyStatus } from '@/app/lib/supabase/types';
 import { Pagination } from '@/app/ui/dashboard/pagination';
+import ConfirmModal from '@/app/ui/dashboard/confirmModal';
+
+const BOOK_TAG_OPTIONS: readonly string[] = ['Computer Science', 'Business', 'Engineering', 'Art & Design'];
 
 export type CatalogBook = {
   id: string;
@@ -141,13 +144,69 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
     onClose();
   }
 
-  async function onDelete(id: string) {
-    if (!confirm('Delete this book permanently?')) return;
+  const [deleteTarget, setDeleteTarget] = React.useState<CatalogBook | null>(null);
+
+  function onDelete(book: CatalogBook) {
+    setDeleteTarget(book);
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    const id = deleteTarget.id;
+    setDeleteTarget(null);
+    if (active?.id === id) onClose();
     await deleteBook(id);
+  }
+
+  const [embedding, setEmbedding] = React.useState(false);
+  const [embedMessage, setEmbedMessage] = React.useState<string | null>(null);
+  const [embedError, setEmbedError] = React.useState<string | null>(null);
+
+  async function onEmbedAll(reembed = false) {
+    setEmbedMessage(null);
+    setEmbedError(null);
+    setEmbedding(true);
+    try {
+      const res = await fetch('/api/book/embed-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reembed }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Embedding failed');
+      const n = Number(data?.embedded ?? 0);
+      const f = Number(data?.failed ?? 0);
+      setEmbedMessage(`Embedded ${n} book${n === 1 ? '' : 's'}${f ? ` (${f} failed)` : ''}.`);
+    } catch (err) {
+      setEmbedError(err instanceof Error ? err.message : 'Embedding failed');
+    } finally {
+      setEmbedding(false);
+    }
   }
 
   return (
     <>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => onEmbedAll(false)}
+          disabled={embedding}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
+          {embedding ? 'Embedding…' : 'Embed unembedded books'}
+        </button>
+        <button
+          type="button"
+          onClick={() => onEmbedAll(true)}
+          disabled={embedding}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+        >
+          {embedding ? 'Embedding…' : 'Re-embed all'}
+        </button>
+        {embedMessage && <span className="text-xs text-green-600">{embedMessage}</span>}
+        {embedError && <span className="text-xs text-red-500">{embedError}</span>}
+      </div>
+
       {/* Desktop/tablet: classic table */}
     <div className="hidden md:block overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950/70 dark:shadow-black/20">
         <div className="overflow-x-auto">
@@ -222,7 +281,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                       </button>
                       <button
                         className="rounded-xl border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 shadow-sm hover:bg-red-50 dark:border-red-300/40 dark:bg-slate-900 dark:text-red-300 dark:hover:bg-red-500/10"
-                        onClick={() => onDelete(b.id)}
+                        onClick={() => onDelete(b)}
                         type="button"
                       >
                         Delete
@@ -320,7 +379,7 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                   </button>
                   <button
                     className="rounded-xl border border-red-200 bg-white px-3 py-1.5 text-sm font-medium text-red-600 shadow-sm hover:bg-red-50"
-                    onClick={() => onDelete(b.id)}
+                    onClick={() => onDelete(b)}
                     type="button"
                   >
                     Delete
@@ -423,14 +482,20 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-900 dark:text-slate-200">Tags</label>
-          <input
-            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
-            placeholder="programming, ui, algorithms"
-            value={form.tags}
+          <label className="block text-sm font-medium text-slate-900 dark:text-slate-200">Tag</label>
+          <select
+            className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            value={BOOK_TAG_OPTIONS.includes(form.tags.trim()) ? form.tags.trim() : ''}
             onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))}
-          />
-          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">Separate with commas</p>
+          >
+            <option value="">— None —</option>
+            {BOOK_TAG_OPTIONS.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+            Select the faculty category this book belongs to.
+          </p>
         </div>
 
           <div className="mt-2 flex flex-wrap justify-between gap-2">
@@ -441,17 +506,6 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
             >
               Cancel
             </button>
-
-            {/* Inline delete inside modal (optional) */}
-            {active && (
-              <button
-                type="button"
-                onClick={() => onDelete(active.id)}
-                className="rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
-              >
-                Delete
-              </button>
-            )}
 
             <button
               type="submit"
@@ -468,6 +522,17 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
+      />
+
+      <ConfirmModal
+        isOpen={deleteTarget !== null}
+        title="Delete book"
+        message={`Are you sure you want to permanently delete "${deleteTarget?.title ?? 'this book'}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
       />
     </>
   );

@@ -135,17 +135,22 @@ const findBooks = async (
   searchTerms: string[],
   userContext: UserContext,
   requestedLimit: number,
+  originalMessage?: string,
 ): Promise<{ items: RecommendationItem[]; linkedIn: Awaited<ReturnType<typeof suggestLinkedInCourses>> }> => {
-  const searchInput = searchTerms.join(', ');
+  // Combine original user message with LLM-extracted terms for richer semantic embedding.
+  const parts = [originalMessage, searchTerms.join(', ')].filter((s): s is string => Boolean(s && s.trim()));
+  const searchInput = parts.join('. ') || searchTerms.join(', ');
   const preferredCategory = facultyToCategory(userContext.faculty);
   const intakeYear = userContext.intakeYear;
 
   const books = await retrieveCandidateBooks(searchInput, 200, preferredCategory, intakeYear);
   const associations = buildAssociationRules(books);
+  // requireMatch: false — vector search already filtered by semantic similarity, so we don't need
+  // a second strict token-level match (which throws away good semantic matches).
   const ranked = recommendBooks(
     books,
     searchInput,
-    { onlyAvailable: true, favorPopular: true, limit: Math.max(12, requestedLimit * 2), requireMatch: true },
+    { onlyAvailable: true, favorPopular: true, limit: Math.max(12, requestedLimit * 2), requireMatch: false },
     associations,
   );
 
@@ -255,6 +260,7 @@ export async function POST(request: Request) {
           aiResult.searchTerms.length ? aiResult.searchTerms : [message],
           userContext,
           3,
+          message,
         );
 
         return NextResponse.json({
@@ -283,7 +289,7 @@ export async function POST(request: Request) {
           });
         }
 
-        const { items, linkedIn } = await findBooks(aiResult.searchTerms, userContext, requestedLimit);
+        const { items, linkedIn } = await findBooks(aiResult.searchTerms, userContext, requestedLimit, message);
 
         if (!items.length) {
           return NextResponse.json({
