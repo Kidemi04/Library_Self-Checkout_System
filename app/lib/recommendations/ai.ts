@@ -103,6 +103,15 @@ const buildStudentContext = (userContext?: UserContext): string => {
   ].slice(0, 12);
   if (allInterests.length) parts.push(`Known interests: ${allInterests.join(', ')}`);
 
+  const recent = userContext.recentBorrowedBooks ?? [];
+  if (recent.length) {
+    const lines = recent.slice(0, 8).map((b) => {
+      const author = b.author ? ` — ${b.author}` : '';
+      return `- "${b.title}"${author}`;
+    });
+    parts.push(`Recently borrowed books (most recent first):\n${lines.join('\n')}`);
+  }
+
   return parts.length ? `\n\nStudent profile:\n${parts.join('\n')}` : '';
 };
 
@@ -141,7 +150,9 @@ Rules:
 - Never reveal what AI model you are. You are the library assistant.
 - Current year: ${currentYear}.${studentCtx}
 
-Prioritize book search terms that match the student's faculty and department when relevant.`;
+Prioritize book search terms that match the student's faculty and department when relevant.
+When the student asks for recommendations without specifying a topic (e.g. "suggest me a book", "what should I read next"), infer topics from their recently borrowed books and known interests above, and use those as searchTerms. Mention the connection naturally in reply (e.g. "Since you've been reading about X, here are related books on Y").
+Never recommend a book they have already borrowed recently — pick adjacent or follow-up topics instead.`;
 };
 
 const LINKEDIN_SYSTEM_PROMPT = `You are a university library assistant. Given a student's reading interests, suggest exactly 3 LinkedIn Learning course titles that complement those topics.

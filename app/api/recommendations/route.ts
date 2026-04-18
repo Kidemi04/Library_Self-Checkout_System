@@ -154,7 +154,16 @@ const findBooks = async (
     associations,
   );
 
-  const finalList = diversify(ranked, requestedLimit);
+  const borrowedTitles = new Set(
+    (userContext.recentBorrowedBooks ?? [])
+      .map((b) => b.title?.toLowerCase().trim())
+      .filter((t): t is string => Boolean(t)),
+  );
+  const filtered = borrowedTitles.size
+    ? ranked.filter((rec) => !borrowedTitles.has(rec.book.title?.toLowerCase().trim() ?? ''))
+    : ranked;
+
+  const finalList = diversify(filtered, requestedLimit);
   const items = finalList.map(toRecommendationItem);
   const linkedIn = await suggestLinkedInCourses(searchTerms);
 
@@ -215,7 +224,7 @@ export async function POST(request: Request) {
   }
 
   // Step 4: Fetch user context
-  let userContext: UserContext = { historyTags: [], savedInterests: [], faculty: null, department: null, intakeYear: null };
+  let userContext: UserContext = { historyTags: [], recentBorrowedBooks: [], savedInterests: [], faculty: null, department: null, intakeYear: null };
   try {
     const { user } = await getDashboardSession();
     if (user) userContext = await fetchUserContext(user.id);
