@@ -77,6 +77,7 @@ type RawBookRow = {
   publisher: string | null;
   publication_year: string | null;
   cover_image_url: string | null;
+  category: string | null;
   created_at: string | null;
   updated_at: string | null;
   copies: RawCopyRow[] | null;
@@ -157,6 +158,7 @@ const mapBookRow = (row: RawBookRow): Book => {
     publisher: row.publisher ?? null,
     publicationYear: row.publication_year ?? null,
     tags,
+    category: row.category ?? null,
     copies,
     totalCopies: copies.length,
     availableCopies,
@@ -415,6 +417,7 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
         publisher,
         publication_year,
         cover_image_url,
+        category,
         created_at,
         updated_at,
          copies:Copies(
@@ -534,7 +537,7 @@ export async function fetchHoldsForStaff() {
       placed_at,
       ready_at,
       expires_at,
-      book:books (
+      book:Books (
         title,
         cover_image_url
       ),

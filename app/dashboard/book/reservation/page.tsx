@@ -8,6 +8,7 @@ import {
   type PatronHold,
 } from '@/app/lib/supabase/queries';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import CancelHoldButton from '@/app/ui/dashboard/cancelHoldButton';
 
 const dateFormatter = new Intl.DateTimeFormat('en-MY', {
   day: 'numeric',
@@ -171,15 +172,11 @@ const ReservationCard = ({ hold }: { hold: PatronHold }) => {
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-sm dark:border-slate-800">
         <p className={`text-sm ${meta.accent}`}>{readyMessage}</p>
         {cancellationAllowed ? (
-          <form action={cancelReservation}>
-            <input type="hidden" name="holdId" value={hold.id} />
-            <button
-              type="submit"
-              className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 transition hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
-            >
-              Cancel hold
-            </button>
-          </form>
+          <CancelHoldButton
+            holdId={hold.id}
+            bookTitle={hold.title}
+            cancelAction={cancelReservation}
+          />
         ) : null}
       </div>
     </li>

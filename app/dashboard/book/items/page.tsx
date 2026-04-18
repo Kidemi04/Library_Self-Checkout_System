@@ -33,7 +33,9 @@ function isItemStatus(x: unknown): x is ItemStatus {
 function toUIBook(db: any) {
   const available = db.availableCopies ?? db.available_copies ?? 0;
   const total = db.totalCopies ?? db.total_copies ?? db.copies?.length ?? 0;
-  const derivedStatus: ItemStatus = available > 0 ? 'available' : 'checked_out';
+  const onLoan = (db.copies ?? []).filter((c: any) => c.status === 'on_loan').length;
+  const derivedStatus: ItemStatus =
+    available > 0 ? 'available' : onLoan > 0 ? 'checked_out' : 'maintenance';
 
   return {
     id: db.id,
@@ -41,6 +43,7 @@ function toUIBook(db: any) {
     author: db.author ?? 'Unknown',
     cover: db.coverImageUrl ?? db.cover_image_url ?? null,
     tags: db.tags ?? null,
+    category: db.category ?? null,
     classification: db.classification ?? null,
     isbn: db.isbn ?? null,
     year: db.publicationYear ?? db.publication_year ?? db.year ?? null,
@@ -48,6 +51,7 @@ function toUIBook(db: any) {
     status: isItemStatus(db.status) ? (db.status as ItemStatus) : derivedStatus,
     copies_available: available,
     total_copies: total,
+    copies_on_loan: (db.copies ?? []).filter((c: any) => c.status === 'on_loan').length,
   };
 }
 
@@ -143,7 +147,8 @@ export default async function BookItemsPage({
         <BookList
           books={books}
           variant={view}
-          patronId={patronId} // used by PlaceHoldButton
+          patronId={patronId}
+          isStaff={user.role !== 'user'}
         />
       </section>
     </main>

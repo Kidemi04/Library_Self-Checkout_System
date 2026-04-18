@@ -14,6 +14,12 @@ export default async function RecommendationsPage() {
     <main className="space-y-8">
       <title>Recommendations | Dashboard</title>
 
+      <DashboardTitleBar
+        subtitle="Reading assistant"
+        title="AI Book Recommendations"
+        description="Share what you want to read, and I will recommend books from the catalog"
+      />
+
       <StudentChat studentName={displayName} />
     </main>
   );
