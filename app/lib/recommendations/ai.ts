@@ -1,5 +1,5 @@
 import type { UserContext } from '@/app/lib/recommendations/user-context';
-import { tokenizeInterests } from '@/app/lib/recommendations/recommender';
+import { tokenizeInterests, expandAcronyms } from '@/app/lib/recommendations/recommender';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -46,6 +46,131 @@ export function facultyToCategory(faculty: string | null): string | null {
   if (!faculty) return null;
   return FACULTY_CATEGORY_MAP[faculty.toLowerCase()] ?? null;
 }
+
+// ─── Personalized request detection ──────────────────────────────────────────
+
+const PERSONALIZED_PATTERNS = [
+  /\bbased\s+on\s+(my|the)\b/i,
+  /\bfor\s+me\b/i,
+  /\bpersonali[sz]ed?\b/i,
+  /\bmy\s+(faculty|interest|interests|profile|history|borrow|borrows|borrowing|reading|loans?|preferences?)\b/i,
+  /\b(use|using)\s+my\b/i,
+  /\brecommend\s+(me\s+)?(some\s+)?books?\s+(for|to)\s+me\b/i,
+];
+
+export const isPersonalizedRequest = (message: string): boolean =>
+  PERSONALIZED_PATTERNS.some((p) => p.test(message));
+
+const ASSIGNMENT_PATTERNS = [
+  /\b(assignment|coursework|homework|essay|research\s+paper|thesis|dissertation)\b/i,
+  /\bfor\s+my\s+(class|course|subject|module|assignment|project)\b/i,
+  /\bacademic\s+(assignment|work|project)\b/i,
+];
+
+const AVAILABLE_PATTERNS = [
+  /\bwhat'?s?\s+(books?\s+)?available\b/i,
+  /\bavailable\s+(now|right\s+now|to\s+borrow|today)\b/i,
+  /\bcan\s+i\s+borrow\s+(now|today|right\s+now)\b/i,
+  /\bin\s+stock\b/i,
+  /\bbooks?\s+i\s+can\s+borrow\s+(now|right\s+now|today)\b/i,
+];
+
+const INTERESTING_PATTERNS = [
+  /\bsomething\s+(interesting|cool|fun|new|good|nice)\b/i,
+  /\bsurprise\s+me\b/i,
+  /\b(suggest|recommend)\s+something\b/i,
+];
+
+export type PresetIntent = 'personalized' | 'assignment' | 'available' | 'interesting';
+
+export const detectPresetIntent = (message: string): PresetIntent | null => {
+  if (ASSIGNMENT_PATTERNS.some((p) => p.test(message))) return 'assignment';
+  if (AVAILABLE_PATTERNS.some((p) => p.test(message))) return 'available';
+  if (INTERESTING_PATTERNS.some((p) => p.test(message))) return 'interesting';
+  if (isPersonalizedRequest(message)) return 'personalized';
+  return null;
+};
+
+export type PersonalizedSuggestion = {
+  searchTerms: string[];
+  reply: string;
+  hasContext: boolean;
+  kind: PresetIntent;
+};
+
+export const buildPersonalizedSuggestion = (
+  userContext: UserContext,
+  kind: PresetIntent = 'personalized',
+): PersonalizedSuggestion => {
+  const searchTerms: string[] = [];
+  const reasonParts: string[] = [];
+
+  if (userContext.faculty) {
+    const cat = facultyToCategory(userContext.faculty);
+    if (cat) searchTerms.push(cat.toLowerCase());
+    reasonParts.push(`your faculty in ${userContext.faculty}`);
+  }
+
+  if (userContext.savedInterests?.length) {
+    const interests = userContext.savedInterests.slice(0, 4);
+    searchTerms.push(...interests);
+    reasonParts.push(`your saved interests (${interests.slice(0, 3).join(', ')})`);
+  }
+
+  if (userContext.historyTags?.length) {
+    const histTags = userContext.historyTags.slice(0, 4);
+    searchTerms.push(...histTags);
+    if (!userContext.savedInterests?.length) {
+      reasonParts.push(`topics from your past loans (${histTags.slice(0, 3).join(', ')})`);
+    }
+  }
+
+  if (userContext.recentBorrowedBooks?.length) {
+    const top2 = userContext.recentBorrowedBooks.slice(0, 2);
+    const titles = top2.map((b) => `"${b.title}"`).join(' and ');
+    reasonParts.push(`your recent ${top2.length > 1 ? 'borrows' : 'borrow'} of ${titles}`);
+  }
+
+  const dedupedTerms = [...new Set(searchTerms.map((t) => t.toLowerCase().trim()).filter(Boolean))].slice(0, 6);
+
+  if (reasonParts.length === 0) {
+    if (kind === 'available') {
+      return {
+        kind,
+        searchTerms: [],
+        reply: 'Here are some books currently available to borrow from our catalog.',
+        hasContext: false,
+      };
+    }
+    const noCtxReply =
+      kind === 'assignment'
+        ? 'I do not see any faculty or coursework info on your profile yet. Could you tell me what subject your assignment is on so I can suggest relevant books?'
+        : kind === 'interesting'
+          ? 'I do not have any reading history for you yet. Could you tell me what topics or subjects catch your interest?'
+          : 'I do not have any borrow history or profile info for you yet. Could you tell me what topics or subjects you are interested in so I can suggest something?';
+    return { kind, searchTerms: [], reply: noCtxReply, hasContext: false };
+  }
+
+  const reasonText = reasonParts.join(' and ');
+  let reply: string;
+  switch (kind) {
+    case 'assignment':
+      reply = `For your academic assignment, based on ${reasonText}, here are books that should support your coursework.`;
+      break;
+    case 'available':
+      reply = `Here are currently available books that match ${reasonText}.`;
+      break;
+    case 'interesting':
+      reply = `Here is something you might enjoy reading, picked based on ${reasonText}.`;
+      break;
+    case 'personalized':
+    default:
+      reply = `Based on ${reasonText}, here are some books you might enjoy.`;
+      break;
+  }
+
+  return { kind, searchTerms: dedupedTerms, reply, hasContext: true };
+};
 
 // ─── Env ──────────────────────────────────────────────────────────────────────
 
@@ -142,7 +267,12 @@ Response format:
 
 Rules:
 - reply must always be plain text. Never use **bold**, *italic*, bullet points, or markdown.
-- For "find_books" or "both": searchTerms should be 3-8 short topic keywords useful for searching a library catalog. Empty array otherwise.
+- For "find_books" or "both": searchTerms must be the SUBJECT/TOPIC the student wants — proper noun phrases as they would appear in a book title or table of contents. NEVER include filler verbs (give, show, find, recommend, suggest, want), quantifiers (some, any, a few), or pronouns (me, my). Expand acronyms to their full form (AI → "artificial intelligence", ML → "machine learning", DB → "database", OOP → "object-oriented programming"). Use 2-6 multi-word phrases when possible.
+- Examples:
+  • "give me some AI books" → searchTerms: ["artificial intelligence", "machine learning", "neural networks"]
+  • "I need books for my marketing assignment" → searchTerms: ["marketing strategy", "consumer behavior", "brand management"]
+  • "recommend something on databases" → searchTerms: ["database systems", "SQL", "relational databases"]
+  • "show me good react books" → searchTerms: ["React", "frontend development", "JavaScript frameworks"]
 - For "answer" or "both": give a concise, clear academic explanation in reply (2-4 sentences max).
 - For "greeting": reply warmly and invite the student to ask for books or academic help.
 - For "off_topic": politely decline and redirect to books or academic topics.
@@ -272,33 +402,65 @@ const callAI = async (
   const { provider, geminiApiKey } = getEnv();
   const resolved = providerOverride ?? provider;
 
+  // Explicit provider choice from the UI → stick to that one, no silent fallback.
   if (resolved === 'lmstudio') {
     return callLMStudio(systemPrompt, userMessage, options);
   }
+  if (resolved === 'gemini') {
+    return callGemini(systemPrompt, userMessage, {
+      temperature: options?.temperature,
+      maxOutputTokens: options?.maxTokens,
+    });
+  }
 
-  if (resolved === 'gemini' || geminiApiKey) {
+  // No explicit override → auto-pick: prefer Gemini when key is present, else LM Studio.
+  if (geminiApiKey) {
     const result = await callGemini(systemPrompt, userMessage, {
       temperature: options?.temperature,
       maxOutputTokens: options?.maxTokens,
     });
     if (result) return result;
   }
-
-  // Fallback to LM Studio if Gemini fails
   return callLMStudio(systemPrompt, userMessage, options);
 };
 
-// ─── Fallback when AI is unavailable ─────────────────────────────────────────
+// ─── AI unavailable error ────────────────────────────────────────────────────
 
-const buildFallbackResult = (message: string): AiResult => {
-  const tokens = tokenizeInterests(message);
-  return {
-    intent: 'find_books',
-    reply: 'Let me search the catalog based on your interests.',
-    searchTerms: tokens.slice(0, 6),
-    followUpQuestion: 'Any authors or topics you already enjoy?',
-  };
-};
+export class AiUnavailableError extends Error {
+  constructor(message = 'AI service unavailable') {
+    super(message);
+    this.name = 'AiUnavailableError';
+  }
+}
+
+// ─── AI health check ─────────────────────────────────────────────────────────
+// Used to guard every recommendation request. Result is cached briefly so we
+// don't make an extra ping on every single request.
+
+type HealthCacheEntry = { healthy: boolean; checkedAt: number };
+const aiHealthCache = new Map<string, HealthCacheEntry>();
+const AI_HEALTH_CACHE_MS = 15_000;
+
+export async function checkAiAvailable(
+  providerOverride?: 'lmstudio' | 'gemini',
+): Promise<boolean> {
+  const key = providerOverride ?? 'auto';
+  const now = Date.now();
+  const cached = aiHealthCache.get(key);
+  if (cached && now - cached.checkedAt < AI_HEALTH_CACHE_MS) {
+    return cached.healthy;
+  }
+
+  const raw = await callAI(
+    'Respond with only the single word: ok',
+    'ping',
+    { temperature: 0, maxTokens: 4 },
+    providerOverride,
+  );
+  const healthy = Boolean(raw && raw.trim().length);
+  aiHealthCache.set(key, { healthy, checkedAt: now });
+  return healthy;
+}
 
 // ─── Main unified AI call ─────────────────────────────────────────────────────
 
@@ -307,44 +469,40 @@ export async function classifyAndExtract(
   userContext?: UserContext,
   providerOverride?: 'lmstudio' | 'gemini',
 ): Promise<AiResult> {
+  const systemPrompt = buildUnifiedSystemPrompt(userContext);
+  const raw = await callAI(systemPrompt, message, { temperature: 0.3, maxTokens: 512 }, providerOverride);
+
+  if (!raw) throw new AiUnavailableError();
+
+  const jsonStr = extractJson(raw);
+  let parsed: Partial<AiResult> | null = null;
+
   try {
-    const systemPrompt = buildUnifiedSystemPrompt(userContext);
-    const raw = await callAI(systemPrompt, message, { temperature: 0.3, maxTokens: 512 }, providerOverride);
-
-    if (!raw) return buildFallbackResult(message);
-
-    const jsonStr = extractJson(raw);
-    let parsed: Partial<AiResult> | null = null;
-
-    try {
-      parsed = JSON.parse(jsonStr) as Partial<AiResult>;
-    } catch {
-      console.error('[AI] JSON parse failed:', jsonStr);
-      return buildFallbackResult(message);
-    }
-
-    const intent: AiIntent =
-      ['find_books', 'answer', 'both', 'greeting', 'off_topic'].includes(parsed.intent as string)
-        ? (parsed.intent as AiIntent)
-        : 'find_books';
-
-    const reply = stripMarkdown(
-      typeof parsed.reply === 'string' && parsed.reply.trim()
-        ? parsed.reply.trim()
-        : 'Here are some books that might help you.',
-    );
-
-    const searchTerms = Array.isArray(parsed.searchTerms)
-      ? parsed.searchTerms.map((t) => String(t).trim()).filter(Boolean).slice(0, 8)
-      : [];
-
-    const followUpQuestion =
-      typeof parsed.followUpQuestion === 'string' ? parsed.followUpQuestion.trim() : '';
-
-    return { intent, reply, searchTerms, followUpQuestion };
+    parsed = JSON.parse(jsonStr) as Partial<AiResult>;
   } catch {
-    return buildFallbackResult(message);
+    console.error('[AI] JSON parse failed:', jsonStr);
+    throw new AiUnavailableError('AI returned invalid response');
   }
+
+  const intent: AiIntent =
+    ['find_books', 'answer', 'both', 'greeting', 'off_topic'].includes(parsed.intent as string)
+      ? (parsed.intent as AiIntent)
+      : 'find_books';
+
+  const reply = stripMarkdown(
+    typeof parsed.reply === 'string' && parsed.reply.trim()
+      ? parsed.reply.trim()
+      : 'Here are some books that might help you.',
+  );
+
+  const searchTerms = Array.isArray(parsed.searchTerms)
+    ? expandAcronyms(parsed.searchTerms.map((t) => String(t).trim()).filter(Boolean)).slice(0, 8)
+    : [];
+
+  const followUpQuestion =
+    typeof parsed.followUpQuestion === 'string' ? parsed.followUpQuestion.trim() : '';
+
+  return { intent, reply, searchTerms, followUpQuestion };
 }
 
 // ─── LinkedIn course suggestions ──────────────────────────────────────────────

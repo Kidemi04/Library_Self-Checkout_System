@@ -29,13 +29,54 @@ type RecommendationResponse = {
     | 'reject'
     | 'no_matches'
     | 'error'
-    | 'rate_limited';
+    | 'rate_limited'
+    | 'ai_unavailable';
   reply?: string;
   recommendations?: RecommendationItem[];
   linkedInSuggestions?: LinkedInSuggestion[];
   interests?: string[];
   summary?: string | null;
   followUpQuestion?: string | null;
+};
+
+type LearningStageBook = {
+  id: string;
+  title: string;
+  author: string | null;
+  availableCopies: number;
+  totalCopies: number;
+  reason: string;
+};
+
+type LearningStage = {
+  level: 'Beginner' | 'Intermediate' | 'Advanced';
+  description: string;
+  books: LearningStageBook[];
+};
+
+type LearningPathResponse = {
+  ok: boolean;
+  topic?: string;
+  stages?: LearningStage[];
+  error?: string;
+};
+
+const STAGE_STYLES: Record<LearningStage['level'], { bg: string; badge: string; number: string }> = {
+  Beginner: {
+    bg: 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-800/40 dark:bg-emerald-900/10',
+    badge: 'text-emerald-700 dark:text-emerald-300',
+    number: 'bg-emerald-600',
+  },
+  Intermediate: {
+    bg: 'border-amber-200 bg-amber-50/60 dark:border-amber-800/40 dark:bg-amber-900/10',
+    badge: 'text-amber-700 dark:text-amber-300',
+    number: 'bg-amber-600',
+  },
+  Advanced: {
+    bg: 'border-rose-200 bg-rose-50/60 dark:border-rose-800/40 dark:bg-rose-900/10',
+    badge: 'text-rose-700 dark:text-rose-300',
+    number: 'bg-rose-600',
+  },
 };
 
 type ChatMessage = {
@@ -150,6 +191,10 @@ export default function StudentChat({
   const [aiProvider, setAiProvider] = useState<'lmstudio' | 'gemini'>('lmstudio');
   const [isSavingInterests, setIsSavingInterests] = useState(false);
   const [showQuickPrompts, setShowQuickPrompts] = useState(true);
+  const [learningPath, setLearningPath] = useState<LearningStage[] | null>(null);
+  const [learningPathTopic, setLearningPathTopic] = useState<string | null>(null);
+  const [learningPathLoading, setLearningPathLoading] = useState(false);
+  const learningPathRequestRef = useRef(0);
   const messagesRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lastSentAtRef = useRef<number>(0);
@@ -213,6 +258,10 @@ export default function StudentChat({
     setStickToBottom(true);
     setInputValue('');
     setIsAssistantTyping(false);
+    setLearningPath(null);
+    setLearningPathTopic(null);
+    setLearningPathLoading(false);
+    learningPathRequestRef.current += 1;
     lastSentAtRef.current = 0;
   };
 
@@ -313,6 +362,10 @@ export default function StudentChat({
         response.ok && data?.reply ? data.reply : data?.reply ?? buildErrorReply();
 
       const recs = data?.recommendations ?? [];
+      const interests = data?.interests ?? [];
+      const topInterest = interests.find((i) => i && i.trim().length > 0) ?? null;
+      const shouldFetchPath = recs.length > 0 && Boolean(topInterest);
+
       setMessages((prev) => [
         ...prev,
         {
@@ -326,7 +379,33 @@ export default function StudentChat({
 
       setLinkedInSuggestions(data?.linkedInSuggestions ?? []);
 
+      if (shouldFetchPath && topInterest) {
+        const requestId = ++learningPathRequestRef.current;
+        setLearningPathTopic(topInterest);
+        setLearningPath(null);
+        setLearningPathLoading(true);
+
+        fetch('/api/learning-path', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic: topInterest }),
+        })
+          .then((r) => r.json() as Promise<LearningPathResponse>)
+          .then((lp) => {
+            if (requestId !== learningPathRequestRef.current) return;
+            setLearningPath(lp?.ok && lp.stages?.length ? lp.stages : null);
+            setLearningPathLoading(false);
+          })
+          .catch(() => {
+            if (requestId !== learningPathRequestRef.current) return;
+            setLearningPath(null);
+            setLearningPathLoading(false);
+          });
+      }
+
       if (response.status === 429 && data?.reply) {
+        setSendNotice(data.reply);
+      } else if ((response.status === 503 || data?.kind === 'ai_unavailable') && data?.reply) {
         setSendNotice(data.reply);
       } else {
         setSendNotice(null);
@@ -602,7 +681,7 @@ export default function StudentChat({
                             </span>
                             {rec.availableCopies > 0 ? (
                               <Link
-                                href={searchUrl}
+                                href={`/dashboard/book/checkout?bookId=${encodeURIComponent(rec.id)}`}
                                 className="shrink-0 rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-700 transition"
                               >
                                 Borrow
@@ -692,6 +771,106 @@ export default function StudentChat({
             <span className="h-2 w-2 animate-ping rounded-full bg-slate-400 dark:bg-slate-500" />
             Library Assistant is typing...
           </div>
+        ) : null}
+
+        {(learningPathLoading || learningPath?.length) && learningPathTopic ? (
+          <section className="mt-6 border-t border-slate-200 pt-5 dark:border-slate-700">
+            <div className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-red-600">
+                <path d="M12 2 2 7l10 5 10-5-10-5Z" />
+                <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Recommended learning path for{' '}
+                <span className="text-red-600 dark:text-red-400">{learningPathTopic}</span>
+              </h3>
+            </div>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Books from our catalog arranged from beginner to advanced.
+            </p>
+
+            {learningPathLoading && !learningPath ? (
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-400">
+                Building a beginner-to-advanced path…
+              </div>
+            ) : null}
+
+            {learningPath?.length ? (
+              <div className="mt-4 space-y-3">
+                {learningPath.map((stage, stageIdx) => {
+                  const styles = STAGE_STYLES[stage.level];
+                  return (
+                    <div key={stage.level} className={clsx('rounded-2xl border p-4', styles.bg)}>
+                      <div className="flex items-start gap-3">
+                        <span className={clsx('inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white', styles.number)}>
+                          {stageIdx + 1}
+                        </span>
+                        <div>
+                          <p className={clsx('text-sm font-semibold', styles.badge)}>{stage.level}</p>
+                          <p className="text-xs text-slate-600 dark:text-slate-400">{stage.description}</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        {stage.books.map((book) => {
+                          const bookSearch = `/dashboard/book/items?q=${encodeURIComponent(book.title)}`;
+                          const borrowUrl = `/dashboard/book/checkout?bookId=${encodeURIComponent(book.id)}`;
+                          return (
+                            <div
+                              key={book.id}
+                              className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-900/60"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <Link
+                                    href={bookSearch}
+                                    className="block text-sm font-medium text-slate-900 hover:text-red-600 dark:text-slate-100 dark:hover:text-red-400 line-clamp-2"
+                                  >
+                                    {book.title}
+                                  </Link>
+                                  {book.author ? (
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">by {book.author}</p>
+                                  ) : null}
+                                  <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-500">{book.reason}</p>
+                                </div>
+                                <span
+                                  className={clsx(
+                                    'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                                    book.availableCopies > 0
+                                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                                      : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+                                  )}
+                                >
+                                  {book.availableCopies > 0
+                                    ? `${book.availableCopies}/${book.totalCopies} available`
+                                    : 'On loan'}
+                                </span>
+                              </div>
+                              <div className="mt-2 flex justify-end">
+                                {book.availableCopies > 0 ? (
+                                  <Link
+                                    href={borrowUrl}
+                                    className="shrink-0 rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-700 transition"
+                                  >
+                                    Borrow
+                                  </Link>
+                                ) : (
+                                  <PlaceHoldButton
+                                    bookId={book.id}
+                                    patronId={userId}
+                                    bookTitle={book.title}
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
+          </section>
         ) : null}
       </div>}
 
