@@ -441,6 +441,7 @@ type ApiBook = {
   cover_image_url: string | null;
   available_copies?: number | null;
   total_copies?: number | null;
+  category?: string | null;
   copies: ApiBookCopy[] | null;
 };
 
@@ -512,6 +513,7 @@ const mapApiBookToBook = (apiBook: ApiBook): Book => {
     publisher: apiBook.publisher ?? null,
     publicationYear: apiBook.publication_year ?? null,
     tags: [],
+    category: apiBook.category ?? null,
     copies,
     totalCopies,
     availableCopies,
