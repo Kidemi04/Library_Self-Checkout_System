@@ -12,6 +12,7 @@ import {
   SparklesIcon,
   ChevronDownIcon, // Import icon for collapse indicator
   BellIcon,
+  BookmarkIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import BlurFade from '@/app/ui/magicUi/blurFade';
@@ -48,21 +49,14 @@ const generalLinks: NavItem[] = [
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];
 
+// Flat, student-friendly nav — no Catalogue dropdown
 const userLinks: NavItem[] = [
-  ...generalLinks.map((link) => {
-    // Find the Catalogue section to inject the extra sub-item
-    if (link.name === 'Catalogue') {
-      return {
-        ...link,
-        children: [
-          ...(link.children || []), // Keep existing user sub-items
-          { name: 'My Reservations', href: '/dashboard/book/reservation' },
-          { name: 'My History', href: '/dashboard/book/history' },
-        ],
-      };
-    }
-    return link;
-  }),
+  { name: 'Home', href: '/dashboard', icon: HomeIcon },
+  { name: 'Browse Books', href: '/dashboard/book/items', icon: BookOpenIcon },
+  { name: 'My Books', href: '/dashboard/my-books', icon: BookmarkIcon },
+  { name: 'Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
+  { name: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
+  { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];
 
 

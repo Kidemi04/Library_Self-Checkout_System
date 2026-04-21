@@ -12,11 +12,13 @@ import {
   fetchActiveLoans,
   fetchAvailableBooks,
   fetchDashboardSummary,
-  fetchRecentLoans
+  fetchRecentLoans,
+  fetchActiveHoldsForPatron,
 } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 import DashboardUserCard from '@/app/ui/dashboard/dashboardUserCard';
+import StudentDashboard from '@/app/ui/dashboard/student/studentDashboard';
 
 const roleLabel = (role: string): string => {
   if (role === 'admin') return 'Admin';
@@ -46,9 +48,23 @@ export default async function UserDashboardPage() {
 
   const isUser = user.role === 'user';
 
+  // Student gets a dedicated redesigned dashboard
+  if (isUser) {
+    const [activeLoans, holds] = await Promise.all([
+      fetchActiveLoans(undefined, user.id),
+      fetchActiveHoldsForPatron(user.id),
+    ]);
+    return (
+      <>
+        <title>Dashboard | Swinburne Library</title>
+        <StudentDashboard userName={user.name} activeLoans={activeLoans} holds={holds} />
+      </>
+    );
+  }
+
   const [books, activeLoans, summary, recentLoans] = await Promise.all([
     fetchAvailableBooks(),
-    fetchActiveLoans(undefined, isUser ? user.id : undefined),
+    fetchActiveLoans(),
     fetchDashboardSummary(),
     fetchRecentLoans(6),
   ]);

@@ -57,7 +57,14 @@ export default async function BorrowBooksPage({
         extraParams={{ mode: 'out' }}
       />
 
-      <CheckOutForm books={books} defaultDueDate={defaultDueDate} preSelectedBookId={preSelectedBookId} />
+      <CheckOutForm
+        books={books}
+        defaultDueDate={defaultDueDate}
+        preSelectedBookId={preSelectedBookId}
+        selfCheckout={!canProcessLoans}
+        selfUserId={!canProcessLoans ? user?.id : undefined}
+        selfUserName={!canProcessLoans ? (user?.name ?? user?.email ?? undefined) : undefined}
+      />
 
       <section className="space-y-4">
         <div className="flex items-center justify-between">

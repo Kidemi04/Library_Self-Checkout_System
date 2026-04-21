@@ -14,9 +14,13 @@ interface CheckOutFormProps {
   books: Book[];
   defaultDueDate: string;
   preSelectedBookId?: string;
+  /** When true, hides borrower fields and uses selfUserId/selfUserName as hidden inputs */
+  selfCheckout?: boolean;
+  selfUserId?: string;
+  selfUserName?: string;
 }
 
-export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId }: CheckOutFormProps) {
+export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId, selfCheckout, selfUserId, selfUserName }: CheckOutFormProps) {
   const [state, formAction] = useActionState(checkoutBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
   const borrowerIdRef = useRef<HTMLInputElement | null>(null);
@@ -301,52 +305,81 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
             ) : null}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="borrowerIdentifier">
-              Borrower ID
-            </label>
-            <input
-              id="borrowerIdentifier"
-              name="borrowerIdentifier"
-              type="text"
-              required
-              placeholder="Scan or type borrower ID"
-              ref={borrowerIdRef}
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
-            />
-          </div>
+          {selfCheckout ? (
+            <>
+              {/* Self-checkout: hidden fields + read-only identity line */}
+              <input type="hidden" name="borrowerIdentifier" value={selfUserId ?? ''} />
+              <input type="hidden" name="borrowerName" value={selfUserName ?? ''} />
+              <input type="hidden" name="dueDate" value={defaultDueDate} />
+              <div className="lg:col-span-2">
+                <div className="flex items-center gap-3 rounded-xl border border-swin-charcoal/10 bg-swin-ivory px-4 py-3 dark:border-white/10 dark:bg-white/5">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-swin-red/10 text-swin-red dark:bg-swin-red/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                    </svg>
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs text-swin-charcoal/50 dark:text-white/40">Borrowing as</p>
+                    <p className="text-sm font-semibold text-swin-charcoal dark:text-white">
+                      {selfUserName ?? 'You'}
+                    </p>
+                  </div>
+                  <span className="ml-auto rounded-full bg-swin-charcoal/8 px-2.5 py-1 text-xs text-swin-charcoal/60 dark:bg-white/8 dark:text-white/50">
+                    14-day loan
+                  </span>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="borrowerIdentifier">
+                  Borrower ID
+                </label>
+                <input
+                  id="borrowerIdentifier"
+                  name="borrowerIdentifier"
+                  type="text"
+                  required
+                  placeholder="Scan or type borrower ID"
+                  ref={borrowerIdRef}
+                  className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+                />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="borrowerName">
-              Borrower name
-            </label>
-            <input
-              id="borrowerName"
-              name="borrowerName"
-              type="text"
-              required
-              placeholder="Full name"
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="borrowerName">
+                  Borrower name
+                </label>
+                <input
+                  id="borrowerName"
+                  name="borrowerName"
+                  type="text"
+                  required
+                  placeholder="Full name"
+                  className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+                />
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="dueDate">
-              Due date
-            </label>
-            <input
-              id="dueDate"
-              name="dueDate"
-              type="date"
-              defaultValue={defaultDueDate}
-              required
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-            />
-          </div>
+              <div>
+                <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="dueDate">
+                  Due date
+                </label>
+                <input
+                  id="dueDate"
+                  name="dueDate"
+                  type="date"
+                  defaultValue={defaultDueDate}
+                  required
+                  className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                />
+              </div>
+            </>
+          )}
 
           <div className="lg:col-span-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <ActionMessage status={state.status} message={state.message} />
-            <SubmitButton disabled={!selectedCopyId} />
+            <SubmitButton disabled={!selectedCopyId} label={selfCheckout ? 'Borrow This Book' : 'Borrow book'} />
           </div>
         </form>
       </div>
@@ -354,7 +387,7 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId 
   );
 }
 
-function SubmitButton({ disabled }: { disabled: boolean }) {
+function SubmitButton({ disabled, label = 'Borrow book' }: { disabled: boolean; label?: string }) {
   const { pending } = useFormStatus();
 
   return (
@@ -363,7 +396,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
       disabled={disabled || pending}
       className="inline-flex items-center justify-center rounded-lg bg-swin-red px-5 py-2 text-sm font-semibold text-swin-ivory shadow-sm shadow-swin-red/30 transition hover:bg-swin-red/90 disabled:cursor-not-allowed disabled:bg-swin-charcoal/30 disabled:text-swin-ivory/60"
     >
-      {pending ? 'Processing…' : 'Borrow book'}
+      {pending ? 'Processing…' : label}
     </button>
   );
 }
