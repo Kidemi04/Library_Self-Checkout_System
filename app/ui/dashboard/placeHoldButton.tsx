@@ -17,7 +17,7 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 🔍 Check if the user already has a hold for this book, and what status it is
+  // Check if the user already has an active hold for this book
   useEffect(() => {
     const checkExistingHold = async () => {
       if (!patronId) return;
@@ -37,13 +37,7 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
       }
 
       if (data && data.length > 0) {
-        const status = data[0].status as string;
-        if (status === 'ready') {
-          setHoldState('ready');
-        } else {
-          // QUEUED / FULFILLED / etc – anything active we treat as queued for UI
-          setHoldState('queued');
-        }
+        setHoldState(data[0].status === 'ready' ? 'ready' : 'queued');
       } else {
         setHoldState('none');
       }
@@ -61,7 +55,6 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
       return;
     }
 
-    // Should be disabled anyway, but guard just in case
     if (holdState !== 'none') {
       setError('You already have a hold for this book.');
       return;
@@ -69,41 +62,20 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
 
     setLoading(true);
     try {
-      const { error: insertError } = await supabase.from('Holds').insert({
-        patron_id: patronId,
-        book_id: bookId,
-        status: 'queued',
-        placed_at: new Date().toISOString(),
+      const res = await fetch('/api/holds/place', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookId, bookTitle: bookTitle ?? '' }),
       });
 
-      if (insertError) {
-        console.error(insertError);
+      const data = await res.json();
 
-        const code = (insertError as any).code as string | undefined;
-        const message = (insertError as any).message as string | undefined;
-
-        const isDuplicate =
-          code === '23505' ||
-          (typeof message === 'string' &&
-            message.toLowerCase().includes('duplicate key'));
-
-        if (isDuplicate) {
-          setHoldState('queued');
-          setError('You already have an active hold for this book.');
-        } else {
-          setError('Failed to place hold. Please try again.');
-        }
+      if (!res.ok) {
+        setError(data.error ?? 'Failed to place hold. Please try again.');
         return;
       }
 
       setHoldState('queued');
-
-      // Notify the user that their hold was placed
-      fetch('/api/notifications/hold-placed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bookTitle: bookTitle ?? '' }),
-      }).catch(() => {});
     } catch (err) {
       console.error(err);
       setError('Something went wrong.');

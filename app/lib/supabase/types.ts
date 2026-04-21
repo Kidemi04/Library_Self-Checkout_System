@@ -38,6 +38,7 @@ export interface Book {
   publisher: string | null;
   publicationYear: string | null;
   tags: string[];
+  category: string | null;
   copies: Copy[];
   totalCopies: number;
   availableCopies: number;
