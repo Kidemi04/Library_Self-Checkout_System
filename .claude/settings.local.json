@@ -30,7 +30,9 @@
       "Bash(del \"c:\\\\Users\\\\User\\\\Documents\\\\GitHub\\\\Library_Self-Checkout_System\\\\AGENTS.md\")",
       "Bash(grep -l \"role === 'admin'\" c:/Users/User/Documents/GitHub/Library_Self-Checkout_System/app/dashboard/**/*.tsx c:/Users/User/Documents/GitHub/Library_Self-Checkout_System/app/dashboard/*.tsx)",
       "WebSearch",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(mv \"C:/Users/fongk/Documents/Assignment/Library_Self-Checkout_System/design-handoff-temp\" \"C:/Users/fongk/Documents/Assignment/design-handoff-temp\")",
+      "Read(//c/Users/fongk/Documents/Assignment/design-handoff-temp/design_handoff/**)"
     ]
   }
 }

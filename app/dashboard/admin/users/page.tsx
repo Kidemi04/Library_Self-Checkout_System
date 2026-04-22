@@ -6,8 +6,10 @@ import { supabaseBrowserClient } from '@/app/lib/supabase/client';
 import { addUserAction } from '@/app/actions/addUser';
 import { updateUserAction } from '@/app/actions/updateUser';
 import { deleteUserAction } from '@/app/actions/deleteUser';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import AdminShell from '@/app/ui/dashboard/adminShell';
 import ConfirmModal from '@/app/ui/dashboard/confirmModal';
+import RoleBadge from '@/app/ui/dashboard/primitives/RoleBadge';
+import UserAvatar from '@/app/ui/dashboard/primitives/UserAvatar';
 
 type ManagedRole = 'user' | 'staff' | 'admin';
 
@@ -508,17 +510,18 @@ export default function UserManagementPage() {
   };
 
   return (
-    <main className="space-y-8 text-slate-900 dark:text-slate-100">
+    <>
       <title>Manage Users | Admin</title>
-      
-      <DashboardTitleBar
-        subtitle="Admin Control Center"
+
+      <AdminShell
+        titleSubtitle="Admin Control Center"
         title="User Management"
         description="Invite staff or administrators and maintain their roles for the library checkout system."
-      />
+      >
+        <div className="space-y-8 text-swin-charcoal dark:text-white">
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/30">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Add staff member</h2>
+      <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 dark:border-white/10 dark:bg-swin-dark-surface dark:text-white">
+        <h2 className="font-display text-[20px] font-semibold tracking-tight text-swin-charcoal dark:text-white">Add staff member</h2>
         <form onSubmit={handleAddUser} className="mt-4 grid gap-4 md:grid-cols-[2fr_2fr_1fr_auto]">
             <input
               type="email"
@@ -577,17 +580,17 @@ export default function UserManagementPage() {
         </div>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/30">
-        <header className="flex flex-col gap-4 border-b border-slate-100 px-6 py-4 md:flex-row md:items-center md:justify-between dark:border-slate-800">
+      <section className="rounded-2xl border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface dark:text-white">
+        <header className="flex flex-col gap-4 border-b border-swin-charcoal/8 px-6 py-5 md:flex-row md:items-center md:justify-between dark:border-white/8">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Current users</h2>
-            <span className="text-sm text-slate-500 dark:text-slate-400">
+            <h2 className="font-display text-[22px] font-semibold tracking-tight text-swin-charcoal dark:text-white">Current users</h2>
+            <p className="mt-0.5 font-mono text-[11px] text-swin-charcoal/50 dark:text-white/50">
               {loading
                 ? 'Loading…'
                 : searchActive
                 ? `${filteredUsers.length} match${filteredUsers.length === 1 ? '' : 'es'} of ${users.length} account${users.length === 1 ? '' : 's'}`
                 : `${filteredUsers.length} account${filteredUsers.length === 1 ? '' : 's'}`}
-            </span>
+            </p>
           </div>
           <div className="w-full md:w-72">
             <label className="sr-only" htmlFor="manage-users-search">
@@ -636,15 +639,22 @@ export default function UserManagementPage() {
                   <Fragment key={user.id}>
                     <tr key={`${user.id}-row`}>
                     <td className="px-6 py-4">
-                      <input
-                        type="email"
-                        value={user.email}
-                        onChange={(event) => updateLocalUser(user.id, { email: event.target.value })}
-                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
-                        maxLength={254}
-                        autoComplete="off"
-                        inputMode="email"
-                      />
+                      <div className="flex items-center gap-3">
+                        <UserAvatar
+                          name={user.fullName || user.accountDisplayName || user.email}
+                          size="md"
+                          tone={user.role === 'admin' ? 'red' : user.role === 'staff' ? 'gold' : 'charcoal'}
+                        />
+                        <input
+                          type="email"
+                          value={user.email}
+                          onChange={(event) => updateLocalUser(user.id, { email: event.target.value })}
+                          className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+                          maxLength={254}
+                          autoComplete="off"
+                          inputMode="email"
+                        />
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <input
@@ -673,19 +683,23 @@ export default function UserManagementPage() {
                       />
                     </td>
                     <td className="px-6 py-4">
-                      <select
-                        value={user.role}
-                        onChange={(event) =>
-                          updateLocalUser(user.id, { role: event.target.value as ManagedRole })
-                        }
-                        className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 min-w-[7rem] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
-                      >
-                        {roleOptions.map((role) => (
-                          <option key={role} value={role}>
-                            {role.charAt(0).toUpperCase() + role.slice(1)}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="flex items-center gap-2">
+                        <RoleBadge role={user.role} />
+                        <select
+                          value={user.role}
+                          onChange={(event) =>
+                            updateLocalUser(user.id, { role: event.target.value as ManagedRole })
+                          }
+                          className="rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+                          aria-label="Change role"
+                        >
+                          {roleOptions.map((role) => (
+                            <option key={role} value={role}>
+                              {role.charAt(0).toUpperCase() + role.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="inline-flex items-center gap-2">
@@ -735,7 +749,25 @@ export default function UserManagementPage() {
             ) : (
               paginatedUsers.map((user) => (
                 <div key={user.id} className="p-4 space-y-4">
-                  
+
+                  {/* Identity row */}
+                  <div className="flex items-center gap-3">
+                    <UserAvatar
+                      name={user.fullName || user.accountDisplayName || user.email}
+                      size="lg"
+                      tone={user.role === 'admin' ? 'red' : user.role === 'staff' ? 'gold' : 'charcoal'}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-display text-[16px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+                        {user.fullName || user.accountDisplayName || 'Unnamed user'}
+                      </p>
+                      <p className="truncate font-mono text-[11px] text-swin-charcoal/50 dark:text-white/50">
+                        {user.email}
+                      </p>
+                    </div>
+                    <RoleBadge role={user.role} />
+                  </div>
+
                   {/* Header Grid: Aligns Name and Role on the same horizontal line */}
                   <div className="grid grid-cols-12 gap-3 items-end">
                     <div className="col-span-8">
@@ -745,9 +777,9 @@ export default function UserManagementPage() {
                       <input
                         type="text"
                         value={user.fullName}
-                        onChange={(e) => updateLocalUser(user.id, { 
-                          fullName: e.target.value, 
-                          profile: { display_name: e.target.value } 
+                        onChange={(e) => updateLocalUser(user.id, {
+                          fullName: e.target.value,
+                          profile: { display_name: e.target.value },
                         })}
                         className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
                       />
@@ -923,7 +955,9 @@ export default function UserManagementPage() {
           </div>
         </div>
       )}
-    </main>
+        </div>
+      </AdminShell>
+    </>
   );
 }
 

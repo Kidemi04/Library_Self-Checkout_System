@@ -3,7 +3,7 @@ export const revalidate = 0;
 
 import { getDashboardSession } from '@/app/lib/auth/session';
 
-import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import AdminShell from '@/app/ui/dashboard/adminShell';
 import StudentChat from '@/app/ui/dashboard/studentChat';
 
 export default async function RecommendationsPage() {
@@ -11,16 +11,16 @@ export default async function RecommendationsPage() {
   const displayName = user?.name ?? user?.username ?? user?.email ?? null;
 
   return (
-    <main className="space-y-8">
+    <>
       <title>Recommendations | Dashboard</title>
 
-      <DashboardTitleBar
-        subtitle="Reading assistant"
+      <AdminShell
+        titleSubtitle="Reading assistant"
         title="AI Book Recommendations"
-        description="Share what you want to read, and I will recommend books from the catalog"
-      />
-
-      <StudentChat studentName={displayName} />
-    </main>
+        description="Share what you want to read, and we will recommend books from the Sarawak Campus catalogue."
+      >
+        <StudentChat studentName={displayName} />
+      </AdminShell>
+    </>
   );
 }

@@ -11,10 +11,8 @@ import {
   QrCodeIcon,
   BookOpenIcon,
   UserCircleIcon,
-  UserGroupIcon,
   BookmarkIcon,
   ArrowPathIcon,
-  ClockIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import MobileMenu from '@/app/ui/dashboard/mobileMenu';
@@ -49,8 +47,8 @@ const BOTTOM_NAV_BY_ROLE: Record<DashboardRole, BottomNavItem[]> = {
     { key: 'overview', label: 'Overview', href: '/dashboard/admin', icon: HomeIcon },
     { key: 'catalogue', label: 'Catalogue', href: '/dashboard/book/items', icon: BookOpenIcon },
     { key: 'scan', label: 'Scan', href: '/dashboard/book/checkout', icon: QrCodeIcon, isCenter: true },
-    { key: 'users', label: 'Users', href: '/dashboard/admin/users', icon: UserGroupIcon },
-    { key: 'history', label: 'History', href: '/dashboard/book/history', icon: ClockIcon },
+    { key: 'alerts', label: 'Alerts', href: '/dashboard/notifications', icon: BellIcon },
+    { key: 'profile', label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
   ],
 };
 

@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { studentFaqSections } from '@/app/ui/dashboard/studentFaqData';
 import FaqScrollTopButton from '@/app/ui/dashboard/faqScrollTopButton';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import AdminShell from '@/app/ui/dashboard/adminShell';
 
 const quickHelpLinks = [
   {
@@ -44,15 +44,15 @@ export default async function StudentFaqPage() {
   }
 
   return (
-    <main className="space-y-8">
+    <>
       <title>Student FAQ | Dashboard</title>
 
-      <DashboardTitleBar
-        subtitle="Student Guide"
+      <AdminShell
+        titleSubtitle="Student Guide"
         title="How to Use the Library System"
         description="A step-by-step guide to borrowing, returning, and managing your loans. Learn about the 14-day loan period, due dates, renewals, and how to use the barcode scanner."
-      />
-
+      >
+        <div className="space-y-8">
       <section className="grid gap-4 md:grid-cols-3">
         {quickHelpLinks.map((item) => (
           <Link
@@ -158,6 +158,8 @@ export default async function StudentFaqPage() {
         </div>
       </section>
       <FaqScrollTopButton />
-    </main>
+        </div>
+      </AdminShell>
+    </>
   );
 }
