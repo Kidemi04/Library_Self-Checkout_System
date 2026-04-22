@@ -23,7 +23,9 @@ const config: Config = {
         '13': 'repeat(13, minmax(0, 1fr))',
       },
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', 'Segoe UI', 'Arial', 'sans-serif'],
+        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Arial', 'sans-serif'],
+        mono: ['"JetBrains Mono"', '"SF Mono"', 'Menlo', 'monospace'],
       },
       colors: {
         swin: {
@@ -31,8 +33,9 @@ const config: Config = {
           charcoal: '#343642',
           black: '#000000',
           ivory: '#FEFDFD',
-          'dark-bg': '#0F1115', // Deep Gunmetal
-          'dark-surface': '#181B21', // Deep Gunmetal Surface
+          gold: '#C9A961',
+          'dark-bg': '#0F1115',
+          'dark-surface': '#181B21',
         },
       },
     },

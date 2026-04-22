@@ -1,14 +1,80 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  HomeIcon,
+  BookOpenIcon,
+  UserGroupIcon,
+  UserCircleIcon,
+  AcademicCapIcon,
+  SparklesIcon,
+  BellIcon,
+  BookmarkIcon,
+  ArrowRightOnRectangleIcon,
+  ArrowPathIcon,
+  QrCodeIcon,
+  ClockIcon,
+  Cog6ToothIcon,
+  MagnifyingGlassIcon,
+  QuestionMarkCircleIcon,
+} from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import NavLinks from '@/app/ui/dashboard/navLinks';
-import AcmeLogo from '@/app/ui/acmeLogo';
+import { useTheme } from '@/app/ui/theme/themeProvider';
 import SignOutButton from '@/app/ui/dashboard/signOutButton';
 import ThemeToggle from '@/app/ui/theme/themeToggle';
-import BlurFade from '@/app/ui/magicUi/blurFade';
-import { useTheme } from '@/app/ui/theme/themeProvider';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
+import type { DashboardRole } from '@/app/lib/auth/types';
+import { useEffect, useState } from 'react';
+
+type NavItem = { icon: React.ElementType; label: string; href: string; badge?: number };
+
+const ADMIN_NAV: NavItem[] = [
+  { icon: HomeIcon,               label: 'Overview',       href: '/dashboard/admin' },
+  { icon: BookOpenIcon,           label: 'Catalogue',      href: '/dashboard/book/items' },
+  { icon: UserGroupIcon,          label: 'Users',          href: '/dashboard/admin/users' },
+  { icon: BookmarkIcon,           label: 'Reservations',   href: '/dashboard/book/holds' },
+  { icon: QrCodeIcon,             label: 'Borrow Books',   href: '/dashboard/book/checkout' },
+  { icon: ArrowPathIcon,          label: 'Return Books',   href: '/dashboard/book/checkin' },
+  { icon: ClockIcon,              label: 'Borrow History', href: '/dashboard/book/history' },
+  { icon: BellIcon,               label: 'Notifications',  href: '/dashboard/notifications' },
+  { icon: AcademicCapIcon,        label: 'Learning hub',   href: '/dashboard/learning' },
+  { icon: Cog6ToothIcon,          label: 'Settings',       href: '/dashboard/profile' },
+];
+
+const STAFF_NAV: NavItem[] = [
+  { icon: HomeIcon,               label: 'Desk',           href: '/dashboard' },
+  { icon: QrCodeIcon,             label: 'Borrow Books',   href: '/dashboard/book/checkout' },
+  { icon: ArrowPathIcon,          label: 'Return Books',   href: '/dashboard/book/checkin' },
+  { icon: BookmarkIcon,           label: 'Holds',          href: '/dashboard/book/holds' },
+  { icon: BookOpenIcon,           label: 'Catalogue',      href: '/dashboard/book/items' },
+  { icon: ClockIcon,              label: 'Borrow History', href: '/dashboard/book/history' },
+  { icon: BellIcon,               label: 'Notifications',  href: '/dashboard/notifications' },
+  { icon: AcademicCapIcon,        label: 'Learning hub',   href: '/dashboard/learning' },
+];
+
+const USER_NAV: NavItem[] = [
+  { icon: HomeIcon,               label: 'Dashboard',      href: '/dashboard' },
+  { icon: BookOpenIcon,           label: 'My Books',       href: '/dashboard/my-books' },
+  { icon: BookmarkIcon,           label: 'Reservations',   href: '/dashboard/my-books?tab=reservations' },
+  { icon: MagnifyingGlassIcon,    label: 'Catalogue',      href: '/dashboard/book/items' },
+  { icon: AcademicCapIcon,        label: 'Learning hub',   href: '/dashboard/learning' },
+  { icon: BellIcon,               label: 'Notifications',  href: '/dashboard/notifications' },
+  { icon: SparklesIcon,           label: 'Recommendations',href: '/dashboard/recommendations' },
+  { icon: QuestionMarkCircleIcon, label: 'FAQ',            href: '/dashboard/faq' },
+  { icon: UserCircleIcon,         label: 'Profile',        href: '/dashboard/profile' },
+];
+
+function getNav(role: DashboardRole): NavItem[] {
+  if (role === 'admin') return ADMIN_NAV;
+  if (role === 'staff') return STAFF_NAV;
+  return USER_NAV;
+}
+
+function getInitials(name: string | null | undefined): string {
+  if (!name) return '?';
+  return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+}
 
 type SideNavProps = {
   user: DashboardUserProfile;
@@ -16,97 +82,143 @@ type SideNavProps = {
 };
 
 export default function SideNav({ user, isBypassed }: SideNavProps) {
-  const isPrivileged = user.role === 'staff' || user.role === 'admin';
-  const roleLabel = user.role === 'admin' ? 'Admin' : user.role === 'staff' ? 'Staff' : 'User';
-  const { theme } = useTheme();
+  const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const res = await fetch('/api/notifications?filter=unread&limit=1');
+        if (!res.ok) return;
+        const { notifications } = await res.json();
+        setHasUnread(Array.isArray(notifications) && notifications.length > 0);
+      } catch { /* ignore */ }
+    };
+    check();
+    const timer = setInterval(check, 30_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (pathname === '/dashboard/notifications') setHasUnread(false);
+  }, [pathname]);
+
+  const nav = getNav(user.role);
+  const roleBadge = user.role === 'admin' ? 'ADMIN' : user.role === 'staff' ? 'STAFF' : 'STUDENT';
+  const initials = getInitials(user.name);
 
   return (
-    <aside
-      /* Container remains fixed and does not scroll as a whole */
-      className={clsx(
-        'fixed left-0 top-0 flex h-screen w-64 flex-col px-3 py-5 shadow-2xl backdrop-blur-2xl transition-all duration-300 md:px-4',
-        isDark
-          ? 'bg-slate-950/70 text-slate-100 ring-1 ring-white/20 shadow-white/5'
-          : 'bg-swin-charcoal/85 text-swin-ivory ring-1 ring-white/10 shadow-black/30',
-      )}
-      style={{
-        backdropFilter: 'blur(40px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-      }}
-    >
-      {/* 1. FIXED TOP: Logo */}
-      <div className="flex-none pb-4">
-        <BlurFade delay={0.1} yOffset={-10}>
-          <Link
-            className="group relative flex items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-swin-red to-swin-red/90 px-4 py-3 text-swin-ivory shadow-2xl shadow-swin-red/40 ring-1 ring-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-swin-red/50 hover:ring-white/30 active:scale-95"
-            href="/"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            <div className="relative text-swin-ivory">
-              <AcmeLogo />
-            </div>
-            <span className="relative hidden text-sm font-semibold uppercase tracking-wide md:block">
-              Library Self-Checkout
-            </span>
-          </Link>
-        </BlurFade>
+    <aside className={clsx(
+      'fixed left-0 top-0 flex h-screen w-64 flex-col border-r py-7 px-[18px]',
+      isDark
+        ? 'border-white/10 bg-swin-dark-surface text-white'
+        : 'border-swin-charcoal/10 bg-white text-swin-charcoal',
+    )}>
+      {/* Logo */}
+      <div className="mb-5 flex items-center gap-2.5 px-2.5 pb-5 border-b border-swin-charcoal/10 dark:border-white/10">
+        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-swin-charcoal font-display text-lg font-bold text-white dark:bg-white/10">
+          S
+        </div>
+        <div>
+          <p className="font-display text-[15px] font-semibold leading-none tracking-tight">Swinburne</p>
+          <p className="mt-0.5 font-mono text-[9px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">Library</p>
+        </div>
       </div>
 
-      {/* 2. FIXED TOP: User Card (Optional) */}
-      {isPrivileged && (
-        <div className="flex-none">
-          <BlurFade delay={0.2} yOffset={-10}>
-            <div
+      {/* Role badge */}
+      <div className={clsx(
+        'mx-2.5 mb-5 rounded-lg border p-2.5',
+        user.role === 'admin'
+          ? 'border-swin-red/30 bg-swin-red/8 dark:border-swin-red/40 dark:bg-swin-red/15'
+          : user.role === 'staff'
+          ? 'border-swin-gold/30 bg-swin-gold/8 dark:border-swin-gold/40 dark:bg-swin-gold/15'
+          : 'border-swin-charcoal/10 bg-transparent dark:border-white/10',
+      )}>
+        <p className={clsx(
+          'font-mono text-[9px] font-bold uppercase tracking-[2px]',
+          user.role === 'admin' ? 'text-swin-red' : user.role === 'staff' ? 'text-swin-gold' : 'text-swin-charcoal/50 dark:text-white/50',
+        )}>{roleBadge}</p>
+        <p className="mt-0.5 text-[11px] font-semibold text-swin-charcoal dark:text-white">
+          {user.name ?? user.email ?? 'Library Member'}
+        </p>
+        {isBypassed && (
+          <p className="mt-0.5 font-mono text-[9px] text-swin-red/70">Dev bypass active</p>
+        )}
+      </div>
+
+      <p className="mb-2 px-3 font-mono text-[9px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
+        Workspace
+      </p>
+
+      {/* Nav items */}
+      <nav className="flex-1 overflow-y-auto scrollbar-none space-y-0.5">
+        {nav.map((item) => {
+          const isActive = item.href === '/dashboard'
+            ? pathname === '/dashboard'
+            : item.href === '/dashboard/admin'
+            ? pathname === '/dashboard/admin'
+            : pathname.startsWith(item.href.split('?')[0]);
+          const Icon = item.icon;
+          const showDot = item.label === 'Notifications' && hasUnread;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
               className={clsx(
-                'relative overflow-hidden rounded-2xl border p-4 mb-2 text-sm backdrop-blur-xl transition-all duration-300 hover:shadow-xl',
-                isDark
-                  ? 'border-white/20 bg-white/10 text-slate-100 shadow-black/30 ring-1 ring-white/10'
-                  : 'border-swin-ivory/20 bg-black/30 text-swin-ivory shadow-black/40 ring-1 ring-white/5',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors',
+                isActive
+                  ? 'bg-swin-red/10 text-swin-red dark:bg-swin-red/15 dark:text-red-300'
+                  : 'text-swin-charcoal/65 hover:bg-swin-charcoal/5 hover:text-swin-charcoal dark:text-white/55 dark:hover:bg-white/8 dark:hover:text-white',
               )}
             >
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
-              <p className={clsx('relative z-10 text-[11px] uppercase tracking-wide', isDark ? 'text-white/60' : 'text-swin-ivory/80')}>
-                {`${roleLabel} access`}
-              </p>
-              <p className="relative z-10 mt-1 truncate text-sm font-semibold">{user.name ?? user.email ?? 'Librarian'}</p>
-              <p className={clsx('relative z-10 mt-2 text-[11px] font-medium uppercase tracking-wide', isDark ? 'text-emerald-300/80' : 'text-swin-red/90')}>
-                {isBypassed ? 'Dev bypass active' : `Role: ${roleLabel}`}
-              </p>
-            </div>
-          </BlurFade>
-        </div>
-      )}
-
-      {/* 3. SCROLLABLE MIDDLE: NavLinks */}
-      <nav className="flex-grow overflow-y-auto overflow-x-hidden scrollbar-none px-1 mt-4">
-        {/* Add a small padding-top here inside the scroll area.
-            This ensures the first button's hover/scale effect 
-            has space to expand without being clipped by the container.
-        */}
-        <div className="pt-4"> 
-          <NavLinks role={user.role} />
-        </div>
+              <span className="relative flex-shrink-0">
+                <Icon className="h-4 w-4" />
+                {showDot && (
+                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-swin-red ring-2 ring-white dark:ring-swin-dark-surface" />
+                )}
+              </span>
+              <span className="flex-1">{item.label}</span>
+              {item.badge != null && (
+                <span className={clsx(
+                  'rounded-full px-1.5 py-0.5 font-mono text-[10px] font-bold',
+                  isActive ? 'bg-swin-red text-white' : 'bg-swin-charcoal/10 text-swin-charcoal/60 dark:bg-white/10 dark:text-white/60',
+                )}>{item.badge}</span>
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* 4. FIXED BOTTOM: Controls */}
-      {/* Added 'mt-auto' and 'pt-4' to ensure it stays at the bottom with enough spacing.
-      */}
-      <div className="mt-auto flex-none pt-4">
-        <BlurFade delay={0.3} yOffset={10}>
-          <div className="flex flex-col gap-3">
-            <ThemeToggle context="sidebar" />
-            <SignOutButton
-              className={clsx(
-                'flex h-[44px] w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-all duration-300 md:justify-start md:px-3 active:scale-95',
-                isDark
-                  ? 'border-white/20 text-slate-200 hover:scale-[1.02] hover:bg-white/10 hover:text-white'
-                  : 'border-swin-ivory/30 bg-transparent text-swin-ivory hover:scale-[1.02] hover:bg-white/10 hover:text-swin-ivory',
-              )}
-              labelClassName="hidden md:block"
-            />
+      {/* Bottom controls */}
+      <div className="mt-4 space-y-2">
+        <button
+          onClick={toggleTheme}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-swin-charcoal/10 bg-swin-charcoal/5 px-3 py-2 text-[12px] font-medium text-swin-charcoal/70 transition hover:bg-swin-charcoal/10 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10"
+        >
+          {isDark ? '☀ Light mode' : '☾ Dark mode'}
+        </button>
+
+        {/* User footer */}
+        <div className="flex items-center gap-2.5 rounded-lg border border-swin-charcoal/10 p-2.5 dark:border-white/10">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-swin-red text-[12px] font-bold text-white">
+            {initials}
           </div>
-        </BlurFade>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[12px] font-semibold text-swin-charcoal dark:text-white">
+              {user.name ?? 'Library Member'}
+            </p>
+            <p className="truncate font-mono text-[10px] text-swin-charcoal/40 dark:text-white/40">
+              {user.email ?? ''}
+            </p>
+          </div>
+          <SignOutButton
+            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-swin-charcoal/40 transition hover:text-swin-red dark:text-white/40 dark:hover:text-red-400"
+            labelClassName="hidden"
+          />
+        </div>
       </div>
     </aside>
   );
