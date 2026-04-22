@@ -3,45 +3,66 @@
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   HomeIcon,
   BellIcon,
-  CameraIcon,
+  QrCodeIcon,
   BookOpenIcon,
   UserCircleIcon,
   UserGroupIcon,
+  BookmarkIcon,
+  ArrowPathIcon,
+  ClockIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import AcmeLogo from '@/app/ui/acmeLogo';
 import MobileMenu from '@/app/ui/dashboard/mobileMenu';
-import SignOutButton from '@/app/ui/dashboard/signOutButton';
 import ThemeToggle from '@/app/ui/theme/themeToggle';
 import { useTheme } from '@/app/ui/theme/themeProvider';
-import type { DashboardUserProfile } from '@/app/lib/auth/types';
+import type { DashboardUserProfile, DashboardRole } from '@/app/lib/auth/types';
 
-type NavItem = {
+type BottomNavItem = {
   key: string;
   label: string;
   href: string;
-  icon: React.ForwardRefExoticComponent<React.PropsWithoutRef<React.SVGProps<SVGSVGElement>> & { title?: string; titleId?: string } & React.RefAttributes<SVGSVGElement>>;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  isCenter?: boolean;
 };
 
-const navItems: NavItem[] = [
-  { key: 'home', label: 'Home', href: '/dashboard', icon: HomeIcon },
-  { key: 'catalog', label: 'Catalog', href: '/dashboard/book', icon: BookOpenIcon },
-  { key: 'scan', label: 'Camera', href: '/dashboard/cameraScan', icon: CameraIcon },
-  { key: 'notifications', label: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
-  { key: 'profile', label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
-];
+const BOTTOM_NAV_BY_ROLE: Record<DashboardRole, BottomNavItem[]> = {
+  user: [
+    { key: 'home', label: 'Home', href: '/dashboard', icon: HomeIcon },
+    { key: 'books', label: 'My Books', href: '/dashboard/my-books', icon: BookOpenIcon },
+    { key: 'scan', label: 'Scan', href: '/dashboard/book/checkout', icon: QrCodeIcon, isCenter: true },
+    { key: 'alerts', label: 'Alerts', href: '/dashboard/notifications', icon: BellIcon },
+    { key: 'profile', label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
+  ],
+  staff: [
+    { key: 'desk', label: 'Desk', href: '/dashboard', icon: HomeIcon },
+    { key: 'return', label: 'Return', href: '/dashboard/book/checkin', icon: ArrowPathIcon },
+    { key: 'borrow', label: 'Borrow', href: '/dashboard/book/checkout', icon: QrCodeIcon, isCenter: true },
+    { key: 'holds', label: 'Holds', href: '/dashboard/book/holds', icon: BookmarkIcon },
+    { key: 'alerts', label: 'Alerts', href: '/dashboard/notifications', icon: BellIcon },
+  ],
+  admin: [
+    { key: 'overview', label: 'Overview', href: '/dashboard/admin', icon: HomeIcon },
+    { key: 'catalogue', label: 'Catalogue', href: '/dashboard/book/items', icon: BookOpenIcon },
+    { key: 'scan', label: 'Scan', href: '/dashboard/book/checkout', icon: QrCodeIcon, isCenter: true },
+    { key: 'users', label: 'Users', href: '/dashboard/admin/users', icon: UserGroupIcon },
+    { key: 'history', label: 'History', href: '/dashboard/book/history', icon: ClockIcon },
+  ],
+};
 
-export default function MobileNav({
-  user,
-  isBypassed,
-}: {
+const roleBadge = (role: DashboardRole) =>
+  role === 'admin' ? 'ADMIN' : role === 'staff' ? 'STAFF' : 'STUDENT';
+
+type MobileNavProps = {
   user: DashboardUserProfile;
   isBypassed: boolean;
-}) {
+};
+
+export default function MobileNav({ user, isBypassed }: MobileNavProps) {
   const pathname = usePathname();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -54,150 +75,145 @@ export default function MobileNav({
         if (!res.ok) return;
         const { notifications } = await res.json();
         setHasUnread(Array.isArray(notifications) && notifications.length > 0);
-      } catch {
-        // silently ignore
-      }
+      } catch { /* ignore */ }
     };
-
     check();
     const timer = setInterval(check, 30_000);
     return () => clearInterval(timer);
-  }, [user.role]);
+  }, []);
 
   useEffect(() => {
     if (pathname === '/dashboard/notifications') setHasUnread(false);
   }, [pathname]);
 
-  const topBarClasses = clsx(
-    'sticky top-0 z-40 flex items-center justify-between border-b px-4 py-3 backdrop-blur-md transition-colors md:hidden',
-    isDark
-      ? 'border-white/10 bg-slate-950/90 text-white shadow-lg'
-      : 'border-swin-charcoal/10 bg-swin-charcoal/95 text-swin-ivory shadow-lg',
-  );
-
-  const navClasses = clsx(
-    'fixed inset-x-0 bottom-0 z-50 border-t backdrop-blur-xl transition-colors md:hidden shadow-2xl',
-    isDark
-      ? 'border-white/10 bg-slate-950/80 text-white'
-      : 'border-swin-charcoal/10 bg-white/90 text-swin-charcoal',
-  );
-
-  const isItemActive = (href: string) => {
-    if (href === '/dashboard') {
-      return pathname === '/dashboard';
-    }
+  const isActive = (href: string) => {
+    if (href === '/dashboard') return pathname === '/dashboard';
+    if (href === '/dashboard/admin') return pathname === '/dashboard/admin';
     return pathname === href || pathname.startsWith(`${href}/`);
   };
 
-  const activeTextClass = isDark ? 'text-emerald-300' : 'text-swin-red';
-  const inactiveTextClass = isDark ? 'text-slate-300/80 hover:text-white' : 'text-swin-charcoal/70 hover:text-swin-red/80';
-
-  const scanButtonBackground = isDark
-    ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-slate-950'
-    : 'bg-gradient-to-br from-swin-red to-swin-red/90 text-white';
-  const scanButtonRing = isDark
-    ? 'ring-emerald-200/40 shadow-emerald-500/30'
-    : 'ring-swin-red/20 shadow-swin-red/40';
+  const nav = BOTTOM_NAV_BY_ROLE[user.role];
 
   return (
     <>
-      <header className={topBarClasses}>
-        <MobileMenu user={user} />
-
-        <Link href="/" className="flex items-center gap-2">
-          <AcmeLogo />
-          <span className="text-sm font-semibold uppercase tracking-wide">Self-Checkout</span>
-        </Link>
-
+      {/* ── Top header ───────────────────────────── */}
+      <header
+        className={clsx(
+          'sticky top-0 z-40 flex items-center justify-between gap-3 border-b px-4 py-3 backdrop-blur-md md:hidden',
+          isDark
+            ? 'border-white/10 bg-swin-dark-surface/90 text-white'
+            : 'border-swin-charcoal/10 bg-white/90 text-swin-charcoal',
+        )}
+      >
         <div className="flex items-center gap-2">
-          {isBypassed ? (
-            <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-amber-200">
-              Dev
-            </span>
-          ) : null}
-          <ThemeToggle size="sm" />
-          <SignOutButton
-            className={clsx(
-              'inline-flex items-center gap-2 rounded-lg border px-3 py-1 text-xs font-semibold transition',
-              isDark
-                ? 'border-white/20 text-white hover:bg-white/10'
-                : 'border-swin-ivory/20 text-swin-ivory hover:bg-swin-ivory/20 hover:text-swin-charcoal',
-            )}
-            labelClassName="text-xs font-semibold"
+          <MobileMenu user={user} />
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <Image
+            src="/swinburne-logo.png"
+            alt="Swinburne"
+            width={100}
+            height={34}
+            priority
+            className="h-[34px] w-auto rounded-sm"
           />
+          <span
+            className={clsx(
+              'rounded-full px-2 py-0.5 font-mono text-[9px] font-bold tracking-[1.8px]',
+              user.role === 'admin'
+                ? 'bg-swin-red/15 text-swin-red'
+                : user.role === 'staff'
+                ? 'bg-swin-gold/15 text-swin-gold'
+                : 'bg-swin-charcoal/10 text-swin-charcoal/60 dark:bg-white/10 dark:text-white/60',
+            )}
+          >
+            {roleBadge(user.role)}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          {isBypassed && (
+            <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 font-mono text-[9px] font-bold tracking-wider text-amber-600 dark:text-amber-300">
+              DEV
+            </span>
+          )}
+          <ThemeToggle size="sm" />
         </div>
       </header>
 
-      <nav className={navClasses} aria-label="Primary">
-        {/* Admin-only Manage User Button */}
-        {user.role === 'admin' && (
-          <Link
-            href="/dashboard/admin/users"
-            className={clsx(
-              'absolute right-3 top-[-68px] z-[70] grid h-16 w-16 place-items-center rounded-full shadow-lg',
-              'bg-swin-red text-white hover:bg-swin-red/90' // Swinburne red circular button
-            )}
-            aria-label="Manage Users"
-          >
-            <UserGroupIcon className="h-7 w-7" />
-          </Link>
+      {/* ── Bottom navigation ────────────────────── */}
+      <nav
+        className={clsx(
+          'fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur-xl md:hidden',
+          isDark
+            ? 'border-white/10 bg-swin-dark-surface/90'
+            : 'border-swin-charcoal/10 bg-white/90',
         )}
-
-        {/* Main Navigation */}
-        <div className="mx-auto flex max-w-4xl items-end justify-between gap-1 px-5 pb-[calc(env(safe-area-inset-bottom)+12px)]">
-          {navItems.map((item) => {
+        aria-label="Primary mobile"
+        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 10px)' }}
+      >
+        <div className="mx-auto flex max-w-md items-end justify-around gap-1 px-4 pt-2">
+          {nav.map((item) => {
             const Icon = item.icon;
+            const active = isActive(item.href);
+            const showDot = item.key === 'alerts' && hasUnread;
 
-            // --- Existing special Scan button (keep unchanged) ---
-            if (item.key === 'scan') {
-              const isActive = isItemActive(item.href);
-
+            if (item.isCenter) {
               return (
-                <div key={item.key} className="flex flex-1 flex-col items-center justify-end gap-1">
-                  <Link
-                    href={item.href}
-                    className={clsx(
-                      'grid h-16 w-16 place-items-center rounded-full shadow-xl ring-4 transition',
-                      scanButtonBackground,
-                      isActive ? 'scale-105' : 'hover:scale-105',
-                      scanButtonRing,
-                    )}
-                    aria-current={isActive ? 'page' : undefined}
-                    aria-label="Scan to borrow books"
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  className="flex flex-1 flex-col items-center gap-1"
+                  aria-current={active ? 'page' : undefined}
+                >
+                  <div
+                    className="-mt-3.5 flex h-[46px] w-[46px] items-center justify-center rounded-[14px] text-white transition"
+                    style={{
+                      background: 'linear-gradient(135deg, #A81C2A, #C82333)',
+                      boxShadow: '0 8px 20px rgba(200,35,51,0.35)',
+                    }}
                   >
-                    <Icon className="h-7 w-7" />
-                  </Link>
-                  <span className={clsx('text-[11px] font-semibold', isActive ? activeTextClass : inactiveTextClass)}>
+                    <Icon className="h-5 w-5" strokeWidth={2} />
+                  </div>
+                  <span
+                    className={clsx(
+                      'text-[10px] font-semibold',
+                      active
+                        ? 'text-swin-red'
+                        : 'text-swin-charcoal/50 dark:text-white/50',
+                    )}
+                  >
                     {item.label}
                   </span>
-                </div>
+                </Link>
               );
             }
-
-            // --- Default for all other nav items ---
-            const isActive = isItemActive(item.href);
 
             return (
               <Link
                 key={item.key}
                 href={item.href}
                 className={clsx(
-                  'flex flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors',
-                  isActive ? activeTextClass : inactiveTextClass,
+                  'flex flex-1 flex-col items-center gap-0.5 py-1',
+                  active
+                    ? 'text-swin-red'
+                    : 'text-swin-charcoal/55 dark:text-white/55',
                 )}
-                aria-current={isActive ? 'page' : undefined}
+                aria-current={active ? 'page' : undefined}
               >
                 <span className="relative">
-                  <Icon className="h-6 w-6" />
-                  {item.key === 'notifications' && hasUnread && (
-                    <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-swin-red ring-2 ring-white dark:ring-slate-950" />
+                  <Icon className="h-5 w-5" strokeWidth={active ? 2 : 1.6} />
+                  {showDot && (
+                    <span className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full bg-swin-red ring-2 ring-white dark:ring-swin-dark-surface" />
                   )}
                 </span>
-                <span>{item.label}</span>
+                <span className={clsx('text-[10px]', active ? 'font-semibold' : 'font-medium')}>
+                  {item.label}
+                </span>
               </Link>
             );
           })}
-
         </div>
       </nav>
     </>

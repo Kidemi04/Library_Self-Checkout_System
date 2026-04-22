@@ -7,9 +7,6 @@ import {
   BookOpenIcon,
   BookmarkIcon,
   SparklesIcon,
-  HomeIcon,
-  BellIcon,
-  UserCircleIcon,
   ArrowRightIcon,
 } from '@heroicons/react/24/outline';
 import type { Loan } from '@/app/lib/supabase/types';
@@ -17,6 +14,7 @@ import type { PatronHold } from '@/app/lib/supabase/queries';
 import LoanCard from '@/app/ui/dashboard/primitives/LoanCard';
 import HoldCard from '@/app/ui/dashboard/primitives/HoldCard';
 import BookCover, { getBookGradient } from '@/app/ui/dashboard/primitives/BookCover';
+import ScanCtaButton from '@/app/ui/dashboard/primitives/ScanCtaButton';
 import BlurFade from '@/app/ui/magicUi/blurFade';
 import { useTheme } from '@/app/ui/theme/themeProvider';
 
@@ -123,21 +121,14 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
         {/* Primary scan CTA */}
         <BlurFade delay={0.1} yOffset={10}>
           <div className="px-5 pb-5">
-            <Link
+            <ScanCtaButton
               href="/dashboard/book/checkout"
-              className="relative flex w-full items-center gap-4 overflow-hidden rounded-[18px] px-5 py-5 text-white"
-              style={{ background: 'linear-gradient(135deg, #A81C2A 0%, #C82333 100%)', boxShadow: '0 10px 30px rgba(200,35,51,0.25)' }}
-            >
-              <div className="absolute -right-5 -top-5 h-36 w-36 rounded-full bg-white/8" />
-              <div className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-[14px] border border-white/20 bg-white/15">
-                <QrCodeIcon className="h-6 w-6" strokeWidth={1.8} />
-              </div>
-              <div className="flex-1">
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[1.8px] opacity-75">Self-Checkout</p>
-                <p className="font-display text-[22px] font-semibold tracking-tight">Scan a book</p>
-              </div>
-              <ArrowRightIcon className="h-5 w-5 opacity-80" />
-            </Link>
+              variant="red"
+              size="sm"
+              eyebrow="Self-Checkout"
+              title="Scan a book"
+              icon={QrCodeIcon}
+            />
           </div>
         </BlurFade>
 
@@ -254,36 +245,7 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
         </BlurFade>
       </div>
 
-      {/* Mobile bottom nav */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-swin-charcoal/10 bg-white/90 px-5 pb-safe pt-2.5 backdrop-blur-md dark:border-white/10 dark:bg-swin-dark-surface/90 md:hidden"
-        style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 10px)' }}>
-        {[
-          { id: 'home', icon: HomeIcon, label: 'Home', href: '/dashboard' },
-          { id: 'books', icon: BookOpenIcon, label: 'My Books', href: '/dashboard/my-books' },
-          { id: 'scan', icon: QrCodeIcon, label: 'Scan', href: '/dashboard/book/checkout', isCenter: true },
-          { id: 'alerts', icon: BellIcon, label: 'Alerts', href: '/dashboard/notifications' },
-          { id: 'me', icon: UserCircleIcon, label: 'Profile', href: '/dashboard/profile' },
-        ].map(n => {
-          const Icon = n.icon;
-          return (
-            <Link
-              key={n.id}
-              href={n.href}
-              className="flex flex-col items-center gap-0.5 text-swin-charcoal/45 dark:text-white/45"
-            >
-              {n.isCenter ? (
-                <div className="-mt-3.5 flex h-[42px] w-[42px] items-center justify-center rounded-[14px] text-white"
-                  style={{ background: 'linear-gradient(135deg, #A81C2A, #C82333)', boxShadow: '0 6px 16px rgba(200,35,51,0.3)' }}>
-                  <Icon className="h-5 w-5" strokeWidth={2} />
-                </div>
-              ) : (
-                <Icon className="h-5 w-5" strokeWidth={1.6} />
-              )}
-              {!n.isCenter && <span className="text-[10px] font-medium">{n.label}</span>}
-            </Link>
-          );
-        })}
-      </div>
+      {/* Mobile bottom nav is provided by MobileNav (in DashboardShell). */}
 
       {/* ========= DESKTOP LAYOUT (hidden on mobile) ========= */}
       <div className="hidden md:block">
@@ -352,21 +314,14 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
 
         {/* Action rail */}
         <div className="mb-9 grid grid-cols-[2fr_1fr_1fr] gap-3.5">
-          <Link
+          <ScanCtaButton
             href="/dashboard/book/checkout"
-            className="relative flex items-center gap-5 overflow-hidden rounded-2xl px-6 py-5 text-white"
-            style={{ background: 'linear-gradient(120deg, #A81C2A 0%, #C82333 60%, #E85566 100%)', boxShadow: '0 16px 40px rgba(200,35,51,0.2)' }}
-          >
-            <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/8" />
-            <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[14px] border border-white/22 bg-white/16">
-              <QrCodeIcon className="h-7 w-7" strokeWidth={1.8} />
-            </div>
-            <div className="flex-1">
-              <p className="font-mono text-[10px] font-bold uppercase tracking-[2px] opacity-80">Self-Checkout</p>
-              <p className="font-display text-[24px] font-semibold tracking-tight">Scan a book to borrow</p>
-            </div>
-            <ArrowRightIcon className="h-5 w-5 opacity-80" />
-          </Link>
+            variant="red"
+            size="lg"
+            eyebrow="Self-Checkout"
+            title="Scan a book to borrow"
+            icon={QrCodeIcon}
+          />
 
           {[
             { icon: BookmarkIcon, label: 'Place a reservation', sub: 'Queue up a book', href: '/dashboard/book/items' },

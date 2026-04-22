@@ -1,5 +1,6 @@
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import BookCover, { getBookGradient } from '@/app/ui/dashboard/primitives/BookCover';
+import BarChartMini from '@/app/ui/dashboard/primitives/BarChartMini';
 import type { DashboardSummary } from '@/app/lib/supabase/types';
 import type { Loan } from '@/app/lib/supabase/types';
 import { PlusIcon } from '@heroicons/react/24/outline';
@@ -36,25 +37,6 @@ type AdminDashboardProps = {
   summary: DashboardSummary;
   recentLoans: Loan[];
 };
-
-function MiniChart() {
-  const max = Math.max(...CHART_DATA);
-  return (
-    <div className="flex h-[120px] items-end gap-1">
-      {CHART_DATA.map((v, i) => (
-        <div
-          key={i}
-          className="flex-1 rounded-sm transition-all"
-          style={{
-            height: `${(v / max) * 100}%`,
-            background: i === CHART_DATA.length - 1 ? '#C82333' : '#C9A961',
-            opacity: i === CHART_DATA.length - 1 ? 1 : 0.35 + (i / CHART_DATA.length) * 0.65,
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 export default function AdminDashboard({ userName, summary, recentLoans }: AdminDashboardProps) {
   const firstName = userName?.split(' ')[0] ?? 'Administrator';
@@ -144,7 +126,7 @@ export default function AdminDashboard({ userName, summary, recentLoans }: Admin
               ))}
             </div>
           </div>
-          <MiniChart />
+          <BarChartMini data={CHART_DATA} height={120} />
         </div>
 
         <div
