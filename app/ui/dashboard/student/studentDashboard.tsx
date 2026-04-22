@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   QrCodeIcon,
   BookOpenIcon,
@@ -71,12 +72,15 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
           <div className="px-5 pb-6 pt-5">
             <div className="mb-5 flex items-start justify-between">
               <div>
-                <div className="mb-3 h-[34px] w-auto">
-                  {/* Swinburne wordmark placeholder */}
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-swin-charcoal font-display text-lg font-bold text-white dark:bg-white/10">S</div>
-                    <span className="font-display text-[15px] font-semibold tracking-tight">Swinburne Library</span>
-                  </div>
+                <div className="mb-3">
+                  <Image
+                    src="/swinburne-logo.png"
+                    alt="Swinburne University of Technology Sarawak Campus"
+                    width={140}
+                    height={65}
+                    className="rounded-sm"
+                    priority
+                  />
                 </div>
                 <p className="font-display text-[32px] font-[500] leading-none tracking-tight">
                   {greeting},
@@ -154,7 +158,7 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
                 </div>
                 <div>
                   <p className="text-[14px] font-semibold tracking-tight">{q.label}</p>
-                  <p className="mt-0.5 text-[11px] text-swin-charcoal/45 dark:text-white/45">{q.sub}</p>
+                  <p className="mt-0.5 text-[12px] text-swin-charcoal/45 dark:text-white/45">{q.sub}</p>
                 </div>
               </Link>
             ))}
@@ -285,12 +289,12 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
       <div className="hidden md:block">
         {/* Top bar */}
         <div className="mb-8 flex items-center gap-4 border-b border-swin-charcoal/10 pb-5 dark:border-white/10">
-          <div className="flex flex-1 max-w-[520px] items-center gap-2.5 rounded-xl border border-swin-charcoal/10 bg-white px-3.5 py-2.5 dark:border-white/10 dark:bg-swin-dark-surface">
+          <div className="flex flex-1 max-w-[520px] items-center gap-2.5 rounded-xl bg-white px-3.5 py-2.5 dark:bg-swin-dark-surface">
             <BookOpenIcon className="h-4 w-4 text-swin-charcoal/35 dark:text-white/35" />
             <input
               readOnly
               placeholder="Search titles, authors, or ISBN… (⌘K)"
-              className="flex-1 bg-transparent text-[13px] placeholder-swin-charcoal/35 outline-none dark:placeholder-white/35"
+              className="flex-1 border-0 bg-transparent text-[14px] placeholder-swin-charcoal/35 outline-none dark:placeholder-white/35"
             />
           </div>
           <div className="ml-auto flex items-center gap-1.5 text-[12px] text-swin-charcoal/50 dark:text-white/50">
@@ -350,7 +354,7 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
         <div className="mb-9 grid grid-cols-[2fr_1fr_1fr] gap-3.5">
           <Link
             href="/dashboard/book/checkout"
-            className="relative flex items-center gap-4.5 overflow-hidden rounded-2xl px-6 py-5 text-white"
+            className="relative flex items-center gap-5 overflow-hidden rounded-2xl px-6 py-5 text-white"
             style={{ background: 'linear-gradient(120deg, #A81C2A 0%, #C82333 60%, #E85566 100%)', boxShadow: '0 16px 40px rgba(200,35,51,0.2)' }}
           >
             <div className="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/8" />
@@ -378,7 +382,7 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
               </div>
               <div className="flex-1">
                 <p className="font-display text-[17px] font-semibold leading-tight tracking-tight">{q.label}</p>
-                <p className="mt-0.5 text-[11px] text-swin-charcoal/45 dark:text-white/45">{q.sub}</p>
+                <p className="mt-0.5 text-[12px] text-swin-charcoal/45 dark:text-white/45">{q.sub}</p>
               </div>
             </Link>
           ))}
@@ -393,7 +397,7 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
                 <h2 className="font-display text-[28px] font-semibold leading-none tracking-tight text-swin-charcoal dark:text-white">
                   Currently reading
                 </h2>
-                <p className="mt-1 font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">
+                <p className="mt-1 font-mono text-[12px] text-swin-charcoal/40 dark:text-white/40">
                   {activeLoans.length} active · {activeLoans.reduce((a, l) => a + l.renewedCount, 0)} renewals this term
                 </p>
               </div>

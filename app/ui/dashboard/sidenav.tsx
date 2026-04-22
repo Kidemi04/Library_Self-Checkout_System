@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import {
   HomeIcon,
   BookOpenIcon,
@@ -117,14 +118,18 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
         : 'border-swin-charcoal/10 bg-white text-swin-charcoal',
     )}>
       {/* Logo */}
-      <div className="mb-5 flex items-center gap-2.5 px-2.5 pb-5 border-b border-swin-charcoal/10 dark:border-white/10">
-        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-swin-charcoal font-display text-lg font-bold text-white dark:bg-white/10">
-          S
-        </div>
-        <div>
-          <p className="font-display text-[15px] font-semibold leading-none tracking-tight">Swinburne</p>
-          <p className="mt-0.5 font-mono text-[9px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">Library</p>
-        </div>
+      <div className="mb-5 px-2.5 pb-5 border-b border-swin-charcoal/10 dark:border-white/10">
+        <Image
+          src="/swinburne-logo.png"
+          alt="Swinburne University of Technology Sarawak Campus"
+          width={220}
+          height={103}
+          className="w-full rounded-sm"
+          priority
+        />
+        <p className="mt-2 font-display text-[11px] italic text-swin-charcoal/45 dark:text-white/40">
+          Library · est. 1908
+        </p>
       </div>
 
       {/* Role badge */}
@@ -140,7 +145,7 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
           'font-mono text-[9px] font-bold uppercase tracking-[2px]',
           user.role === 'admin' ? 'text-swin-red' : user.role === 'staff' ? 'text-swin-gold' : 'text-swin-charcoal/50 dark:text-white/50',
         )}>{roleBadge}</p>
-        <p className="mt-0.5 text-[11px] font-semibold text-swin-charcoal dark:text-white">
+        <p className="mt-0.5 text-[13px] font-semibold text-swin-charcoal dark:text-white">
           {user.name ?? user.email ?? 'Library Member'}
         </p>
         {isBypassed && (
@@ -168,14 +173,14 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
               key={item.href}
               href={item.href}
               className={clsx(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors',
                 isActive
                   ? 'bg-swin-red/10 text-swin-red dark:bg-swin-red/15 dark:text-red-300'
                   : 'text-swin-charcoal/65 hover:bg-swin-charcoal/5 hover:text-swin-charcoal dark:text-white/55 dark:hover:bg-white/8 dark:hover:text-white',
               )}
             >
               <span className="relative flex-shrink-0">
-                <Icon className="h-4 w-4" />
+                <Icon className="h-[18px] w-[18px]" />
                 {showDot && (
                   <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-swin-red ring-2 ring-white dark:ring-swin-dark-surface" />
                 )}
@@ -207,10 +212,10 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
             {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[12px] font-semibold text-swin-charcoal dark:text-white">
+            <p className="truncate text-[13px] font-semibold text-swin-charcoal dark:text-white">
               {user.name ?? 'Library Member'}
             </p>
-            <p className="truncate font-mono text-[10px] text-swin-charcoal/40 dark:text-white/40">
+            <p className="truncate font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">
               {user.email ?? ''}
             </p>
           </div>

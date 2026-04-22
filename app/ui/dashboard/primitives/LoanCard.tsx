@@ -37,16 +37,16 @@ export default function LoanCard({ loan, holdCount = 0 }: LoanCardProps) {
     <div className="flex items-center gap-3.5 rounded-xl border border-swin-charcoal/10 bg-white p-3.5 transition-all dark:border-white/10 dark:bg-swin-dark-surface">
       <BookCover gradient={gradient} w={48} h={68} />
       <div className="min-w-0 flex-1">
-        <p className="truncate font-display text-[17px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
+        <p className="truncate font-display text-[19px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
           {title}
         </p>
-        <p className="mt-0.5 truncate font-display text-[12px] italic text-swin-charcoal/60 dark:text-slate-400">
+        <p className="mt-0.5 truncate font-display text-[13px] italic text-swin-charcoal/60 dark:text-slate-400">
           {author}
         </p>
         <div className="mt-2 flex items-center gap-2">
           <Chip tone={dueTone} mono>{dueLabel}</Chip>
           {callNumber && (
-            <span className="font-mono text-[10px] tracking-wide text-swin-charcoal/40 dark:text-slate-500">
+            <span className="font-mono text-[11px] tracking-wide text-swin-charcoal/40 dark:text-slate-500">
               {callNumber}
             </span>
           )}

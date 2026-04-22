@@ -35,18 +35,18 @@ function HoldCardReady({ hold }: { hold: PatronHold }) {
                 Ready for pickup
               </span>
             </div>
-            <p className="truncate font-display text-[17px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
+            <p className="truncate font-display text-[19px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
               {hold.title}
             </p>
             {hold.author && (
-              <p className="font-mono text-[10px] text-swin-charcoal/50 dark:text-slate-500">
+              <p className="font-mono text-[11px] text-swin-charcoal/50 dark:text-slate-500">
                 Sarawak Campus — Level 2 Pickup Shelf
               </p>
             )}
           </div>
           <div className="mt-2 flex items-center justify-between gap-2">
             <p
-              className="font-mono text-[11px]"
+              className="font-mono text-[12px]"
               style={{ color: urgent ? '#C82333' : undefined }}
             >
               Pickup by{' '}
@@ -69,15 +69,15 @@ function HoldCardQueued({ hold }: { hold: PatronHold }) {
     <div className="flex items-center gap-3 rounded-xl border border-swin-charcoal/10 bg-white p-3 dark:border-white/10 dark:bg-swin-dark-surface">
       <BookCover gradient={gradient} w={40} h={56} />
       <div className="min-w-0 flex-1">
-        <p className="truncate font-display text-[15px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
+        <p className="truncate font-display text-[17px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
           {hold.title}
         </p>
         {hold.author && (
-          <p className="mt-0.5 truncate font-display text-[11px] italic text-swin-charcoal/50 dark:text-slate-500">
+          <p className="mt-0.5 truncate font-display text-[12px] italic text-swin-charcoal/50 dark:text-slate-500">
             {hold.author}
           </p>
         )}
-        <div className="mt-1.5 flex items-center gap-1.5 font-mono text-[11px] text-swin-charcoal/50 dark:text-slate-500">
+        <div className="mt-1.5 flex items-center gap-1.5 font-mono text-[12px] text-swin-charcoal/50 dark:text-slate-500">
           <span className="font-semibold text-swin-gold">In queue</span>
           {hold.placedAt && (
             <>
