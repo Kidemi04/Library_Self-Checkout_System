@@ -365,7 +365,23 @@ export default function UserManagementPage() {
 
   const handleAddUser = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!newUser.email.trim()) return;
+    setStatusMessage(null);
+    setErrorMessage(null);
+
+    const trimmedEmail = newUser.email.trim().toLowerCase();
+    if (!trimmedEmail) return;
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(trimmedEmail)) {
+      setErrorMessage('Enter a valid email address.');
+      return;
+    }
+
+    if (!trimmedEmail.endsWith('@swinburne.edu.my')) {
+      setErrorMessage('Staff and admin accounts must use a @swinburne.edu.my Outlook email address.');
+      return;
+    }
+
     setShowAddConfirm(true);
   };
 
@@ -429,6 +445,12 @@ export default function UserManagementPage() {
 
     if (!emailPattern.test(trimmedEmail)) {
       setErrorMessage('Enter a valid email address.');
+      setStatusMessage(null);
+      return;
+    }
+
+    if ((user.role === 'staff' || user.role === 'admin') && !trimmedEmail.endsWith('@swinburne.edu.my')) {
+      setErrorMessage('Staff and admin accounts must use a @swinburne.edu.my Outlook email address.');
       setStatusMessage(null);
       return;
     }

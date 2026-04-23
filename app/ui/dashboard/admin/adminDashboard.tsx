@@ -3,6 +3,7 @@ import BookCover, { getBookGradient } from '@/app/ui/dashboard/primitives/BookCo
 import BarChartMini from '@/app/ui/dashboard/primitives/BarChartMini';
 import type { DashboardSummary } from '@/app/lib/supabase/types';
 import type { Loan } from '@/app/lib/supabase/types';
+import type { TopBorrowedBook } from '@/app/lib/supabase/queries';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
@@ -22,33 +23,37 @@ const ACTIVITY_LABELS: Record<ActivityType, string> = {
   overdue:  'is overdue on',
 };
 
-const CHART_DATA = [22, 28, 35, 31, 42, 38, 45, 52, 48, 54, 61, 58, 66, 72];
-
-const TOP_BOOKS = [
-  { rank: 1, title: 'Clean Architecture', author: 'Robert C. Martin', count: 42 },
-  { rank: 2, title: 'Design of Everyday Things', author: 'Don Norman', count: 38 },
-  { rank: 3, title: 'Thinking, Fast and Slow', author: 'Kahneman', count: 31 },
-  { rank: 4, title: 'Atomic Habits', author: 'James Clear', count: 28 },
-  { rank: 5, title: 'Sapiens', author: 'Y.N. Harari', count: 24 },
-];
-
 type AdminDashboardProps = {
   userName: string | null;
   summary: DashboardSummary;
   recentLoans: Loan[];
+  chartData: number[];
+  topBooks: TopBorrowedBook[];
 };
 
-export default function AdminDashboard({ userName, summary, recentLoans }: AdminDashboardProps) {
+export default function AdminDashboard({
+  userName,
+  summary,
+  recentLoans,
+  chartData,
+  topBooks,
+}: AdminDashboardProps) {
   const firstName = userName?.split(' ')[0] ?? 'Administrator';
   const h = new Date().getHours();
   const tod = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
 
   const kpis = [
-    { label: 'Total books',      value: summary.totalBooks.toLocaleString(),   delta: '+124', positive: true },
-    { label: 'Active loans',     value: summary.activeLoans.toLocaleString(),  delta: '+18',  positive: true },
-    { label: 'Overdue',          value: summary.overdueLoans.toLocaleString(), delta: '+6',   positive: false },
-    { label: 'Available copies', value: summary.availableBooks.toLocaleString(), delta: '+3', positive: true },
+    { label: 'Total books',      value: summary.totalBooks.toLocaleString() },
+    { label: 'Active loans',     value: summary.activeLoans.toLocaleString() },
+    { label: 'Overdue',          value: summary.overdueLoans.toLocaleString(), danger: summary.overdueLoans > 0 },
+    { label: 'Available copies', value: summary.availableBooks.toLocaleString() },
   ];
+
+  // Compute real trend: last 7 days vs previous 7 days from the chartData window (14 days)
+  const recent7 = chartData.slice(-7).reduce((a, b) => a + b, 0);
+  const prev7 = chartData.slice(0, Math.max(0, chartData.length - 7)).reduce((a, b) => a + b, 0);
+  const trendPct = prev7 > 0 ? Math.round(((recent7 - prev7) / prev7) * 100) : 0;
+  const trendPositive = trendPct >= 0;
 
   // Build activity feed from recent loans
   const recentActivity = recentLoans.slice(0, 6).map(loan => ({
@@ -87,12 +92,8 @@ export default function AdminDashboard({ userName, summary, recentLoans }: Admin
             <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
               {k.label}
             </p>
-            <p className="font-display text-[38px] font-semibold leading-none tracking-[-1px] text-swin-charcoal dark:text-white">
+            <p className={`font-display text-[38px] font-semibold leading-none tracking-[-1px] ${k.danger ? 'text-swin-red' : 'text-swin-charcoal dark:text-white'}`}>
               {k.value}
-            </p>
-            <p className={`mt-2.5 font-mono text-[11px] font-semibold ${k.positive ? 'text-green-600 dark:text-green-400' : 'text-swin-red'}`}>
-              {k.delta}{' '}
-              <span className="font-normal text-swin-charcoal/40 dark:text-white/40">this week</span>
             </p>
           </div>
         ))}
@@ -107,26 +108,19 @@ export default function AdminDashboard({ userName, summary, recentLoans }: Admin
                 Circulation · Last 14 days
               </p>
               <h2 className="font-display text-[24px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
-                Loans trending up
+                {recent7} loans this week
               </h2>
-              <p className="mt-1 text-[12px] text-swin-charcoal/60 dark:text-white/50">
-                <span className="font-semibold text-green-600 dark:text-green-400">+18%</span> vs previous fortnight
-              </p>
-            </div>
-            <div className="flex gap-1.5">
-              {['7d', '14d', '30d'].map((r, i) => (
-                <button
-                  key={r}
-                  className={`rounded-md border px-2.5 py-1.5 font-mono text-[11px] font-semibold transition ${
-                    i === 1
-                      ? 'border-swin-charcoal bg-swin-charcoal text-white dark:border-white dark:bg-white dark:text-swin-charcoal'
-                      : 'border-swin-charcoal/15 text-swin-charcoal/50 dark:border-white/15 dark:text-white/50'
-                  }`}
-                >{r}</button>
-              ))}
+              {prev7 > 0 && (
+                <p className="mt-1 text-[12px] text-swin-charcoal/60 dark:text-white/50">
+                  <span className={`font-semibold ${trendPositive ? 'text-green-600 dark:text-green-400' : 'text-swin-red'}`}>
+                    {trendPositive ? '+' : ''}{trendPct}%
+                  </span>{' '}
+                  vs previous week
+                </p>
+              )}
             </div>
           </div>
-          <BarChartMini data={CHART_DATA} height={120} />
+          <BarChartMini data={chartData} height={120} />
         </div>
 
         <div
@@ -173,12 +167,16 @@ export default function AdminDashboard({ userName, summary, recentLoans }: Admin
               <h2 className="font-display text-[22px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
                 Recent activity
               </h2>
-              <p className="mt-0.5 font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">Live feed · auto-refreshing</p>
+              <p className="mt-0.5 font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">
+                Last {recentActivity.length} transaction{recentActivity.length === 1 ? '' : 's'}
+              </p>
             </div>
-            <span className="flex items-center gap-1.5 font-mono text-[11px] font-semibold text-green-600 dark:text-green-400">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
-              LIVE
-            </span>
+            <Link
+              href="/dashboard/book/history"
+              className="rounded-md border border-swin-charcoal/10 bg-slate-50 px-2.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-swin-charcoal/60 transition hover:text-swin-charcoal dark:border-white/10 dark:bg-white/5 dark:text-white/55 dark:hover:text-white"
+            >
+              Full history
+            </Link>
           </div>
           <div>
             {recentActivity.length === 0 ? (
@@ -215,26 +213,34 @@ export default function AdminDashboard({ userName, summary, recentLoans }: Admin
             <h2 className="font-display text-[22px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
               Most borrowed
             </h2>
-            <p className="mt-0.5 font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">This month</p>
+            <p className="mt-0.5 font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">Last 30 days</p>
           </div>
           <div className="space-y-3.5">
-            {TOP_BOOKS.map(b => (
-              <div key={b.rank} className="flex items-center gap-3">
-                <span className="w-6 flex-shrink-0 font-display text-[18px] font-semibold leading-none tracking-tight text-swin-charcoal/35 dark:text-white/35">
-                  {b.rank}
-                </span>
-                <BookCover gradient={getBookGradient(b.title)} w={30} h={42} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-display text-[14px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
-                    {b.title}
-                  </p>
-                  <p className="truncate font-display text-[11px] italic text-swin-charcoal/55 dark:text-white/55">
-                    {b.author}
-                  </p>
+            {topBooks.length === 0 ? (
+              <p className="py-4 text-center text-[13px] text-swin-charcoal/45 dark:text-white/45">
+                No loans in the last 30 days.
+              </p>
+            ) : (
+              topBooks.map((b, idx) => (
+                <div key={b.bookId} className="flex items-center gap-3">
+                  <span className="w-6 flex-shrink-0 font-display text-[18px] font-semibold leading-none tracking-tight text-swin-charcoal/35 dark:text-white/35">
+                    {idx + 1}
+                  </span>
+                  <BookCover gradient={getBookGradient(b.bookId)} w={30} h={42} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-display text-[14px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+                      {b.title}
+                    </p>
+                    {b.author && (
+                      <p className="truncate font-display text-[11px] italic text-swin-charcoal/55 dark:text-white/55">
+                        {b.author}
+                      </p>
+                    )}
+                  </div>
+                  <span className="flex-shrink-0 font-mono text-[11px] font-bold text-swin-gold">{b.count}×</span>
                 </div>
-                <span className="flex-shrink-0 font-mono text-[11px] font-bold text-swin-gold">{b.count}×</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

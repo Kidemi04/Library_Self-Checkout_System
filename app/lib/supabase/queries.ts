@@ -864,3 +864,96 @@ export async function cancelHoldForPatron(holdId: string, patronId: string): Pro
 
   return Array.isArray(data) && data.length > 0;
 }
+
+/**
+ * Returns borrowed-per-day counts for the last `days` days (ending today, inclusive).
+ * The returned array is ordered oldest -> newest and always has exactly `days` entries.
+ */
+export async function fetchDailyLoanCounts(days = 14): Promise<number[]> {
+  if (days <= 0) return [];
+
+  const supabase = getSupabaseServerClient();
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const windowStart = new Date(startOfToday.getTime() - (days - 1) * 86_400_000);
+
+  const { data, error } = await supabase
+    .from('Loans')
+    .select('borrowed_at')
+    .gte('borrowed_at', windowStart.toISOString());
+
+  if (error) throw error;
+
+  const buckets = new Array<number>(days).fill(0);
+  for (const row of (data ?? []) as Array<{ borrowed_at: string | null }>) {
+    if (!row.borrowed_at) continue;
+    const borrowed = new Date(row.borrowed_at);
+    if (Number.isNaN(borrowed.valueOf())) continue;
+    const borrowedDay = new Date(borrowed.getFullYear(), borrowed.getMonth(), borrowed.getDate());
+    const dayIndex = Math.floor((borrowedDay.getTime() - windowStart.getTime()) / 86_400_000);
+    if (dayIndex >= 0 && dayIndex < days) buckets[dayIndex] += 1;
+  }
+
+  return buckets;
+}
+
+export type TopBorrowedBook = {
+  bookId: string;
+  title: string;
+  author: string | null;
+  count: number;
+};
+
+/**
+ * Returns the most-borrowed books within the last `days` days, ordered by loan count desc.
+ */
+export async function fetchTopBorrowedBooks(days = 30, limit = 5): Promise<TopBorrowedBook[]> {
+  const supabase = getSupabaseServerClient();
+
+  const windowStart = new Date(Date.now() - days * 86_400_000);
+
+  const { data, error } = await supabase
+    .from('Loans')
+    .select(
+      `
+        id,
+        borrowed_at,
+        copy:Copies(
+          book:Books(
+            id,
+            title,
+            author
+          )
+        )
+      `,
+    )
+    .gte('borrowed_at', windowStart.toISOString());
+
+  if (error) throw error;
+
+  type Row = {
+    copy: { book: { id: string; title: string; author: string | null } | null } | null;
+  };
+
+  const counts = new Map<string, TopBorrowedBook>();
+  for (const row of (data ?? []) as unknown as Row[]) {
+    const book = row.copy?.book;
+    if (!book?.id) continue;
+    const existing = counts.get(book.id);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      counts.set(book.id, {
+        bookId: book.id,
+        title: book.title ?? 'Untitled',
+        author: book.author ?? null,
+        count: 1,
+      });
+    }
+  }
+
+  return Array.from(counts.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
