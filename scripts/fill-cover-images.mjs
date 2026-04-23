@@ -41,19 +41,20 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
 });
 
 // ── Open Library ───────────────────────────────────────────────────────────
-// -L large, -M medium, -S small. Returns ~807-byte placeholder when missing.
+// Appending ?default=false makes OL return 404 when there's no real cover,
+// instead of silently serving the placeholder gif. That's a much more
+// reliable signal than trying to sniff content-length (which OL often
+// omits on HEAD requests).
 const openLibraryUrl = (isbn) =>
   `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`;
 
 async function tryOpenLibrary(isbn) {
   try {
-    const url = openLibraryUrl(isbn);
-    const res = await fetch(url, { method: 'HEAD' });
-    if (!res.ok) return null;
-    const length = res.headers.get('content-length');
-    // Real covers are >> 5 KB; OL's missing-cover placeholder is ~807 bytes.
-    if (!length) return url; // no content-length header — trust the 200
-    return parseInt(length, 10) > 2000 ? url : null;
+    const probe = `${openLibraryUrl(isbn)}?default=false`;
+    const res = await fetch(probe, { method: 'HEAD', redirect: 'manual' });
+    // 2xx/3xx = real cover exists; 404 = no cover; anything else = treat as no.
+    if (res.status >= 200 && res.status < 400) return openLibraryUrl(isbn);
+    return null;
   } catch {
     return null;
   }
