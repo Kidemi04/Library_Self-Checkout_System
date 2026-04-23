@@ -8,6 +8,8 @@ import {
   BookmarkIcon,
   SparklesIcon,
   ArrowRightIcon,
+  SunIcon,
+  MoonIcon,
 } from '@heroicons/react/24/outline';
 import type { Loan } from '@/app/lib/supabase/types';
 import type { PatronHold } from '@/app/lib/supabase/queries';
@@ -18,18 +20,20 @@ import ScanCtaButton from '@/app/ui/dashboard/primitives/ScanCtaButton';
 import BlurFade from '@/app/ui/magicUi/blurFade';
 import { useTheme } from '@/app/ui/theme/themeProvider';
 
+export type BookPick = {
+  id: string;
+  title: string;
+  author: string;
+  category: string | null;
+  coverImageUrl: string | null;
+};
+
 type StudentDashboardProps = {
   userName: string | null;
   activeLoans: Loan[];
   holds: PatronHold[];
+  picks: BookPick[];
 };
-
-const SAMPLE_RECS = [
-  { id: 'R1', title: 'Sapiens', author: 'Yuval Noah Harari', reason: 'Based on your history' },
-  { id: 'R2', title: 'The Pragmatic Programmer', author: 'Hunt & Thomas', reason: 'Popular in ICT' },
-  { id: 'R3', title: 'Deep Work', author: 'Cal Newport', reason: 'Trending this week' },
-  { id: 'R4', title: 'Clean Code', author: 'Robert C. Martin', reason: 'Highly rated' },
-];
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -43,9 +47,16 @@ function getFirstName(fullName: string | null): string {
   return fullName.split(' ')[0] ?? fullName;
 }
 
-export default function StudentDashboard({ userName, activeLoans, holds }: StudentDashboardProps) {
+export default function StudentDashboard({
+  userName,
+  activeLoans,
+  holds,
+  picks,
+}: StudentDashboardProps) {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
+  const mobilePicks = picks.slice(0, 4);
+  const featuredPick = picks[0];
 
   const urgentLoans = activeLoans.filter(l => {
     const daysLeft = Math.ceil((new Date(l.dueAt).getTime() - Date.now()) / 86400000);
@@ -88,10 +99,12 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
                 </p>
               </div>
               <button
+                type="button"
                 onClick={toggleTheme}
-                className="mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-swin-charcoal/10 bg-white text-swin-charcoal/70 dark:border-white/10 dark:bg-swin-dark-surface dark:text-white/60"
+                aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+                className="mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-swin-charcoal/10 bg-white text-swin-charcoal/70 transition hover:text-swin-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/50 dark:border-white/10 dark:bg-swin-dark-surface dark:text-white/70 dark:hover:text-white"
               >
-                {isDark ? '☀' : '☾'}
+                {isDark ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
               </button>
             </div>
 
@@ -223,26 +236,49 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
           </BlurFade>
         )}
 
-        {/* Picks from the stacks */}
-        <BlurFade delay={0.35} yOffset={10}>
-          <div className="mt-7 px-5 pb-3">
-            <div className="mb-1 flex items-center gap-2">
-              <SparklesIcon className="h-3.5 w-3.5 text-swin-gold" />
-              <span className="font-mono text-[10px] font-semibold uppercase tracking-[2px] text-swin-gold">Curated for you</span>
-            </div>
-            <h2 className="font-display text-[22px] font-semibold tracking-tight">Picks from the stacks</h2>
-          </div>
-          <div className="flex gap-3 overflow-x-auto px-5 pb-3 scrollbar-none">
-            {SAMPLE_RECS.map(r => (
-              <div key={r.id} className="w-[130px] flex-shrink-0">
-                <BookCover gradient={getBookGradient(r.id)} title={r.title} author={r.author} w={130} h={184} radius={6} />
-                <p className="mt-2.5 font-display text-[14px] font-semibold leading-tight tracking-tight">{r.title}</p>
-                <p className="mt-0.5 font-display text-[11px] italic text-swin-charcoal/55 dark:text-white/55">{r.author}</p>
-                <p className="mt-1.5 font-mono text-[10px] tracking-wide text-swin-charcoal/40 dark:text-white/40">{r.reason}</p>
+        {/* Available on the shelves */}
+        {mobilePicks.length > 0 && (
+          <BlurFade delay={0.35} yOffset={10}>
+            <div className="mt-7 flex items-baseline justify-between px-5 pb-3">
+              <div>
+                <div className="mb-1 flex items-center gap-2">
+                  <SparklesIcon className="h-3.5 w-3.5 text-swin-gold" />
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-[2px] text-swin-gold">On the shelves</span>
+                </div>
+                <h2 className="font-display text-[22px] font-semibold tracking-tight">Available now</h2>
               </div>
-            ))}
-          </div>
-        </BlurFade>
+              <Link
+                href="/dashboard/book/items?status=available"
+                className="flex items-center gap-1 text-[12px] text-swin-charcoal/50 dark:text-white/50"
+              >
+                Browse <ArrowRightIcon className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="flex gap-3 overflow-x-auto px-5 pb-3 scrollbar-none">
+              {mobilePicks.map((r) => (
+                <Link
+                  key={r.id}
+                  href={`/dashboard/book/items?q=${encodeURIComponent(r.title)}`}
+                  className="w-[130px] flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/50 rounded-md"
+                >
+                  <BookCover
+                    gradient={getBookGradient(r.id)}
+                    title={r.title}
+                    author={r.author}
+                    w={130}
+                    h={184}
+                    radius={6}
+                  />
+                  <p className="mt-2.5 truncate font-display text-[14px] font-semibold leading-tight tracking-tight">{r.title}</p>
+                  <p className="mt-0.5 truncate font-display text-[11px] italic text-swin-charcoal/55 dark:text-white/55">{r.author}</p>
+                  {r.category && (
+                    <p className="mt-1.5 truncate font-mono text-[10px] uppercase tracking-wide text-swin-charcoal/40 dark:text-white/40">{r.category}</p>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </BlurFade>
+        )}
       </div>
 
       {/* Mobile bottom nav is provided by MobileNav (in DashboardShell). */}
@@ -251,18 +287,30 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
       <div className="hidden md:block">
         {/* Top bar */}
         <div className="mb-8 flex items-center gap-4 border-b border-swin-charcoal/10 pb-5 dark:border-white/10">
-          <div className="flex flex-1 max-w-[520px] items-center gap-2.5 rounded-xl bg-white px-3.5 py-2.5 dark:bg-swin-dark-surface">
+          <form
+            action="/dashboard/book/items"
+            method="get"
+            role="search"
+            className="flex flex-1 max-w-[520px] items-center gap-2.5 rounded-xl bg-white px-3.5 py-2.5 transition focus-within:ring-2 focus-within:ring-swin-red/40 dark:bg-swin-dark-surface"
+          >
             <BookOpenIcon className="h-4 w-4 text-swin-charcoal/35 dark:text-white/35" />
+            <label htmlFor="dash-search" className="sr-only">Search the catalogue</label>
             <input
-              readOnly
-              placeholder="Search titles, authors, or ISBN… (⌘K)"
+              id="dash-search"
+              name="q"
+              type="search"
+              placeholder="Search titles, authors, or ISBN…"
               className="flex-1 border-0 bg-transparent text-[14px] placeholder-swin-charcoal/35 outline-none dark:placeholder-white/35"
             />
-          </div>
+            <button
+              type="submit"
+              className="rounded-lg bg-swin-red/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-swin-red transition hover:bg-swin-red/20"
+            >
+              Search
+            </button>
+          </form>
           <div className="ml-auto flex items-center gap-1.5 text-[12px] text-swin-charcoal/50 dark:text-white/50">
             <span>Sarawak Campus · Library B</span>
-            <span className="mx-1.5 text-swin-charcoal/20 dark:text-white/20">·</span>
-            <span className="text-green-600 dark:text-green-400">● Open until 10pm</span>
           </div>
         </div>
 
@@ -324,8 +372,8 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
           />
 
           {[
-            { icon: BookmarkIcon, label: 'Place a reservation', sub: 'Queue up a book', href: '/dashboard/book/items' },
-            { icon: SparklesIcon, label: 'Popular this week', sub: 'Trending on campus', href: '/dashboard/recommendations' },
+            { icon: BookmarkIcon, label: 'Reserve a book', sub: 'Hold an unavailable title', href: '/dashboard/book/items?status=checked_out' },
+            { icon: SparklesIcon, label: 'Ask the AI librarian', sub: 'Get a reading suggestion', href: '/dashboard/recommendations' },
           ].map(q => (
             <Link
               key={q.label}
@@ -390,33 +438,44 @@ export default function StudentDashboard({ userName, activeLoans, holds }: Stude
               </div>
             )}
 
-            {/* Curated pick */}
-            <div className="rounded-[14px] border border-swin-charcoal/10 bg-white p-5 dark:border-white/10 dark:bg-swin-dark-surface">
-              <div className="mb-2.5 flex items-center gap-1.5">
-                <SparklesIcon className="h-3 w-3 text-swin-gold" />
-                <span className="font-mono text-[9px] font-bold uppercase tracking-[2px] text-swin-gold">Curated pick</span>
-              </div>
-              <div className="flex gap-3.5">
-                <BookCover gradient={getBookGradient(SAMPLE_RECS[0].id)} title={SAMPLE_RECS[0].title} author={SAMPLE_RECS[0].author} w={72} h={104} radius={4} />
-                <div className="min-w-0 flex-1">
-                  <p className="font-display text-[18px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
-                    {SAMPLE_RECS[0].title}
-                  </p>
-                  <p className="mt-0.5 font-display text-[12px] italic text-swin-charcoal/55 dark:text-white/55">
-                    by {SAMPLE_RECS[0].author}
-                  </p>
-                  <p className="mt-2 font-mono text-[10px] tracking-wide text-swin-charcoal/40 dark:text-white/40">
-                    {SAMPLE_RECS[0].reason}
-                  </p>
-                  <Link
-                    href="/dashboard/book/items"
-                    className="mt-2.5 inline-flex rounded-lg bg-swin-red px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-swin-red/90"
-                  >
-                    Place hold
-                  </Link>
+            {/* Available pick */}
+            {featuredPick && (
+              <div className="rounded-[14px] border border-swin-charcoal/10 bg-white p-5 dark:border-white/10 dark:bg-swin-dark-surface">
+                <div className="mb-2.5 flex items-center gap-1.5">
+                  <SparklesIcon className="h-3 w-3 text-swin-gold" />
+                  <span className="font-mono text-[9px] font-bold uppercase tracking-[2px] text-swin-gold">Available now</span>
+                </div>
+                <div className="flex gap-3.5">
+                  <BookCover
+                    gradient={getBookGradient(featuredPick.id)}
+                    title={featuredPick.title}
+                    author={featuredPick.author}
+                    w={72}
+                    h={104}
+                    radius={4}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-display text-[18px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
+                      {featuredPick.title}
+                    </p>
+                    <p className="mt-0.5 font-display text-[12px] italic text-swin-charcoal/55 dark:text-white/55">
+                      by {featuredPick.author}
+                    </p>
+                    {featuredPick.category && (
+                      <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-swin-charcoal/40 dark:text-white/40">
+                        {featuredPick.category}
+                      </p>
+                    )}
+                    <Link
+                      href={`/dashboard/book/items?q=${encodeURIComponent(featuredPick.title)}`}
+                      className="mt-2.5 inline-flex rounded-lg bg-swin-red px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-swin-red/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/50"
+                    >
+                      View in catalogue
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

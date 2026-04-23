@@ -7,6 +7,7 @@ import type { BorrowingHistoryLoan, PatronHold } from '@/app/lib/supabase/querie
 import LoanCard from '@/app/ui/dashboard/primitives/LoanCard';
 import HoldCard from '@/app/ui/dashboard/primitives/HoldCard';
 import BookCover, { getBookGradient } from '@/app/ui/dashboard/primitives/BookCover';
+import CancelHoldButton from '@/app/ui/dashboard/cancelHoldButton';
 
 const fmt = new Intl.DateTimeFormat('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
 const formatDate = (v: string | null) => {
@@ -23,10 +24,11 @@ type MyBooksTabsProps = {
   holds: PatronHold[];
   defaultTab?: Tab;
   holdCounts?: Record<string, number>;
+  cancelHoldAction?: (formData: FormData) => Promise<void>;
 };
 
 export default function MyBooksTabs({
-  activeLoans, loanHistory, holds, defaultTab = 'current', holdCounts,
+  activeLoans, loanHistory, holds, defaultTab = 'current', holdCounts, cancelHoldAction,
 }: MyBooksTabsProps) {
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
 
@@ -39,36 +41,64 @@ export default function MyBooksTabs({
   return (
     <div>
       {/* Tab bar */}
-      <div className="mb-7 flex border-b border-swin-charcoal/10 dark:border-white/10">
-        {tabDef.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTab(t.id)}
-            className={`relative pb-3 pr-5 text-[13px] font-semibold transition-colors ${
-              activeTab === t.id
-                ? 'text-swin-charcoal dark:text-white'
-                : 'text-swin-charcoal/45 hover:text-swin-charcoal/70 dark:text-white/45 dark:hover:text-white/70'
-            }`}
-          >
-            {t.label}
-            {t.count > 0 && (
-              <span className={`ml-1.5 rounded-full px-1.5 py-0.5 font-mono text-[10px] font-bold ${
-                activeTab === t.id
-                  ? 'bg-swin-red/10 text-swin-red'
-                  : 'bg-swin-charcoal/8 text-swin-charcoal/50 dark:bg-white/8 dark:text-white/50'
-              }`}>
-                {t.count}
-              </span>
-            )}
-            {activeTab === t.id && (
-              <span className="absolute bottom-0 left-0 right-5 h-0.5 rounded-t-full bg-swin-red" />
-            )}
-          </button>
-        ))}
+      <div
+        role="tablist"
+        aria-label="My books"
+        className="mb-7 flex border-b border-swin-charcoal/10 dark:border-white/10"
+      >
+        {tabDef.map(t => {
+          const isActive = activeTab === t.id;
+          return (
+            <button
+              key={t.id}
+              role="tab"
+              type="button"
+              id={`my-books-tab-${t.id}`}
+              aria-selected={isActive}
+              aria-controls={`my-books-panel-${t.id}`}
+              tabIndex={isActive ? 0 : -1}
+              onClick={() => setActiveTab(t.id)}
+              onKeyDown={(e) => {
+                if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+                e.preventDefault();
+                const idx = tabDef.findIndex((x) => x.id === activeTab);
+                const next = e.key === 'ArrowRight'
+                  ? tabDef[(idx + 1) % tabDef.length]
+                  : tabDef[(idx - 1 + tabDef.length) % tabDef.length];
+                setActiveTab(next.id);
+                document.getElementById(`my-books-tab-${next.id}`)?.focus();
+              }}
+              className={`relative pb-3 pr-5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/40 ${
+                isActive
+                  ? 'text-swin-charcoal dark:text-white'
+                  : 'text-swin-charcoal/45 hover:text-swin-charcoal/70 dark:text-white/45 dark:hover:text-white/70'
+              }`}
+            >
+              {t.label}
+              {t.count > 0 && (
+                <span className={`ml-1.5 rounded-full px-1.5 py-0.5 font-mono text-[10px] font-bold ${
+                  isActive
+                    ? 'bg-swin-red/10 text-swin-red'
+                    : 'bg-swin-charcoal/8 text-swin-charcoal/50 dark:bg-white/8 dark:text-white/50'
+                }`}>
+                  {t.count}
+                </span>
+              )}
+              {isActive && (
+                <span className="absolute bottom-0 left-0 right-5 h-0.5 rounded-t-full bg-swin-red" />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === 'current' && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+        <div
+          role="tabpanel"
+          id="my-books-panel-current"
+          aria-labelledby="my-books-tab-current"
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"
+        >
           {activeLoans.length === 0 ? (
             <div className="col-span-2 rounded-xl border border-dashed border-swin-charcoal/15 bg-white p-10 text-center dark:border-white/10 dark:bg-swin-dark-surface">
               <p className="font-display text-[18px] font-semibold text-swin-charcoal dark:text-white">No books borrowed</p>
@@ -86,7 +116,12 @@ export default function MyBooksTabs({
       )}
 
       {activeTab === 'history' && (
-        <div className="overflow-hidden rounded-[14px] border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface">
+        <div
+          role="tabpanel"
+          id="my-books-panel-history"
+          aria-labelledby="my-books-tab-history"
+          className="overflow-hidden rounded-[14px] border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface"
+        >
           {loanHistory.length === 0 ? (
             <p className="p-10 text-center text-[13px] text-swin-charcoal/50 dark:text-white/50">No loan history yet.</p>
           ) : (
@@ -134,7 +169,12 @@ export default function MyBooksTabs({
       )}
 
       {activeTab === 'reservations' && (
-        <div className="flex flex-col gap-3">
+        <div
+          role="tabpanel"
+          id="my-books-panel-reservations"
+          aria-labelledby="my-books-tab-reservations"
+          className="flex flex-col gap-3"
+        >
           {holds.length === 0 ? (
             <div className="rounded-xl border border-dashed border-swin-charcoal/15 bg-white p-10 text-center dark:border-white/10 dark:bg-swin-dark-surface">
               <p className="font-display text-[18px] font-semibold text-swin-charcoal dark:text-white">No active reservations</p>
@@ -144,7 +184,28 @@ export default function MyBooksTabs({
               </Link>
             </div>
           ) : (
-            holds.map(hold => <HoldCard key={hold.id} hold={hold} />)
+            holds.map(hold => {
+              const canCancel = cancelHoldAction && (hold.status === 'queued' || hold.status === 'ready');
+              return (
+                <div
+                  key={hold.id}
+                  className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface"
+                >
+                  <div className="p-1">
+                    <HoldCard hold={hold} />
+                  </div>
+                  {canCancel && (
+                    <div className="flex justify-end border-t border-swin-charcoal/8 px-4 py-3 dark:border-white/8">
+                      <CancelHoldButton
+                        holdId={hold.id}
+                        bookTitle={hold.title}
+                        cancelAction={cancelHoldAction!}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })
           )}
         </div>
       )}
