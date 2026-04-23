@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 
+# claude
+/.claude/
+
 # build outputs
 /.next/
 /out/

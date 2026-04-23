@@ -1,5 +1,6 @@
 name: 'Setup Environment'
-runs-on: "ubuntu-latest"
+description: 'Install dependencies using pnpm'
+
 runs:
   using: "composite"
   steps:
