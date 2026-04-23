@@ -8,7 +8,6 @@ import {
   BookOpenIcon,
   UserGroupIcon,
   UserCircleIcon,
-  AcademicCapIcon,
   SparklesIcon,
   ChevronDownIcon, // Import icon for collapse indicator
   BellIcon,
@@ -29,20 +28,13 @@ type NavItem = {
 
 const generalLinks: NavItem[] = [
   { name: 'Overview', href: '/dashboard', icon: HomeIcon },
-  { 
+  {
     name: 'Catalogue', href: '/dashboard/book', icon: BookOpenIcon,
     // sub-titles
     children: [
       { name: 'Book Items', href: '/dashboard/book/items' },
       { name: 'Borrow Books', href: '/dashboard/book/checkout' },
       { name: 'Return Books', href: '/dashboard/book/checkin' },
-    ]
-  },
-  { name: 'AI Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
-  {
-    name: 'Learning', href: '/dashboard/learning', icon: AcademicCapIcon,
-    children: [
-      { name: 'LinkedIn Learning library', href: '/dashboard/learning/linkedin' },
     ]
   },
   { name: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
@@ -126,7 +118,7 @@ export default function NavLinks({
     };
 
     check();
-    const timer = setInterval(check, 30_000);
+    const timer = setInterval(check, 90_000);
     return () => clearInterval(timer);
   }, [role]);
 

@@ -7,9 +7,6 @@ import type { DashboardRole } from '@/app/lib/auth/types';
 
 const protectedPrefixes = [
   '/dashboard',
-  '/admin',
-  '/staff',
-  '/user',
   '/profile',
   '/api/checkin',
   '/api/checkout',
@@ -18,9 +15,6 @@ const protectedPrefixes = [
 ];
 
 const roleGuardRules: Array<{ prefix: string; allowed: Set<DashboardRole> }> = [
-  { prefix: '/admin', allowed: new Set<DashboardRole>(['admin']) },
-  { prefix: '/staff', allowed: new Set<DashboardRole>(['staff', 'admin']) },
-  { prefix: '/user', allowed: new Set<DashboardRole>(['user', 'staff', 'admin']) },
   { prefix: '/dashboard/admin', allowed: new Set<DashboardRole>(['admin']) },
   { prefix: '/dashboard/staff', allowed: new Set<DashboardRole>(['staff', 'admin']) },
 ];
@@ -78,9 +72,6 @@ export default auth((request) => {
 export const config = {
   matcher: [
     '/dashboard/:path*',
-    '/admin/:path*',
-    '/staff/:path*',
-    '/user/:path*',
     '/profile/:path*',
     '/api/checkin/:path*',
     '/api/checkout/:path*',

@@ -12,13 +12,14 @@ import {
   SparklesIcon,
   BellIcon,
   BookmarkIcon,
-  ArrowRightOnRectangleIcon,
   ArrowPathIcon,
   QrCodeIcon,
   ClockIcon,
   Cog6ToothIcon,
   MagnifyingGlassIcon,
   QuestionMarkCircleIcon,
+  SunIcon,
+  MoonIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/themeProvider';
@@ -39,7 +40,6 @@ const ADMIN_NAV: NavItem[] = [
   { icon: ArrowPathIcon,          label: 'Return Books',   href: '/dashboard/book/checkin' },
   { icon: ClockIcon,              label: 'Borrow History', href: '/dashboard/book/history' },
   { icon: BellIcon,               label: 'Notifications',  href: '/dashboard/notifications' },
-  { icon: AcademicCapIcon,        label: 'Learning hub',   href: '/dashboard/learning' },
   { icon: Cog6ToothIcon,          label: 'Settings',       href: '/dashboard/profile' },
 ];
 
@@ -49,9 +49,8 @@ const STAFF_NAV: NavItem[] = [
   { icon: ArrowPathIcon,          label: 'Return Books',   href: '/dashboard/book/checkin' },
   { icon: BookmarkIcon,           label: 'Holds',          href: '/dashboard/book/holds' },
   { icon: BookOpenIcon,           label: 'Catalogue',      href: '/dashboard/book/items' },
-  { icon: ClockIcon,              label: 'Borrow History', href: '/dashboard/book/history' },
   { icon: BellIcon,               label: 'Notifications',  href: '/dashboard/notifications' },
-  { icon: AcademicCapIcon,        label: 'Learning hub',   href: '/dashboard/learning' },
+  { icon: UserCircleIcon,         label: 'Profile',        href: '/dashboard/profile' },
 ];
 
 const USER_NAV: NavItem[] = [
@@ -98,7 +97,7 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
       } catch { /* ignore */ }
     };
     check();
-    const timer = setInterval(check, 30_000);
+    const timer = setInterval(check, 90_000);
     return () => clearInterval(timer);
   }, []);
 
@@ -200,10 +199,13 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
       {/* Bottom controls */}
       <div className="mt-4 space-y-2">
         <button
+          type="button"
           onClick={toggleTheme}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-swin-charcoal/10 bg-swin-charcoal/5 px-3 py-2 text-[12px] font-medium text-swin-charcoal/70 transition hover:bg-swin-charcoal/10 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10"
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-swin-charcoal/10 bg-swin-charcoal/5 px-3 py-2 text-[12px] font-medium text-swin-charcoal/70 transition hover:bg-swin-charcoal/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/40 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10"
         >
-          {isDark ? '☀ Light mode' : '☾ Dark mode'}
+          {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
+          {isDark ? 'Light mode' : 'Dark mode'}
         </button>
 
         {/* User footer */}

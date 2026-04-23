@@ -76,7 +76,7 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
       } catch { /* ignore */ }
     };
     check();
-    const timer = setInterval(check, 30_000);
+    const timer = setInterval(check, 90_000);
     return () => clearInterval(timer);
   }, []);
 
