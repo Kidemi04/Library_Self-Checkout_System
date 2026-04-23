@@ -5,9 +5,6 @@
 /.pnp
 .pnp.js
 
-# claude
-/.claude/
-
 # build outputs
 /.next/
 /out/
@@ -56,4 +53,6 @@ pnpm-debug.log*
 .vscode/
 
 # Claude Code internals
+/.claude/
+/claude/
 .claude/
