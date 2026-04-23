@@ -7,6 +7,20 @@ import { auth } from '@/auth';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import type { ActionState } from '@/app/dashboard/actionState';
 import { createNotification, createUserNotification } from '@/app/lib/supabase/notifications';
+import {
+  countActiveLoansForPatron,
+  countOverdueLoansForPatron,
+  fetchHoldsForBook,
+  insertDamageReport,
+  promoteNextHoldForBook,
+  type DamageSeverity,
+} from '@/app/lib/supabase/queries';
+import {
+  STUDENT_LOAN_LIMIT,
+  MAX_LOAN_DAYS,
+  DAMAGE_NOTES_MAX,
+  DAMAGE_PHOTOS_MAX,
+} from '@/app/dashboard/loanPolicy';
 
 const SIP2_INSTITUTION_ID = process.env.SIP2_INSTITUTION_ID ?? 'LIB001';
 const SIP2_TERMINAL_PASSWORD = process.env.SIP2_TERMINAL_PASSWORD ?? '';
@@ -335,6 +349,18 @@ export async function checkoutBookAction(
     return failure('Due date is invalid.');
   }
 
+  // Server-side due-date bounds: strictly in the future, within MAX_LOAN_DAYS.
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const earliest = new Date(today.getTime() + 86_400_000); // today + 1 day
+  const latest = new Date(today.getTime() + MAX_LOAN_DAYS * 86_400_000);
+  if (dueDate < earliest) {
+    return failure('Due date must be in the future.');
+  }
+  if (dueDate > latest) {
+    return failure(`Due date cannot be more than ${MAX_LOAN_DAYS} days away.`);
+  }
+
   const supabase = getSupabaseServerClient();
   const handlerId = await getCurrentUserId();
   const borrowedAt = new Date();
@@ -343,11 +369,37 @@ export async function checkoutBookAction(
 
   const borrower = await loadBorrowerByIdentifier(supabase, borrowerIdentifier);
   if (!borrower) {
-    // testing use
-    console.log('borrowerIdentifier:', borrowerIdentifier);
-    console.log(borrower);
-
     return failure('No patron matches that ID or email.');
+  }
+
+  // ---------- Pre-flight: loan-limit + overdue + hold-respect ----------
+  // Staff-assisted borrows can pass `override=on` to soft-bypass warn-level
+  // checks (overdue, hold queue). Hard blocks (loan-limit) always apply.
+  const isStaffAssist = handlerId != null && handlerId !== borrower.id;
+  const override = formData.get('override')?.toString() === 'on';
+
+  const [activeLoanCount, overdueCount, holdCount] = await Promise.all([
+    countActiveLoansForPatron(borrower.id),
+    countOverdueLoansForPatron(borrower.id),
+    fetchHoldsForBook(bookId),
+  ]);
+
+  if (activeLoanCount >= STUDENT_LOAN_LIMIT) {
+    return failure(
+      `Loan limit reached (${activeLoanCount}/${STUDENT_LOAN_LIMIT}). Return a book before borrowing another.`,
+    );
+  }
+
+  if (overdueCount > 0 && !(isStaffAssist && override)) {
+    return failure(
+      `Patron has ${overdueCount} overdue book${overdueCount === 1 ? '' : 's'}. Return before borrowing.`,
+    );
+  }
+
+  if (holdCount > 0 && !(isStaffAssist && override)) {
+    return failure(
+      'This title has holds queued. Fulfil the hold queue before a fresh checkout.',
+    );
   }
 
   let copy: AvailableCopy | null = null;
@@ -553,6 +605,15 @@ export async function checkoutBookAction(
 }
 
 
+const parseSeverity = (value: string | null | undefined): DamageSeverity | null => {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim().toLowerCase();
+  if (normalized === 'damaged' || normalized === 'lost' || normalized === 'needs_inspection') {
+    return normalized;
+  }
+  return null;
+};
+
 export async function checkinBookAction(
   _prevState: ActionState,
   formData: FormData,
@@ -560,9 +621,35 @@ export async function checkinBookAction(
   const loanId = formData.get('loanId')?.toString();
   const identifierRaw = formData.get('identifier')?.toString().trim();
 
+  // Damage / condition payload (optional)
+  const copyStatusInput = formData.get('copyStatus')?.toString() ?? 'available';
+  const conditionNotesRaw = formData.get('conditionNotes')?.toString() ?? '';
+  const damagePhotoUrlsRaw = formData.get('damagePhotoUrls')?.toString() ?? '[]';
+
   if (!loanId && !identifierRaw) {
     return failure('Provide a loan reference, borrower ID, or copy barcode.');
   }
+
+  const isDamaged = copyStatusInput.trim().toLowerCase() !== 'available';
+  const severity = isDamaged ? parseSeverity(copyStatusInput) : null;
+  if (isDamaged && !severity) {
+    return failure('Invalid copy condition.');
+  }
+  const conditionNotes = conditionNotesRaw.slice(0, DAMAGE_NOTES_MAX).trim();
+  let damagePhotoUrls: string[] = [];
+  if (isDamaged) {
+    try {
+      const parsed = JSON.parse(damagePhotoUrlsRaw);
+      if (Array.isArray(parsed)) {
+        damagePhotoUrls = parsed
+          .filter((v): v is string => typeof v === 'string' && v.length > 0)
+          .slice(0, DAMAGE_PHOTOS_MAX);
+      }
+    } catch {
+      damagePhotoUrls = [];
+    }
+  }
+  const copyStatusFinal: 'available' | DamageSeverity = severity ?? 'available';
 
   const supabase = getSupabaseServerClient();
   const handlerId = await getCurrentUserId();
@@ -681,7 +768,7 @@ export async function checkinBookAction(
 
   const { error: copyUpdateError } = await supabase
     .from('Copies')
-    .update({ status: 'available' })
+    .update({ status: copyStatusFinal })
     .eq('id', loan.copy_id);
 
   if (copyUpdateError) {
@@ -693,6 +780,24 @@ export async function checkinBookAction(
     return failure('Copy status update failed; the loan remains active.');
   }
 
+  // Persist the damage report row (if any)
+  if (severity) {
+    try {
+      await insertDamageReport({
+        loanId: loan.id,
+        copyId: loan.copy_id,
+        reportedBy: handlerId,
+        severity,
+        notes: conditionNotes || null,
+        photoUrls: damagePhotoUrls,
+      });
+    } catch (error) {
+      console.error('Failed to persist damage report', error);
+      // Non-fatal — the return succeeded, the copy is in the right state.
+      // The photos are still in storage and can be reconciled manually.
+    }
+  }
+
   await logAuditEvent(supabase, {
     table: 'Loans',
     recordId: loan.id,
@@ -700,16 +805,30 @@ export async function checkinBookAction(
     performedBy: handlerId,
     payload: {
       returned_at: nowIso,
+      copy_status: copyStatusFinal,
+      ...(severity
+        ? { damage: { severity, photos: damagePhotoUrls.length } }
+        : {}),
     },
   });
 
-  // ---------- Notification ----------
+  // Hold auto-promotion: only when the copy is genuinely back on the shelf.
+  let promotion: Awaited<ReturnType<typeof promoteNextHoldForBook>> = null;
+  if (copyStatusFinal === 'available' && loan.copy?.book_id) {
+    try {
+      promotion = await promoteNextHoldForBook(loan.copy.book_id);
+    } catch (error) {
+      console.error('Hold promotion failed', error);
+    }
+  }
+
+  // ---------- Notifications ----------
   ;(async () => {
     const bookId = loan.copy?.book_id;
     let bookTitle = loan.copy?.barcode ?? 'Unknown book';
     if (bookId) {
       const { data: bookRow } = await supabase
-        .from('books')
+        .from('Books')
         .select('title')
         .eq('id', bookId)
         .maybeSingle<{ title: string }>();
@@ -717,12 +836,50 @@ export async function checkinBookAction(
     }
     const patronName = loan.borrower?.profile?.display_name ?? loan.borrower?.email ?? '';
     const patronIdentifier = loan.borrower?.profile?.student_id ?? loan.borrower?.email ?? '';
+
+    // Staff broadcast
     await createNotification(
       'checkin',
       'Book Returned',
       `"${bookTitle}" has been returned.`,
-      { bookTitle, barcode: loan.copy?.barcode ?? '', patronName, patronIdentifier },
+      {
+        bookTitle,
+        barcode: loan.copy?.barcode ?? '',
+        patronName,
+        patronIdentifier,
+        copyStatus: copyStatusFinal,
+      },
     );
+
+    // Borrower confirmation (only for regular patrons, not when staff returned their own)
+    if (loan.user_id) {
+      const isPrivilegedBorrower =
+        loan.borrower && ['admin', 'staff', 'librarian'].includes(loan.borrower.email ? '' : '');
+      if (!isPrivilegedBorrower) {
+        await createUserNotification(
+          loan.user_id,
+          'checkin',
+          'Return confirmed',
+          `Your return of "${bookTitle}" has been recorded.`,
+          { bookTitle, barcode: loan.copy?.barcode ?? '', loanId: loan.id },
+        );
+      }
+    }
+
+    // Promoted hold → notify that patron
+    if (promotion) {
+      await createUserNotification(
+        promotion.patronId,
+        'hold_ready',
+        'Your hold is ready for pickup',
+        `"${bookTitle}" is ready. Collect it by ${new Date(promotion.expiresAt).toLocaleDateString('en-MY', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })}.`,
+        { bookTitle, barcode: loan.copy?.barcode ?? '', holdId: promotion.promotedHoldId, expiresAt: promotion.expiresAt },
+      );
+    }
   })().catch((err) => console.warn('[notifications] checkin notification failed:', err));
 
   // ---------- SIP2 check-in ----------
@@ -760,7 +917,8 @@ export async function checkinBookAction(
   revalidatePath('/dashboard/book/items');
   revalidatePath('/dashboard/book/holds');
 
-  return success(`Marked ${copyLabel} as returned for ${borrowerLabel}.`);
+  const conditionSuffix = severity ? ` (flagged ${severity.replace('_', ' ')})` : '';
+  return success(`Marked ${copyLabel} as returned for ${borrowerLabel}${conditionSuffix}.`);
 }
 
 

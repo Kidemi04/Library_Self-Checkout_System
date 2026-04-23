@@ -1,9 +1,16 @@
 import CheckOutForm from '@/app/ui/dashboard/checkOutForm';
 import ActiveLoansTable from '@/app/ui/dashboard/activeLoansTable';
 import SearchForm from '@/app/ui/dashboard/searchForm';
-import { fetchActiveLoans, fetchAvailableBooks } from '@/app/lib/supabase/queries';
+import {
+  fetchActiveLoans,
+  fetchAvailableBooks,
+  fetchHoldsForBook,
+  countActiveLoansForPatron,
+  countOverdueLoansForPatron,
+} from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import AdminShell from '@/app/ui/dashboard/adminShell';
+import { STUDENT_LOAN_LIMIT } from '@/app/dashboard/loanPolicy';
 import { QrCodeIcon } from '@heroicons/react/24/outline';
 
 const defaultLoanDurationDays = 14;
@@ -36,6 +43,20 @@ export default async function BorrowBooksPage({
     fetchAvailableBooks(searchTerm),
     fetchActiveLoans(undefined, canProcessLoans ? undefined : user?.id),
   ]);
+
+  // Hold counts for all books shown (used for pre-flight warnings on the form)
+  const holdCountEntries = await Promise.all(
+    books.map(async (b) => [b.id, await fetchHoldsForBook(b.id)] as [string, number]),
+  );
+  const holdCounts = Object.fromEntries(holdCountEntries);
+
+  // For self-checkout students: their current active + overdue counts
+  const [selfActiveLoans, selfOverdueCount] = !canProcessLoans && user?.id
+    ? await Promise.all([
+        countActiveLoansForPatron(user.id),
+        countOverdueLoansForPatron(user.id),
+      ])
+    : [0, 0];
 
   const defaultDueDate = buildDefaultDueDate();
 
@@ -91,6 +112,10 @@ export default async function BorrowBooksPage({
             selfCheckout={!canProcessLoans}
             selfUserId={!canProcessLoans ? user?.id : undefined}
             selfUserName={!canProcessLoans ? (user?.name ?? user?.email ?? undefined) : undefined}
+            holdCounts={holdCounts}
+            selfActiveLoans={selfActiveLoans}
+            selfHasOverdue={selfOverdueCount > 0}
+            loanLimit={STUDENT_LOAN_LIMIT}
           />
 
           <section className="space-y-3">

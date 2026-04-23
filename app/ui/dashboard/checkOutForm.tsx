@@ -1,14 +1,17 @@
 'use client';
 
-import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
-import type { ChangeEvent } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import clsx from 'clsx';
+import { useFormStatus } from 'react-dom';
+import { ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import { checkoutBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/actionState';
-import type { ActionState } from '@/app/dashboard/actionState';
 import type { Book } from '@/app/lib/supabase/types';
 import CameraScannerButton from '@/app/ui/dashboard/cameraScannerButton';
+import DueDatePicker from '@/app/ui/dashboard/primitives/DueDatePicker';
+import PatronCombobox, { type PatronOption } from '@/app/ui/dashboard/patronCombobox';
+import TransactionReceipt from '@/app/ui/dashboard/primitives/TransactionReceipt';
 
 interface CheckOutFormProps {
   books: Book[];
@@ -18,13 +21,30 @@ interface CheckOutFormProps {
   selfCheckout?: boolean;
   selfUserId?: string;
   selfUserName?: string;
+  /** bookId → active hold count (from fetchHoldsForBook). Used for pre-flight warnings. */
+  holdCounts?: Record<string, number>;
+  /** For self-checkout: the student's current active-loan count */
+  selfActiveLoans?: number;
+  /** For self-checkout: whether the student has any overdue loans */
+  selfHasOverdue?: boolean;
+  /** Hard cap for student-side self-checkout. Mirrors STUDENT_LOAN_LIMIT in actions.ts. */
+  loanLimit?: number;
 }
 
-export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId, selfCheckout, selfUserId, selfUserName }: CheckOutFormProps) {
+export default function CheckOutForm({
+  books,
+  defaultDueDate,
+  preSelectedBookId,
+  selfCheckout,
+  selfUserId,
+  selfUserName,
+  holdCounts,
+  selfActiveLoans = 0,
+  selfHasOverdue = false,
+  loanLimit = 5,
+}: CheckOutFormProps) {
   const [state, formAction] = useActionState(checkoutBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
-  const borrowerIdRef = useRef<HTMLInputElement | null>(null);
-  const [mobileExpanded, setMobileExpanded] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState<string>(preSelectedBookId ?? '');
   const [selectedCopyId, setSelectedCopyId] = useState<string>('');
   const [selectedCopyBarcode, setSelectedCopyBarcode] = useState<string | null>(null);
@@ -34,18 +54,26 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId,
   } | null>(null);
   const [bookOptions, setBookOptions] = useState(() => buildBookOptions(books));
   const [bookMap, setBookMap] = useState(() => createBookMap(books));
-  const contentId = 'borrow-form-panel';
+  const [pickedPatron, setPickedPatron] = useState<PatronOption | null>(null);
+  const [override, setOverride] = useState(false);
+  const [showReceipt, setShowReceipt] = useState<null | { title: string; dueAt: string }>(null);
 
   useEffect(() => {
     if (state.status === 'success') {
+      const selected = selectedBookId ? bookMap.get(selectedBookId) : null;
+      setShowReceipt({
+        title: selected?.title ?? 'Book',
+        dueAt: defaultDueDate,
+      });
       formRef.current?.reset();
       setSelectedBookId('');
       setSelectedCopyId('');
       setSelectedCopyBarcode(null);
       setLookupMessage(null);
-      borrowerIdRef.current?.focus();
+      setPickedPatron(null);
+      setOverride(false);
     }
-  }, [state.status]);
+  }, [state.status, selectedBookId, bookMap, defaultDueDate]);
 
   useEffect(() => {
     setBookOptions((prev) => {
@@ -61,57 +89,36 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId,
   }, [books]);
 
   useEffect(() => {
-    if (selectedBookId) {
-      setMobileExpanded(true);
-    }
-  }, [selectedBookId]);
-
-  useEffect(() => {
     if (!selectedBookId) {
       setSelectedCopyId('');
       setSelectedCopyBarcode(null);
       return;
     }
-
     const book = bookMap.get(selectedBookId);
     if (!book) {
       setSelectedCopyId('');
       setSelectedCopyBarcode(null);
       return;
     }
-
     const copy = pickPreferredCopy(book);
     setSelectedCopyId(copy?.id ?? '');
     setSelectedCopyBarcode(copy?.barcode ?? null);
   }, [selectedBookId, bookMap]);
 
-  useEffect(() => {
-    if (state.status === 'error') {
-      setMobileExpanded(true);
-    }
-  }, [state.status]);
-
-  const handleBookSelection = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedBookId(event.target.value);
-  }, []);
-
   const handleScanDetected = useCallback(
     async (code: string) => {
       if (!code) return;
-      setLookupMessage({ tone: 'neutral', text: `Looking up ${code}…` });
-
+      setLookupMessage({ tone: 'neutral', text: `Looking up ${code}\u2026` });
       try {
         const response = await fetch(`/api/books/lookup?code=${encodeURIComponent(code)}`, {
           cache: 'no-store',
         });
-
         if (!response.ok) {
           const payload = await response.json().catch(() => null);
           const message = payload?.error ?? 'No available book matched that code.';
           setLookupMessage({ tone: 'error', text: message });
           return;
         }
-
         const payload = (await response.json()) as LookupResponse;
         const book = mapApiBookToBook(payload.book);
         const explicitCopy = payload.copy
@@ -119,12 +126,9 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId,
           : null;
 
         setBookOptions((prev) => {
-          if (prev.some((option) => option.id === book.id)) {
-            return prev;
-          }
+          if (prev.some((option) => option.id === book.id)) return prev;
           return [...prev, buildBookOption(book)];
         });
-
         setBookMap((prev) => {
           const next = new Map(prev);
           next.set(book.id, book);
@@ -141,7 +145,6 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId,
             ? `Copy ${preferredCopy.barcode} of "${book.title}" is ready to loan.`
             : `Ready to borrow "${book.title}".`,
         });
-        borrowerIdRef.current?.focus();
       } catch (error) {
         console.error('Failed to lookup scanned book', error);
         setLookupMessage({
@@ -154,272 +157,318 @@ export default function CheckOutForm({ books, defaultDueDate, preSelectedBookId,
   );
 
   const selectedBook = selectedBookId ? bookMap.get(selectedBookId) : null;
-  const mobileToggleLabel = mobileExpanded ? 'Hide form' : 'Borrow a book';
-  const handleMobileToggle = () => {
-    setMobileExpanded((prev) => !prev);
-  };
+  const holdOnBook = selectedBook ? (holdCounts?.[selectedBook.id] ?? 0) : 0;
+
+  // Pre-flight evaluation
+  const warnings = useMemo(() => {
+    const list: { key: string; text: string; severity: 'block' | 'warn' }[] = [];
+
+    if (selfCheckout) {
+      if (selfActiveLoans >= loanLimit) {
+        list.push({
+          key: 'limit',
+          text: `Loan limit reached (${selfActiveLoans}/${loanLimit}). Return a book before borrowing another.`,
+          severity: 'block',
+        });
+      }
+      if (selfHasOverdue) {
+        list.push({
+          key: 'overdue',
+          text: 'You have an overdue book. Please return it before borrowing another.',
+          severity: 'block',
+        });
+      }
+      if (holdOnBook > 0) {
+        list.push({
+          key: 'hold-self',
+          text: 'This title is reserved for another patron.',
+          severity: 'block',
+        });
+      }
+    } else {
+      if (pickedPatron) {
+        if (pickedPatron.activeLoans >= loanLimit) {
+          list.push({
+            key: 'limit',
+            text: `${pickedPatron.displayName ?? 'Patron'} has reached the loan limit (${pickedPatron.activeLoans}/${loanLimit}).`,
+            severity: 'block',
+          });
+        }
+        if (pickedPatron.hasOverdue) {
+          list.push({
+            key: 'overdue',
+            text: `${pickedPatron.displayName ?? 'Patron'} has an overdue book.`,
+            severity: 'warn',
+          });
+        }
+      }
+      if (holdOnBook > 0) {
+        list.push({
+          key: 'hold-staff',
+          text: `${holdOnBook} patron${holdOnBook === 1 ? '' : 's'} waiting on a hold for this title.`,
+          severity: 'warn',
+        });
+      }
+    }
+    return list;
+  }, [selfCheckout, selfActiveLoans, selfHasOverdue, holdOnBook, pickedPatron, loanLimit]);
+
+  const hasHardBlock = warnings.some((w) => w.severity === 'block');
+  const hasSoftWarn = warnings.some((w) => w.severity === 'warn');
+
+  const confirmEnabled =
+    !!selectedCopyId &&
+    !hasHardBlock &&
+    (selfCheckout || pickedPatron != null) &&
+    (!hasSoftWarn || selfCheckout || override);
+
+  // ---------- Receipt view (post-success) ----------
+  if (showReceipt) {
+    const dueLabel = showReceipt.dueAt
+      ? new Date(showReceipt.dueAt).toLocaleDateString('en-MY', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })
+      : '';
+    const secondary = selfCheckout
+      ? [
+          { label: 'View my loans', href: '/dashboard/my-books' },
+        ]
+      : [{ label: 'Back to desk', href: '/dashboard' }];
+    return (
+      <TransactionReceipt
+        tone="borrow"
+        title={showReceipt.title}
+        subtitle={dueLabel ? `Due back by ${dueLabel}` : undefined}
+        primaryLabel={selfCheckout ? 'Borrow another' : 'Process another'}
+        onPrimaryClick={() => setShowReceipt(null)}
+        secondary={secondary}
+      />
+    );
+  }
 
   return (
     <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 dark:shadow-black/30">
-      <div className="mb-3 flex flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-slate-100">Borrowed Item Details</h2>
-          <p className="hidden text-sm text-swin-charcoal/60 dark:text-slate-400 md:block">
-            Confirm borrower credentials and title availability before finalising the loan.
-          </p>
-          <p className="text-xs text-swin-charcoal/60 dark:text-slate-400 md:hidden">
-            Scan or search for a book, then enter who is borrowing it.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleMobileToggle}
-          className="inline-flex h-[44px] w-full items-center justify-center rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-4 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-white md:hidden dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-          aria-expanded={mobileExpanded}
-          aria-controls={contentId}
-        >
-          {mobileToggleLabel}
-        </button>
+      <div className="mb-4 space-y-1">
+        <h2 className="font-display text-[20px] font-semibold text-swin-charcoal dark:text-white">
+          {selfCheckout ? 'Borrow a book' : 'Record a loan'}
+        </h2>
+        <p className="text-[13px] text-swin-charcoal/60 dark:text-white/60">
+          Scan the copy barcode (or ISBN), then confirm the details.
+        </p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 md:flex-nowrap">
+      {/* Scan row */}
+      <div className="flex flex-wrap items-center gap-2">
         <CameraScannerButton
           onDetected={(code) => {
             void handleScanDetected(code);
           }}
-          modalDescription="Align the book barcode or ISBN within the frame. We will look up the title and select it automatically for borrowing."
+          modalDescription="Align the book barcode or ISBN within the frame."
           lastScanPrefix="Latest scan:"
           className="w-full md:w-auto"
         />
       </div>
 
-      {lookupMessage ? (
+      {lookupMessage && (
         <p
           className={clsx(
-            'mt-1 w-full text-xs font-medium text-swin-charcoal md:text-right dark:text-slate-300',
-            lookupMessage.tone === 'success'
-              ? 'text-emerald-600'
-              : lookupMessage.tone === 'error'
-                ? 'text-swin-red'
-                : 'text-swin-charcoal/70',
+            'mt-2 text-[12px] font-medium',
+            lookupMessage.tone === 'success' && 'text-emerald-600',
+            lookupMessage.tone === 'error' && 'text-swin-red',
+            lookupMessage.tone === 'neutral' && 'text-swin-charcoal/70 dark:text-white/70',
           )}
         >
           {lookupMessage.text}
         </p>
-      ) : null}
+      )}
 
-      <div
-        id={contentId}
-        className={clsx(
-          'mt-4 space-y-6 md:mt-6',
-          mobileExpanded ? 'block' : 'hidden',
-          'md:block',
-        )}
-      >
-        <form ref={formRef} action={formAction} className="grid gap-4 lg:grid-cols-2">
-          {/* For Supabase: which copy to loan */}
-          <input type="hidden" name="copyId" value={selectedCopyId} />
-          {/* For SIP: itemIdentifier (usually the copy barcode) */}
-          <input
-            type="hidden"
-            name="itemIdentifier"
-            value={selectedCopyBarcode ?? ''}
-          />
+      <form ref={formRef} action={formAction} className="mt-5 space-y-5">
+        {/* Hidden contract with server action */}
+        <input type="hidden" name="copyId" value={selectedCopyId} />
+        <input type="hidden" name="itemIdentifier" value={selectedCopyBarcode ?? ''} />
 
-          <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-100" htmlFor="bookId">
-              Book to borrow
-            </label>
-            <select
-              id="bookId"
-              name="bookId"
-              value={selectedBookId}
-              onChange={handleBookSelection}
-              className="mt-2 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-              required
-            >
-              <option value="" disabled>
-                {bookOptions.length ? 'Select a book' : 'No titles available'}
+        {/* Book picker */}
+        <div>
+          <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55" htmlFor="bookId">
+            Book to borrow
+          </label>
+          <select
+            id="bookId"
+            name="bookId"
+            value={selectedBookId}
+            onChange={(e) => setSelectedBookId(e.target.value)}
+            className="w-full rounded-lg border border-swin-charcoal/15 bg-white px-3 py-2 text-[13px] text-swin-charcoal focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/30 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white"
+            required
+          >
+            <option value="" disabled>
+              {bookOptions.length ? 'Select a book' : 'No titles available'}
+            </option>
+            {bookOptions.map((book) => (
+              <option key={book.id} value={book.id}>
+                {book.label}
               </option>
-              {bookOptions.map((book) => (
-                <option key={book.id} value={book.id}>
-                  {book.label}
-                </option>
-              ))}
-            </select>
-            {bookOptions.length > 0 ? (
-              <p className="mt-1 text-xs text-swin-charcoal/60 dark:text-slate-400">
-                {bookOptions.length} titles ready to borrow.
-              </p>
-            ) : null}
-            {selectedBook ? (
-              <div className="mt-3 rounded-xl border border-swin-charcoal/10 bg-swin-ivory p-4 text-xs text-swin-charcoal shadow-inner shadow-swin-charcoal/5 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:shadow-black/30">
-                <p className="text-sm font-semibold text-swin-charcoal">Selected title</p>
-                <dl className="mt-2 grid gap-x-6 gap-y-1 sm:grid-cols-2">
-                  <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Title</dt>
-                    <dd className="text-sm font-medium">{selectedBook.title}</dd>
-                  </div>
-                  {selectedBook.author ? (
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Author</dt>
-                      <dd className="text-sm">{selectedBook.author}</dd>
-                    </div>
-                  ) : null}
-                  <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Identifiers</dt>
-                    <dd className="text-sm">
-                      {selectedCopyBarcode ? `Barcode ${selectedCopyBarcode}` : null}
-                      {selectedCopyBarcode && selectedBook.isbn ? ' – ' : ''}
-                      {selectedBook.isbn ? `ISBN ${selectedBook.isbn}` : null}
-                      {!selectedCopyBarcode && !selectedBook.isbn ? 'Not provided' : null}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Availability</dt>
-                    <dd className="text-sm">
-                      {selectedBook.availableCopies} of {selectedBook.totalCopies} copies available
-                    </dd>
-                  </div>
-                  {selectedCopyBarcode ? (
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Selected copy</dt>
-                      <dd className="text-sm">{selectedCopyBarcode}</dd>
-                    </div>
-                  ) : null}
-                  {selectedBook.publisher ? (
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Publisher</dt>
-                      <dd className="text-sm">{selectedBook.publisher}</dd>
-                    </div>
-                  ) : null}
-                  {selectedBook.classification ? (
-                    <div>
-                      <dt className="text-[11px] uppercase tracking-wide text-swin-charcoal/60">Classification</dt>
-                      <dd className="text-sm">{selectedBook.classification}</dd>
-                    </div>
-                  ) : null}
-                </dl>
-              </div>
-            ) : null}
-          </div>
-
-          {selfCheckout ? (
-            <>
-              {/* Self-checkout: hidden fields + read-only identity line */}
-              <input type="hidden" name="borrowerIdentifier" value={selfUserId ?? ''} />
-              <input type="hidden" name="borrowerName" value={selfUserName ?? ''} />
-              <input type="hidden" name="dueDate" value={defaultDueDate} />
-              <div className="lg:col-span-2">
-                <div className="flex items-center gap-3 rounded-xl border border-swin-charcoal/10 bg-swin-ivory px-4 py-3 dark:border-white/10 dark:bg-white/5">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-swin-red/10 text-swin-red dark:bg-swin-red/20">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-4 w-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                    </svg>
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-xs text-swin-charcoal/50 dark:text-white/40">Borrowing as</p>
-                    <p className="text-sm font-semibold text-swin-charcoal dark:text-white">
-                      {selfUserName ?? 'You'}
-                    </p>
-                  </div>
-                  <span className="ml-auto rounded-full bg-swin-charcoal/8 px-2.5 py-1 text-xs text-swin-charcoal/60 dark:bg-white/8 dark:text-white/50">
-                    14-day loan
-                  </span>
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="borrowerIdentifier">
-                  Borrower ID
-                </label>
-                <input
-                  id="borrowerIdentifier"
-                  name="borrowerIdentifier"
-                  type="text"
-                  required
-                  placeholder="Scan or type borrower ID"
-                  ref={borrowerIdRef}
-                  className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="borrowerName">
-                  Borrower name
-                </label>
-                <input
-                  id="borrowerName"
-                  name="borrowerName"
-                  type="text"
-                  required
-                  placeholder="Full name"
-                  className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-200" htmlFor="dueDate">
-                  Due date
-                </label>
-                <input
-                  id="dueDate"
-                  name="dueDate"
-                  type="date"
-                  defaultValue={defaultDueDate}
-                  required
-                  className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                />
-              </div>
-            </>
+            ))}
+          </select>
+          {bookOptions.length > 0 && (
+            <p className="mt-1 font-mono text-[11px] text-swin-charcoal/45 dark:text-white/45">
+              {bookOptions.length} titles ready to borrow.
+            </p>
           )}
+        </div>
 
-          <div className="lg:col-span-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <ActionMessage status={state.status} message={state.message} />
-            <SubmitButton disabled={!selectedCopyId} label={selfCheckout ? 'Borrow This Book' : 'Borrow book'} />
+        {/* Preview card for selected book */}
+        {selectedBook && (
+          <div className="rounded-xl border border-swin-charcoal/10 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
+            <p className="font-display text-[17px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+              {selectedBook.title}
+            </p>
+            {selectedBook.author && (
+              <p className="mt-0.5 font-display text-[13px] italic text-swin-charcoal/65 dark:text-white/65">
+                by {selectedBook.author}
+              </p>
+            )}
+            <dl className="mt-3 grid gap-x-6 gap-y-1 font-mono text-[11px] sm:grid-cols-2">
+              <div>
+                <dt className="uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">Availability</dt>
+                <dd className="text-swin-charcoal/85 dark:text-white/85">
+                  {selectedBook.availableCopies} of {selectedBook.totalCopies} copies available
+                </dd>
+              </div>
+              {selectedCopyBarcode && (
+                <div>
+                  <dt className="uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">Selected copy</dt>
+                  <dd className="text-swin-charcoal/85 dark:text-white/85">{selectedCopyBarcode}</dd>
+                </div>
+              )}
+              {selectedBook.isbn && (
+                <div>
+                  <dt className="uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">ISBN</dt>
+                  <dd className="text-swin-charcoal/85 dark:text-white/85">{selectedBook.isbn}</dd>
+                </div>
+              )}
+              {selectedBook.classification && (
+                <div>
+                  <dt className="uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">Call number</dt>
+                  <dd className="text-swin-charcoal/85 dark:text-white/85">{selectedBook.classification}</dd>
+                </div>
+              )}
+            </dl>
           </div>
-        </form>
-      </div>
+        )}
+
+        {/* Borrower zone */}
+        {selfCheckout ? (
+          <>
+            <input type="hidden" name="borrowerIdentifier" value={selfUserId ?? ''} />
+            <input type="hidden" name="borrowerName" value={selfUserName ?? ''} />
+            <input type="hidden" name="dueDate" value={defaultDueDate} />
+            <div className="flex items-center gap-3 rounded-xl border border-swin-charcoal/10 bg-swin-ivory px-4 py-3 dark:border-white/10 dark:bg-white/5">
+              <div className="min-w-0">
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/50 dark:text-white/50">
+                  Borrowing as
+                </p>
+                <p className="text-[14px] font-semibold text-swin-charcoal dark:text-white">
+                  {selfUserName ?? 'You'}
+                </p>
+              </div>
+              <span className="ml-auto rounded-full bg-swin-charcoal/8 px-2.5 py-1 font-mono text-[10px] text-swin-charcoal/60 dark:bg-white/8 dark:text-white/55">
+                14-day loan
+              </span>
+            </div>
+          </>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            <PatronCombobox onSelect={setPickedPatron} />
+            <div>
+              <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55">
+                Due date
+              </label>
+              <DueDatePicker defaultDate={defaultDueDate} />
+            </div>
+          </div>
+        )}
+
+        {/* Warning strip */}
+        {warnings.length > 0 && (
+          <ul className="space-y-1.5">
+            {warnings.map((w) => {
+              const isBlock = w.severity === 'block';
+              const Icon = isBlock ? ExclamationTriangleIcon : InformationCircleIcon;
+              return (
+                <li
+                  key={w.key}
+                  className={clsx(
+                    'flex items-start gap-2 rounded-lg border px-3 py-2 text-[12px]',
+                    isBlock
+                      ? 'border-swin-red/40 bg-swin-red/8 text-swin-red'
+                      : 'border-amber-400/40 bg-amber-400/10 text-amber-700 dark:text-amber-300',
+                  )}
+                >
+                  <Icon className="mt-0.5 h-4 w-4 flex-shrink-0" />
+                  <span className="flex-1">{w.text}</span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
+        {/* Staff override — only when a soft warn is present and no hard block */}
+        {!selfCheckout && hasSoftWarn && !hasHardBlock && (
+          <label className="flex items-start gap-2 rounded-lg border border-dashed border-swin-charcoal/20 px-3 py-2 text-[12px] text-swin-charcoal/70 dark:border-white/20 dark:text-white/70">
+            <input
+              type="checkbox"
+              name="override"
+              checked={override}
+              onChange={(e) => setOverride(e.target.checked)}
+              className="mt-0.5"
+            />
+            <span>Override warnings and proceed — I&apos;ve confirmed with the patron.</span>
+          </label>
+        )}
+
+        {state.status === 'error' && state.message && (
+          <p className="text-[13px] font-semibold text-swin-red">{state.message}</p>
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {!selfCheckout && (
+            <Link
+              href="/dashboard"
+              className="text-[12px] font-medium text-swin-charcoal/60 underline-offset-2 hover:underline dark:text-white/60"
+            >
+              Cancel
+            </Link>
+          )}
+          <SubmitButton
+            disabled={!confirmEnabled}
+            label={selfCheckout ? 'Confirm loan' : 'Confirm loan'}
+          />
+        </div>
+      </form>
     </section>
   );
 }
 
-function SubmitButton({ disabled, label = 'Borrow book' }: { disabled: boolean; label?: string }) {
+function SubmitButton({ disabled, label }: { disabled: boolean; label: string }) {
   const { pending } = useFormStatus();
-
   return (
     <button
       type="submit"
       disabled={disabled || pending}
-      className="inline-flex items-center justify-center rounded-lg bg-swin-red px-5 py-2 text-sm font-semibold text-swin-ivory shadow-sm shadow-swin-red/30 transition hover:bg-swin-red/90 disabled:cursor-not-allowed disabled:bg-swin-charcoal/30 disabled:text-swin-ivory/60"
+      className="inline-flex items-center justify-center rounded-xl bg-swin-red px-5 py-2.5 text-[13px] font-semibold text-white shadow-sm shadow-swin-red/25 transition hover:bg-swin-red/90 disabled:cursor-not-allowed disabled:bg-swin-charcoal/25 disabled:text-white/70 disabled:shadow-none"
     >
-      {pending ? 'Processing…' : label}
+      {pending ? 'Processing\u2026' : label}
     </button>
   );
 }
 
-function ActionMessage({ status, message }: { status: ActionState['status']; message: string }) {
-  if (!message) return null;
-
-  const tone =
-    status === 'success'
-      ? 'text-emerald-600'
-      : status === 'error'
-        ? 'text-swin-red'
-        : 'text-swin-charcoal';
-
-  return <p className={`text-sm font-medium ${tone}`}>{message}</p>;
-}
+// ---------- helpers (unchanged contract) ----------
 
 type LookupResponse = {
   book: ApiBook;
-  copy?: {
-    id: string;
-    barcode: string | null;
-  };
+  copy?: { id: string; barcode: string | null };
 };
 
 type ApiBookCopy = {
@@ -449,7 +498,7 @@ const normalizeCopyStatus = (
   value: string | null | undefined,
 ): Book['copies'][number]['status'] => {
   if (typeof value !== 'string') return 'available';
-  switch (value.trim().toUpperCase()) {
+  switch (value.trim().toLowerCase()) {
     case 'on_loan':
       return 'on_loan';
     case 'lost':
@@ -460,26 +509,20 @@ const normalizeCopyStatus = (
       return 'processing';
     case 'hold_shelf':
       return 'hold_shelf';
-    case 'available':
     default:
       return 'available';
   }
 };
 
 const isCopyAvailable = (copy: Book['copies'][number]): boolean => {
-  if (copy.status !== 'available') {
-    return false;
-  }
+  if (copy.status !== 'available') return false;
   return !(copy.loans ?? []).some((loan) => loan.returnedAt == null);
 };
 
 const pickPreferredCopy = (book: Book) => {
   const copy = book.copies.find((candidate) => isCopyAvailable(candidate));
   if (!copy) return null;
-  return {
-    id: copy.id,
-    barcode: copy.barcode || null,
-  };
+  return { id: copy.id, barcode: copy.barcode || null };
 };
 
 const mapApiBookToBook = (apiBook: ApiBook): Book => {
@@ -499,7 +542,6 @@ const mapApiBookToBook = (apiBook: ApiBook): Book => {
     typeof apiBook.available_copies === 'number'
       ? apiBook.available_copies
       : copies.filter((copy) => isCopyAvailable(copy)).length;
-
   const totalCopies =
     typeof apiBook.total_copies === 'number' ? apiBook.total_copies : copies.length;
 
@@ -522,14 +564,11 @@ const mapApiBookToBook = (apiBook: ApiBook): Book => {
   };
 };
 
-type BookOption = {
-  id: string;
-  label: string;
-};
+type BookOption = { id: string; label: string };
 
 const buildBookOption = (book: Book): BookOption => ({
   id: book.id,
-  label: `${book.title}${book.author ? ` — ${book.author}` : ''}`,
+  label: `${book.title}${book.author ? ` \u2014 ${book.author}` : ''}`,
 });
 
 const buildBookOptions = (bookList: Book[]): BookOption[] => bookList.map(buildBookOption);
