@@ -957,3 +957,226 @@ export async function fetchTopBorrowedBooks(days = 30, limit = 5): Promise<TopBo
     .sort((a, b) => b.count - a.count)
     .slice(0, limit);
 }
+
+// ==================================================
+// Borrow / Return pre-flight helpers (v3.0.1)
+// ==================================================
+
+export type PatronSearchResult = {
+  id: string;
+  displayName: string | null;
+  email: string | null;
+  studentId: string | null;
+  username: string | null;
+  activeLoans: number;
+  hasOverdue: boolean;
+};
+
+/**
+ * Debounced-by-caller patron search. Matches against email, display_name, username,
+ * or student_id (case-insensitive, prefix). Returns up to `limit` rows annotated
+ * with their active-loan count and whether any are overdue.
+ */
+export async function searchPatrons(query: string, limit = 8): Promise<PatronSearchResult[]> {
+  const q = sanitizeSearchTerm(query);
+  if (!q || q.length < 2) return [];
+
+  const supabase = getSupabaseServerClient();
+  const pattern = `%${escapeForIlike(q)}%`;
+
+  const { data: profileMatches, error: profileError } = await supabase
+    .from('UserProfile')
+    .select('user_id, display_name, username, student_id')
+    .or(
+      [
+        `display_name.ilike.${pattern}`,
+        `username.ilike.${pattern}`,
+        `student_id.ilike.${pattern}`,
+      ].join(','),
+    )
+    .limit(limit * 2);
+
+  if (profileError) throw profileError;
+
+  const userIdsFromProfiles = new Set<string>(
+    (profileMatches ?? []).map((row: { user_id: string }) => row.user_id).filter(Boolean),
+  );
+
+  const { data: emailMatches, error: emailError } = await supabase
+    .from('Users')
+    .select('id')
+    .ilike('email', pattern)
+    .limit(limit * 2);
+
+  if (emailError) throw emailError;
+
+  for (const row of (emailMatches ?? []) as Array<{ id: string }>) {
+    if (row.id) userIdsFromProfiles.add(row.id);
+  }
+
+  const userIds = Array.from(userIdsFromProfiles).slice(0, limit);
+  if (userIds.length === 0) return [];
+
+  const { data: users, error: usersError } = await supabase
+    .from('Users')
+    .select(
+      `
+        id,
+        email,
+        profile:UserProfile(
+          display_name,
+          username,
+          student_id
+        )
+      `,
+    )
+    .in('id', userIds);
+
+  if (usersError) throw usersError;
+
+  const nowIso = new Date().toISOString();
+  const results: PatronSearchResult[] = [];
+  type RawUserRow = {
+    id: string;
+    email: string | null;
+    profile:
+      | { display_name: string | null; username: string | null; student_id: string | null }
+      | { display_name: string | null; username: string | null; student_id: string | null }[]
+      | null;
+  };
+  const userRows = (users ?? []) as unknown as RawUserRow[];
+  for (const rawUser of userRows) {
+    const profile = Array.isArray(rawUser.profile)
+      ? rawUser.profile[0] ?? null
+      : rawUser.profile;
+    const user = { id: rawUser.id, email: rawUser.email, profile };
+    const [{ count: activeCount }, { count: overdueCount }] = await Promise.all([
+      supabase
+        .from('Loans')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .is('returned_at', null),
+      supabase
+        .from('Loans')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .is('returned_at', null)
+        .lt('due_at', nowIso),
+    ]);
+
+    results.push({
+      id: user.id,
+      displayName: user.profile?.display_name ?? null,
+      email: user.email,
+      studentId: user.profile?.student_id ?? null,
+      username: user.profile?.username ?? null,
+      activeLoans: activeCount ?? 0,
+      hasOverdue: (overdueCount ?? 0) > 0,
+    });
+  }
+
+  return results.sort((a, b) => {
+    const aName = (a.displayName ?? a.email ?? '').toLowerCase();
+    const bName = (b.displayName ?? b.email ?? '').toLowerCase();
+    return aName.localeCompare(bName);
+  });
+}
+
+export async function countActiveLoansForPatron(patronId: string): Promise<number> {
+  if (!patronId) return 0;
+  const supabase = getSupabaseServerClient();
+  const { count, error } = await supabase
+    .from('Loans')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', patronId)
+    .is('returned_at', null);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function countOverdueLoansForPatron(patronId: string): Promise<number> {
+  if (!patronId) return 0;
+  const supabase = getSupabaseServerClient();
+  const { count, error } = await supabase
+    .from('Loans')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', patronId)
+    .is('returned_at', null)
+    .lt('due_at', new Date().toISOString());
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export type HoldPromotionResult = {
+  promotedHoldId: string;
+  patronId: string;
+  expiresAt: string;
+} | null;
+
+/**
+ * When a copy of `bookId` has just been returned as available, flip the oldest
+ * queued hold on that book to 'ready' with a 3-day pickup window. Returns the
+ * promoted hold so callers can fire a notification.
+ *
+ * Returns null if no queued hold exists.
+ */
+export async function promoteNextHoldForBook(bookId: string): Promise<HoldPromotionResult> {
+  if (!bookId) return null;
+  const supabase = getSupabaseServerClient();
+
+  const { data: nextHold, error: selectError } = await supabase
+    .from('Holds')
+    .select('id, patron_id')
+    .eq('book_id', bookId)
+    .eq('status', 'queued')
+    .order('placed_at', { ascending: true })
+    .limit(1)
+    .maybeSingle<{ id: string; patron_id: string }>();
+
+  if (selectError) throw selectError;
+  if (!nextHold) return null;
+
+  const readyAt = new Date();
+  const expiresAt = new Date(readyAt.getTime() + 3 * 86_400_000);
+
+  const { error: updateError } = await supabase
+    .from('Holds')
+    .update({
+      status: 'ready',
+      ready_at: readyAt.toISOString(),
+      expires_at: expiresAt.toISOString(),
+    })
+    .eq('id', nextHold.id)
+    .eq('status', 'queued');
+
+  if (updateError) throw updateError;
+
+  return {
+    promotedHoldId: nextHold.id,
+    patronId: nextHold.patron_id,
+    expiresAt: expiresAt.toISOString(),
+  };
+}
+
+export type DamageSeverity = 'damaged' | 'lost' | 'needs_inspection';
+
+export async function insertDamageReport(params: {
+  loanId: string;
+  copyId: string;
+  reportedBy: string | null;
+  severity: DamageSeverity;
+  notes: string | null;
+  photoUrls: string[];
+}): Promise<void> {
+  const supabase = getSupabaseServerClient();
+  const { error } = await supabase.from('DamageReports').insert({
+    loan_id: params.loanId,
+    copy_id: params.copyId,
+    reported_by: params.reportedBy,
+    severity: params.severity,
+    notes: params.notes,
+    photo_urls: params.photoUrls,
+  });
+  if (error) throw error;
+}
+
