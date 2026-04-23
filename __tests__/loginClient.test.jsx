@@ -1,8 +1,15 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import LoginClient from '@/app/login/LoginClient'
+import LoginClient from '@/app/login/loginClient'
 
 const mockSignIn = jest.fn(() => Promise.resolve({}));
+
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: (props) => {
+    return <img {...props} />;
+  },
+}));
 
 jest.mock('next-auth/react', () => ({
   signIn: (...args) => mockSignIn(...args),
@@ -53,7 +60,12 @@ describe('Login Page', () => {
 		fireEvent.click(loginButton);
 
 		await waitFor(() => {
-      expect(mockSignIn).toHaveBeenCalledWith('azure-ad', expect.any(Object));
-    });
+			expect(mockSignIn).toHaveBeenCalledWith(
+				'azure-ad',
+				expect.objectContaining({
+					callbackUrl: '/dashboard'
+				}),
+				expect.any(Object)
+			);    });
 	})
 })
