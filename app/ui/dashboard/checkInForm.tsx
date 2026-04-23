@@ -7,8 +7,6 @@ import { checkinBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/actionState';
 import type { ActionState } from '@/app/dashboard/actionState';
 
-const CONFIRM_WORD = 'return';
-
 type CheckInFormProps = {
   activeLoanCount: number;
   defaultIdentifier?: string;
@@ -18,10 +16,9 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
   const [state, formAction] = useActionState(checkinBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
   const identifierInputRef = useRef<HTMLInputElement | null>(null);
-  const confirmInputRef = useRef<HTMLInputElement | null>(null);
+  const confirmButtonRef = useRef<HTMLButtonElement | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmText, setConfirmText] = useState('');
   const contentId = 'return-form-panel';
   const mobileToggleLabel = mobileExpanded ? 'Hide form' : 'Record a return';
 
@@ -49,22 +46,18 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
 
   // Open the confirmation dialog instead of directly submitting
   const handleReturnClick = () => {
-    setConfirmText('');
     setConfirmOpen(true);
-    setTimeout(() => confirmInputRef.current?.focus(), 60);
+    setTimeout(() => confirmButtonRef.current?.focus(), 60);
   };
 
   // User confirmed — actually submit the form
   const handleConfirm = () => {
-    if (confirmText.toLowerCase() !== CONFIRM_WORD) return;
     setConfirmOpen(false);
-    setConfirmText('');
     formRef.current?.requestSubmit();
   };
 
   const handleCancel = () => {
     setConfirmOpen(false);
-    setConfirmText('');
   };
 
   return (
@@ -156,27 +149,6 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
               This action will mark the loan as returned and update the copy status. This cannot be undone without manual intervention.
             </p>
 
-            <div className="mt-5">
-              <label htmlFor="confirm-input" className="block text-sm font-medium text-swin-charcoal dark:text-slate-200">
-                Type{' '}
-                <span className="rounded bg-swin-charcoal/10 px-1.5 py-0.5 font-mono font-semibold text-swin-red dark:bg-slate-800 dark:text-swin-red">
-                  {CONFIRM_WORD}
-                </span>{' '}
-                to confirm
-              </label>
-              <input
-                id="confirm-input"
-                ref={confirmInputRef}
-                type="text"
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleConfirm()}
-                placeholder={CONFIRM_WORD}
-                autoComplete="off"
-                className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none focus:ring-1 focus:ring-swin-red dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
-              />
-            </div>
-
             <div className="mt-6 flex gap-3">
               <button
                 type="button"
@@ -186,15 +158,11 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
                 Cancel
               </button>
               <button
+                ref={confirmButtonRef}
                 type="button"
                 onClick={handleConfirm}
-                disabled={confirmText.toLowerCase() !== CONFIRM_WORD}
-                className={clsx(
-                  'flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition',
-                  confirmText.toLowerCase() === CONFIRM_WORD
-                    ? 'bg-swin-red hover:bg-swin-red/90 shadow-sm shadow-swin-red/30'
-                    : 'cursor-not-allowed bg-swin-red/30',
-                )}
+                onKeyDown={(e) => e.key === 'Enter' && handleConfirm()}
+                className="flex-1 rounded-xl bg-swin-red px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-swin-red/30 transition hover:bg-swin-red/90"
               >
                 Yes, return book
               </button>

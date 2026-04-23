@@ -3,9 +3,12 @@ import {
   fetchActiveLoans,
   fetchDashboardSummary,
   fetchActiveHoldsForPatron,
+  fetchAvailableBooks,
+  fetchRecentLoans,
+  fetchHoldsForStaff,
 } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import StudentDashboard from '@/app/ui/dashboard/student/studentDashboard';
+import StudentDashboard, { type BookPick } from '@/app/ui/dashboard/student/studentDashboard';
 import StaffDashboard from '@/app/ui/dashboard/staff/staffDashboard';
 
 export default async function UserDashboardPage() {
@@ -16,25 +19,62 @@ export default async function UserDashboardPage() {
 
   // Student dashboard
   if (user.role === 'user') {
-    const [activeLoans, holds] = await Promise.all([
+    const [activeLoans, holds, availableBooks] = await Promise.all([
       fetchActiveLoans(undefined, user.id),
       fetchActiveHoldsForPatron(user.id),
+      fetchAvailableBooks(),
     ]);
+
+    const picks: BookPick[] = availableBooks
+      .slice(0, 8)
+      .map((b) => ({
+        id: b.id,
+        title: b.title,
+        author: b.author ?? 'Unknown author',
+        category: b.category ?? null,
+        coverImageUrl: b.coverImageUrl ?? null,
+      }));
+
     return (
       <>
         <title>Dashboard | Swinburne Library</title>
-        <StudentDashboard userName={user.name} activeLoans={activeLoans} holds={holds} />
+        <StudentDashboard
+          userName={user.name}
+          activeLoans={activeLoans}
+          holds={holds}
+          picks={picks}
+        />
       </>
     );
   }
 
   // Staff dashboard
-  const summary = await fetchDashboardSummary();
+  const [summary, recentLoans, allStaffHolds] = await Promise.all([
+    fetchDashboardSummary(),
+    fetchRecentLoans(6),
+    fetchHoldsForStaff(),
+  ]);
+
+  const readyHolds = allStaffHolds
+    .filter((h) => h.status === 'ready')
+    .slice(0, 5)
+    .map((h) => ({
+      id: h.id,
+      patron: h.patron_name,
+      bookTitle: h.book_title,
+      expiresAt: h.expires_at,
+    }));
 
   return (
     <>
       <title>Dashboard | Swinburne Library</title>
-      <StaffDashboard userName={user.name} summary={summary} />
+      <StaffDashboard
+        userName={user.name}
+        summary={summary}
+        recentLoans={recentLoans}
+        readyHolds={readyHolds}
+        readyHoldsCount={allStaffHolds.filter((h) => h.status === 'ready').length}
+      />
     </>
   );
 }
