@@ -6,7 +6,7 @@ const mockSignIn = jest.fn(() => Promise.resolve({}));
 
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props) => {
+  default: ({ priority, ...props }) => {
     return <img {...props} />;
   },
 }));
@@ -25,29 +25,23 @@ jest.mock('@/app/ui/magicUi/glassCard', () => ({
   default: ({ children, className }) => <div className={className}>{children}</div>,
 }));
 
-jest.mock('next/image', () => ({
-  __esModule: true,
-  default: (props) => <img {...props} />,
-}));
-
-
 describe('Login Page', () => {
 	it('Render Title', () => {
-		render(<LoginClient/>)
-
+		render(<LoginClient callbackUrl="/" />)
+		
 		const heading = screen.getByRole('heading', { name: /Swinburne Sarawak Library/i });
 		expect(heading).toBeInTheDocument();
 	})
 
 	it('Render Logo', () => {
-		render(<LoginClient/>)
+		render(<LoginClient callbackUrl="/" />)
 
 		const logo = screen.getByAltText(/Swinburne logo/i);
 		expect(logo).toBeInTheDocument();
 	})
 
 	it('Render Login Button', () => {
-		render(<LoginClient/>)
+		render(<LoginClient callbackUrl="/" />)
 
 		const button = screen.getByRole('button');
 		expect(button).toHaveTextContent(/Sign in with Microsoft/i);
