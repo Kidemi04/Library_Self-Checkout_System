@@ -4,10 +4,20 @@ import LoginClient from '@/app/login/loginClient'
 
 const mockSignIn = jest.fn(() => Promise.resolve({}));
 
+const OMIT_PROPS = new Set([
+  'fill',
+  'priority',
+  'placeholder',
+  'blurDataURL',
+]);
+
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: ({ priority, ...props }) => {
-    return <img {...props} />;
+  default: (props) => {
+    const filteredProps = Object.fromEntries(
+      Object.entries(props).filter(([key]) => !OMIT_PROPS.has(key))
+    );
+    return <img {...filteredProps} />;
   },
 }));
 
