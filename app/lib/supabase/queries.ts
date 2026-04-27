@@ -1563,3 +1563,271 @@ export async function fetchOverdueLoans(filters: OverdueFilters = {}): Promise<O
     return haystack.includes(search);
   });
 }
+
+// ============================================================
+// v3.0.3 — Loan history page
+// ============================================================
+import type {
+  HistoryFilters,
+  HistoryLoan,
+  HistoryPage,
+} from '@/app/lib/supabase/types';
+
+const HISTORY_PAGE_SIZE = 50;
+
+const historyRangeStart = (
+  range: HistoryFilters['range'],
+  custom?: string,
+): Date | null => {
+  switch (range) {
+    case '30d': {
+      const d = new Date();
+      return new Date(d.getTime() - 30 * 86400000);
+    }
+    case '6m': {
+      const d = new Date();
+      d.setMonth(d.getMonth() - 6);
+      return d;
+    }
+    case 'semester': {
+      const d = new Date();
+      d.setMonth(d.getMonth() - 4);
+      return d;
+    }
+    case 'custom':
+      return custom ? new Date(custom) : null;
+    case 'all':
+    default:
+      return null;
+  }
+};
+
+// Returns LoanStatus value: 'borrowed' (active) | 'returned' | 'overdue'
+const computeHistoryStatus = (
+  returnedAt: string | null,
+  dueAt: string,
+  nowMs: number,
+): 'borrowed' | 'returned' | 'overdue' => {
+  if (returnedAt) return 'returned';
+  if (new Date(dueAt).getTime() < nowMs) return 'overdue';
+  return 'borrowed';
+};
+
+export async function fetchAllLoansHistory(
+  filters: HistoryFilters = {},
+  page = 0,
+): Promise<HistoryPage> {
+  const supabase = getSupabaseServerClient();
+
+  let query = supabase
+    .from('Loans')
+    .select(
+      `
+        id,
+        borrowed_at,
+        due_at,
+        returned_at,
+        handled_by,
+        copy:Copies(
+          id,
+          barcode,
+          book:Books(
+            id,
+            title,
+            author,
+            isbn,
+            cover_image_url
+          )
+        ),
+        borrower:Users!Loans_user_id_fkey(
+          id,
+          email,
+          profile:UserProfile(
+            display_name,
+            student_id
+          )
+        ),
+        handler:Users!Loans_handled_by_fkey(
+          id,
+          email,
+          profile:UserProfile(
+            display_name
+          )
+        )
+      `,
+      { count: 'exact' },
+    )
+    .order('borrowed_at', { ascending: false });
+
+  // Status filter — narrow at DB level when possible.
+  const status = filters.status ?? 'all';
+  const nowIso = new Date().toISOString();
+  if (status === 'returned') {
+    query = query.not('returned_at', 'is', null);
+  } else if (status === 'borrowed') {
+    query = query.is('returned_at', null).gte('due_at', nowIso);
+  } else if (status === 'overdue') {
+    query = query.is('returned_at', null).lt('due_at', nowIso);
+  }
+
+  // Date range filter.
+  const rangeStart = historyRangeStart(filters.range, filters.rangeStart);
+  if (rangeStart) {
+    query = query.gte('borrowed_at', rangeStart.toISOString());
+  }
+  if (filters.range === 'custom' && filters.rangeEnd) {
+    const end = new Date(filters.rangeEnd);
+    if (!Number.isNaN(end.valueOf())) {
+      query = query.lte('borrowed_at', end.toISOString());
+    }
+  }
+
+  const from = page * HISTORY_PAGE_SIZE;
+  const to = from + HISTORY_PAGE_SIZE - 1;
+  query = query.range(from, to);
+
+  const { data, error, count } = await query;
+  if (error) {
+    console.error('[fetchAllLoansHistory]', error);
+    throw error;
+  }
+
+  const nowMs = Date.now();
+
+  type RawHistoryLoanRow = {
+    id: string;
+    borrowed_at: string;
+    due_at: string;
+    returned_at: string | null;
+    handled_by: string | null;
+    copy: unknown;
+    borrower: unknown;
+    handler: unknown;
+  };
+
+  const rawRows = ((data ?? []) as unknown) as RawHistoryLoanRow[];
+
+  const mapped: HistoryLoan[] = rawRows.map((r) => {
+    const copyRow = (Array.isArray(r.copy) ? r.copy[0] : r.copy) as
+      | {
+          id: string;
+          barcode: string | null;
+          book?: unknown;
+        }
+      | null;
+    const bookRowRaw = copyRow?.book;
+    const bookRow = (Array.isArray(bookRowRaw) ? bookRowRaw[0] : bookRowRaw) as
+      | {
+          id: string;
+          title: string;
+          author: string | null;
+          isbn: string | null;
+          cover_image_url: string | null;
+        }
+      | null;
+
+    const borrowerRow = (Array.isArray(r.borrower) ? r.borrower[0] : r.borrower) as
+      | { id?: string; email?: string | null; profile?: unknown }
+      | null;
+    const borrowerProfileRaw = borrowerRow?.profile;
+    const borrowerProfile = (Array.isArray(borrowerProfileRaw)
+      ? borrowerProfileRaw[0]
+      : borrowerProfileRaw) as
+      | { display_name?: string | null; student_id?: string | null }
+      | null;
+
+    const handlerRow = (Array.isArray(r.handler) ? r.handler[0] : r.handler) as
+      | { id?: string; email?: string | null; profile?: unknown }
+      | null;
+    const handlerProfileRaw = handlerRow?.profile;
+    const handlerProfile = (Array.isArray(handlerProfileRaw)
+      ? handlerProfileRaw[0]
+      : handlerProfileRaw) as
+      | { display_name?: string | null }
+      | null;
+
+    const isSelfCheckout = !r.handled_by || r.handled_by === (borrowerRow?.id ?? null);
+    const handlerDisplayName =
+      handlerProfile?.display_name ?? handlerRow?.email ?? null;
+
+    const borrowedMs = new Date(r.borrowed_at).getTime();
+    const endMs = r.returned_at ? new Date(r.returned_at).getTime() : nowMs;
+    const durationDays = Math.max(
+      0,
+      Math.round((endMs - borrowedMs) / 86400000),
+    );
+
+    return {
+      id: r.id,
+      borrowedAt: r.borrowed_at,
+      dueAt: r.due_at,
+      returnedAt: r.returned_at ?? null,
+      durationDays,
+      status: computeHistoryStatus(r.returned_at ?? null, r.due_at, nowMs),
+      copy: copyRow ? { id: copyRow.id, barcode: copyRow.barcode } : null,
+      book: bookRow
+        ? {
+            id: bookRow.id,
+            title: bookRow.title,
+            author: bookRow.author ?? null,
+            isbn: bookRow.isbn ?? null,
+            coverImageUrl: bookRow.cover_image_url ?? null,
+          }
+        : null,
+      borrower: borrowerRow
+        ? {
+            id: borrowerRow.id ?? '',
+            displayName: borrowerProfile?.display_name ?? null,
+            studentId: borrowerProfile?.student_id ?? null,
+          }
+        : null,
+      handler: handlerRow
+        ? {
+            id: handlerRow.id ?? '',
+            displayName: handlerDisplayName,
+            isSelfCheckout,
+          }
+        : { id: '', displayName: null, isSelfCheckout: true },
+    };
+  });
+
+  // Client-side text-search filters (borrower / book / handler).
+  const borrowerQ = filters.borrowerQ?.trim().toLowerCase();
+  const bookQ = filters.bookQ?.trim().toLowerCase();
+  const handlerQ = filters.handlerQ?.trim().toLowerCase();
+
+  const filtered = mapped.filter((row) => {
+    if (borrowerQ) {
+      const hay = [
+        row.borrower?.displayName,
+        row.borrower?.studentId,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      if (!hay.includes(borrowerQ)) return false;
+    }
+    if (bookQ) {
+      const hay = [row.book?.title, row.book?.author, row.book?.isbn]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      if (!hay.includes(bookQ)) return false;
+    }
+    if (handlerQ) {
+      const hay = (row.handler?.displayName ?? '').toLowerCase();
+      if (!hay.includes(handlerQ)) return false;
+    }
+    return true;
+  });
+
+  return {
+    rows: filtered,
+    total: count ?? filtered.length,
+    active: filtered.filter((r) => r.status === 'borrowed').length,
+    returned: filtered.filter((r) => r.status === 'returned').length,
+    overdue: filtered.filter((r) => r.status === 'overdue').length,
+    page,
+    pageSize: HISTORY_PAGE_SIZE,
+  };
+}
