@@ -151,7 +151,7 @@ export default function AdminDashboard({
             ))}
           </div>
           <Link
-            href="/dashboard/book/history"
+            href="/dashboard/admin/overdue"
             className="mt-4 block w-full rounded-lg bg-swin-red py-2.5 text-center text-[12px] font-semibold text-white transition hover:bg-swin-red/90"
           >
             Review overdue list
