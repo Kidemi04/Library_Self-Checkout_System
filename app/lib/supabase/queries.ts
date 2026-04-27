@@ -1453,3 +1453,113 @@ export async function getDamageReportSignedUrls(
   return (data ?? []).map((d) => ({ path: d.path ?? '', signedUrl: d.signedUrl ?? null }));
 }
 
+
+// ============================================================
+// v3.0.3 — Overdue page
+// ============================================================
+import type { OverdueLoan, OverdueFilters, OverdueBucket } from '@/app/lib/supabase/types';
+
+const bucketDayRange = (bucket: OverdueBucket | undefined): { min: number; max: number } => {
+  switch (bucket) {
+    case '1-7':  return { min: 1, max: 7 };
+    case '8-30': return { min: 8, max: 30 };
+    case '30+':  return { min: 31, max: 99999 };
+    case 'all':
+    default:     return { min: 1, max: 99999 };
+  }
+};
+
+export async function fetchOverdueLoans(filters: OverdueFilters = {}): Promise<OverdueLoan[]> {
+  const supabase = getSupabaseServerClient();
+  const nowIso = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from('Loans')
+    .select(`
+      id, borrowed_at, due_at, last_reminded_at,
+      copy:Copies(id, barcode, book:Books(id, title, author, isbn, cover_image_url)),
+      borrower:Users!Loans_user_id_fkey(id, email, profile:UserProfile(display_name, student_id)),
+      reminder_user:Users!Loans_last_reminded_by_fkey(id, email, profile:UserProfile(display_name))
+    `)
+    .is('returned_at', null)
+    .lt('due_at', nowIso)
+    .order('due_at', { ascending: true });
+
+  if (error) throw error;
+
+  const range = bucketDayRange(filters.bucket);
+  const search = filters.search?.trim().toLowerCase();
+  const now = Date.now();
+
+  const all = ((data ?? []) as unknown[]).map((row): OverdueLoan => {
+    const r = row as {
+      id: string;
+      borrowed_at: string;
+      due_at: string;
+      last_reminded_at: string | null;
+      copy: unknown;
+      borrower: unknown;
+      reminder_user: unknown;
+    };
+
+    const dueMs = new Date(r.due_at).getTime();
+    const daysOverdue = Math.max(0, Math.floor((now - dueMs) / 86400000));
+
+    const reminderUser = Array.isArray(r.reminder_user) ? r.reminder_user[0] : r.reminder_user;
+    const reminderProfileRaw = (reminderUser as { profile?: unknown })?.profile;
+    const reminderProfile = Array.isArray(reminderProfileRaw) ? reminderProfileRaw[0] : reminderProfileRaw;
+
+    const borrowerRow = r.borrower as { id?: string; email?: string | null; profile?: unknown } | null;
+    const borrowerProfileRaw = borrowerRow?.profile;
+    const borrowerProfile = Array.isArray(borrowerProfileRaw) ? borrowerProfileRaw[0] : borrowerProfileRaw;
+
+    const copyRow = (Array.isArray(r.copy) ? r.copy[0] : r.copy) as
+      | { id: string; barcode: string | null; book?: unknown }
+      | null;
+    const bookRowRaw = copyRow?.book;
+    const bookRow = (Array.isArray(bookRowRaw) ? bookRowRaw[0] : bookRowRaw) as
+      | { id: string; title: string; author: string | null; isbn: string | null; cover_image_url: string | null }
+      | null;
+
+    return {
+      id: r.id,
+      borrowedAt: r.borrowed_at,
+      dueAt: r.due_at,
+      daysOverdue,
+      lastRemindedAt: r.last_reminded_at ?? null,
+      lastRemindedByName:
+        (reminderProfile as { display_name?: string | null } | null)?.display_name ??
+        (reminderUser as { email?: string | null } | null)?.email ??
+        null,
+      copy: copyRow ? { id: copyRow.id, barcode: copyRow.barcode } : null,
+      book: bookRow
+        ? {
+            id: bookRow.id,
+            title: bookRow.title,
+            author: bookRow.author ?? null,
+            isbn: bookRow.isbn ?? null,
+            coverImageUrl: bookRow.cover_image_url ?? null,
+          }
+        : null,
+      borrower: borrowerRow
+        ? {
+            id: borrowerRow.id ?? '',
+            displayName: (borrowerProfile as { display_name?: string | null } | null)?.display_name ?? null,
+            studentId: (borrowerProfile as { student_id?: string | null } | null)?.student_id ?? null,
+            email: borrowerRow.email ?? null,
+          }
+        : null,
+    };
+  });
+
+  return all.filter((loan) => {
+    if (loan.daysOverdue < range.min || loan.daysOverdue > range.max) return false;
+    if (!search) return true;
+    const haystack = [
+      loan.book?.title, loan.book?.author,
+      loan.borrower?.displayName, loan.borrower?.studentId, loan.borrower?.email,
+      loan.copy?.barcode,
+    ].filter(Boolean).join(' ').toLowerCase();
+    return haystack.includes(search);
+  });
+}
