@@ -41,10 +41,8 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const exportHref = `${pathname}?${new URLSearchParams({
-    ...Object.fromEntries(params),
-    export: 'csv',
-  }).toString()}`;
+  // CSV export is handled by the sibling route handler at /dashboard/admin/overdue/export.
+  const exportHref = `${pathname}/export?${params.toString()}`;
 
   const setBucket = (b: OverdueBucket) => {
     const next = new URLSearchParams(params.toString());

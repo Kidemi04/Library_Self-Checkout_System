@@ -62,10 +62,8 @@ export default function HistoryViewer({ result, initialFilters }: Props) {
     router.push(`${pathname}?${next.toString()}`);
   };
 
-  const exportHref = `${pathname}?${new URLSearchParams({
-    ...Object.fromEntries(params),
-    export: 'csv',
-  }).toString()}`;
+  // CSV export is handled by the sibling route handler at /dashboard/staff/history/export.
+  const exportHref = `${pathname}/export?${params.toString()}`;
 
   const totalPages = Math.max(1, Math.ceil(result.total / result.pageSize));
 
