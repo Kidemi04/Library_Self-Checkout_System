@@ -159,6 +159,38 @@ export default function AdminDashboard({
         </div>
       </div>
 
+      {/* Quick actions (admin) */}
+      <div className="mb-8 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+        <Link
+          href="/dashboard/admin/overdue"
+          className="group flex items-center justify-between rounded-[14px] border border-swin-charcoal/10 bg-white p-5 transition hover:border-swin-red/40 hover:bg-swin-red/5 dark:border-white/10 dark:bg-swin-dark-surface dark:hover:border-swin-red/40 dark:hover:bg-swin-red/10"
+        >
+          <div>
+            <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
+              Circulation
+            </p>
+            <p className="font-display text-[16px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+              View overdue loans
+            </p>
+          </div>
+          <span className="font-mono text-[18px] font-semibold text-swin-red transition group-hover:translate-x-0.5">→</span>
+        </Link>
+        <Link
+          href="/dashboard/admin/books/new"
+          className="group flex items-center justify-between rounded-[14px] border border-swin-charcoal/10 bg-white p-5 transition hover:border-swin-gold/60 hover:bg-swin-gold/5 dark:border-white/10 dark:bg-swin-dark-surface dark:hover:border-swin-gold/60 dark:hover:bg-swin-gold/10"
+        >
+          <div>
+            <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
+              Catalogue
+            </p>
+            <p className="font-display text-[16px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+              Add new book
+            </p>
+          </div>
+          <span className="font-mono text-[18px] font-semibold text-swin-gold transition group-hover:translate-x-0.5">→</span>
+        </Link>
+      </div>
+
       {/* Recent activity + top books */}
       <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-[3fr_2fr]">
         <div className="rounded-[14px] border border-swin-charcoal/10 bg-white p-7 dark:border-white/10 dark:bg-swin-dark-surface">
@@ -172,7 +204,7 @@ export default function AdminDashboard({
               </p>
             </div>
             <Link
-              href="/dashboard/book/history"
+              href="/dashboard/staff/history"
               className="rounded-md border border-swin-charcoal/10 bg-slate-50 px-2.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-swin-charcoal/60 transition hover:text-swin-charcoal dark:border-white/10 dark:bg-white/5 dark:text-white/55 dark:hover:text-white"
             >
               Full history

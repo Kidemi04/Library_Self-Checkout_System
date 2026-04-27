@@ -200,7 +200,7 @@ export default function StaffDashboard({
               </p>
             </div>
             <Link
-              href="/dashboard/book/history"
+              href="/dashboard/staff/history"
               className="rounded-md border border-swin-charcoal/10 bg-slate-50 px-2.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-swin-charcoal/60 transition hover:text-swin-charcoal dark:border-white/10 dark:bg-white/5 dark:text-white/55 dark:hover:text-white"
             >
               Full history
