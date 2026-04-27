@@ -203,7 +203,7 @@ export default function NotificationList({ filter: initialFilter = 'all', search
           <select
             value={sortField}
             onChange={(e) => setSortField(e.target.value as SortField)}
-            className="cursor-pointer bg-transparent pr-1 text-swin-charcoal outline-none dark:text-white"
+            className="cursor-pointer border-0 bg-transparent pl-2 pr-7 text-swin-charcoal outline-none focus:ring-0 dark:text-white"
             aria-label="Sort field"
           >
             <option value="date">Date</option>
@@ -212,7 +212,7 @@ export default function NotificationList({ filter: initialFilter = 'all', search
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as SortOrder)}
-            className="cursor-pointer bg-transparent pl-1 pr-2 text-swin-charcoal outline-none dark:text-white"
+            className="cursor-pointer border-0 bg-transparent pl-2 pr-7 text-swin-charcoal outline-none focus:ring-0 dark:text-white"
             aria-label="Sort order"
           >
             <option value="desc">Newest</option>

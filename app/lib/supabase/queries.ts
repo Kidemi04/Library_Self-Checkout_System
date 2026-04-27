@@ -405,6 +405,45 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
   const supabase = getSupabaseServerClient();
   const sanitized = sanitizeSearchTerm(searchTerm);
 
+  // For typo-tolerant search we call the search_books RPC (pg_trgm trigram +
+  // ILIKE fallback). The RPC returns book ids ranked by similarity; we then
+  // refetch the full Book rows with joins so the rest of the page can keep
+  // using the existing shape.
+  let allowedIds: string[] | null = null;
+  if (sanitized) {
+    const { data: idRows, error: rpcError } = await supabase.rpc('search_books', {
+      q: sanitized,
+    });
+
+    if (rpcError) {
+      // If the RPC isn't deployed yet, fall back to ILIKE so search still works.
+      console.warn('[search_books] RPC unavailable, falling back to ILIKE', rpcError);
+      const pattern = `%${escapeForIlike(sanitized)}%`;
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('Books')
+        .select('id')
+        .or(
+          [
+            `title.ilike.${pattern}`,
+            `author.ilike.${pattern}`,
+            `isbn.ilike.${pattern}`,
+            `classification.ilike.${pattern}`,
+            `publisher.ilike.${pattern}`,
+          ].join(','),
+        )
+        .limit(200);
+      if (fallbackError) throw fallbackError;
+      allowedIds = ((fallbackData ?? []) as Array<{ id: string }>).map((r) => r.id);
+    } else {
+      const rows = ((idRows ?? []) as unknown) as Array<{ id: string }>;
+      allowedIds = rows.map((r) => r.id);
+    }
+
+    if (allowedIds === null || allowedIds.length === 0) {
+      return [];
+    }
+  }
+
   let query = supabase
     .from('Books')
     .select(
@@ -442,17 +481,8 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
     .order('title')
     .limit(200);
 
-  if (sanitized) {
-    const pattern = `%${escapeForIlike(sanitized)}%`;
-    query = query.or(
-      [
-        `title.ilike.${pattern}`,
-        `author.ilike.${pattern}`,
-        `isbn.ilike.${pattern}`,
-        `classification.ilike.${pattern}`,
-        `publisher.ilike.${pattern}`,
-      ].join(','),
-    );
+  if (allowedIds) {
+    query = query.in('id', allowedIds);
   }
 
   const { data, error } = await query;
@@ -460,29 +490,66 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
 
   const mapped = (((data ?? []) as unknown) as RawBookRow[]).map(mapBookRow);
 
-  if (!sanitized) {
-    return mapped;
+  // Preserve RPC similarity ranking when we have it.
+  if (allowedIds) {
+    const orderIndex = new Map(allowedIds.map((id, i) => [id, i]));
+    mapped.sort(
+      (a, b) =>
+        (orderIndex.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+        (orderIndex.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+    );
   }
 
-  const lowered = sanitized.toLowerCase();
-
-  return mapped.filter((book) => {
-    const matchesBook =
-      (book.title?.toLowerCase().includes(lowered) ?? false) ||
-      (book.author?.toLowerCase().includes(lowered) ?? false) ||
-      (book.isbn?.toLowerCase().includes(lowered) ?? false) ||
-      (book.classification?.toLowerCase().includes(lowered) ?? false) ||
-      (book.publisher?.toLowerCase().includes(lowered) ?? false);
-
-    if (matchesBook) return true;
-
-    return book.copies.some((copy) => copy.barcode.toLowerCase().includes(lowered));
-  });
+  return mapped;
 }
 
 export async function fetchAvailableBooks(searchTerm?: string): Promise<Book[]> {
   const books = await fetchBooks(searchTerm);
   return books.filter((book) => book.availableCopies > 0);
+}
+
+export async function fetchBookById(id: string): Promise<Book | null> {
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('Books')
+    .select(
+      `
+        id,
+        title,
+        author,
+        isbn,
+        classification,
+        publisher,
+        publication_year,
+        cover_image_url,
+        category,
+        created_at,
+        updated_at,
+         copies:Copies(
+          id,
+          book_id,
+          barcode,
+          status,
+          created_at,
+          updated_at,
+          loans:Loans(
+            id,
+            returned_at
+          )
+        ),
+        book_tag_links:BookTagsLinks(
+          tag:BookTags(
+            name
+          )
+        )
+      `,
+    )
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+  return mapBookRow((data as unknown) as RawBookRow);
 }
 
 
@@ -1178,5 +1245,211 @@ export async function insertDamageReport(params: {
     photo_urls: params.photoUrls,
   });
   if (error) throw error;
+}
+
+export type DamageReportRow = {
+  id: string;
+  severity: DamageSeverity;
+  notes: string | null;
+  photoPaths: string[];
+  createdAt: string;
+  loan: {
+    id: string;
+    dueAt: string | null;
+    returnedAt: string | null;
+  } | null;
+  copy: {
+    id: string;
+    barcode: string | null;
+    book: {
+      id: string;
+      title: string;
+      author: string | null;
+    } | null;
+  } | null;
+  borrower: {
+    id: string;
+    email: string;
+    displayName: string | null;
+  } | null;
+  reportedBy: {
+    id: string;
+    email: string;
+    displayName: string | null;
+  } | null;
+};
+
+type RawDamageReportRow = {
+  id: string;
+  severity: string;
+  notes: string | null;
+  photo_urls: string[] | null;
+  created_at: string;
+  loan: {
+    id: string;
+    due_at: string | null;
+    returned_at: string | null;
+    user_id: string | null;
+    borrower: {
+      id: string;
+      email: string;
+      profile: { display_name: string | null } | null;
+    } | null;
+  } | null;
+  copy: {
+    id: string;
+    barcode: string | null;
+    book: {
+      id: string;
+      title: string;
+      author: string | null;
+    } | null;
+  } | null;
+  reporter: {
+    id: string;
+    email: string;
+    profile: { display_name: string | null } | null;
+  } | null;
+};
+
+const normalizeDamageSeverity = (value: unknown): DamageSeverity => {
+  if (typeof value !== 'string') return 'damaged';
+  const v = value.trim().toLowerCase();
+  if (v === 'lost' || v === 'needs_inspection') return v;
+  return 'damaged';
+};
+
+const mapDamageReportRow = (row: RawDamageReportRow): DamageReportRow => ({
+  id: row.id,
+  severity: normalizeDamageSeverity(row.severity),
+  notes: row.notes,
+  photoPaths: Array.isArray(row.photo_urls) ? row.photo_urls : [],
+  createdAt: row.created_at,
+  loan: row.loan
+    ? {
+        id: row.loan.id,
+        dueAt: row.loan.due_at,
+        returnedAt: row.loan.returned_at,
+      }
+    : null,
+  copy: row.copy
+    ? {
+        id: row.copy.id,
+        barcode: row.copy.barcode,
+        book: row.copy.book
+          ? { id: row.copy.book.id, title: row.copy.book.title, author: row.copy.book.author }
+          : null,
+      }
+    : null,
+  borrower: row.loan?.borrower
+    ? {
+        id: row.loan.borrower.id,
+        email: row.loan.borrower.email,
+        displayName: row.loan.borrower.profile?.display_name ?? null,
+      }
+    : null,
+  reportedBy: row.reporter
+    ? {
+        id: row.reporter.id,
+        email: row.reporter.email,
+        displayName: row.reporter.profile?.display_name ?? null,
+      }
+    : null,
+});
+
+export async function fetchDamageReports(opts?: {
+  severity?: DamageSeverity[];
+  search?: string;
+  daysBack?: number;
+  limit?: number;
+}): Promise<DamageReportRow[]> {
+  const supabase = getSupabaseServerClient();
+
+  let query = supabase
+    .from('DamageReports')
+    .select(
+      `
+        id,
+        severity,
+        notes,
+        photo_urls,
+        created_at,
+        loan:Loans(
+          id,
+          due_at,
+          returned_at,
+          user_id,
+          borrower:Users!Loans_user_id_fkey(
+            id,
+            email,
+            profile:UserProfile(display_name)
+          )
+        ),
+        copy:Copies(
+          id,
+          barcode,
+          book:Books(id, title, author)
+        ),
+        reporter:Users!DamageReports_reported_by_fkey(
+          id,
+          email,
+          profile:UserProfile(display_name)
+        )
+      `,
+    )
+    .order('created_at', { ascending: false })
+    .limit(opts?.limit ?? 100);
+
+  if (opts?.severity && opts.severity.length > 0) {
+    query = query.in('severity', opts.severity);
+  }
+
+  if (typeof opts?.daysBack === 'number' && opts.daysBack > 0) {
+    const cutoff = new Date(Date.now() - opts.daysBack * 24 * 60 * 60 * 1000);
+    query = query.gte('created_at', cutoff.toISOString());
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const rows = ((data ?? []) as unknown) as RawDamageReportRow[];
+  let mapped = rows.map(mapDamageReportRow);
+
+  // Search filter happens client-side because PostgREST 'or' across joins
+  // is awkward; volume of damage reports is low.
+  if (opts?.search) {
+    const needle = opts.search.trim().toLowerCase();
+    if (needle) {
+      mapped = mapped.filter((row) => {
+        const fields = [
+          row.copy?.book?.title ?? '',
+          row.copy?.book?.author ?? '',
+          row.copy?.barcode ?? '',
+          row.borrower?.displayName ?? '',
+          row.borrower?.email ?? '',
+          row.notes ?? '',
+        ];
+        return fields.some((f) => f.toLowerCase().includes(needle));
+      });
+    }
+  }
+
+  return mapped;
+}
+
+export async function getDamageReportSignedUrls(
+  paths: string[],
+  expiresInSeconds = 60 * 5,
+): Promise<Array<{ path: string; signedUrl: string | null }>> {
+  if (paths.length === 0) return [];
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase.storage
+    .from('damage-reports')
+    .createSignedUrls(paths, expiresInSeconds);
+  if (error) {
+    console.error('Failed to generate signed URLs for damage photos', error);
+    return paths.map((p) => ({ path: p, signedUrl: null }));
+  }
+  return (data ?? []).map((d) => ({ path: d.path ?? '', signedUrl: d.signedUrl ?? null }));
 }
 

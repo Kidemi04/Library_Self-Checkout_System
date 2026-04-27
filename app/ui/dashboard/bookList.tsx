@@ -155,7 +155,36 @@ type Props = {
   category?: CategoryKey;
   onDetailsClick?: (book: UIBook) => void;
   pageSize?: number;
+  /** Search query — when provided, matched substrings in title/author are highlighted. */
+  searchQuery?: string;
 };
+
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+function highlightMatch(text: string | null | undefined, query: string | undefined): React.ReactNode {
+  if (!text) return text ?? null;
+  if (!query) return text;
+  const trimmed = query.trim();
+  if (!trimmed) return text;
+  try {
+    const re = new RegExp(`(${escapeRegex(trimmed)})`, 'ig');
+    const parts = text.split(re);
+    return parts.map((part, i) =>
+      re.test(part) ? (
+        <mark
+          key={i}
+          className="rounded bg-swin-red/15 px-0.5 text-swin-red dark:bg-swin-red/25 dark:text-red-200"
+        >
+          {part}
+        </mark>
+      ) : (
+        <React.Fragment key={i}>{part}</React.Fragment>
+      ),
+    );
+  } catch {
+    return text;
+  }
+}
 
 const STATUS_META: Record<
   ItemStatus,
@@ -215,6 +244,7 @@ export default function BookList({
   isStaff = false,
   category,
   pageSize,
+  searchQuery,
 }: Props) {
   const router = useRouter();
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -262,8 +292,8 @@ export default function BookList({
               <BlurFade key={b.id} delay={0.2 + idx * 0.03} yOffset={10}>
                 <article className="group flex flex-col gap-3">
                   <Link
-                    href={canBorrow ? `/dashboard/book/checkout?bookId=${b.id}` : `#`}
-                    aria-label={`View ${b.title}`}
+                    href={`/dashboard/book/${b.id}`}
+                    aria-label={`View details for ${b.title}`}
                     className="block"
                   >
                     {hasCover ? (
@@ -292,10 +322,10 @@ export default function BookList({
 
                   <div className="min-w-0">
                     <h3 className="line-clamp-2 font-display text-[15px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
-                      {b.title}
+                      {highlightMatch(b.title, searchQuery)}
                     </h3>
                     <p className="mt-0.5 truncate font-display text-[12px] italic text-swin-charcoal/55 dark:text-white/55">
-                      {b.author || 'Unknown author'}
+                      {b.author ? highlightMatch(b.author, searchQuery) : 'Unknown author'}
                     </p>
                     <div className="mt-2 flex items-center gap-2">
                       <AvailabilityChip
@@ -366,25 +396,31 @@ export default function BookList({
                     idx % 2 === 1 && 'bg-slate-50/40 dark:bg-white/[0.02]',
                   )}
                 >
-                  {b.cover ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={b.cover}
-                      alt=""
-                      className="h-16 w-12 flex-shrink-0 rounded object-cover ring-1 ring-swin-charcoal/10 dark:ring-white/10"
-                    />
-                  ) : (
-                    <BookCover gradient={getBookGradient(b.id)} w={48} h={64} radius={3} />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate font-display text-[15px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
-                      {b.title}
-                    </h3>
-                    <p className="truncate font-display text-[12px] italic text-swin-charcoal/55 dark:text-white/55">
-                      {b.author || 'Unknown author'}
-                      {b.year ? <span className="ml-2 font-mono not-italic text-swin-charcoal/40 dark:text-white/40">· {b.year}</span> : null}
-                    </p>
-                  </div>
+                  <Link
+                    href={`/dashboard/book/${b.id}`}
+                    aria-label={`View details for ${b.title}`}
+                    className="flex min-w-0 flex-1 items-center gap-4 transition hover:opacity-80"
+                  >
+                    {b.cover ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={b.cover}
+                        alt=""
+                        className="h-16 w-12 flex-shrink-0 rounded object-cover ring-1 ring-swin-charcoal/10 dark:ring-white/10"
+                      />
+                    ) : (
+                      <BookCover gradient={getBookGradient(b.id)} w={48} h={64} radius={3} />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate font-display text-[15px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+                        {highlightMatch(b.title, searchQuery)}
+                      </h3>
+                      <p className="truncate font-display text-[12px] italic text-swin-charcoal/55 dark:text-white/55">
+                        {b.author ? highlightMatch(b.author, searchQuery) : 'Unknown author'}
+                        {b.year ? <span className="ml-2 font-mono not-italic text-swin-charcoal/40 dark:text-white/40">· {b.year}</span> : null}
+                      </p>
+                    </div>
+                  </Link>
                   <AvailabilityChip
                     available={b.copies_available}
                     total={b.total_copies}

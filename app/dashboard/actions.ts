@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { auth } from '@/auth';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
+import type { CopyStatus } from '@/app/lib/supabase/types';
 import type { ActionState } from '@/app/dashboard/actionState';
 import { createNotification, createUserNotification } from '@/app/lib/supabase/notifications';
 import {
@@ -649,7 +650,13 @@ export async function checkinBookAction(
       damagePhotoUrls = [];
     }
   }
-  const copyStatusFinal: 'available' | DamageSeverity = severity ?? 'available';
+  // 'needs_inspection' is a damage severity, not a CopyStatus enum value. Flag
+  // the copy as 'processing' (off-shelf for review); the precise severity is
+  // still recorded separately on the DamageReport row.
+  const copyStatusFinal: CopyStatus =
+    severity === 'needs_inspection'
+      ? 'processing'
+      : severity ?? 'available';
 
   const supabase = getSupabaseServerClient();
   const handlerId = await getCurrentUserId();

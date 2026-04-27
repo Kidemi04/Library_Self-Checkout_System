@@ -20,6 +20,7 @@ import {
   QuestionMarkCircleIcon,
   SunIcon,
   MoonIcon,
+  ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/themeProvider';
@@ -32,37 +33,40 @@ import { useEffect, useState } from 'react';
 type NavItem = { icon: React.ElementType; label: string; href: string; badge?: number };
 
 const ADMIN_NAV: NavItem[] = [
-  { icon: HomeIcon,               label: 'Overview',       href: '/dashboard/admin' },
-  { icon: BookOpenIcon,           label: 'Catalogue',      href: '/dashboard/book/items' },
-  { icon: UserGroupIcon,          label: 'Users',          href: '/dashboard/admin/users' },
-  { icon: BookmarkIcon,           label: 'Reservations',   href: '/dashboard/book/holds' },
-  { icon: QrCodeIcon,             label: 'Borrow Books',   href: '/dashboard/book/checkout' },
-  { icon: ArrowPathIcon,          label: 'Return Books',   href: '/dashboard/book/checkin' },
-  { icon: ClockIcon,              label: 'Borrow History', href: '/dashboard/book/history' },
-  { icon: BellIcon,               label: 'Notifications',  href: '/dashboard/notifications' },
-  { icon: Cog6ToothIcon,          label: 'Settings',       href: '/dashboard/profile' },
+  { icon: HomeIcon,                  label: 'Overview',        href: '/dashboard/admin' },
+  { icon: BookOpenIcon,              label: 'Catalogue',       href: '/dashboard/book/items' },
+  { icon: UserGroupIcon,             label: 'Users',           href: '/dashboard/admin/users' },
+  { icon: BookmarkIcon,              label: 'Holds',           href: '/dashboard/book/holds' },
+  { icon: QrCodeIcon,                label: 'Borrow Books',    href: '/dashboard/book/checkout' },
+  { icon: ArrowPathIcon,             label: 'Return Books',    href: '/dashboard/book/checkin' },
+  { icon: ExclamationTriangleIcon,   label: 'Damage Reports',  href: '/dashboard/staff/damage-reports' },
+  { icon: ClockIcon,                 label: 'Borrow History',  href: '/dashboard/book/history' },
+  { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
+  { icon: Cog6ToothIcon,             label: 'Settings',        href: '/dashboard/profile' },
 ];
 
 const STAFF_NAV: NavItem[] = [
-  { icon: HomeIcon,               label: 'Desk',           href: '/dashboard' },
-  { icon: QrCodeIcon,             label: 'Borrow Books',   href: '/dashboard/book/checkout' },
-  { icon: ArrowPathIcon,          label: 'Return Books',   href: '/dashboard/book/checkin' },
-  { icon: BookmarkIcon,           label: 'Holds',          href: '/dashboard/book/holds' },
-  { icon: BookOpenIcon,           label: 'Catalogue',      href: '/dashboard/book/items' },
-  { icon: BellIcon,               label: 'Notifications',  href: '/dashboard/notifications' },
-  { icon: UserCircleIcon,         label: 'Profile',        href: '/dashboard/profile' },
+  { icon: HomeIcon,                  label: 'Desk',            href: '/dashboard' },
+  { icon: QrCodeIcon,                label: 'Borrow Books',    href: '/dashboard/book/checkout' },
+  { icon: ArrowPathIcon,             label: 'Return Books',    href: '/dashboard/book/checkin' },
+  { icon: BookmarkIcon,              label: 'Holds',           href: '/dashboard/book/holds' },
+  { icon: BookOpenIcon,              label: 'Catalogue',       href: '/dashboard/book/items' },
+  { icon: ExclamationTriangleIcon,   label: 'Damage Reports',  href: '/dashboard/staff/damage-reports' },
+  { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
+  { icon: UserCircleIcon,            label: 'Profile',         href: '/dashboard/profile' },
 ];
 
 const USER_NAV: NavItem[] = [
-  { icon: HomeIcon,               label: 'Dashboard',      href: '/dashboard' },
-  { icon: BookOpenIcon,           label: 'My Books',       href: '/dashboard/my-books' },
-  { icon: BookmarkIcon,           label: 'Reservations',   href: '/dashboard/my-books?tab=reservations' },
-  { icon: MagnifyingGlassIcon,    label: 'Catalogue',      href: '/dashboard/book/items' },
-  { icon: AcademicCapIcon,        label: 'Learning hub',   href: '/dashboard/learning' },
-  { icon: BellIcon,               label: 'Notifications',  href: '/dashboard/notifications' },
-  { icon: SparklesIcon,           label: 'Recommendations',href: '/dashboard/recommendations' },
-  { icon: QuestionMarkCircleIcon, label: 'FAQ',            href: '/dashboard/faq' },
-  { icon: UserCircleIcon,         label: 'Profile',        href: '/dashboard/profile' },
+  { icon: HomeIcon,                  label: 'Dashboard',       href: '/dashboard' },
+  { icon: MagnifyingGlassIcon,       label: 'Catalogue',       href: '/dashboard/book/items' },
+  { icon: QrCodeIcon,                label: 'Borrow',          href: '/dashboard/book/checkout' },
+  { icon: ArrowPathIcon,             label: 'Return',          href: '/dashboard/book/checkin' },
+  { icon: BookOpenIcon,              label: 'My Books',        href: '/dashboard/my-books' },
+  { icon: AcademicCapIcon,           label: 'Learning hub',    href: '/dashboard/learning' },
+  { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
+  { icon: SparklesIcon,              label: 'Recommendations', href: '/dashboard/recommendations' },
+  { icon: QuestionMarkCircleIcon,    label: 'FAQ',             href: '/dashboard/faq' },
+  { icon: UserCircleIcon,            label: 'Profile',         href: '/dashboard/profile' },
 ];
 
 function getNav(role: DashboardRole): NavItem[] {

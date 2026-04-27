@@ -138,6 +138,9 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         params: {
           scope: 'openid profile offline_access email',
+          // Force the Microsoft account picker every sign-in so a user can
+          // switch between accounts (instead of auto-using the cached one).
+          prompt: 'select_account',
         },
       },
       profile(profile) {

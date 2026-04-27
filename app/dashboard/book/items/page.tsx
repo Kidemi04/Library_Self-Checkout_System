@@ -141,12 +141,22 @@ export default async function BookItemsPage({
             }}
           />
 
+          {/* Result count — only show when there's a search query */}
+          {q && (
+            <p className="font-mono text-[11px] text-swin-charcoal/55 dark:text-white/55">
+              {books.length === 0
+                ? `No books match "${q}"`
+                : `${books.length} ${books.length === 1 ? 'result' : 'results'} for "${q}"`}
+            </p>
+          )}
+
           <BookList
             books={books}
             variant={view}
             patronId={patronId}
             isStaff={isStaff}
             category={category}
+            searchQuery={q}
           />
         </div>
       </AdminShell>

@@ -12,6 +12,9 @@ import {
   ChevronDownIcon, // Import icon for collapse indicator
   BellIcon,
   BookmarkIcon,
+  ExclamationTriangleIcon,
+  QrCodeIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import BlurFade from '@/app/ui/magicUi/blurFade';
@@ -45,6 +48,8 @@ const generalLinks: NavItem[] = [
 const userLinks: NavItem[] = [
   { name: 'Home', href: '/dashboard', icon: HomeIcon },
   { name: 'Browse Books', href: '/dashboard/book/items', icon: BookOpenIcon },
+  { name: 'Borrow', href: '/dashboard/book/checkout', icon: QrCodeIcon },
+  { name: 'Return', href: '/dashboard/book/checkin', icon: ArrowPathIcon },
   { name: 'My Books', href: '/dashboard/my-books', icon: BookmarkIcon },
   { name: 'Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
   { name: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
@@ -53,23 +58,31 @@ const userLinks: NavItem[] = [
 
 
 // Create staffLinks by transforming userLinks
-const staffLinks: NavItem[] = [
-  ...generalLinks.map((link) => {
-    // Find the Catalogue section to inject the extra sub-item
-    if (link.name === 'Catalogue') {
-      return {
-        ...link,
-        children: [
-          { name: 'Book List', href: '/dashboard/book/list' }, // New staff sub-item
-          ...(link.children || []), // Keep existing user sub-items
-          { name: 'Manage Holds', href: '/dashboard/book/holds' },
-          { name: 'Borrow History', href: '/dashboard/book/history' },
-        ],
-      };
-    }
-    return link;
-  }),
-];
+const staffLinks: NavItem[] = generalLinks.flatMap((link) => {
+  // Find the Catalogue section to inject the extra sub-item, and inject the
+  // Damage Reports top-level entry right after it so the workflow tool sits
+  // close to the circulation links.
+  if (link.name === 'Catalogue') {
+    const transformedCatalogue: NavItem = {
+      ...link,
+      children: [
+        { name: 'Book List', href: '/dashboard/book/list' }, // New staff sub-item
+        ...(link.children || []), // Keep existing user sub-items
+        { name: 'Manage Holds', href: '/dashboard/book/holds' },
+        { name: 'Borrow History', href: '/dashboard/book/history' },
+      ],
+    };
+    return [
+      transformedCatalogue,
+      {
+        name: 'Damage Reports',
+        href: '/dashboard/staff/damage-reports',
+        icon: ExclamationTriangleIcon,
+      },
+    ];
+  }
+  return [link];
+});
 
 const adminLinks: NavItem[] = [
   ...staffLinks.flatMap((link) => {

@@ -58,8 +58,8 @@ export default function NotificationsFilter({ action, defaults, className }: Pro
       action={action} 
       method="get"
       className={clsx(
-        "flex flex-row md:flex-row items-end gap-2 md:gap-3 p-3 md:p-5 rounded-2xl border-2",
-        "bg-swin-ivory border-slate-200 dark:bg-slate-900/50 dark:border-slate-800",
+        "flex flex-row md:flex-row items-end gap-2 md:gap-3 p-3 md:p-5 rounded-2xl border",
+        "bg-swin-ivory border-slate-200 dark:bg-slate-900/50 dark:border-slate-700/60",
         className
       )}
     >

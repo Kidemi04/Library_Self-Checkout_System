@@ -28,6 +28,15 @@ const SEVERITY_OPTIONS: { value: DamageSeverity; label: string; hint: string }[]
 
 const MAX_PHOTOS = 3;
 
+const PRESET_NOTES: string[] = [
+  'Water damage',
+  'Torn pages',
+  'Missing cover',
+  'Highlighting / writing',
+  'Loose binding',
+  'Stained',
+];
+
 export default function DamageReportModal({ open, loanId, onClose, onSubmit }: DamageReportModalProps) {
   const [severity, setSeverity] = useState<DamageSeverity>('damaged');
   const [notes, setNotes] = useState('');
@@ -47,6 +56,17 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
 
   const removePhoto = (index: number) => {
     setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const appendPresetNote = (preset: string) => {
+    setNotes((prev) => {
+      const trimmed = prev.trim();
+      if (!trimmed) return preset;
+      if (trimmed.toLowerCase().includes(preset.toLowerCase())) return prev;
+      const separator = trimmed.endsWith('.') || trimmed.endsWith(';') ? ' ' : '; ';
+      const next = `${trimmed}${separator}${preset}`;
+      return next.length > 500 ? next.slice(0, 500) : next;
+    });
   };
 
   const handleSubmit = async () => {
@@ -152,10 +172,23 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
           </div>
         </fieldset>
 
-        <label className="mb-4 block">
+        <div className="mb-4">
           <span className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55">
             Notes (optional)
           </span>
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {PRESET_NOTES.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => appendPresetNote(preset)}
+                disabled={busy}
+                className="rounded-full border border-swin-charcoal/15 bg-white px-2.5 py-1 text-[11px] font-medium text-swin-charcoal/75 transition hover:border-swin-red/40 hover:bg-swin-red/5 hover:text-swin-red disabled:opacity-50 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white/75 dark:hover:border-swin-red/50 dark:hover:bg-swin-red/15"
+              >
+                + {preset}
+              </button>
+            ))}
+          </div>
           <textarea
             value={notes}
             maxLength={500}
@@ -167,7 +200,7 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
           <p className="mt-1 text-right font-mono text-[10px] text-swin-charcoal/40 dark:text-white/40">
             {notes.length}/500
           </p>
-        </label>
+        </div>
 
         <div className="mb-5">
           <div className="mb-1.5 flex items-center justify-between">
