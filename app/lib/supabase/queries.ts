@@ -1831,3 +1831,58 @@ export async function fetchAllLoansHistory(
     pageSize: HISTORY_PAGE_SIZE,
   };
 }
+
+// ============================================================
+// v3.0.3 — ISBN lookup + barcode allocation (Add Books page)
+// ============================================================
+
+export async function findBookByIsbn(isbn: string): Promise<{
+  id: string;
+  title: string;
+  author: string | null;
+  copyCount: number;
+} | null> {
+  const supabase = getSupabaseServerClient();
+  const cleaned = isbn.replace(/[^0-9X]/gi, '');
+  if (!cleaned) return null;
+
+  const { data, error } = await supabase
+    .from('Books')
+    .select('id, title, author, copies:Copies(id)')
+    .eq('isbn', cleaned)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[findBookByIsbn]', error);
+    throw error;
+  }
+  if (!data) return null;
+
+  const copiesRaw = (data as { copies?: unknown }).copies;
+  const copies = Array.isArray(copiesRaw) ? copiesRaw : [];
+  return {
+    id: (data as { id: string }).id,
+    title: (data as { title: string }).title,
+    author: (data as { author: string | null }).author ?? null,
+    copyCount: copies.length,
+  };
+}
+
+export async function getNextAvailableBarcodes(count: number): Promise<string[]> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('Copies')
+    .select('barcode')
+    .like('barcode', 'SWI-%')
+    .order('barcode', { ascending: false })
+    .limit(50);
+
+  if (error) throw error;
+  const existing = ((data ?? []) as Array<{ barcode: string | null }>)
+    .map((r) => r.barcode)
+    .filter((b): b is string => Boolean(b));
+
+  const { computeNextBarcodes } = await import('@/app/lib/barcode');
+  return computeNextBarcodes(existing, count);
+}
