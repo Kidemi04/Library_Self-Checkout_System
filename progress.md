@@ -1,82 +1,63 @@
-# Progress Log
+# UI Claude-Style Redesign — Progress Tracker
 
-## 2026-04-27 — Session 1: Branch combine + verification
+> **For new chats picking up this work:** Read this file FIRST, then `task_plan.md`, then the spec and plan referenced below. Resume from "Next step" without re-discussing decisions.
 
-- Created `Kelvin-v3.0.2-Combined` branch from `origin/Kelvin-v3.0.1-Issue-Fix`
-- v3.0.1 was strictly linear-ahead of v3.0 (no merge conflict possible)
-- Worktree at `.worktrees/Kelvin-v3.0.2-Combined/`
-- Verification:
-  - `pnpm install` ✅ 21s
-  - `npx tsc --noEmit` ✅ no errors
-  - `pnpm build` ✅ 44/44 pages
-  - `pnpm test` ✅ 28/28 tests
-- Local commits NOT pushed (per user preference: confirm before push)
+---
 
-## 2026-04-27 — Session 2: Bug intake + planning
+## Project state
 
-- User did UI testing, reported 15 issues across user/staff/admin
-- Initial code investigation:
-  - Confirmed Staff #3 root cause: `actions.ts:770` writes invalid enum value `needs_inspection` to `Copies.status`
-  - Located damage handling: `app/dashboard/actions.ts` lines 608-871
-- Created `task_plan.md`, `findings.md`, `progress.md`
-- Decided Admin missing pages (3 issues) are out-of-scope for this bug-fix branch — they're new features
-- Next: start Phase 2 (DB enum fix), then Phase 3 (processing stuck) — likely highest user-visible impact
+- **Branch:** `Kelvin-v3.0.4-EnhanceUIColour` (created 2026-04-29 from `Kelvin-v3.0.3-AdminPages`)
+- **Spec:** `docs/superpowers/specs/2026-04-29-ui-claude-style-redesign-design.md` (commit `b5b39ea`)
+- **Plan (Batch 1):** `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md` (commit `8f94019`)
+- **Plans (Batch 2/3):** Not yet written. Will be generated in dedicated future sessions by invoking `superpowers:writing-plans` against §7 of the spec.
 
-## Open Questions for User
+## Current position
 
-1. Phase 2 fix approach — preferred direction?
-   - **A**: Map `needs_inspection` → `PROCESSING` in code (no migration). Fast, safe.
-   - **B**: Add `NEEDS_INSPECTION` to `CopyStatus` enum via Supabase migration. More semantic but heavier.
-2. Sidebar (Phase 7) — confirm: should "Borrow" and "Return" be top-level sidebar items, or under "Books"?
-3. Catalogue click (Phase 6) — confirm intended behavior:
-   - Click book card → book detail page (with "Borrow" CTA inside)?
-   - OR click book card → directly into borrow flow with that book preselected?
+- **Current batch:** 1 (Foundation)
+- **Current chat:** 1 of 16 (this chat handled brainstorming + spec + plan + progress setup)
+- **Last completed:** Plan write + commit + progress files setup
+- **Next step:** **Open a new chat to start work.** First action: invoke `superpowers:executing-plans` or `superpowers:subagent-driven-development` against `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md` Task 1 (Add new color tokens to `tailwind.config.ts`).
 
-## Test Results Log
+## What's done
 
-| Date | Command | Result |
-|------|---------|--------|
-| 2026-04-27 | `pnpm install` | ✅ |
-| 2026-04-27 | `npx tsc --noEmit` | ✅ clean |
-| 2026-04-27 | `pnpm build` | ✅ 44/44 pages |
-| 2026-04-27 | `pnpm test` | ✅ 28 / 28 |
+- [x] Brainstorming session — 6 design decisions resolved
+- [x] Design spec written + self-reviewed + approved
+- [x] Spec committed (`b5b39ea`)
+- [x] Batch 1 implementation plan written (26 tasks across chats 4–8 in spec numbering)
+- [x] Plan self-reviewed
+- [x] Plan committed (`8f94019`)
+- [x] Progress files initialized
 
-## Files Created / Modified This Session
+## What's next (Batch 1, in order)
 
-| File | Action | Phase |
-|------|--------|-------|
-| `.gitignore` (main worktree) | Added `.worktrees/` | Pre-Phase 1 |
-| `task_plan.md` | Created | Phase 1 |
-| `findings.md` | Created | Phase 1 |
-| `progress.md` | Created | Phase 1 |
-| `app/dashboard/actions.ts` | Added `CopyStatus` import + `needs_inspection → 'processing'` mapping | Phase 2 |
-| `lib/sip2.ts` | Added `AbortController` 5s timeout (configurable via `SIP2_TIMEOUT_MS`) | Phase 3 |
-| `app/notFound.tsx → app/not-found.tsx` | Renamed (Next.js App Router convention; previous file was never picked up) | Phase 4 |
-| `app/ui/dashboard/notificationFilter.tsx` | Softened outer `border-2` → `border`, dark border `slate-800` → `slate-700/60` | Phase 4 |
-| `app/ui/dashboard/damageReportModal.tsx` | Added 6 preset note chips (Water damage, Torn pages, etc.) above textarea | Phase 9 |
+See `task_plan.md` for the live checklist. Tasks 1–26 in `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md`.
 
-## Phase Completion Summary
+## Open issues / Decisions deferred
 
-| Phase | Bugs Covered | Status |
-|-------|--------------|--------|
-| 2 | Staff #3 (enum) | ✅ done — type-checked |
-| 3 | Student #3 + Staff #1 (processing stuck) | ✅ done — type-checked, needs UI re-test |
-| 4 | Student #1 (404) + Student #8 (notif border) | ✅ done — type-checked |
-| 9 | Staff #2 (preset notes) | ✅ done — type-checked |
-| 5 | Student #2 + #5 (search) | ⏸ blocked on UX decision |
-| 6 | Student #4 + #6 (catalogue click) | ⏸ blocked on UX decision |
-| 7 | Student #7 (sidebar) | ⏸ pending — has assumed defaults |
-| 8 | Student #9 (avatar) | ⏸ pending |
-| 10 | Final verify | ⏸ pending |
+(none)
 
-## Pending User Decisions
+## Blockers
 
-1. **Search approach (Phase 5):**
-   - **A**: Server-side Postgres `ILIKE '%term%'` on title/author/ISBN — simple, scales fine
-   - **B**: Client-side Fuse.js fuzzy match — handles typos but loads all books to client
-2. **Catalogue click target (Phase 6):**
-   - **A**: Card click → book detail page with "Borrow" CTA inside
-   - **B**: Card click → directly into borrow flow with this book preselected
-3. **Sidebar Borrow/Return placement (Phase 7):**
-   - **A**: Top-level entries (preferred per user request)
-   - **B**: Nested under "Books" section
+(none)
+
+## Notes for next chat
+
+- The plan refers to "chats 4–8" in spec numbering. The chat that picks up next is **Chat 2 in actual session numbering** (because Chat 1 = brainstorming + spec + plan setup). Don't be confused by the dual numbering.
+- All commits are local. **User has not been asked to push.** Per user preference (memory `feedback_git_push.md`): always confirm branch + non-main destination before pushing.
+- `.worktrees/` is ignored / untracked — leave alone.
+- `DESIGN.md` (project root) is currently untracked. User may want to commit it separately; not part of this redesign work.
+- The custom `ThemeProvider` at `app/ui/theme/themeProvider.tsx` is what drives `dark` class on `<html>`. **Do not introduce `next-themes`** — Tailwind `dark:` prefix already works against the custom provider.
+
+---
+
+## How to start the next chat
+
+Paste this into the new chat:
+
+> 继续 UI 改造工作。先读 `MEMORY.md`，然后按顺序读：
+> 1. `progress.md`（当前进度，知道做到哪步）
+> 2. `task_plan.md`（当前批次的步骤）
+> 3. `docs/superpowers/specs/2026-04-29-ui-claude-style-redesign-design.md`（设计决定）
+> 4. `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md`（实施计划）
+>
+> 读完直接从 progress.md 标记的下一步开始执行，不要问"我们之前做到哪里"。
