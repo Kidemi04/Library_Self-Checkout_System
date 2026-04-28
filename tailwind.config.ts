@@ -43,6 +43,14 @@ const config: Config = {
         button:       ['14px', { lineHeight: '1',    letterSpacing: '0',      fontWeight: '500' }],
         'nav-link':   ['14px', { lineHeight: '1.40', letterSpacing: '0',      fontWeight: '500' }],
       },
+      borderRadius: {
+        btn: '8px',
+        card: '12px',
+        hero: '16px',
+      },
+      spacing: {
+        section: '96px',
+      },
       colors: {
         // Legacy Swinburne tokens (RETAINED in Batch 1; deleted in Batch 3)
         swin: {
