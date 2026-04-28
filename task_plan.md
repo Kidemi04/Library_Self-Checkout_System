@@ -6,14 +6,14 @@
 
 ---
 
-## Chat 4 (spec numbering) — Tailwind config + fonts + globals
+## Chat 4 (spec numbering) — Tailwind config + fonts + globals ✅ DONE
 
-- [ ] Task 1: Add new color tokens to `tailwind.config.ts`
-- [ ] Task 2: Add typography token scale to `tailwind.config.ts`
-- [ ] Task 3: Add radius + spacing tokens to `tailwind.config.ts`
-- [ ] Task 4: Configure `next/font/google` in `app/layout.tsx`
-- [ ] Task 5: Update `app/ui/global.css`
-- [ ] Task 6: Tailwind config sanity check
+- [x] Task 1: Add new color tokens to `tailwind.config.ts` (`8025e1f`)
+- [x] Task 2: Add typography token scale to `tailwind.config.ts` (`26aebcd`)
+- [x] Task 3: Add radius + spacing tokens to `tailwind.config.ts` (`5d09617`)
+- [x] Task 4: Configure `next/font/google` in `app/layout.tsx` (`9197f80`)
+- [x] Task 5: Update `app/ui/global.css` (`d32c05d`)
+- [x] Task 6: Tailwind config sanity check (no extra commit — `pnpm tsc` + `pnpm build` clean)
 
 ## Chat 5 — Primitives A (interactive)
 
