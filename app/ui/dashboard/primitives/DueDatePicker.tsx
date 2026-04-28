@@ -67,10 +67,11 @@ export default function DueDatePicker({
               type="button"
               onClick={() => handlePreset(days)}
               className={clsx(
-                'rounded-full border px-3 py-1.5 text-[12px] font-semibold transition',
+                'rounded-pill px-3 py-1.5 font-sans text-caption transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
                 active
-                  ? 'border-swin-red bg-swin-red text-white shadow-sm shadow-swin-red/25'
-                  : 'border-swin-charcoal/15 bg-white text-swin-charcoal/75 hover:border-swin-charcoal/30 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white/75',
+                  ? 'bg-surface-cream-strong text-ink dark:bg-dark-surface-strong dark:text-on-dark'
+                  : 'bg-surface-card text-muted hover:bg-surface-cream-strong hover:text-ink dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:bg-dark-surface-strong dark:hover:text-on-dark',
               )}
             >
               {days}d
@@ -87,12 +88,12 @@ export default function DueDatePicker({
           min={minDate}
           max={maxDate}
           onChange={(e) => setValue(e.target.value)}
-          className="w-full rounded-lg border border-swin-charcoal/15 bg-white px-3 py-2 text-[13px] text-swin-charcoal focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/30 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white"
+          className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3 font-sans text-body-md text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark"
           required
         />
       </label>
       {selectedOffset != null && selectedOffset >= minOffsetDays && selectedOffset <= maxOffsetDays && (
-        <p className="font-mono text-[11px] text-swin-charcoal/50 dark:text-white/50">
+        <p className="font-mono text-caption text-muted dark:text-on-dark-soft">
           Returns in {selectedOffset} day{selectedOffset === 1 ? '' : 's'}
         </p>
       )}

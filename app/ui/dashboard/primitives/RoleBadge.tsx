@@ -6,9 +6,18 @@ type RoleBadgeProps = {
 };
 
 const STYLES: Record<string, { cls: string; label: string }> = {
-  admin: { cls: 'bg-swin-red/12 text-swin-red border-swin-red/30 dark:bg-swin-red/20 dark:text-red-300', label: 'ADMIN' },
-  staff: { cls: 'bg-swin-gold/12 text-swin-gold border-swin-gold/30 dark:bg-swin-gold/20 dark:text-yellow-300', label: 'STAFF' },
-  user:  { cls: 'bg-swin-charcoal/8 text-swin-charcoal/70 border-swin-charcoal/15 dark:bg-white/8 dark:text-white/70 dark:border-white/15', label: 'STUDENT' },
+  admin: {
+    cls: 'bg-primary/10 text-primary dark:bg-dark-primary/20 dark:text-dark-primary',
+    label: 'ADMIN',
+  },
+  staff: {
+    cls: 'bg-accent-amber/15 text-accent-amber dark:bg-accent-amber/20 dark:text-accent-amber',
+    label: 'STAFF',
+  },
+  user: {
+    cls: 'bg-surface-card text-muted dark:bg-dark-surface-card dark:text-on-dark-soft',
+    label: 'STUDENT',
+  },
 };
 
 export default function RoleBadge({ role, className }: RoleBadgeProps) {
@@ -16,7 +25,7 @@ export default function RoleBadge({ role, className }: RoleBadgeProps) {
   return (
     <span
       className={clsx(
-        'inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-[10px] font-bold tracking-[1.8px]',
+        'inline-flex items-center rounded-pill px-3 py-1 font-sans text-caption-uppercase whitespace-nowrap',
         s.cls,
         className,
       )}

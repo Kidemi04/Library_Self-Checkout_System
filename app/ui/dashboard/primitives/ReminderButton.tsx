@@ -24,10 +24,11 @@ export default function ReminderButton({
       disabled={disabled}
       title={recent ? 'Reminded recently — wait until tomorrow to resend' : undefined}
       className={clsx(
-        'rounded-md px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition',
+        'inline-flex h-10 items-center rounded-btn border px-4 font-sans text-button transition-colors',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
         disabled
-          ? 'cursor-not-allowed border border-slate-200 bg-slate-50 text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-white/40'
-          : 'border border-swin-red bg-swin-red text-white hover:bg-swin-red/90 dark:border-emerald-500 dark:bg-emerald-600 dark:hover:bg-emerald-500',
+          ? 'cursor-not-allowed border-transparent bg-primary-disabled text-muted'
+          : 'border-hairline bg-surface-card text-ink hover:bg-surface-cream-strong dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong',
       )}
     >
       {pending ? 'Sending…' : recent ? 'Reminded recently' : 'Send reminder'}

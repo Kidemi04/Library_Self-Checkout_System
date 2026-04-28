@@ -10,18 +10,18 @@ type ChipProps = {
 };
 
 const toneClasses: Record<ChipTone, string> = {
-  default: 'bg-swin-charcoal/8 text-swin-charcoal/70 dark:bg-white/8 dark:text-white/60',
-  danger:  'bg-swin-red/10 text-swin-red dark:bg-swin-red/20 dark:text-red-300',
-  gold:    'bg-swin-gold/12 text-swin-gold dark:bg-swin-gold/15 dark:text-yellow-300',
-  success: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  warn:    'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  default: 'bg-surface-card text-muted dark:bg-dark-surface-card dark:text-on-dark-soft',
+  danger:  'bg-primary/10 text-primary dark:bg-dark-primary/20 dark:text-dark-primary',
+  gold:    'bg-accent-amber/15 text-accent-amber dark:bg-accent-amber/20 dark:text-accent-amber',
+  success: 'bg-success/15 text-success dark:bg-success/20 dark:text-success',
+  warn:    'bg-warning/15 text-warning dark:bg-warning/20 dark:text-warning',
 };
 
 export default function Chip({ children, tone = 'default', mono = false, className }: ChipProps) {
   return (
     <span
       className={clsx(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium leading-none whitespace-nowrap',
+        'inline-flex items-center gap-1 rounded-pill px-3 py-1 font-sans text-caption leading-none whitespace-nowrap',
         toneClasses[tone],
         mono && 'font-mono tracking-wide',
         className,

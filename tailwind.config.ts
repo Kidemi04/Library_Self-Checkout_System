@@ -47,6 +47,7 @@ const config: Config = {
         btn: '8px',
         card: '12px',
         hero: '16px',
+        pill: '9999px',
       },
       spacing: {
         section: '96px',
