@@ -5,9 +5,7 @@ import MobileNav from '@/app/ui/dashboard/mobileNav';
 import FaqFloatingHelp from '@/app/ui/dashboard/faqFloatingHelp';
 import NotificationToast from '@/app/ui/dashboard/notificationToast';
 import DueDateChecker from '@/app/ui/dashboard/dueDateChecker';
-import { useTheme } from '@/app/ui/theme/themeProvider';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
-import { useEffect, useState } from 'react';
 
 type DashboardShellProps = {
   user: DashboardUserProfile;
@@ -16,16 +14,8 @@ type DashboardShellProps = {
 };
 
 export default function DashboardShell({ user, isBypassed, children }: DashboardShellProps) {
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
-  if (!mounted) return null;
-
-  const isDark = theme === 'dark';
-
   return (
-    <div className={isDark ? 'bg-swin-dark-bg text-white' : 'bg-slate-50 text-swin-charcoal'}>
+    <div className="bg-canvas text-ink dark:bg-dark-canvas dark:text-on-dark">
       {/* Desktop sidebar */}
       <aside className="hidden md:block md:w-64 md:flex-none">
         <SideNav user={user} isBypassed={isBypassed} />

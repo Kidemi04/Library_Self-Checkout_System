@@ -99,3 +99,43 @@ Visual review will tell whether the gradient palette needs to be rebalanced for 
 **What was found:** Existing component used `p-3` (12px), so the migration doubles padding. Border style also shifts: data state was `border-swin-charcoal/10` (faint), now solid `border-hairline`; loading state keeps dashed border but now on `border-hairline`.
 
 **Implication:** Followed recipe — this is a deliberate spec-aligned size increase, not an accidental change. Caller pages (admin add-book flow) may want to re-balance surrounding spacing after seeing it in context, but that's downstream. The component's own visual is correct per spec.
+
+---
+
+## 2026-04-29 — Chat 8 — `dashboardShell` `useTheme`/`mounted` apparatus retired
+
+**What was expected:** Plan Task 23 says "Replace only the className branch" but also notes "with `darkMode: 'class'`, the conditional becomes unnecessary… if not [needed elsewhere], this simplifies to a plain JSX block".
+
+**What was found:** The `useTheme()` call, `isDark` derivation, `mounted` `useState`, and the `useEffect`-gated `if (!mounted) return null` apparatus existed solely to support the conditional className `isDark ? 'bg-swin-dark-bg …' : 'bg-slate-50 …'`. With the className now static (`bg-canvas text-ink dark:bg-dark-canvas dark:text-on-dark`), nothing in the file consumes `theme`. The mounted gate also stops being load-bearing — it only protected against the SSR/CSR mismatch on the *dynamic* className.
+
+**Implication:** Dropped `useTheme`, `useEffect`, `useState`, `mounted`, and the `return null` gate per the plan's "simplifies to a plain JSX block" branch. `'use client'` retained (cheap, signals child components are interactive — no behavior change). One side effect: `dashboardShell` now renders during SSR, removing the brief blank flash that the gate previously caused. The system-wide "wrong-theme flash" exists at the html-class level (ThemeProvider applies `dark` class via post-hydration `useEffect`, no pre-hydration script) and is unchanged by this refactor — fixing it is out of scope for Batch 1 and would belong to a ThemeProvider-side cookie-read SSR path per Chat 1's earlier finding.
+
+---
+
+## 2026-04-29 — Chat 8 — `signOutButton` secondary CTA pattern baked as default; callers untouched
+
+**What was expected:** Plan Task 25 lists `signOutButton.tsx` and provides a class recipe (`bg-surface-card border border-hairline text-ink rounded-btn px-4 h-10 …`) but does NOT include `sidenav.tsx` / `mobileMenu.tsx` (the actual callers).
+
+**What was found:** Both callers pass a fully overriding `className` prop — `sidenav.tsx:228` (a 28×28 round icon-only variant in the user footer) and `mobileMenu.tsx:139` (a full-width drawer-footer button on a dark band). Their classNames carry the visual chrome; the button file itself had only `transition disabled:cursor-not-allowed` as intrinsic style. Applying the recipe wholesale would visually break both call sites. Migrating those callers' classNames is Batch 2/3 territory (they consume `swin-charcoal`, `swin-red`, etc. that aren't on the Batch 1 grep audit list).
+
+**Implication:** Wrapped the recipe in a `DEFAULT_CLASS_NAME` constant and used `className ?? DEFAULT_CLASS_NAME` — the prop continues to win whenever passed (today, always). The new default kicks in only for callers that *omit* `className`, which is exactly the migration path Batch 2/3 will take when they drop their override. Non-breaking today, recipe is in place for tomorrow.
+
+---
+
+## 2026-04-29 — Chat 8 — `themeToggle` redesigned pill→icon-button; dead `context='sidebar'` prop removed
+
+**What was expected:** Plan Task 25 recipe for `themeToggle`: `Container button: bg-surface-card border border-hairline rounded-full p-2 …`, `Icon color: text-ink dark:text-on-dark`, `Hover: hover:bg-surface-cream-strong …`, `Focus: standard primary focus ring`.
+
+**What was found:** Existing component was a horizontal **sliding-knob pill toggle** showing both sun + moon icons with a position-based knob (`h-10 w-[5.5rem]` default; `h-8 w-16` for `sm`). It also accepted `context='sidebar'` for a full-width pill variant — but a `Grep` of the codebase showed only two callers (`mobileNav.tsx:139` `<ThemeToggle size="sm" />` and an unused import in `sidenav.tsx:28`), neither uses `context='sidebar'`. That branch is entirely dead code.
+
+**Implication:** Rewrote to a single round icon button per the plan recipe — current-mode icon (sun in dark mode → click to go light; moon in light mode → click to go dark). Sizes: `h-10 w-10` default, `h-8 w-8` for `sm` (replaces the pill widths). Removed the `context` prop from the type and the `isSidebar` branch entirely (dead code clean-up; TS would have caught any consumer trying to pass it — none today). Hover, focus, and dark variants follow the recipe verbatim. This is a visible UX change beyond pure token swap; flagged here so visual review can validate the new chrome works in the mobile-nav tray. The Newsreader+cream aesthetic favours quieter chrome over the previous animated pill, which fits §6.4 (no shadows, surface hierarchy carries differentiation).
+
+---
+
+## 2026-04-29 — Chat 8 — bell notification dot in `adminShell` / `dashboardTitleBar` is `bg-primary`, not `bg-swin-red-brand`
+
+**What was expected:** Plan Task 24 reminds: "Logo / Swinburne brand mark — ensure any usage uses `text-swin-red-brand`, NOT `text-primary`. This is the brand-bearing position per spec Q3."
+
+**What was found:** Neither file references the Swinburne logo — the only red element is the absolute-positioned 6×6 bell-icon dot (`bg-swin-red ring-2 ring-white dark:ring-swin-dark-bg`). It's an alert indicator (means "you have unread notifications"), not a brand mark. Same precedent applies as Chat 6's `HoldCardReady` decision: alert reds use `bg-primary`, brand reds keep `bg-swin-red-brand`.
+
+**Implication:** Migrated to `bg-primary ring-2 ring-canvas dark:ring-dark-canvas`. Genuine brand-mark usage (logo, login splash) is in `acmeLogo.tsx` and login surfaces, both Batch 2 territory — they'll be checked then. Plan note re-read as a *reminder* applicable when relevant, not a requirement that these files contain a logo today (they don't).

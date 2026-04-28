@@ -40,9 +40,15 @@
 - [x] Task 21: Create `/dev/primitives` gallery page (`app/dev/layout.tsx`, `app/dev/primitives/page.tsx`)
 - [x] Task 22: Combined commit — see commit hash in `progress.md`. Decisions outside literal recipe logged in `findings.md` 2026-04-29 Chat 7 entries.
 
-## Chat 8 — Shell + chrome + final QA
+## Chat 8 — Shell + chrome + final QA ✅ DONE
 
-- [ ] Task 23: Migrate `dashboardShell.tsx`
-- [ ] Task 24: Migrate `adminShell.tsx`, `dashboardTitleBar.tsx`
-- [ ] Task 25: Migrate `signOutButton.tsx`, `themeToggle.tsx`
-- [ ] Task 26: Final Batch 1 quality gate + commit
+- [x] Task 23: Migrate `dashboardShell.tsx`
+- [x] Task 24: Migrate `adminShell.tsx`, `dashboardTitleBar.tsx`
+- [x] Task 25: Migrate `signOutButton.tsx`, `themeToggle.tsx`
+- [x] Task 26: Final Batch 1 quality gate + commit (combined commit — see `progress.md` for hash)
+
+---
+
+## Batch 1 COMPLETE ✅
+
+All 26 tasks done (Tasks 1–6 token system; 7–14 interactive primitives; 15–18 content cards; 19–22 supporting primitives + dev gallery; 23–26 shell + chrome). Next chat = Batch 2 (student-facing pages, Chats 9–12 in spec numbering). Plan for Batch 2 needs to be written in a fresh session via `superpowers:writing-plans` against spec §7 Batch 2 section.
