@@ -3,7 +3,6 @@
 import clsx from 'clsx';
 import {
   BookmarkIcon,
-  ExclamationTriangleIcon,
   ClockIcon,
   CheckCircleIcon,
   InformationCircleIcon,
@@ -19,18 +18,18 @@ type IconSpec = {
 };
 
 const TYPE_STYLES: Record<NotificationType, IconSpec> = {
-  hold_ready:     { icon: BookmarkIcon,             text: 'text-swin-red',               bg: 'bg-swin-red/10' },
-  hold_placed:    { icon: BookmarkIcon,             text: 'text-sky-600 dark:text-sky-300',    bg: 'bg-sky-500/10' },
-  due_soon:       { icon: ClockIcon,                text: 'text-amber-700 dark:text-amber-300', bg: 'bg-amber-500/12' },
-  checkout:       { icon: ArrowRightOnRectangleIcon, text: 'text-swin-gold',              bg: 'bg-swin-gold/12' },
-  checkin:        { icon: CheckCircleIcon,          text: 'text-green-600 dark:text-green-400', bg: 'bg-green-500/10' },
-  loan_confirmed: { icon: CheckCircleIcon,          text: 'text-green-600 dark:text-green-400', bg: 'bg-green-500/10' },
+  hold_ready:     { icon: BookmarkIcon,              text: 'text-primary dark:text-dark-primary', bg: 'bg-primary/10 dark:bg-dark-primary/15' },
+  hold_placed:    { icon: BookmarkIcon,              text: 'text-accent-teal',                    bg: 'bg-accent-teal/10' },
+  due_soon:       { icon: ClockIcon,                 text: 'text-warning',                        bg: 'bg-warning/10' },
+  checkout:       { icon: ArrowRightOnRectangleIcon, text: 'text-accent-amber',                   bg: 'bg-accent-amber/12' },
+  checkin:        { icon: CheckCircleIcon,           text: 'text-success',                        bg: 'bg-success/10' },
+  loan_confirmed: { icon: CheckCircleIcon,           text: 'text-success',                        bg: 'bg-success/10' },
 };
 
 const FALLBACK: IconSpec = {
   icon: InformationCircleIcon,
-  text: 'text-slate-500 dark:text-slate-400',
-  bg: 'bg-slate-400/10',
+  text: 'text-muted dark:text-on-dark-soft',
+  bg: 'bg-surface-cream-strong dark:bg-dark-surface-strong',
 };
 
 type NotificationItemProps = {
@@ -60,20 +59,14 @@ export default function NotificationItem({
   return (
     <div
       className={clsx(
-        'relative transition-colors',
-        !read && 'bg-swin-red/[0.04] dark:bg-swin-red/[0.08]',
+        'relative border-b border-hairline transition-colors dark:border-dark-hairline',
+        !read && 'border-l-4 border-l-primary bg-primary/5 dark:border-l-dark-primary dark:bg-dark-primary/10',
       )}
     >
-      {!read && (
-        <span
-          aria-hidden
-          className="absolute inset-y-3 left-0 w-[3px] rounded-r-full bg-swin-red"
-        />
-      )}
       <button
         type="button"
         onClick={onClick}
-        className="flex w-full items-start gap-3.5 px-5 py-4 text-left transition hover:bg-swin-charcoal/[0.03] dark:hover:bg-white/[0.04]"
+        className="flex w-full items-start gap-3.5 px-5 py-4 text-left transition hover:bg-surface-soft dark:hover:bg-dark-surface-soft"
       >
         <span
           className={clsx(
@@ -88,23 +81,23 @@ export default function NotificationItem({
           <div className="flex items-start justify-between gap-3">
             <p
               className={clsx(
-                'text-[13px] leading-tight text-swin-charcoal dark:text-white',
-                !read ? 'font-bold' : 'font-medium',
+                'font-sans text-title-sm text-ink dark:text-on-dark',
+                !read && 'font-semibold',
               )}
             >
               {title}
             </p>
-            <span className="flex-shrink-0 font-mono text-[10px] text-swin-charcoal/40 dark:text-white/40">
+            <span className="flex-shrink-0 font-sans text-caption text-muted-soft dark:text-on-dark-soft">
               {timeLabel}
             </span>
           </div>
-          <p className="mt-1 text-[12px] leading-relaxed text-swin-charcoal/60 dark:text-white/55">
+          <p className="mt-1 font-sans text-body-sm text-body dark:text-on-dark-soft">
             {body}
           </p>
         </div>
       </button>
       {expanded && details && (
-        <div className="border-t border-swin-charcoal/8 bg-slate-50/40 px-5 py-4 dark:border-white/8 dark:bg-white/[0.02]">
+        <div className="border-t border-hairline bg-surface-soft px-5 py-4 dark:border-dark-hairline dark:bg-dark-surface-soft">
           {details}
         </div>
       )}

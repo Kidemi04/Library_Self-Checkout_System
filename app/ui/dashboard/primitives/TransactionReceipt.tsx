@@ -22,33 +22,31 @@ export default function TransactionReceipt({
   onPrimaryClick,
   secondary,
 }: TransactionReceiptProps) {
-  const accent =
-    tone === 'borrow'
-      ? 'from-emerald-500/15 to-emerald-500/5 border-emerald-500/30 text-emerald-700 dark:text-emerald-300'
-      : 'from-sky-500/15 to-sky-500/5 border-sky-500/30 text-sky-700 dark:text-sky-300';
+  const accentText = tone === 'borrow' ? 'text-success' : 'text-accent-teal';
+  const eyebrow = tone === 'borrow' ? 'Loan confirmed' : 'Return confirmed';
 
   return (
     <section
-      className={`rounded-2xl border bg-gradient-to-br ${accent} p-6 shadow-sm`}
+      className="rounded-card border border-hairline bg-canvas p-6 dark:border-dark-hairline dark:bg-dark-canvas"
       role="status"
       aria-live="polite"
     >
       <div className="flex items-start gap-3">
-        <CheckCircleIcon className="h-7 w-7 flex-shrink-0" strokeWidth={1.8} />
+        <CheckCircleIcon className={`h-7 w-7 flex-shrink-0 ${accentText}`} strokeWidth={1.8} />
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-[10px] font-bold uppercase tracking-[2px] opacity-80">
-            {tone === 'borrow' ? 'Loan confirmed' : 'Return confirmed'}
+          <p className={`font-sans text-caption-uppercase ${accentText}`}>
+            {eyebrow}
           </p>
-          <h3 className="mt-0.5 font-display text-[22px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
+          <h3 className="mt-0.5 font-display text-display-sm text-ink dark:text-on-dark">
             {title}
           </h3>
           {subtitle && (
-            <p className="mt-1 font-display text-[13px] italic text-swin-charcoal/70 dark:text-white/70">
+            <p className="mt-1 font-sans text-body-md text-body dark:text-on-dark-soft">
               {subtitle}
             </p>
           )}
           {detailLines && detailLines.length > 0 && (
-            <ul className="mt-3 space-y-0.5 font-mono text-[12px] text-swin-charcoal/65 dark:text-white/65">
+            <ul className="mt-3 space-y-0.5 font-mono text-code text-ink dark:text-on-dark">
               {detailLines.map((line, i) => (
                 <li key={i}>{line}</li>
               ))}
@@ -61,7 +59,7 @@ export default function TransactionReceipt({
         <button
           type="button"
           onClick={onPrimaryClick}
-          className="rounded-xl bg-swin-red px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-swin-red/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/50"
+          className="rounded-btn bg-primary px-5 py-2.5 font-sans text-button text-on-primary transition hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:bg-dark-primary dark:hover:bg-primary-active dark:focus-visible:ring-offset-dark-canvas"
         >
           {primaryLabel}
         </button>
@@ -69,7 +67,7 @@ export default function TransactionReceipt({
           <Link
             key={link.href}
             href={link.href}
-            className="rounded-xl border border-swin-charcoal/15 bg-white px-4 py-2.5 text-[13px] font-semibold text-swin-charcoal transition hover:border-swin-charcoal/25 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white"
+            className="rounded-btn border border-hairline bg-surface-card px-5 py-2.5 font-sans text-button text-ink transition hover:border-primary/20 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:border-dark-primary/30"
           >
             {link.label}
           </Link>

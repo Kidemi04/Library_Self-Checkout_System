@@ -14,9 +14,9 @@ const SIZE: Record<'sm' | 'md' | 'lg', string> = {
 };
 
 const TONE: Record<'red' | 'charcoal' | 'gold', string> = {
-  red: 'bg-swin-red text-white',
-  charcoal: 'bg-swin-charcoal text-white dark:bg-white/10 dark:text-white',
-  gold: 'bg-swin-gold text-white',
+  red: 'bg-primary text-on-primary dark:bg-dark-primary',
+  charcoal: 'bg-surface-cream-strong text-ink dark:bg-dark-surface-strong dark:text-on-dark',
+  gold: 'bg-accent-amber text-on-primary',
 };
 
 export default function UserAvatar({
@@ -37,7 +37,7 @@ export default function UserAvatar({
     <span
       aria-hidden
       className={clsx(
-        'inline-flex flex-shrink-0 items-center justify-center rounded-full font-sans font-bold tracking-tight',
+        'inline-flex flex-shrink-0 items-center justify-center rounded-full border-2 border-hairline font-sans font-bold tracking-tight dark:border-dark-hairline',
         SIZE[size],
         TONE[tone],
         className,

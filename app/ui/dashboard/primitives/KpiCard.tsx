@@ -22,30 +22,26 @@ export default function KpiCard({
   return (
     <div
       className={clsx(
-        'rounded-2xl border bg-white px-6 pb-5 pt-6',
-        'border-swin-charcoal/10 dark:border-white/10 dark:bg-swin-dark-surface',
+        'rounded-card border border-hairline bg-surface-card px-8 pb-6 pt-7',
+        'dark:border-dark-hairline dark:bg-dark-surface-card',
         className,
       )}
     >
-      <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
+      <p className="mb-3 font-sans text-caption-uppercase text-muted-soft dark:text-on-dark-soft">
         {label}
       </p>
-      <p className="font-display text-[38px] font-semibold leading-none tracking-[-0.03em] text-swin-charcoal dark:text-white">
+      <p className="font-display text-display-sm text-ink dark:text-on-dark">
         {value}
       </p>
       {delta && (
         <p
           className={clsx(
-            'mt-2.5 font-mono text-[11px] font-semibold',
-            danger
-              ? 'text-swin-red'
-              : positive
-              ? 'text-green-600 dark:text-green-400'
-              : 'text-swin-red',
+            'mt-3 font-mono text-caption font-semibold',
+            danger ? 'text-primary' : positive ? 'text-success' : 'text-primary',
           )}
         >
           {delta}{' '}
-          <span className="font-medium text-swin-charcoal/40 dark:text-white/40">
+          <span className="font-medium text-muted-soft dark:text-on-dark-soft">
             {footer}
           </span>
         </p>
