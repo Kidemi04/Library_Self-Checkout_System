@@ -15,7 +15,7 @@
 
 - **Current batch:** 1 (Foundation) — **COMPLETE ✅**
 - **Current chat:** 6 of 16 done (this chat = Chat 8 in spec numbering — Shell + global chrome + final Batch 1 QA)
-- **Last completed:** Tasks 23–26 (`dashboardShell`, `adminShell`, `dashboardTitleBar`, `signOutButton`, `themeToggle` migrated; Batch 1 grep audit — 0 residue across all 7 audited Batch 1 paths, 0 `Cormorant` matches in `app/` or `tailwind.config.ts`; combined commit `<HASH-PENDING>`). `pnpm tsc --noEmit` clean.
+- **Last completed:** Tasks 23–26 (`dashboardShell`, `adminShell`, `dashboardTitleBar`, `signOutButton`, `themeToggle` migrated; Batch 1 grep audit — 0 residue across all 7 audited Batch 1 paths, 0 `Cormorant` matches in `app/` or `tailwind.config.ts`; combined commit `24f0310`). `pnpm tsc --noEmit` clean.
 - **Next step:** **Open a new chat to start Batch 2 (student-facing pages — Chats 9–12 in spec numbering).** First action: invoke `superpowers:writing-plans` against the spec at `docs/superpowers/specs/2026-04-29-ui-claude-style-redesign-design.md` §7 "Batch 2 — Student-facing" to generate `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-student-facing.md`. Then execute that plan. The Token Migration Reference Table at the top of the Batch 1 plan is the canonical recipe; Batch 2 plan should reference it rather than duplicate. Caller-side fix-ups expected during Batch 2: drop the `className` overrides on `<SignOutButton>` in `sidenav.tsx:228` and `mobileMenu.tsx:139` so they inherit the new `DEFAULT_CLASS_NAME` (or replace those classNames with new tokens — design call).
 
 ## What's done
@@ -55,7 +55,7 @@
   - [x] Task 21: `app/dev/layout.tsx` (NODE_ENV-gated 404 in production) + `app/dev/primitives/page.tsx` (Buttons/Chips/StatusBadges/KpiCards/Typography ladder/Color swatch — both light + dark sections)
   - [x] Task 22: Quality gate (`pnpm tsc --noEmit` clean), residue grep across 6 touched files (0 hits), commit, progress update
   - **Decisions outside plan literal text:** see `findings.md` 2026-04-29 Chat 7 — five entries covering (1) BookCover gradient-art kept as-is, (2) BarChartMini track may read faint per literal recipe, (3) IsbnLookupBox Lookup needs both `disabled` + `aria-disabled` for current Button styling, (4) BarcodePreview padding upsized per §5.3, (5) dev gallery imports from canonical paths.
-- [x] **Chat 8 (spec) — Shell + global chrome + final Batch 1 QA** (combined commit `<HASH-PENDING>`)
+- [x] **Chat 8 (spec) — Shell + global chrome + final Batch 1 QA** (combined commit `24f0310`)
   - [x] Task 23: `dashboardShell` (conditional `isDark` className → static `bg-canvas text-ink dark:bg-dark-canvas dark:text-on-dark`; `useTheme`/`mounted` apparatus dropped per plan's "simplifies to a plain JSX block" branch — see findings)
   - [x] Task 24: `adminShell`, `dashboardTitleBar` (border `swin-charcoal/10` → `hairline`; eyebrow `font-mono [10px]` → `font-sans text-caption-uppercase text-muted`; H1 → `font-display text-display-lg text-ink tracking-tight`; description → `text-body-md text-body`; bell icon button → cream secondary pattern with `hover:border-primary/20`; bell-dot alert indicator → `bg-primary` with `ring-canvas/dark:ring-dark-canvas`)
   - [x] Task 25: `signOutButton` (recipe baked as `DEFAULT_CLASS_NAME`; `className ?? DEFAULT` so callers' override still wins — non-breaking, see findings), `themeToggle` (rewritten pill→single round icon button per recipe; dead `context='sidebar'` prop removed — see findings)
