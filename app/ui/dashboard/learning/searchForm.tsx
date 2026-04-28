@@ -11,10 +11,8 @@ type SearchDefaults = {
 
 export default function LinkedInLearningSearchForm({
   defaults,
-  providerLabel = 'LinkedIn Learning',
 }: {
   defaults: SearchDefaults;
-  providerLabel?: string;
 }) {
   const query = defaults.query ?? '';
   const difficulty = defaults.difficulty ?? 'ALL';
@@ -50,14 +48,14 @@ export default function LinkedInLearningSearchForm({
       onSubmit={handleSubmit}
     >
       <label className="text-sm font-medium text-swin-charcoal dark:text-white">
-        Search {providerLabel}
+        Search LinkedIn Learning
         <span className="mt-2 flex items-center gap-3 rounded-2xl border border-swin-charcoal/10 bg-swin-charcoal/5 px-4 py-3 text-base dark:border-white/10 dark:bg-white/5">
           <MagnifyingGlassIcon className="h-5 w-5 text-swin-charcoal/60 dark:text-slate-300/80" />
           <input
             ref={inputRef}
             type="search"
             defaultValue={query}
-            placeholder='Try "algorithms" or "calculus"'
+            placeholder='Try "Python" or "project management"'
             className="w-full border-none bg-transparent text-base text-swin-charcoal placeholder:text-swin-charcoal/50 focus:outline-none dark:text-white dark:placeholder:text-slate-400"
           />
         </span>

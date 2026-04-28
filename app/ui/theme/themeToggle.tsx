@@ -38,7 +38,7 @@ export default function ThemeToggle({ className, size = 'default', context = 'de
           isSidebar ? 'px-3 text-slate-300' : 'px-2 text-slate-500 dark:text-slate-300',
         )}
       >
-        <SunIcon className={clsx(iconSize, isDark ? 'opacity-40' : 'opacity-100 text-swin-red')} />
+        <SunIcon className={clsx(iconSize, isDark ? 'text-yellow-300 opacity-100' : 'text-swin-gold opacity-100')} />
         <MoonIcon className={clsx(iconSize, isDark ? 'opacity-100 text-swin-red' : 'opacity-30')} />
       </div>
       {isSidebar ? (

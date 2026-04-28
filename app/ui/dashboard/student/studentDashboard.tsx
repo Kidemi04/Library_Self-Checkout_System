@@ -104,7 +104,7 @@ export default function StudentDashboard({
                 aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
                 className="mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-swin-charcoal/10 bg-white text-swin-charcoal/70 transition hover:text-swin-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/50 dark:border-white/10 dark:bg-swin-dark-surface dark:text-white/70 dark:hover:text-white"
               >
-                {isDark ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
+                {isDark ? <MoonIcon className="h-5 w-5 text-blue-300" /> : <SunIcon className="h-5 w-5 text-swin-gold" />}
               </button>
             </div>
 

@@ -3,7 +3,6 @@ import {
   searchLinkedInLearningCourses,
   getLinkedInLearningCollections,
 } from '@/app/lib/linkedin/service';
-import { searchKhanAcademyCourses, getKhanAcademyCollections } from '@/app/lib/khan/service';
 import type {
   LinkedInLearningSearchOptions,
   LinkedInLearningSearchResult,
@@ -11,32 +10,21 @@ import type {
   LinkedInLearningTopicDefinition,
 } from '@/app/lib/linkedin/types';
 
-export type LearningProvider = 'linkedin' | 'khan';
-
 export type LearningStatus = {
-  provider: LearningProvider;
-  label: string;
   isLive: boolean;
+  usingStub: boolean;
 };
 
 export const getLearningStatus = async (): Promise<LearningStatus> => {
   const status = await getLinkedInLearningStatus();
-  const isLinkedIn = status.enabled && status.isConfigured && !status.usingStub;
-  return {
-    provider: isLinkedIn ? 'linkedin' : 'khan',
-    label: isLinkedIn ? 'LinkedIn Learning' : 'Khan Academy',
-    isLive: isLinkedIn,
-  };
+  const isLive = status.enabled && status.isConfigured && !status.usingStub;
+  return { isLive, usingStub: status.usingStub };
 };
 
 export const searchLearningCourses = async (
   options: LinkedInLearningSearchOptions = {},
-): Promise<LinkedInLearningSearchResult & { provider: LearningProvider; label: string }> => {
-  const status = await getLearningStatus();
-  const result = status.isLive
-    ? await searchLinkedInLearningCourses(options)
-    : await searchKhanAcademyCourses(options);
-  return { ...result, provider: status.provider, label: status.label };
+): Promise<LinkedInLearningSearchResult> => {
+  return searchLinkedInLearningCourses(options);
 };
 
 export const getLearningCollections = async (
@@ -44,10 +32,6 @@ export const getLearningCollections = async (
   options: Omit<LinkedInLearningSearchOptions, 'query' | 'topics'> & {
     limitPerTopic?: number;
   } = {},
-): Promise<Array<LinkedInLearningTopicCollection & { provider: LearningProvider; label: string }>> => {
-  const status = await getLearningStatus();
-  const collections = status.isLive
-    ? await getLinkedInLearningCollections(definitions, options)
-    : await getKhanAcademyCollections(definitions, options);
-  return collections.map((c) => ({ ...c, provider: status.provider, label: status.label }));
+): Promise<LinkedInLearningTopicCollection[]> => {
+  return getLinkedInLearningCollections(definitions, options);
 };

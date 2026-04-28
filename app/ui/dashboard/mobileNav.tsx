@@ -15,8 +15,6 @@ import {
   ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import MobileMenu from '@/app/ui/dashboard/mobileMenu';
-import ThemeToggle from '@/app/ui/theme/themeToggle';
 import { useTheme } from '@/app/ui/theme/themeProvider';
 import type { DashboardUserProfile, DashboardRole } from '@/app/lib/auth/types';
 
@@ -103,10 +101,6 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
             : 'border-swin-charcoal/10 bg-white/90 text-swin-charcoal',
         )}
       >
-        <div className="flex items-center gap-2">
-          <MobileMenu user={user} />
-        </div>
-
         <div className="flex items-center gap-2.5">
           <Image
             src="/swinburne-logo.png"
@@ -136,7 +130,6 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
               DEV
             </span>
           )}
-          <ThemeToggle size="sm" />
         </div>
       </header>
 
