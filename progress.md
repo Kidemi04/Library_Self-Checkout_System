@@ -14,9 +14,9 @@
 ## Current position
 
 - **Current batch:** 1 (Foundation)
-- **Current chat:** 2 of 16 done (this chat = Chat 4 in spec numbering — Tailwind config + fonts + globals)
-- **Last completed:** Tasks 1–6 (color tokens, typography scale, radius/spacing, next/font self-host, global.css cleanup, sanity check). Production `pnpm build` passes.
-- **Next step:** **Open a new chat to start Chat 5 in spec numbering (Primitives A — interactive elements).** First action: invoke `superpowers:executing-plans` against `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md` Task 7 (`app/ui/button.tsx`). Tasks 7–14 are all primitives: `Button`, `Chip`, `StatusBadge`, `FilterPills`, `ScanCtaButton`, `ReminderButton`, `DueDatePicker`, `RoleBadge`. Single combined commit at end of Chat 5 (Task 14).
+- **Current chat:** 3 of 16 done (this chat = Chat 5 in spec numbering — Primitives A: interactive elements)
+- **Last completed:** Tasks 7–14 (Button, Chip, StatusBadge, FilterPills, ScanCtaButton, ReminderButton, DueDatePicker, RoleBadge — all migrated to new tokens; combined commit `3fdcb06`). `pnpm tsc --noEmit` clean; ReminderButton unit tests pass (6/6).
+- **Next step:** **Open a new chat to start Chat 6 in spec numbering (Primitives B — content cards).** First action: invoke `superpowers:executing-plans` against `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md` Task 15 (`KpiCard.tsx`). Tasks 15–18: `KpiCard`, `SectionCard`, `LoanCard`, `HoldCard`, `NotificationItem`, `TransactionReceipt`, `UserAvatar`. Single combined commit at end of Chat 6 (Task 18).
 
 ## What's done
 
@@ -33,6 +33,16 @@
   - [x] Task 4: `next/font/google` self-host (Newsreader / Inter / JetBrains Mono)
   - [x] Task 5: `app/ui/global.css` cleanup
   - [x] Task 6: Final sanity (`pnpm tsc --noEmit` clean, `pnpm build` clean)
+- [x] **Chat 5 (spec) — Primitives A: interactive elements** (combined commit `3fdcb06`)
+  - [x] Task 7: `Button` — solid primary CTA, focus ring, dark-primary
+  - [x] Task 8: `Chip` — surface-card/primary/accent tones with rounded-pill
+  - [x] Task 9: `StatusBadge` — cream surface + leading colored dot pattern (OVERDUE keeps solid primary)
+  - [x] Task 10: `FilterPills` — surface-card/cream-strong active/inactive, drop borders
+  - [x] Task 11: `ScanCtaButton` — solid primary (red) / success (green), gradient + shadow removed
+  - [x] Task 12: `ReminderButton` — secondary cream button, primary-disabled state
+  - [x] Task 13: `DueDatePicker` (cream preset pills + canvas date input) + `RoleBadge` (chip-tone pattern)
+  - [x] Task 14: Quality gate (`pnpm tsc` clean, ReminderButton tests 6/6 green), commit, progress update
+  - **Side change:** `tailwind.config.ts` borderRadius gained `pill: '9999px'` to make plan-written `rounded-pill` resolve. See `findings.md` 2026-04-29 Chat 5.
 
 ## What's next (Batch 1, in order)
 
@@ -48,14 +58,15 @@ See `task_plan.md` for the live checklist. Tasks 7–26 in `docs/superpowers/pla
 
 ## Notes for next chat
 
-- The plan refers to "chats 4–8" in spec numbering. The chat that picks up next is **Chat 3 in actual session numbering = Chat 5 in spec numbering**.
+- The plan refers to "chats 4–8" in spec numbering. The chat that picks up next is **Chat 4 in actual session numbering = Chat 6 in spec numbering** (Primitives B — content cards).
 - All commits are local. **User has not been asked to push.** Per user preference (memory `feedback_git_push.md`): always confirm branch + non-main destination before pushing.
 - `.worktrees/` is ignored / untracked — leave alone.
 - `DESIGN.md` (project root) is currently untracked. User may want to commit it separately; not part of this redesign work.
 - The custom `ThemeProvider` at `app/ui/theme/themeProvider.tsx` is what drives `dark` class on `<html>`. **Do not introduce `next-themes`** — Tailwind `dark:` prefix already works against the custom provider.
 - **No `pnpm lint` script exists in this project** — quality gate is `pnpm tsc --noEmit` only. See `findings.md` 2026-04-29 Chat 2 entry. Do not chase the missing lint setup.
-- **Visual confirmation pending:** Task 4's font self-host has not been browser-verified (no requests to `fonts.googleapis.com`). User handles UI testing per memory `feedback_testing.md`. Production `pnpm build` succeeded, which is a structural pass.
+- **Visual confirmation pending for Chat 4 + Chat 5:** Font self-host (Chat 4) and primitive visuals (Chat 5) have not been browser-verified. User handles UI testing per memory `feedback_testing.md`. `pnpm tsc --noEmit` clean and Jest test for `ReminderButton` passes (6/6) — structural pass only.
 - **Cormorant residue:** one real reference left in `app/ui/dashboard/primitives/BookCover.tsx` — handled by Task 19 in Chat 7, on track.
+- **`rounded-pill` token:** Chat 5 added `pill: '9999px'` to `tailwind.config.ts` borderRadius to make plan-written `rounded-pill` classes resolve. Spec §5.1 had labelled it "(existing)" but Tailwind's stock 9999px is `rounded-full`. Future chats can use `rounded-pill` freely now.
 
 ---
 

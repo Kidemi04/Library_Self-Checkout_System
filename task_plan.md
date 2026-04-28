@@ -15,16 +15,16 @@
 - [x] Task 5: Update `app/ui/global.css` (`d32c05d`)
 - [x] Task 6: Tailwind config sanity check (no extra commit — `pnpm tsc` + `pnpm build` clean)
 
-## Chat 5 — Primitives A (interactive)
+## Chat 5 — Primitives A (interactive) ✅ DONE
 
-- [ ] Task 7: Migrate `app/ui/button.tsx`
-- [ ] Task 8: Migrate `Chip.tsx`
-- [ ] Task 9: Migrate `StatusBadge.tsx`
-- [ ] Task 10: Migrate `FilterPills.tsx`
-- [ ] Task 11: Migrate `ScanCtaButton.tsx`
-- [ ] Task 12: Migrate `ReminderButton.tsx`
-- [ ] Task 13: Migrate `DueDatePicker.tsx` + `RoleBadge.tsx`
-- [ ] Task 14: Commit Chat 5
+- [x] Task 7: Migrate `app/ui/button.tsx` (`3fdcb06`)
+- [x] Task 8: Migrate `Chip.tsx` (`3fdcb06`)
+- [x] Task 9: Migrate `StatusBadge.tsx` (`3fdcb06`)
+- [x] Task 10: Migrate `FilterPills.tsx` (`3fdcb06`)
+- [x] Task 11: Migrate `ScanCtaButton.tsx` (`3fdcb06`)
+- [x] Task 12: Migrate `ReminderButton.tsx` (`3fdcb06`)
+- [x] Task 13: Migrate `DueDatePicker.tsx` + `RoleBadge.tsx` (`3fdcb06`)
+- [x] Task 14: Combined commit `3fdcb06` (also added `rounded-pill` token to tailwind config — see `findings.md`)
 
 ## Chat 6 — Primitives B (content cards)
 
