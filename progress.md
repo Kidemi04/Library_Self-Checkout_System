@@ -14,9 +14,9 @@
 ## Current position
 
 - **Current batch:** 1 (Foundation)
-- **Current chat:** 4 of 16 done (this chat = Chat 6 in spec numbering — Primitives B: content cards)
-- **Last completed:** Tasks 15–18 (KpiCard, SectionCard, LoanCard, HoldCard, NotificationItem, TransactionReceipt, UserAvatar — all migrated to new tokens; combined commit `b13baf4`). `pnpm tsc --noEmit` clean.
-- **Next step:** **Open a new chat to start Chat 7 in spec numbering (Primitives C + dev gallery).** First action: invoke `superpowers:executing-plans` against `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md` Task 19 (`BookCover.tsx`, `BarChartMini.tsx`). Tasks 19–22: BookCover, BarChartMini, IsbnLookupBox, BarcodePreview, plus create `/dev/primitives` gallery page. Single combined commit at end of Chat 7 (Task 22).
+- **Current chat:** 5 of 16 done (this chat = Chat 7 in spec numbering — Primitives C: supporting + dev gallery)
+- **Last completed:** Tasks 19–22 (BookCover, BarChartMini, IsbnLookupBox, BarcodePreview migrated to new tokens; `/dev/primitives` gallery + `app/dev/layout.tsx` NODE_ENV gate created; combined commit pending hash). `pnpm tsc --noEmit` clean. Residue grep across the 6 touched files returned 0 hits.
+- **Next step:** **Open a new chat to start Chat 8 in spec numbering (Shell + global chrome + final Batch 1 QA).** First action: invoke `superpowers:executing-plans` against `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md` Task 23 (`dashboardShell.tsx`). Tasks 23–26: `dashboardShell`, `adminShell`, `dashboardTitleBar`, `signOutButton`, `themeToggle`, then Batch 1 quality gate (project-wide grep audit per spec §7 Batch 1 acceptance criteria) + final commit.
 
 ## What's done
 
@@ -49,6 +49,12 @@
   - [x] Task 17: `NotificationItem` (full TYPE_STYLES remap to semantic tokens), `TransactionReceipt` (gradient dropped per plan recipe), `UserAvatar` (charcoal tone→cream-strong, gold tone→accent-amber)
   - [x] Task 18: Quality gate (`pnpm tsc --noEmit` clean), residue grep (0 hits), commit, progress update
   - **Decisions outside plan literal text:** spec §3.6 removes `swin-gold`; mapped to `accent-amber` to keep callers' `accent='gold'` / `tone='gold'` props working until Batches 2/3 retire them. HoldCardReady's hardcoded `#C82333` was an alert color, not a brand mark — swapped to `primary`.
+- [x] **Chat 7 (spec) — Primitives C: supporting + dev gallery** (combined commit pending hash)
+  - [x] Task 19: `BookCover` (drop multi-layer boxShadow per §6.4; Cormorant fontFamily → `var(--font-newsreader)`; gradient artwork left intact — see findings), `BarChartMini` (last-bar `bg-primary`, track `bg-surface-cream-strong`, opacity ramp preserved)
+  - [x] Task 20: `IsbnLookupBox` (Lookup adopts shared `<Button>` with dual `disabled`/`aria-disabled` flags; cream secondary Scan button; canvas/hairline-tinted input), `BarcodePreview` (`p-3` → `p-6` per §5.3; `border-hairline`; tokenized typography)
+  - [x] Task 21: `app/dev/layout.tsx` (NODE_ENV-gated 404 in production) + `app/dev/primitives/page.tsx` (Buttons/Chips/StatusBadges/KpiCards/Typography ladder/Color swatch — both light + dark sections)
+  - [x] Task 22: Quality gate (`pnpm tsc --noEmit` clean), residue grep across 6 touched files (0 hits), commit, progress update
+  - **Decisions outside plan literal text:** see `findings.md` 2026-04-29 Chat 7 — five entries covering (1) BookCover gradient-art kept as-is, (2) BarChartMini track may read faint per literal recipe, (3) IsbnLookupBox Lookup needs both `disabled` + `aria-disabled` for current Button styling, (4) BarcodePreview padding upsized per §5.3, (5) dev gallery imports from canonical paths.
 
 ## What's next (Batch 1, in order)
 
@@ -70,8 +76,9 @@ See `task_plan.md` for the live checklist. Tasks 7–26 in `docs/superpowers/pla
 - `DESIGN.md` (project root) is currently untracked. User may want to commit it separately; not part of this redesign work.
 - The custom `ThemeProvider` at `app/ui/theme/themeProvider.tsx` is what drives `dark` class on `<html>`. **Do not introduce `next-themes`** — Tailwind `dark:` prefix already works against the custom provider.
 - **No `pnpm lint` script exists in this project** — quality gate is `pnpm tsc --noEmit` only. See `findings.md` 2026-04-29 Chat 2 entry. Do not chase the missing lint setup.
-- **Visual confirmation pending for Chat 4 + Chat 5 + Chat 6:** Font self-host (Chat 4), interactive primitives (Chat 5), and content cards (Chat 6) have not been browser-verified. User handles UI testing per memory `feedback_testing.md`. `pnpm tsc --noEmit` clean throughout — structural pass only. Chat 7's `/dev/primitives` gallery page (Task 21) is the planned point at which all primitives become visually inspectable in one place.
-- **Cormorant residue:** one real reference left in `app/ui/dashboard/primitives/BookCover.tsx` — handled by Task 19 in Chat 7, on track.
+- **Visual confirmation pending for Chats 4–7:** Font self-host (Chat 4), interactive primitives (Chat 5), content cards (Chat 6), and supporting primitives + gallery (Chat 7) have not been browser-verified. User handles UI testing per memory `feedback_testing.md`. `pnpm tsc --noEmit` clean throughout — structural pass only. **The `/dev/primitives` page is now live** — visit `http://localhost:3000/dev/primitives` after `pnpm dev` to inspect all migrated primitives in light + dark side-by-side. Page is dev-only (404s in production via `app/dev/layout.tsx`); deleted at end of Batch 3 per spec §7.
+- **Cormorant residue:** **fully cleared** for `app/ui/**` primitives as of Chat 7. `BookCover` was the last reference — swapped to `var(--font-newsreader)`. Project-wide `grep` for `Cormorant` should now return 0 results across `app/`. The `Cormorant` literal still appears in `findings.md` and `progress.md` historical notes; that's documentation, not code, so it does not block Batch 3 acceptance criteria (which targets `app/`).
+- **Pending Chat 8 inheritance:** the dev gallery currently exercises `Button`, `Chip`, `StatusBadge`, `KpiCard`, plus typography + color tokens. It does **not** yet exercise the Chat 7 primitives (`BookCover`, `BarChartMini`, `IsbnLookupBox`, `BarcodePreview`). Plan template did not include them either. Chat 8 may want to extend the gallery, or the gallery can simply be retired in Batch 3 as planned. No blocker — just visibility.
 - **`rounded-pill` token:** Chat 5 added `pill: '9999px'` to `tailwind.config.ts` borderRadius to make plan-written `rounded-pill` classes resolve. Spec §5.1 had labelled it "(existing)" but Tailwind's stock 9999px is `rounded-full`. Future chats can use `rounded-pill` freely now.
 - **`accent='gold'` / `tone='gold'` props still exist in `SectionCard` and `UserAvatar`:** they now resolve to `accent-amber`. Callers in Batches 2/3 should be reviewed: either keep the gold tone for category-style highlights, or rename the prop value to `'amber'` for clarity. Either way, no caller breaks today.
 

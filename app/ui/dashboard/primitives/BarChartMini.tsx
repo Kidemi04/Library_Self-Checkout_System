@@ -26,10 +26,14 @@ export default function BarChartMini({
         return (
           <div
             key={i}
-            className="flex-1 rounded-sm transition-all"
+            className={clsx(
+              'flex-1 rounded-sm transition-all',
+              isLast && highlightLast
+                ? 'bg-primary dark:bg-dark-primary'
+                : 'bg-surface-cream-strong dark:bg-dark-surface-strong',
+            )}
             style={{
               height: `${(v / max) * 100}%`,
-              background: isLast && highlightLast ? '#C82333' : '#C9A961',
               opacity: isLast && highlightLast ? 1 : 0.35 + (i / Math.max(data.length, 1)) * 0.65,
             }}
           />

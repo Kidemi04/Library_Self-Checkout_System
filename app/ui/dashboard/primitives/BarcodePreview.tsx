@@ -1,7 +1,7 @@
 export default function BarcodePreview({ barcodes }: { barcodes: string[] | null }) {
   if (barcodes === null) {
     return (
-      <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-3 text-xs font-mono text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-white/40">
+      <div className="rounded-card border border-dashed border-hairline bg-canvas p-6 font-mono text-caption text-muted dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark-soft">
         Loading next available barcodes…
       </div>
     );
@@ -13,11 +13,11 @@ export default function BarcodePreview({ barcodes }: { barcodes: string[] | null
   const display = barcodes.length === 1 ? first : `${first} … ${last}`;
 
   return (
-    <div className="rounded-lg border border-swin-charcoal/10 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/5">
-      <p className="font-mono text-[10px] uppercase tracking-[1.5px] text-swin-charcoal/45 dark:text-white/45">
+    <div className="rounded-card border border-hairline bg-canvas p-6 dark:border-dark-hairline dark:bg-dark-canvas">
+      <p className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
         Will create {barcodes.length} barcode{barcodes.length === 1 ? '' : 's'}
       </p>
-      <p className="mt-1 font-mono text-sm font-semibold text-swin-charcoal dark:text-white">{display}</p>
+      <p className="mt-1 font-mono text-code text-ink dark:text-on-dark">{display}</p>
     </div>
   );
 }

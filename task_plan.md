@@ -33,12 +33,12 @@
 - [x] Task 17: Migrate `NotificationItem.tsx`, `TransactionReceipt.tsx`, `UserAvatar.tsx` (`b13baf4`)
 - [x] Task 18: Combined commit `b13baf4` (gold→accent-amber semantic remap, HoldCardReady brand-red→primary, TransactionReceipt gradient dropped — see commit body and progress.md for rationale)
 
-## Chat 7 — Primitives C + dev gallery
+## Chat 7 — Primitives C + dev gallery ✅ DONE
 
-- [ ] Task 19: Migrate `BookCover.tsx`, `BarChartMini.tsx`
-- [ ] Task 20: Migrate `IsbnLookupBox.tsx`, `BarcodePreview.tsx`
-- [ ] Task 21: Create `/dev/primitives` gallery page
-- [ ] Task 22: Commit Chat 7
+- [x] Task 19: Migrate `BookCover.tsx`, `BarChartMini.tsx`
+- [x] Task 20: Migrate `IsbnLookupBox.tsx`, `BarcodePreview.tsx`
+- [x] Task 21: Create `/dev/primitives` gallery page (`app/dev/layout.tsx`, `app/dev/primitives/page.tsx`)
+- [x] Task 22: Combined commit — see commit hash in `progress.md`. Decisions outside literal recipe logged in `findings.md` 2026-04-29 Chat 7 entries.
 
 ## Chat 8 — Shell + chrome + final QA
 

@@ -39,7 +39,6 @@ export default function BookCover({ gradient, title, author, w = 48, h = 68, rad
         background: gradient,
         position: 'relative',
         overflow: 'hidden',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.12), inset 0 0 0 1px rgba(255,255,255,0.08)',
       }}
     >
       {/* Stripe overlay */}
@@ -56,12 +55,12 @@ export default function BookCover({ gradient, title, author, w = 48, h = 68, rad
         <div style={{
           position: 'absolute', inset: 0, padding: '10px 8px 10px 10px',
           display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-          color: 'rgba(255,255,255,0.95)', fontFamily: '"Cormorant Garamond", Georgia, serif',
+          color: 'rgba(255,255,255,0.95)', fontFamily: 'var(--font-newsreader), Georgia, serif',
         }}>
           <div style={{ fontSize: w > 120 ? 11 : 9, fontWeight: 600, lineHeight: 1.15, letterSpacing: 0.2, textTransform: 'uppercase' }}>
             {title.length > 24 ? title.slice(0, 22) + '…' : title}
           </div>
-          <div style={{ fontSize: w > 120 ? 9 : 7.5, opacity: 0.8, fontStyle: 'italic', fontFamily: '"Cormorant Garamond", Georgia, serif' }}>
+          <div style={{ fontSize: w > 120 ? 9 : 7.5, opacity: 0.8, fontStyle: 'italic', fontFamily: 'var(--font-newsreader), Georgia, serif' }}>
             {author}
           </div>
         </div>

@@ -1,5 +1,6 @@
 'use client';
 import clsx from 'clsx';
+import { Button } from '@/app/ui/button';
 
 export default function IsbnLookupBox({
   value, onChange, onLookup, onScan, pending,
@@ -12,6 +13,7 @@ export default function IsbnLookupBox({
 }) {
   const cleaned = value.replace(/[-\s]/g, '');
   const isbnValid = /^\d{10}$|^\d{13}$|^\d{9}X$|^\d{12}X$/.test(cleaned);
+  const lookupDisabled = !isbnValid || pending;
 
   return (
     <div className="flex flex-wrap items-stretch gap-2">
@@ -21,25 +23,31 @@ export default function IsbnLookupBox({
         placeholder="Enter ISBN (10 or 13 digits)"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="flex-1 min-w-[14rem] rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+        className={clsx(
+          'h-10 min-w-[14rem] flex-1 rounded-btn border border-hairline bg-canvas px-3 font-sans text-body-md text-ink',
+          'placeholder:text-muted-soft',
+          'focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+          'dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark',
+        )}
       />
-      <button
+      <Button
         type="button"
         onClick={onLookup}
-        disabled={!isbnValid || pending}
-        className={clsx(
-          'rounded-lg px-4 py-2 text-sm font-semibold transition',
-          (!isbnValid || pending)
-            ? 'cursor-not-allowed bg-slate-200 text-slate-400 dark:bg-white/5 dark:text-white/40'
-            : 'bg-swin-charcoal text-white hover:bg-swin-charcoal/90 dark:bg-emerald-600 dark:hover:bg-emerald-500',
-        )}
+        disabled={lookupDisabled}
+        aria-disabled={lookupDisabled}
       >
         {pending ? 'Looking up…' : 'Lookup'}
-      </button>
+      </Button>
       <button
         type="button"
         onClick={onScan}
-        className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-white/20 dark:bg-transparent dark:text-white dark:hover:bg-white/10"
+        className={clsx(
+          'h-10 rounded-btn border border-hairline bg-surface-card px-4 font-sans text-button text-ink transition-colors',
+          'hover:bg-surface-cream-strong',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas',
+          'dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong',
+          'dark:focus-visible:ring-offset-dark-canvas',
+        )}
       >
         Scan ISBN
       </button>
