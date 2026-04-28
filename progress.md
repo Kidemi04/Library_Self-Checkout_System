@@ -15,7 +15,7 @@
 
 - **Current batch:** 1 (Foundation)
 - **Current chat:** 5 of 16 done (this chat = Chat 7 in spec numbering — Primitives C: supporting + dev gallery)
-- **Last completed:** Tasks 19–22 (BookCover, BarChartMini, IsbnLookupBox, BarcodePreview migrated to new tokens; `/dev/primitives` gallery + `app/dev/layout.tsx` NODE_ENV gate created; combined commit pending hash). `pnpm tsc --noEmit` clean. Residue grep across the 6 touched files returned 0 hits.
+- **Last completed:** Tasks 19–22 (BookCover, BarChartMini, IsbnLookupBox, BarcodePreview migrated to new tokens; `/dev/primitives` gallery + `app/dev/layout.tsx` NODE_ENV gate created; combined commit `9a5e47f`). `pnpm tsc --noEmit` clean. Residue grep across the 6 touched files returned 0 hits.
 - **Next step:** **Open a new chat to start Chat 8 in spec numbering (Shell + global chrome + final Batch 1 QA).** First action: invoke `superpowers:executing-plans` against `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md` Task 23 (`dashboardShell.tsx`). Tasks 23–26: `dashboardShell`, `adminShell`, `dashboardTitleBar`, `signOutButton`, `themeToggle`, then Batch 1 quality gate (project-wide grep audit per spec §7 Batch 1 acceptance criteria) + final commit.
 
 ## What's done
@@ -49,7 +49,7 @@
   - [x] Task 17: `NotificationItem` (full TYPE_STYLES remap to semantic tokens), `TransactionReceipt` (gradient dropped per plan recipe), `UserAvatar` (charcoal tone→cream-strong, gold tone→accent-amber)
   - [x] Task 18: Quality gate (`pnpm tsc --noEmit` clean), residue grep (0 hits), commit, progress update
   - **Decisions outside plan literal text:** spec §3.6 removes `swin-gold`; mapped to `accent-amber` to keep callers' `accent='gold'` / `tone='gold'` props working until Batches 2/3 retire them. HoldCardReady's hardcoded `#C82333` was an alert color, not a brand mark — swapped to `primary`.
-- [x] **Chat 7 (spec) — Primitives C: supporting + dev gallery** (combined commit pending hash)
+- [x] **Chat 7 (spec) — Primitives C: supporting + dev gallery** (combined commit `9a5e47f`)
   - [x] Task 19: `BookCover` (drop multi-layer boxShadow per §6.4; Cormorant fontFamily → `var(--font-newsreader)`; gradient artwork left intact — see findings), `BarChartMini` (last-bar `bg-primary`, track `bg-surface-cream-strong`, opacity ramp preserved)
   - [x] Task 20: `IsbnLookupBox` (Lookup adopts shared `<Button>` with dual `disabled`/`aria-disabled` flags; cream secondary Scan button; canvas/hairline-tinted input), `BarcodePreview` (`p-3` → `p-6` per §5.3; `border-hairline`; tokenized typography)
   - [x] Task 21: `app/dev/layout.tsx` (NODE_ENV-gated 404 in production) + `app/dev/primitives/page.tsx` (Buttons/Chips/StatusBadges/KpiCards/Typography ladder/Color swatch — both light + dark sections)
