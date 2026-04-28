@@ -99,12 +99,33 @@ Files in scope per spec §7 Batch 2: `login/page`, `LoginClient`, `loginForm`, `
 
 ## How to start the next chat
 
+Batch 1 已完成。下一聊要做 Batch 2（学生端页面）。Batch 2 实施计划文件**还不存在** —— 必须先写出来再执行。
+
 Paste this into the new chat:
 
-> 继续 UI 改造工作。先读 `MEMORY.md`，然后按顺序读：
-> 1. `progress.md`（当前进度，知道做到哪步）
-> 2. `task_plan.md`（当前批次的步骤）
-> 3. `docs/superpowers/specs/2026-04-29-ui-claude-style-redesign-design.md`（设计决定）
-> 4. `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md`（实施计划）
+> 继续 UI 改造工作。Batch 1 已完成；这一聊要做 Batch 2（学生端页面）。
 >
-> 读完直接从 progress.md 标记的下一步开始执行，不要问"我们之前做到哪里"。
+> 先按顺序读：
+> 1. `MEMORY.md`
+> 2. `progress.md`（当前进度）
+> 3. `task_plan.md`（当前 batch 步骤；Batch 1 已全部打勾）
+> 4. `docs/superpowers/specs/2026-04-29-ui-claude-style-redesign-design.md`（设计决定）
+> 5. `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md`
+>    —— 只用顶部的 "Token Migration Reference Table" 当迁移配方，
+>       其他部分是 Batch 1 的历史记录，跳过即可
+>
+> 读完不要立即写代码：
+>
+> 第一步：调用 `superpowers:writing-plans`，根据 spec §7 "Batch 2 — Student-facing"
+>        写出 `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-student-facing.md`。
+>        计划要复用 Batch 1 plan 的 Token Migration Reference Table，不要重复抄写。
+>        Batch 2 范围 = login + 主 dashboard + book browse/history + scan + profile
+>        + notifications + learning module；spec §7 表格里有完整文件清单。
+>
+> 第二步：跟我对齐计划（Batch 2 一聊就能写完，但执行要分 4 聊 = spec 编号 9–12）。
+>
+> 第三步：等我点头后，调用 `superpowers:executing-plans` 执行 Chat 9 部分。
+>
+> 顺带：Batch 2 也要清理 `<SignOutButton>` 在 `sidenav.tsx:228` 和 `mobileMenu.tsx:139`
+>       的 className override —— 现在 SignOutButton 自带 `DEFAULT_CLASS_NAME`，
+>       调用方只要把 `className` prop 拿掉就会继承新外观。
