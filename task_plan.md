@@ -26,12 +26,12 @@
 - [x] Task 13: Migrate `DueDatePicker.tsx` + `RoleBadge.tsx` (`3fdcb06`)
 - [x] Task 14: Combined commit `3fdcb06` (also added `rounded-pill` token to tailwind config — see `findings.md`)
 
-## Chat 6 — Primitives B (content cards)
+## Chat 6 — Primitives B (content cards) ✅ DONE
 
-- [ ] Task 15: Migrate `KpiCard.tsx`
-- [ ] Task 16: Migrate `SectionCard.tsx`, `LoanCard.tsx`, `HoldCard.tsx`
-- [ ] Task 17: Migrate `NotificationItem.tsx`, `TransactionReceipt.tsx`, `UserAvatar.tsx`
-- [ ] Task 18: Commit Chat 6
+- [x] Task 15: Migrate `KpiCard.tsx` (`b13baf4`)
+- [x] Task 16: Migrate `SectionCard.tsx`, `LoanCard.tsx`, `HoldCard.tsx` (`b13baf4`)
+- [x] Task 17: Migrate `NotificationItem.tsx`, `TransactionReceipt.tsx`, `UserAvatar.tsx` (`b13baf4`)
+- [x] Task 18: Combined commit `b13baf4` (gold→accent-amber semantic remap, HoldCardReady brand-red→primary, TransactionReceipt gradient dropped — see commit body and progress.md for rationale)
 
 ## Chat 7 — Primitives C + dev gallery
 
