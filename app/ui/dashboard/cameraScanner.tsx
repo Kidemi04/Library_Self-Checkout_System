@@ -68,7 +68,12 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
         log(`Stream ready: ${settings?.width}x${settings?.height}, device: ${track?.label?.slice(0, 40)}`);
 
         videoElement.srcObject = stream;
-        await videoElement.play();
+        try {
+          await videoElement.play();
+        } catch (err: any) {
+          if (err?.name === 'AbortError') return; // benign: srcObject replaced before play resolved
+          throw err;
+        }
         log(`Video playing: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
 
         setStatus('Align the barcode within the frame.');
@@ -90,15 +95,18 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
               const vh = videoElement.videoHeight;
 
               if (vw > 0 && vh > 0) {
-                // Use a smaller canvas for faster processing in live mode
-                const scale = Math.min(1, 800 / Math.max(vw, vh));
+                // Keep full resolution — 1D barcodes (EAN-13, CODE-128) need fine pixel detail
+                const scale = Math.min(1, 1280 / Math.max(vw, vh));
                 const cw = Math.round(vw * scale);
                 const ch = Math.round(vh * scale);
                 canvas.width = cw;
                 canvas.height = ch;
 
                 const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+                // Grayscale + boosted contrast helps ZXing decode 1D barcodes reliably
+                ctx.filter = 'grayscale(1) contrast(1.5)';
                 ctx.drawImage(videoElement, 0, 0, cw, ch);
+                ctx.filter = 'none';
                 const imageData = ctx.getImageData(0, 0, cw, ch);
 
                 const tickLog = tickCount % 15 === 1

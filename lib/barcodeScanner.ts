@@ -39,8 +39,10 @@ hints.set(DecodeHintType.POSSIBLE_FORMATS, [
   BarcodeFormat.EAN_8,
   BarcodeFormat.UPC_A,
   BarcodeFormat.UPC_E,
+  BarcodeFormat.ITF,
 ]);
 hints.set(DecodeHintType.TRY_HARDER, true);
+hints.set(DecodeHintType.ALSO_INVERTED, true);
 
 let zxingReader: BrowserMultiFormatReader | null = null;
 

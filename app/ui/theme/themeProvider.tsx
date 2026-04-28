@@ -67,10 +67,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
-export const useTheme = () => {
+const DEFAULT_THEME_VALUE: ThemeContextValue = {
+  theme: 'light',
+  setTheme: () => {},
+  toggleTheme: () => {},
+};
+
+export const useTheme = (): ThemeContextValue => {
   const context = React.useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within ThemeProvider');
-  }
-  return context;
+  // Falls back to defaults during Turbopack HMR when context identity resets transiently
+  return context ?? DEFAULT_THEME_VALUE;
 };

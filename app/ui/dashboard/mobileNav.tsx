@@ -101,7 +101,7 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
             : 'border-swin-charcoal/10 bg-white/90 text-swin-charcoal',
         )}
       >
-        <div className="flex items-center gap-2.5">
+        <Link href="/dashboard" className="flex items-center gap-2.5">
           <Image
             src="/swinburne-logo.png"
             alt="Swinburne"
@@ -122,7 +122,7 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
           >
             {roleBadge(user.role)}
           </span>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-1.5">
           {isBypassed && (
