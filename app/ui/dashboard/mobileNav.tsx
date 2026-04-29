@@ -17,6 +17,7 @@ import {
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/themeProvider';
 import type { DashboardUserProfile, DashboardRole } from '@/app/lib/auth/types';
+import SignOutButton from '@/app/ui/dashboard/signOutButton';
 
 type BottomNavItem = {
   key: string;
@@ -31,21 +32,21 @@ const BOTTOM_NAV_BY_ROLE: Record<DashboardRole, BottomNavItem[]> = {
     { key: 'home', label: 'Home', href: '/dashboard', icon: HomeIcon },
     { key: 'books', label: 'My Books', href: '/dashboard/my-books', icon: BookOpenIcon },
     { key: 'scan', label: 'Scan', href: '/dashboard/book/checkout', icon: QrCodeIcon, isCenter: true },
-    { key: 'alerts', label: 'Alerts', href: '/dashboard/notifications', icon: BellIcon },
+    { key: 'alerts', label: 'Notification', href: '/dashboard/notifications', icon: BellIcon },
     { key: 'profile', label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
   ],
   staff: [
-    { key: 'desk', label: 'Desk', href: '/dashboard', icon: HomeIcon },
+    { key: 'desk', label: 'Dashboard', href: '/dashboard', icon: HomeIcon },
     { key: 'return', label: 'Return', href: '/dashboard/book/checkin', icon: ArrowPathIcon },
     { key: 'borrow', label: 'Borrow', href: '/dashboard/book/checkout', icon: QrCodeIcon, isCenter: true },
     { key: 'holds', label: 'Holds', href: '/dashboard/book/holds', icon: BookmarkIcon },
-    { key: 'alerts', label: 'Alerts', href: '/dashboard/notifications', icon: BellIcon },
+    { key: 'alerts', label: 'Notification', href: '/dashboard/notifications', icon: BellIcon },
   ],
   admin: [
     { key: 'overview', label: 'Overview', href: '/dashboard/admin', icon: HomeIcon },
     { key: 'catalogue', label: 'Catalogue', href: '/dashboard/book/items', icon: BookOpenIcon },
     { key: 'scan', label: 'Scan', href: '/dashboard/book/checkout', icon: QrCodeIcon, isCenter: true },
-    { key: 'alerts', label: 'Alerts', href: '/dashboard/notifications', icon: BellIcon },
+    { key: 'alerts', label: 'Notification', href: '/dashboard/notifications', icon: BellIcon },
     { key: 'profile', label: 'Profile', href: '/dashboard/profile', icon: UserCircleIcon },
   ],
 };
@@ -130,6 +131,15 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
               DEV
             </span>
           )}
+          <SignOutButton
+            className={clsx(
+              'flex flex-col items-center gap-0.5 rounded-xl px-2 py-1 transition',
+              isDark
+                ? 'text-white/50 hover:bg-white/10 hover:text-white'
+                : 'text-swin-charcoal/50 hover:bg-swin-charcoal/8 hover:text-swin-charcoal',
+            )}
+            labelClassName="text-[10px] font-medium"
+          />
         </div>
       </header>
 

@@ -1,10 +1,10 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useState, useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import clsx from 'clsx';
 import { updateProfileAction, type ProfileUpdateFormState } from '@/app/profile/actions';
-import { CheckIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 
 type ProfileEditFormProps = {
   username: string | null;
@@ -16,33 +16,62 @@ type ProfileEditFormProps = {
   isPrivileged: boolean;
 };
 
-const fieldClass = (isPrivileged: boolean) =>
-  clsx(
-    'w-full rounded-md border px-3 py-2 text-sm shadow-sm transition focus:outline-none focus:ring-2',
-    'border-slate-300 bg-white text-slate-900 focus:ring-slate-400 focus:ring-offset-1 focus:ring-offset-white',
-    'dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-slate-300 dark:focus:ring-offset-slate-900',
-    isPrivileged && 'focus:ring-slate-500 dark:focus:ring-slate-300',
-  );
+type Faculty = 'Computer Science' | 'Engineering' | 'Art & Design' | 'Business';
 
-const labelClass = (isPrivileged: boolean) =>
-  clsx(
-    'block text-xs uppercase mb-1',
-    isPrivileged ? 'text-slate-600 dark:text-slate-400' : 'text-slate-500',
-  );
+const FACULTY_LIST: Faculty[] = ['Computer Science', 'Engineering', 'Art & Design', 'Business'];
 
-const messageClass = (state: ProfileUpdateFormState, isPrivileged: boolean) => {
-  if (state.status === 'success') {
-    return 'text-sm font-medium text-emerald-500';
-  }
-  if (state.status === 'error') {
-    return 'text-sm font-medium text-rose-500';
-  }
-  return clsx('text-sm', isPrivileged ? 'text-slate-300' : 'text-slate-500');
+const PROGRAMS: Record<Faculty, string[]> = {
+  'Computer Science': [
+    'Computer Science (Artificial Intelligence)',
+    'Computer Science (Cybersecurity)',
+    'Computer Science (Data Science)',
+    'Computer Science (Interactive Media)',
+    'Software Engineering',
+    'Information Systems',
+    'Information Technology',
+  ],
+  Engineering: [
+    'Engineering (Electrical and Electronic)',
+    'Engineering (Mechanical)',
+    'Engineering (Civil)',
+    'Engineering (Chemical)',
+    'Engineering (Mechatronic)',
+    'Engineering (Telecommunications)',
+  ],
+  'Art & Design': [
+    'Design (Communication Design)',
+    'Design (Interior Architecture)',
+    'Design (Animation)',
+    'Arts (Communication and Media Studies)',
+    'Arts (Digital Media)',
+    'Arts (Creative Media)',
+  ],
+  Business: [
+    'Business (Accounting)',
+    'Business (Finance)',
+    'Business (Marketing)',
+    'Business (Management)',
+    'Business (Entrepreneurship)',
+    'Business (Human Resource Management)',
+    'Business (International Business)',
+  ],
+};
+
+const FACULTY_ICONS: Record<Faculty, string> = {
+  'Computer Science': '💻',
+  Engineering: '⚙️',
+  'Art & Design': '🎨',
+  Business: '📊',
+};
+
+const messageClass = (state: ProfileUpdateFormState) => {
+  if (state.status === 'success') return 'text-sm font-medium text-green-500';
+  if (state.status === 'error') return 'text-sm font-medium text-rose-500';
+  return 'text-sm text-swin-charcoal/50';
 };
 
 function SubmitButton({ isPrivileged }: { isPrivileged: boolean }) {
   const { pending } = useFormStatus();
-
   return (
     <button
       type="submit"
@@ -50,8 +79,8 @@ function SubmitButton({ isPrivileged }: { isPrivileged: boolean }) {
       className={clsx(
         'inline-flex items-center justify-center rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed',
         isPrivileged
-          ? 'bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 focus:ring-emerald-500'
-          : 'bg-gradient-to-r from-swin-red to-orange-600 hover:from-red-600 hover:to-orange-500 focus:ring-swin-red'
+          ? 'bg-gradient-to-r from-swin-gold to-amber-500 hover:from-amber-400 hover:to-swin-gold focus:ring-swin-gold'
+          : 'bg-gradient-to-r from-swin-red to-orange-600 hover:from-red-600 hover:to-orange-500 focus:ring-swin-red',
       )}
     >
       {pending ? (
@@ -86,27 +115,44 @@ export default function ProfileEditForm({
     message: undefined,
   } satisfies ProfileUpdateFormState);
 
+  const [selectedFaculty, setSelectedFaculty] = useState<Faculty | null>(
+    () => (FACULTY_LIST.includes(faculty as Faculty) ? (faculty as Faculty) : null),
+  );
+  const [selectedProgram, setSelectedProgram] = useState<string>(
+    () => department ?? '',
+  );
+
   const inputClass = clsx(
-    'block w-full rounded-xl border-0 py-2.5 px-4 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-300',
-    'bg-white/50 backdrop-blur-sm dark:bg-white/5 dark:text-white',
+    'block w-full rounded-xl border-0 py-2.5 px-4 text-swin-charcoal ring-1 ring-inset placeholder:text-swin-charcoal/30 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-300',
+    'bg-white/50 backdrop-blur-sm dark:bg-white/5 dark:text-white dark:placeholder:text-white/30',
     isPrivileged
-      ? 'ring-emerald-200 focus:ring-emerald-500 dark:ring-emerald-500/30'
-      : 'ring-slate-200 focus:ring-swin-red dark:ring-white/10 dark:focus:ring-swin-red'
+      ? 'ring-swin-gold/30 focus:ring-swin-gold dark:ring-swin-gold/20 dark:focus:ring-swin-gold/50'
+      : 'ring-swin-charcoal/15 focus:ring-swin-red dark:ring-white/10 dark:focus:ring-swin-red',
   );
 
   const labelClass = clsx(
     'block text-xs font-semibold uppercase tracking-wide mb-1.5',
-    isPrivileged ? 'text-slate-500 dark:text-slate-400' : 'text-slate-500'
+    isPrivileged ? 'text-swin-charcoal/50 dark:text-white/40' : 'text-swin-charcoal/50',
   );
+
+  const handleFacultySelect = (f: Faculty) => {
+    if (selectedFaculty === f) {
+      setSelectedFaculty(null);
+      setSelectedProgram('');
+    } else {
+      setSelectedFaculty(f);
+      setSelectedProgram('');
+    }
+  };
+
+  const programs = selectedFaculty ? PROGRAMS[selectedFaculty] : [];
 
   return (
     <form action={formAction} className="space-y-8">
       <div className="grid gap-6 sm:grid-cols-2">
         {/* Username */}
         <div>
-          <label htmlFor="username" className={labelClass}>
-            Username
-          </label>
+          <label htmlFor="username" className={labelClass}>Username</label>
           <input
             id="username"
             name="username"
@@ -120,78 +166,110 @@ export default function ProfileEditForm({
 
         {/* Phone */}
         <div>
-          <label htmlFor="phone" className={labelClass}>
-            Phone
-          </label>
+          <label htmlFor="phone" className={labelClass}>Phone</label>
           <input
             id="phone"
             name="phone"
             type="tel"
             defaultValue={phone ?? ''}
-            placeholder="Your phone number"
+            placeholder="012 3456 7890"
             className={inputClass}
             maxLength={20}
             pattern="[0-9\s+-]+"
           />
-          <p className="mt-1.5 text-xs text-slate-400">
-            Format: 012 3456 7890
-          </p>
+          <p className="mt-1.5 text-xs text-swin-charcoal/40 dark:text-white/30">Format: 012 3456 7890</p>
         </div>
 
         {/* Preferred Language */}
-        <div>
-          <label htmlFor="preferred_language" className={labelClass}>
-            Preferred Language
-          </label>
+        <div className="sm:col-span-2">
+          <label htmlFor="preferred_language" className={labelClass}>Preferred Language</label>
           <input
             id="preferred_language"
             name="preferred_language"
             type="text"
             defaultValue={preferredLanguage ?? ''}
-            placeholder="Your preferred language"
+            placeholder="e.g. English, Mandarin, Malay"
             className={inputClass}
             maxLength={50}
           />
         </div>
+      </div>
 
-        {/* Faculty */}
-        <div>
-          <label htmlFor="faculty" className={labelClass}>
-            Faculty
-          </label>
-          <input
-            id="faculty"
-            name="faculty"
-            type="text"
-            defaultValue={faculty ?? ''}
-            placeholder="Your faculty"
-            className={inputClass}
-            maxLength={100}
-          />
+      {/* Program Selection */}
+      <div className="rounded-2xl border border-swin-charcoal/10 bg-slate-50/60 p-5 dark:border-white/10 dark:bg-swin-dark-bg/40">
+        <div className="mb-4 flex items-center gap-2">
+          <AcademicCapIcon className="h-5 w-5 text-swin-red dark:text-swin-red/70" />
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/45 dark:text-white/40">
+              Academic
+            </p>
+            <h3 className="text-sm font-semibold text-swin-charcoal dark:text-white">
+              Update Your Program Selection
+            </h3>
+          </div>
         </div>
 
-        {/* Department */}
-        <div className="sm:col-span-2">
-          <label htmlFor="department" className={labelClass}>
-            Department
-          </label>
-          <input
-            id="department"
-            name="department"
-            type="text"
-            defaultValue={department ?? ''}
-            placeholder="Your department"
-            className={inputClass}
-            maxLength={100}
-          />
+        {/* Hidden inputs that carry the selected values */}
+        <input type="hidden" name="faculty" value={selectedFaculty ?? ''} />
+        <input type="hidden" name="department" value={selectedProgram} />
+
+        {/* Faculty grid */}
+        <p className={clsx(labelClass, 'mb-2')}>Faculty</p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {FACULTY_LIST.map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => handleFacultySelect(f)}
+              className={clsx(
+                'flex flex-col items-center gap-1.5 rounded-xl border px-3 py-3 text-center text-xs font-semibold transition-all duration-200',
+                selectedFaculty === f
+                  ? 'border-swin-red bg-swin-red/5 text-swin-red dark:border-swin-red/60 dark:bg-swin-red/10 dark:text-swin-red/80'
+                  : 'border-swin-charcoal/10 bg-white text-swin-charcoal/70 hover:border-swin-red/40 hover:text-swin-red dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-swin-red/40 dark:hover:text-swin-red/70',
+              )}
+            >
+              <span className="text-xl">{FACULTY_ICONS[f]}</span>
+              <span className="leading-tight">{f}</span>
+            </button>
+          ))}
         </div>
+
+        {/* Program dropdown */}
+        {selectedFaculty && (
+          <div className="mt-4">
+            <label className={clsx(labelClass, 'mb-2')}>Bachelor Program</label>
+            <select
+              value={selectedProgram}
+              onChange={(e) => setSelectedProgram(e.target.value)}
+              className={clsx(
+                inputClass,
+                'cursor-pointer',
+                !selectedProgram && 'text-swin-charcoal/40 dark:text-white/30',
+              )}
+            >
+              <option value="">Select your program...</option>
+              {programs.map((prog) => (
+                <option key={prog} value={prog}>{prog}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {/* Current selection summary */}
+        {(selectedFaculty || faculty) && (
+          <p className="mt-3 text-[11px] text-swin-charcoal/50 dark:text-white/40">
+            {selectedFaculty
+              ? selectedProgram
+                ? `Selected: ${selectedProgram}`
+                : `Faculty selected — choose a program above`
+              : `Currently saved: ${faculty}${department ? ` · ${department}` : ''}`}
+          </p>
+        )}
       </div>
 
       {/* Bio */}
       <div>
-        <label htmlFor="bio" className={labelClass}>
-          About
-        </label>
+        <label htmlFor="bio" className={labelClass}>About</label>
         <textarea
           id="bio"
           name="bio"
@@ -204,13 +282,10 @@ export default function ProfileEditForm({
       </div>
 
       {/* Submit and Status */}
-      <div className="flex flex-col sm:flex-row-reverse gap-4 items-center justify-between pt-2 border-t border-slate-200/50 dark:border-white/10">
+      <div className="flex flex-col sm:flex-row-reverse gap-4 items-center justify-between pt-2 border-t border-swin-charcoal/10 dark:border-white/10">
         <SubmitButton isPrivileged={isPrivileged} />
         {state.status !== 'idle' && (
-          <p className={clsx(
-            'text-sm font-medium animate-pulse',
-            state.status === 'success' ? 'text-emerald-500' : 'text-rose-500'
-          )}>
+          <p className={clsx('text-sm font-medium animate-pulse', messageClass(state))}>
             {state.message}
           </p>
         )}

@@ -34,16 +34,16 @@ const formatScore = (value: number) => value.toFixed(1);
 const toTitle = (value: string | null | undefined) => value ?? 'Untitled';
 
 const TagChip = ({ label }: { label: string }) => (
-  <span className="rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-200/80">
+  <span className="rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-white/10 dark:bg-swin-dark-surface/60 dark:text-white/70">
     {label}
   </span>
 );
 
 const ReasonList = ({ reasons }: { reasons: string[] }) => (
-  <ul className="mt-2 space-y-1 text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+  <ul className="mt-2 space-y-1 text-xs text-swin-charcoal/70 dark:text-white/60">
     {reasons.slice(0, 3).map((reason) => (
       <li key={reason} className="flex items-start gap-2">
-        <BoltIcon className="h-4 w-4 flex-none text-swin-red dark:text-emerald-300" />
+        <BoltIcon className="h-4 w-4 flex-none text-swin-red dark:text-swin-red/80" />
         <span>{reason}</span>
       </li>
     ))}
@@ -56,18 +56,18 @@ const RecommendationCard = ({ recommendation }: { recommendation: Recommendation
   const loanedOut = Math.max(0, (book.totalCopies ?? 0) - (book.availableCopies ?? 0));
 
   return (
-    <div className="flex h-full flex-col justify-between gap-3 rounded-2xl border border-swin-charcoal/10 bg-white p-5 shadow-sm transition hover:shadow-lg dark:border-slate-700 dark:bg-slate-900/70">
+    <div className="flex h-full flex-col justify-between gap-3 rounded-2xl border border-swin-charcoal/10 bg-white p-5 shadow-sm transition hover:shadow-lg dark:border-white/10 dark:bg-swin-dark-surface/80">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-slate-300/70">
+          <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-white/50">
             Recommendation
           </p>
-          <h3 className="mt-1 text-lg font-semibold text-swin-charcoal dark:text-slate-100">{toTitle(book.title)}</h3>
-          <p className="text-sm text-swin-charcoal/70 dark:text-slate-300/80">
+          <h3 className="mt-1 text-lg font-semibold text-swin-charcoal dark:text-white">{toTitle(book.title)}</h3>
+          <p className="text-sm text-swin-charcoal/70 dark:text-white/60">
             {book.author ?? 'Unknown author'}
           </p>
         </div>
-        <span className="flex items-center gap-1 rounded-full bg-swin-red/10 px-3 py-1 text-xs font-semibold text-swin-red dark:bg-emerald-500/10 dark:text-emerald-200">
+        <span className="flex items-center gap-1 rounded-full bg-swin-red/10 px-3 py-1 text-xs font-semibold text-swin-red dark:bg-swin-red/10 dark:text-swin-red/70">
           <SparklesIcon className="h-4 w-4" />
           {formatScore(score)}
         </span>
@@ -83,7 +83,7 @@ const RecommendationCard = ({ recommendation }: { recommendation: Recommendation
 
       <ReasonList reasons={reasons} />
 
-      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-swin-charcoal/70 dark:text-white/60">
         <span className="rounded-full bg-swin-charcoal/5 px-2.5 py-1 font-semibold dark:bg-white/10">
           {book.availableCopies ?? 0} available
         </span>
@@ -113,7 +113,7 @@ const AssociationPills = ({
 
   if (!derived.length) {
     return (
-      <p className="text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+      <p className="text-xs text-swin-charcoal/70 dark:text-white/60">
         Add 1-3 interests to see related tags discovered from your catalogue.
       </p>
     );
@@ -124,13 +124,13 @@ const AssociationPills = ({
       {derived.slice(0, 10).map(({ source, rule }) => (
         <span
           key={`${source}-${rule.tag}`}
-          className="inline-flex items-center gap-2 rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-200/80"
+          className="inline-flex items-center gap-2 rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-white/10 dark:bg-swin-dark-surface/60 dark:text-white/70"
         >
-          <span className="rounded-full bg-swin-red/10 px-2 py-0.5 text-[10px] uppercase text-swin-red dark:bg-emerald-500/10 dark:text-emerald-200">
+          <span className="rounded-full bg-swin-red/10 px-2 py-0.5 text-[10px] uppercase text-swin-red dark:bg-swin-red/10 dark:text-swin-red/70">
             {source}
           </span>
           <span>{rule.tag}</span>
-          <span className="text-[10px] font-semibold text-swin-charcoal/60 dark:text-slate-300/70">
+          <span className="text-[10px] font-semibold text-swin-charcoal/60 dark:text-white/50">
             conf {(rule.confidence * 100).toFixed(0)}% | lift {rule.lift.toFixed(2)}
           </span>
         </span>
@@ -221,7 +221,7 @@ export default function RecommendationLab({ books }: RecommendationLabProps) {
 
 const contentClass = 
 "inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 font-semibold " +
-"bg-slate-200 text-black/90 " +
+"bg-swin-charcoal/10 text-swin-charcoal dark:bg-white/10 " +
 "dark:text-white/80"
 
   return (
@@ -239,23 +239,23 @@ const contentClass =
 
       <section className="grid gap-5 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
+          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-swin-dark-surface/80">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-[11px] uppercase tracking-[0.3em] text-swin-charcoal/60 dark:text-slate-300/70">
+                <p className="text-[11px] uppercase tracking-[0.3em] text-swin-charcoal/60 dark:text-white/50">
                   Describe your interests
                 </p>
-                <h3 className="mt-1 text-lg font-semibold text-swin-charcoal dark:text-slate-100">
+                <h3 className="mt-1 text-lg font-semibold text-swin-charcoal dark:text-white">
                   What should we recommend?
                 </h3>
               </div>
-              <AdjustmentsHorizontalIcon className="h-5 w-5 text-swin-charcoal/50 dark:text-slate-300/70" />
+              <AdjustmentsHorizontalIcon className="h-5 w-5 text-swin-charcoal/50 dark:text-white/50" />
             </div>
             <textarea
               value={interests}
               onChange={(e) => setInterests(e.target.value)}
               placeholder="Example: data visualization, climate tech, leadership coaching"
-              className="mt-3 w-full rounded-xl border border-swin-charcoal/10 bg-slate-50 px-4 py-3 text-sm text-swin-charcoal shadow-inner focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-100"
+              className="mt-3 w-full rounded-xl border border-swin-charcoal/10 bg-slate-50 px-4 py-3 text-sm text-swin-charcoal shadow-inner focus:border-swin-red focus:outline-none dark:border-white/10 dark:bg-swin-dark-surface/60 dark:text-white"
               rows={3}
             />
 
@@ -265,7 +265,7 @@ const contentClass =
                   key={prompt}
                   type="button"
                   onClick={() => setInterests((prev) => mergeInterestText(prev, prompt))}
-                  className="rounded-full border border-swin-charcoal/10 px-3 py-1 text-xs font-semibold text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-slate-700 dark:text-slate-200 dark:hover:border-emerald-300/60 dark:hover:text-emerald-200"
+                  className="rounded-full border border-swin-charcoal/10 px-3 py-1 text-xs font-semibold text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-white/10 dark:text-white/70 dark:hover:border-swin-red/50 dark:hover:text-swin-red/80"
                 >
                   {prompt}
                 </button>
@@ -273,7 +273,7 @@ const contentClass =
             </div>
 
             <div className="mt-4 grid gap-3 md:grid-cols-3">
-              <label className="flex items-center gap-2 text-xs font-semibold text-swin-charcoal dark:text-slate-100">
+              <label className="flex items-center gap-2 text-xs font-semibold text-swin-charcoal dark:text-white">
                 <input
                   type="checkbox"
                   className="h-4 w-4 rounded border-swin-charcoal/20 text-swin-red focus:ring-swin-red"
@@ -282,7 +282,7 @@ const contentClass =
                 />
                 Only show available copies
               </label>
-              <label className="flex items-center gap-2 text-xs font-semibold text-swin-charcoal dark:text-slate-100">
+              <label className="flex items-center gap-2 text-xs font-semibold text-swin-charcoal dark:text-white">
                 <input
                   type="checkbox"
                   className="h-4 w-4 rounded border-swin-charcoal/20 text-swin-red focus:ring-swin-red"
@@ -291,7 +291,7 @@ const contentClass =
                 />
                 Boost popular picks
               </label>
-              <label className="flex items-center gap-2 text-xs font-semibold text-swin-charcoal dark:text-slate-100">
+              <label className="flex items-center gap-2 text-xs font-semibold text-swin-charcoal dark:text-white">
                 <input
                   type="checkbox"
                   className="h-4 w-4 rounded border-swin-charcoal/20 text-swin-red focus:ring-swin-red"
@@ -302,8 +302,8 @@ const contentClass =
               </label>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-dashed border-swin-red/40 bg-swin-red/5 p-4 text-sm text-swin-charcoal dark:border-emerald-300/50 dark:bg-slate-900/40 dark:text-slate-100">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-swin-red dark:text-emerald-200">
+            <div className="mt-4 rounded-2xl border border-dashed border-swin-red/40 bg-swin-red/5 p-4 text-sm text-swin-charcoal dark:border-swin-red/30 dark:bg-swin-dark-bg/60 dark:text-white">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-swin-red dark:text-swin-red/70">
                 Prototype
               </p>
               <p className="mt-1 text-sm">
@@ -315,17 +315,17 @@ const contentClass =
                   {aiPrototypeMatches.map((book) => (
                     <div
                       key={book.id}
-                      className="rounded-xl border border-swin-red/20 bg-white/90 px-3 py-2 text-xs font-semibold text-swin-charcoal shadow-sm dark:border-emerald-300/30 dark:bg-slate-900/70 dark:text-slate-100"
+                      className="rounded-xl border border-swin-red/20 bg-white/90 px-3 py-2 text-xs font-semibold text-swin-charcoal shadow-sm dark:border-swin-red/20 dark:bg-swin-dark-surface/70 dark:text-white"
                     >
                       <p className="line-clamp-2">{toTitle(book.title)}</p>
-                      <p className="text-[11px] font-medium text-swin-charcoal/70 dark:text-slate-300/80">
+                      <p className="text-[11px] font-medium text-swin-charcoal/70 dark:text-white/60">
                         {book.author ?? 'Unknown author'}
                       </p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="mt-3 text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+                <p className="mt-3 text-xs text-swin-charcoal/70 dark:text-white/60">
                   Waiting for an <strong>AI</strong> keyword to show demo results.
                 </p>
               )}
@@ -334,8 +334,8 @@ const contentClass =
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-swin-charcoal dark:text-slate-100">Recommendations</h4>
-              <p className="text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+              <h4 className="text-sm font-semibold text-swin-charcoal dark:text-white">Recommendations</h4>
+              <p className="text-xs text-swin-charcoal/70 dark:text-white/60">
                 Showing {Math.min(recommendations.length, 12)} of {books.length}
               </p>
             </div>
@@ -346,7 +346,7 @@ const contentClass =
                 ))}
               </div>
             ) : (
-          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-sm text-swin-charcoal/70 shadow-sm dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300/80">
+          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-sm text-swin-charcoal/70 shadow-sm dark:border-white/10 dark:bg-swin-dark-surface/80 dark:text-white/60">
                 No matching books yet. Try broader interests or disable the availability filter.
               </div>
             )}
@@ -354,12 +354,12 @@ const contentClass =
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
-            <div className="flex items-center gap-2 text-swin-charcoal dark:text-slate-100">
-              <LightBulbIcon className="h-5 w-5 text-swin-red dark:text-emerald-200" />
+          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-swin-dark-surface/80">
+            <div className="flex items-center gap-2 text-swin-charcoal dark:text-white">
+              <LightBulbIcon className="h-5 w-5 text-swin-red dark:text-swin-red/70" />
               <h4 className="text-sm font-semibold">Association rule boosters</h4>
             </div>
-            <p className="mt-2 text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+            <p className="mt-2 text-xs text-swin-charcoal/70 dark:text-white/60">
               We look at tag co-occurrence across your catalogue. If you ask for "AI ethics", we also consider tags
               often paired with it (e.g., privacy, governance, automation) and bump books that share them.
             </p>
@@ -368,17 +368,17 @@ const contentClass =
             </div>
           </div>
 
-          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
-            <div className="flex items-center gap-2 text-swin-charcoal dark:text-slate-100">
-              <SparklesIcon className="h-5 w-5 text-swin-red dark:text-emerald-200" />
+          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-swin-dark-surface/80">
+            <div className="flex items-center gap-2 text-swin-charcoal dark:text-white">
+              <SparklesIcon className="h-5 w-5 text-swin-red dark:text-swin-red/70" />
               <h4 className="text-sm font-semibold">Personalized snapshot</h4>
             </div>
-            <p className="mt-2 text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+            <p className="mt-2 text-xs text-swin-charcoal/70 dark:text-white/60">
               A quick, dummy view of the signals driving your recommendations. Use it to show stakeholders how the AI blends your inputs with catalogue context.
             </p>
 
             <div className="mt-4">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-slate-300/70">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-white/50">
                 Your interests
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -386,13 +386,13 @@ const contentClass =
                   displayTokens.slice(0, 6).map((token) => (
                     <span
                       key={token}
-                      className="inline-flex items-center gap-2 rounded-full bg-swin-red/10 px-3 py-1 text-xs font-semibold text-swin-red dark:bg-emerald-500/10 dark:text-emerald-200"
+                      className="inline-flex items-center gap-2 rounded-full bg-swin-red/10 px-3 py-1 text-xs font-semibold text-swin-red dark:bg-swin-red/10 dark:text-swin-red/70"
                     >
                       {token}
                     </span>
                   ))
                 ) : (
-                  <p className="text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+                  <p className="text-xs text-swin-charcoal/70 dark:text-white/60">
                     Start typing a topic to see the AI wire up signals.
                   </p>
                 )}
@@ -400,7 +400,7 @@ const contentClass =
             </div>
 
             <div className="mt-4">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-slate-300/70">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-white/50">
                 AI adds
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -408,49 +408,49 @@ const contentClass =
                   derivedAssociations.map(({ source, rule }) => (
                     <span
                       key={`${source}-${rule.tag}`}
-                      className="inline-flex items-center gap-2 rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-200/80"
+                      className="inline-flex items-center gap-2 rounded-full border border-swin-charcoal/10 bg-slate-50 px-3 py-1 text-xs font-semibold text-swin-charcoal/80 dark:border-white/10 dark:bg-swin-dark-surface/60 dark:text-white/70"
                     >
-                      <span className="rounded-full bg-swin-red/10 px-2 py-0.5 text-[10px] uppercase text-swin-red dark:bg-emerald-500/10 dark:text-emerald-200">
+                      <span className="rounded-full bg-swin-red/10 px-2 py-0.5 text-[10px] uppercase text-swin-red dark:bg-swin-red/10 dark:text-swin-red/70">
                         {source}
                       </span>
                       <span>{rule.tag}</span>
-                      <span className="text-[10px] font-semibold text-swin-charcoal/60 dark:text-slate-300/70">
+                      <span className="text-[10px] font-semibold text-swin-charcoal/60 dark:text-white/50">
                         conf {(rule.confidence * 100).toFixed(0)}% | lift {rule.lift.toFixed(2)}
                       </span>
                     </span>
                   ))
                 ) : (
-                  <p className="text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+                  <p className="text-xs text-swin-charcoal/70 dark:text-white/60">
                     No associated tags yet. Add one or two more interests.
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-900/50">
-              <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-slate-300/70">
+            <div className="mt-4 rounded-xl bg-slate-50 px-3 py-2 dark:bg-swin-dark-bg/50">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-swin-charcoal/60 dark:text-white/50">
                 Filters applied
               </p>
-              <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold text-swin-charcoal dark:text-slate-100">
-                <span className="rounded-full bg-white px-3 py-1 shadow-sm dark:bg-slate-900">
+              <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold text-swin-charcoal dark:text-white">
+                <span className="rounded-full bg-white px-3 py-1 shadow-sm dark:bg-swin-dark-surface">
                   {onlyAvailable ? 'Available copies only' : 'Include on-loan items'}
                 </span>
-                <span className="rounded-full bg-white px-3 py-1 shadow-sm dark:bg-slate-900">
+                <span className="rounded-full bg-white px-3 py-1 shadow-sm dark:bg-swin-dark-surface">
                   {favorPopular ? 'Boost popular picks' : 'Neutral popularity'}
                 </span>
-                <span className="rounded-full bg-white px-3 py-1 shadow-sm dark:bg-slate-900">
+                <span className="rounded-full bg-white px-3 py-1 shadow-sm dark:bg-swin-dark-surface">
                   {favorNew ? 'Favor newer titles' : 'Any publication year'}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
+          <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-swin-dark-surface/80">
             <div className="flex items-center gap-2 text-swin-charcoal dark:text-white">
-              <SparklesIcon className="h-5 w-5 text-swin-red dark:text-emerald-200" />
+              <SparklesIcon className="h-5 w-5 text-swin-red dark:text-swin-red/70" />
               <h4 className="text-sm font-semibold">How scoring works</h4>
             </div>
-            <ul className="mt-2 space-y-1 text-xs text-swin-charcoal/70 dark:text-slate-300/80">
+            <ul className="mt-2 space-y-1 text-xs text-swin-charcoal/70 dark:text-white/60">
               <li>+3 for tags that exactly match your interests, +2 for associated tags.</li>
               <li>+1.5 when your keywords appear in the title, author, or classification.</li>
               <li>+1 for copies currently available; optional boosts for newer or popular items.</li>

@@ -46,12 +46,12 @@ export default function ProfileAvatarForm({
         <div className="relative h-24 w-24 sm:h-32 sm:w-32 transition-transform duration-300 group-hover:scale-105">
           <div className={clsx(
             "absolute -inset-0.5 rounded-full bg-gradient-to-br opacity-75 blur transition duration-300 group-hover:opacity-100",
-            isPrivileged ? "from-emerald-400 to-cyan-300" : "from-swin-red to-orange-400"
+            isPrivileged ? "from-swin-gold to-amber-300" : "from-swin-red to-orange-400"
           )} />
           <img
             src={defaultAvatar}
             alt={`${displayName ?? 'User'} avatar`}
-            className="relative h-full w-full rounded-full object-cover ring-4 ring-white dark:ring-slate-900 shadow-xl"
+            className="relative h-full w-full rounded-full object-cover ring-4 ring-white dark:ring-swin-dark-bg shadow-xl"
           />
         </div>
 
@@ -59,9 +59,9 @@ export default function ProfileAvatarForm({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           className={clsx(
-            'absolute bottom-0 right-0 rounded-full p-2.5 shadow-lg ring-4 ring-white dark:ring-slate-900 transition-all duration-300 hover:scale-110 active:scale-95',
+            'absolute bottom-0 right-0 rounded-full p-2.5 shadow-lg ring-4 ring-white dark:ring-swin-dark-bg transition-all duration-300 hover:scale-110 active:scale-95',
             isPrivileged
-              ? 'bg-emerald-600 text-white hover:bg-emerald-500'
+              ? 'bg-swin-gold text-white hover:bg-amber-500'
               : 'bg-swin-red text-white hover:bg-swin-red/90'
           )}
         >
