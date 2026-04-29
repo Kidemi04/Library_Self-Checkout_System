@@ -87,3 +87,21 @@ Decisions outside literal plan recipe logged in `findings.md` 2026-04-29 Chat 9 
 - `book/history/loading.tsx` delegates to shared `PageLoadingSkeleton` (consumed by 6 other pages including Chat 11's `notifications/loading.tsx`); migrating the shared skeleton would silently affect Chat 11 acceptance, so deferred to Chat 11 / Batch 3 cleanup.
 - `bookCatalogTable.tsx` retains 4 `text-white` literals on category-palette filter chips (`bg-blue-600 text-white`, `bg-emerald-600 text-white`, etc.) — these are domain-specific category coloring, not part of the design token system. `text-on-primary` (= `#FFFFFF`) is value-identical but semantically misleading on non-primary backgrounds.
 - `bookCatalogTable.tsx` keeps the per-category Tailwind palette (`blue-300/700/950`, `emerald-300/700/950`, `purple-300/700/950`, `orange-300/700/950`) for the unselected filter chip borders/hovers — same rationale as above.
+
+---
+
+## Chat 11 — Camera scan + profile + notifications ✅ DONE
+
+- [x] Pre-task: Migrate shared `app/ui/pageLoadingSkeleton.tsx` (consumed by 6 loading.tsx pages incl. Chat 11's `notifications/loading.tsx` — Chat 10 deferred decision resolved here)
+- [x] Task 16: Migrate `app/dashboard/cameraScan/page.tsx` (header card recipe; `<Button>` for Start; cream secondary for Stop/Upload; crosshair ring → accent-teal; debug log inner panel keeps mono terminal look on `bg-ink`)
+- [x] Task 17: Migrate `app/profile/page.tsx` (display-lg page H1 + display-sm section titles; flat `dark:` classes replace `pageWrapperClass` const; gradient blur halo on avatar dropped per spec §6.4; visibility chip → cream-strong/hairline)
+- [x] Task 18: Migrate profile forms — `profileEditForm.tsx`, `profileNameForm.tsx`, `profileAvatarForm.tsx` (form input recipe; shared `<Button>` for submit; `isPrivileged` color theming retired — see findings.md; avatar camera button → `bg-primary` solid)
+- [x] Task 19: `app/dashboard/notifications/loading.tsx` — no-op (already delegates to migrated shared `PageLoadingSkeleton`)
+- [x] Task 20: Migrate `app/ui/dashboard/notificationPanel.tsx` (kept inline markup, NOT switched to `<NotificationItem>` primitive due to per-row mark-as-read affordance mismatch — see findings.md; per-type colors remapped to semantic tokens matching primitive's TYPE_STYLES)
+- [x] Task 21: Migrate `app/ui/dashboard/notificationToast.tsx` (card recipe + retained shadow per spec §6.4 floating; per-type colors → semantic tokens; close button → cream secondary icon recipe with primary focus ring)
+- [x] Task 22: Chat 11 audit + combined commit (`pnpm tsc --noEmit` clean; per-file residue grep across all 9 in-scope files = 0 hits)
+
+**Decisions outside literal plan recipe** (see `findings.md` 2026-04-30 Chat 11 entries):
+- Shared `pageLoadingSkeleton.tsx` migrated alongside Chat 11 scope (Chat 10 deferred decision resolved YES per user pre-flight recommendation).
+- `isPrivileged` form theming retired across all three profile forms — single primary recipe; role distinction stays on `<RoleBadge>`. Prop kept on signatures (callers unchanged, non-breaking).
+- `notificationPanel` kept inline (not switched to `<NotificationItem>` primitive) due to per-row mark-as-read affordance not exposed by the primitive. Both surfaces use matching semantic TYPE_STYLES so they look semantically identical.

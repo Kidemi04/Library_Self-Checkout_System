@@ -171,3 +171,33 @@ Visual review will tell whether the gradient palette needs to be rebalanced for 
 **Implication:** Followed the spec-correct cream drawer (Claude design has no inherently-dark surfaces in light mode). Trigger button kept its "light-text-on-dark" treatment because it lives inside the un-migrated mobileNav header. The mismatch resolves when `mobileNav.tsx` and `navLinks.tsx` are migrated. Both are nav-shell siblings (Chat 8 territory that got missed) — should be picked up in Batch 3 cleanup or earlier if user prefers.
 
 Backdrop uses `bg-black/60 dark:bg-black/70` (always-dark overlay) — none of the spec tokens are "always dark" (`ink`/`body-strong` invert per mode), so a literal `black` is the cleanest pragmatic choice. Brand accent stripe at drawer bottom keeps gradient form, swapped to `from-primary/60 via-primary/30` (light) / `from-dark-primary/60 via-dark-primary/30` (dark) — the original dark-mode emerald variation was dropped (no spec equivalent).
+
+---
+
+## 2026-04-30 — Chat 11 — shared `pageLoadingSkeleton.tsx` migrated alongside Chat 11 scope (consumed by 6 loading.tsx files)
+
+**What was expected:** Chat 10 deferred the shared `app/ui/pageLoadingSkeleton.tsx` (consumed by 6 active `loading.tsx` files) to Chat 11 or Batch 3. User pre-flight note recommended migrating it in Chat 11 since `notifications/loading.tsx` is one of its consumers and is in this chat's scope.
+
+**What was found:** Skeleton uses raw slate palette (`bg-slate-100/200/700/800`, `border-slate-100/800`, `rounded-2xl`) plus a shimmer overlay keyed on `via-white/60 dark:via-white/10`. All swappable to design tokens 1:1.
+
+**Implication:** Migrated to `bg-surface-cream-strong dark:bg-dark-surface-strong` (lines), `bg-surface-card dark:bg-dark-surface-card` + `border border-hairline dark:border-dark-hairline` (cards/wrappers), `border-hairline dark:border-dark-hairline` (row dividers), `rounded-card` (was `rounded-2xl`), and shimmer `via-canvas/60 dark:via-on-dark/10`. Six consumer pages (`book/history`, `notifications`, `dashboard`, `book/items`, `admin/users`, `admin`) inherit the visual update through this single file; their per-page `loading.tsx` files remain unchanged.
+
+---
+
+## 2026-04-30 — Chat 11 — `isPrivileged` form theming retired in profile forms
+
+**What was expected:** Plan Task 18 says "Submit button: shared `<Button>` from `app/ui/button.tsx` (primary)". No mention of the `isPrivileged` dual-track styling in the existing forms.
+
+**What was found:** All three profile forms accept `isPrivileged: boolean` and use it to choose **emerald-gradient** (staff/admin) vs **swin-red-gradient** (student) chrome — submit gradient, focus ring color, avatar gradient halo. The design system has a single `primary` token; staff/admin role distinction is already conveyed by `<RoleBadge>` on the profile card.
+
+**Implication:** Visually unified all three forms to the standard cream + primary recipe. The `isPrivileged` prop is retained on each component's signature (callers and `actions.ts` still pass it; not breaking), but no longer affects styling. If role-aware form chrome returns later, do it via a single design-system extension (e.g., `<Button variant="success">` for staff actions) rather than re-introducing per-form ternaries. Avatar's gradient blur halo was dropped per spec §6.4 (no shadows/glows); replaced with a quiet `ring-2 ring-hairline` on the image.
+
+---
+
+## 2026-04-30 — Chat 11 — `notificationPanel` kept inline (not switched to `<NotificationItem>` primitive)
+
+**What was expected:** Plan Task 20 suggests: "If this file inlines item markup instead of using the primitive, consider migrating to the primitive — log decision in `findings.md` if you do."
+
+**What was found:** `<NotificationItem>` (Batch 1 migrated) renders a single full-row click target via `<button onClick>`. `NotificationPanel` rows have **two** independent affordances — the row body and a separate per-row "✓ mark as read" button next to the time. The primitive doesn't expose this secondary action; switching would either (a) lose the per-row mark-read affordance, or (b) require extending the primitive to accept `secondaryAction` props (out of scope for token migration).
+
+**Implication:** Kept the inline markup but unified the per-type color mapping with `<NotificationItem>`'s `TYPE_STYLES` (`primary`/`accent-teal`/`warning`/`accent-amber`/`success`) so both surfaces look semantically identical. Logged the divergence so a future Batch 3 (or follow-up UX pass) can either extend the primitive or accept the inline duplication permanently. Dropped the per-type raw palette (`bg-blue-500`, `text-emerald-600`, `bg-violet-500`, etc.) and the unused `dot` colors are now design tokens too.
