@@ -65,6 +65,6 @@ All 26 tasks done (Tasks 1–6 token system; 7–14 interactive primitives; 15�
 - [x] Task 5: Migrate `app/ui/dashboard/student/myBooksCard.tsx`
 - [x] Task 6: Migrate `app/ui/dashboard/student/quickActions.tsx` (drop gradient icon backgrounds, use semantic icon colors)
 - [x] Task 7: Migrate `app/ui/dashboard/summaryCards.tsx` (drop GlassCard wrapper for plain card recipe; semantic icons: success/accent-teal/primary)
-- [x] Task 8: Chat 9 audit + combined commit (commit hash: backfilled below)
+- [x] Task 8: Chat 9 audit + combined commit (`0e33402`)
 
 Decisions outside literal plan recipe logged in `findings.md` 2026-04-29 Chat 9 entries.
