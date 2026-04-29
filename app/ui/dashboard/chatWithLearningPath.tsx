@@ -28,6 +28,31 @@ type LearningPathResponse = {
   error?: string;
 };
 
+type ExternalArticle = {
+  title: string;
+  url: string;
+  snippet: string;
+  source: string;
+  faviconUrl: string | null;
+};
+
+type ExternalVideo = {
+  videoId: string;
+  title: string;
+  channel: string;
+  thumbnailUrl: string;
+  publishedAt: string | null;
+  url: string;
+};
+
+type ExternalResourcesResponse = {
+  ok: boolean;
+  topic?: string;
+  articles?: ExternalArticle[];
+  videos?: ExternalVideo[];
+  error?: string;
+};
+
 const STAGE_STYLES: Record<LearningStage['level'], { bg: string; badge: string; number: string }> = {
   Beginner: {
     bg: 'border-emerald-200 bg-emerald-50/60 dark:border-emerald-800/40 dark:bg-emerald-900/10',
@@ -60,6 +85,9 @@ export default function ChatWithLearningPath({
   const [learningPath, setLearningPath] = useState<LearningStage[] | null>(null);
   const [learningPathTopic, setLearningPathTopic] = useState<string | null>(null);
   const [learningPathLoading, setLearningPathLoading] = useState(false);
+  const [articles, setArticles] = useState<ExternalArticle[] | null>(null);
+  const [videos, setVideos] = useState<ExternalVideo[] | null>(null);
+  const [resourcesLoading, setResourcesLoading] = useState(false);
   const requestRef = useRef(0);
 
   const handleInterestDetected = useCallback((topic: string | null) => {
@@ -68,6 +96,9 @@ export default function ChatWithLearningPath({
       setLearningPath(null);
       setLearningPathTopic(null);
       setLearningPathLoading(false);
+      setArticles(null);
+      setVideos(null);
+      setResourcesLoading(false);
       return;
     }
 
@@ -75,6 +106,9 @@ export default function ChatWithLearningPath({
     setLearningPathTopic(topic);
     setLearningPath(null);
     setLearningPathLoading(true);
+    setArticles(null);
+    setVideos(null);
+    setResourcesLoading(true);
 
     fetch('/api/learning-path', {
       method: 'POST',
@@ -92,6 +126,25 @@ export default function ChatWithLearningPath({
         setLearningPath(null);
         setLearningPathLoading(false);
       });
+
+    fetch('/api/external-resources', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic }),
+    })
+      .then((r) => r.json() as Promise<ExternalResourcesResponse>)
+      .then((data) => {
+        if (requestId !== requestRef.current) return;
+        setArticles(data?.articles ?? []);
+        setVideos(data?.videos ?? []);
+        setResourcesLoading(false);
+      })
+      .catch(() => {
+        if (requestId !== requestRef.current) return;
+        setArticles([]);
+        setVideos([]);
+        setResourcesLoading(false);
+      });
   }, []);
 
   const handleChatReset = useCallback(() => {
@@ -99,6 +152,9 @@ export default function ChatWithLearningPath({
     setLearningPath(null);
     setLearningPathTopic(null);
     setLearningPathLoading(false);
+    setArticles(null);
+    setVideos(null);
+    setResourcesLoading(false);
   }, []);
 
   const showStages = Boolean(learningPath?.length);
@@ -238,6 +294,131 @@ export default function ChatWithLearningPath({
           </div>
         ) : null}
       </section>
+
+      {learningPathTopic ? (
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900/60">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400">
+                Around the web
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-slate-900 dark:text-slate-100">
+                Web articles &amp; videos for{' '}
+                <span className="text-red-600 dark:text-red-400">{learningPathTopic}</span>
+              </h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Curated reading and tutorials from across the web — useful alongside the books above.
+              </p>
+            </div>
+          </div>
+
+          {resourcesLoading ? (
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-800/40 dark:text-slate-400">
+              <span className="inline-flex items-center gap-2">
+                <span className="h-2 w-2 animate-ping rounded-full bg-red-500" />
+                Searching the web for {learningPathTopic}…
+              </span>
+            </div>
+          ) : null}
+
+          {!resourcesLoading && (articles?.length || videos?.length) ? (
+            <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Articles
+                </h3>
+                {articles?.length ? (
+                  <div className="mt-3 space-y-3">
+                    {articles.map((article) => (
+                      <a
+                        key={article.url}
+                        href={article.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-red-400 hover:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-900/70 dark:hover:border-red-500"
+                      >
+                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 line-clamp-2">
+                          {article.title}
+                        </p>
+                        {article.snippet ? (
+                          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 line-clamp-3">
+                            {article.snippet}
+                          </p>
+                        ) : null}
+                        <div className="mt-2 flex items-center gap-2 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                          {article.faviconUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={article.faviconUrl}
+                              alt=""
+                              className="h-3.5 w-3.5 rounded-sm"
+                              loading="lazy"
+                            />
+                          ) : null}
+                          <span className="truncate">{article.source}</span>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
+                    No articles found right now.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  YouTube videos
+                </h3>
+                {videos?.length ? (
+                  <div className="mt-3 space-y-3">
+                    {videos.map((video) => (
+                      <a
+                        key={video.videoId}
+                        href={video.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-red-400 hover:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-900/70 dark:hover:border-red-500"
+                      >
+                        {video.thumbnailUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={video.thumbnailUrl}
+                            alt={video.title}
+                            className="h-16 w-24 shrink-0 rounded-lg object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="h-16 w-24 shrink-0 rounded-lg bg-slate-200 dark:bg-slate-700" />
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 line-clamp-2">
+                            {video.title}
+                          </p>
+                          <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                            {video.channel}
+                          </p>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">
+                    No videos found right now.
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : null}
+
+          {!resourcesLoading && !articles?.length && !videos?.length ? (
+            <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/60 p-4 text-xs text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/10 dark:text-amber-300">
+              No external resources available. Make sure <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/40">BRAVE_SEARCH_API_KEY</code> and <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/40">YOUTUBE_API_KEY</code> are set in your <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/40">.env.local</code>.
+            </div>
+          ) : null}
+        </section>
+      ) : null}
     </div>
   );
 }
