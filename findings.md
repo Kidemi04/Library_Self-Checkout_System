@@ -139,3 +139,35 @@ Visual review will tell whether the gradient palette needs to be rebalanced for 
 **What was found:** Neither file references the Swinburne logo — the only red element is the absolute-positioned 6×6 bell-icon dot (`bg-swin-red ring-2 ring-white dark:ring-swin-dark-bg`). It's an alert indicator (means "you have unread notifications"), not a brand mark. Same precedent applies as Chat 6's `HoldCardReady` decision: alert reds use `bg-primary`, brand reds keep `bg-swin-red-brand`.
 
 **Implication:** Migrated to `bg-primary ring-2 ring-canvas dark:ring-dark-canvas`. Genuine brand-mark usage (logo, login splash) is in `acmeLogo.tsx` and login surfaces, both Batch 2 territory — they'll be checked then. Plan note re-read as a *reminder* applicable when relevant, not a requirement that these files contain a logo today (they don't).
+
+---
+
+## 2026-04-29 — Chat 9 — sidenav.tsx active nav uses primary tint (plan was conservatively wrong)
+
+**What was expected:** Plan Task 1 Step 3 said "Nav item (active/current page): `bg-surface-cream-strong dark:bg-dark-surface-strong text-ink dark:text-on-dark` (cream emphasis, not primary fill — primary is reserved for CTAs)".
+
+**What was found:** Spec §3.5 explicitly lists `primary` for **active state**: "All CTAs, links, active state, focus rings, KPI emphasis, badges." A primary *tint* (not solid fill) is the spec-correct treatment for active nav, and it matches the existing `bg-swin-red/10 text-swin-red` pattern.
+
+**Implication:** Migrated to `bg-primary/10 text-primary dark:bg-dark-primary/15 dark:text-dark-primary`. Plan author (me) was being conservative. If future nav-active-state work surfaces, this pattern is the precedent. Note: `dark-primary` text on `dark-canvas` is 3.81:1 (AA-large only per spec §3.7) — accepted for nav items where the colored background tint provides additional cue.
+
+---
+
+## 2026-04-29 — Chat 9 — sidenav inline labeled theme toggle preserved (not swapped to icon-only ThemeToggle)
+
+**What was expected:** Spec §7 Chat 8 migrated `themeToggle.tsx` to a single round icon button (UX change). Sidenav had an unused `ThemeToggle` import (per `progress.md` Chat 8 note).
+
+**What was found:** The inline theme toggle in `sidenav.tsx` is a **labeled** button (icon + "Light mode" / "Dark mode" text), which gives better orientation in a vertical sidebar than an icon-only control. The new icon-only `<ThemeToggle>` is sized and shaped for top-bar use (mobileNav).
+
+**Implication:** Removed the unused `import ThemeToggle` line. Kept the inline labeled toggle but migrated its tokens (cream secondary button recipe). Two theme-toggle UX variants now coexist — labeled in sidebar, icon-only in mobileNav top bar — which is appropriate for the two contexts.
+
+---
+
+## 2026-04-29 — Chat 9 — mobileMenu drawer migrated to cream in light mode (Claude design); creates temporary mismatch with un-migrated mobileNav header
+
+**What was expected:** Plan Task 1 Step 9 said: "Drawer panel: `bg-canvas dark:bg-dark-canvas`".
+
+**What was found:** Original `mobileMenu.tsx` drawer was **always dark** in both modes (`bg-swin-charcoal` light / `bg-slate-950` dark). It hosts inside `mobileNav.tsx` which is **also still dark and not yet migrated** (not in Batch 2 spec scope). Migrating the drawer to cream means: tap hamburger on dark mobileNav header → drawer slides out as a cream panel. Temporary visual mismatch in light mode.
+
+**Implication:** Followed the spec-correct cream drawer (Claude design has no inherently-dark surfaces in light mode). Trigger button kept its "light-text-on-dark" treatment because it lives inside the un-migrated mobileNav header. The mismatch resolves when `mobileNav.tsx` and `navLinks.tsx` are migrated. Both are nav-shell siblings (Chat 8 territory that got missed) — should be picked up in Batch 3 cleanup or earlier if user prefers.
+
+Backdrop uses `bg-black/60 dark:bg-black/70` (always-dark overlay) — none of the spec tokens are "always dark" (`ink`/`body-strong` invert per mode), so a literal `black` is the cleanest pragmatic choice. Brand accent stripe at drawer bottom keeps gradient form, swapped to `from-primary/60 via-primary/30` (light) / `from-dark-primary/60 via-dark-primary/30` (dark) — the original dark-mode emerald variation was dropped (no spec equivalent).

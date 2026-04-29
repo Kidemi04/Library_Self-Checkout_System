@@ -40,21 +40,21 @@ function LoanCard({ loan, index, holdCount }: { loan: Loan; index: number; holdC
     <BlurFade delay={0.3 + index * 0.06} yOffset={10}>
       <div
         className={clsx(
-          'rounded-2xl border bg-white p-5 shadow-sm transition-all duration-200 dark:bg-slate-900/80',
+          'rounded-card border bg-surface-card p-5 transition-colors duration-200 dark:bg-dark-surface-card',
           overdue
-            ? 'border-swin-red/30 shadow-swin-red/10 dark:border-red-500/30 dark:shadow-red-500/10'
+            ? 'border-primary/30 dark:border-dark-primary/40'
             : dueSoon
-              ? 'border-amber-300/50 shadow-amber-300/10 dark:border-amber-500/30 dark:shadow-amber-500/10'
-              : 'border-swin-charcoal/10 dark:border-slate-700/60',
+              ? 'border-warning/40 dark:border-warning/40'
+              : 'border-hairline dark:border-dark-hairline',
         )}
       >
         <div className="flex items-start gap-4">
           {/* Book info */}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-swin-charcoal dark:text-white">
+            <p className="truncate font-sans text-title-md text-ink dark:text-on-dark">
               {loan.book?.title ?? 'Untitled'}
             </p>
-            <p className="mt-0.5 truncate text-xs text-swin-charcoal/60 dark:text-slate-400">
+            <p className="mt-0.5 truncate font-sans text-body-sm text-muted dark:text-on-dark-soft">
               {loan.book?.author ?? 'Unknown author'}
             </p>
 
@@ -62,12 +62,12 @@ function LoanCard({ loan, index, holdCount }: { loan: Loan; index: number; holdC
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <span
                 className={clsx(
-                  'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold',
+                  'inline-flex items-center rounded-pill px-2.5 py-1 font-sans text-caption',
                   overdue
-                    ? 'bg-swin-red/10 text-swin-red dark:bg-red-500/20 dark:text-red-200'
+                    ? 'bg-primary text-on-primary dark:bg-dark-primary'
                     : dueSoon
-                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
-                      : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+                      ? 'bg-surface-cream-strong text-ink dark:bg-dark-surface-strong dark:text-on-dark'
+                      : 'bg-surface-card text-muted dark:bg-dark-surface-strong dark:text-on-dark-soft',
                 )}
               >
                 {overdue
@@ -75,7 +75,7 @@ function LoanCard({ loan, index, holdCount }: { loan: Loan; index: number; holdC
                   : `Due ${formatDate(loan.dueAt)}`}
               </span>
               {loan.renewedCount > 0 && (
-                <span className="text-xs text-swin-charcoal/50 dark:text-slate-500">
+                <span className="font-sans text-caption text-muted-soft dark:text-on-dark-soft">
                   Renewed {loan.renewedCount}/2
                 </span>
               )}
@@ -102,16 +102,16 @@ export default function MyBooksCards({
 }) {
   if (loans.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/30">
-        <p className="text-base font-semibold text-slate-800 dark:text-slate-100">
+      <div className="rounded-card border border-dashed border-hairline bg-surface-card p-8 text-center dark:border-dark-hairline dark:bg-dark-surface-card">
+        <p className="font-sans text-title-md text-ink dark:text-on-dark">
           No books borrowed
         </p>
-        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-          You don't have any books checked out right now.
+        <p className="mt-2 font-sans text-body-sm text-muted dark:text-on-dark-soft">
+          You don&apos;t have any books checked out right now.
         </p>
         <Link
           href="/dashboard/book/items"
-          className="mt-5 inline-flex items-center justify-center rounded-full bg-swin-red px-5 py-2 text-sm font-semibold text-white shadow-sm shadow-swin-red/30 transition hover:bg-swin-red/90 dark:bg-rose-600 dark:hover:bg-rose-500"
+          className="mt-5 inline-flex items-center justify-center rounded-btn bg-primary px-5 py-2 font-sans text-button text-on-primary transition-colors hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:bg-dark-primary dark:hover:bg-primary-active dark:focus-visible:ring-offset-dark-canvas"
         >
           Browse catalogue
         </Link>

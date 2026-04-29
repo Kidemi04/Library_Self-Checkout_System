@@ -1,8 +1,9 @@
-# Active Task Plan — Batch 1 (Foundation)
+# Active Task Plan — Batch 2 (Student-facing)
 
-> Mirror of `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md` task headers, with checkboxes for in-flight tracking. Update this file at the end of each chat.
+> Mirror of plan task headers, with checkboxes for in-flight tracking. Batch 1 sections retained below for historical reference.
 
-**Plan source of truth:** `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md`
+**Plan source of truth (active):** `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-student-facing.md`
+**Plan source of truth (Batch 1, complete):** `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md`
 
 ---
 
@@ -51,4 +52,19 @@
 
 ## Batch 1 COMPLETE ✅
 
-All 26 tasks done (Tasks 1–6 token system; 7–14 interactive primitives; 15–18 content cards; 19–22 supporting primitives + dev gallery; 23–26 shell + chrome). Next chat = Batch 2 (student-facing pages, Chats 9–12 in spec numbering). Plan for Batch 2 needs to be written in a fresh session via `superpowers:writing-plans` against spec §7 Batch 2 section.
+All 26 tasks done (Tasks 1–6 token system; 7–14 interactive primitives; 15–18 content cards; 19–22 supporting primitives + dev gallery; 23–26 shell + chrome).
+
+---
+
+## Chat 9 — Login + main dashboard + nav full migration ✅ DONE
+
+- [x] Task 1: Full migration of `sidenav.tsx` + `mobileMenu.tsx` (incl. SignOutButton override removal; sidenav `ThemeToggle` unused-import dropped; mobileMenu `isDark`/`useTheme` apparatus retired)
+- [x] Task 2: Migrate `app/login/page.tsx` (no-op — server-only) + `app/login/LoginClient.tsx` (display-xl hero, solid primary CTA, drop gradient/shadow/shimmer)
+- [x] Task 3: Migrate `app/ui/loginForm.tsx` (dead template code; migrated for residue cleanliness; flagged for Batch 3 deletion)
+- [x] Task 4: Migrate `app/dashboard/page.tsx` (no-op — server-only) + `app/ui/dashboard/student/studentDashboard.tsx` (484 lines; option-A user-aligned; preserve layout-tuned literal sizes, swap colors)
+- [x] Task 5: Migrate `app/ui/dashboard/student/myBooksCard.tsx`
+- [x] Task 6: Migrate `app/ui/dashboard/student/quickActions.tsx` (drop gradient icon backgrounds, use semantic icon colors)
+- [x] Task 7: Migrate `app/ui/dashboard/summaryCards.tsx` (drop GlassCard wrapper for plain card recipe; semantic icons: success/accent-teal/primary)
+- [x] Task 8: Chat 9 audit + combined commit (commit hash: backfilled below)
+
+Decisions outside literal plan recipe logged in `findings.md` 2026-04-29 Chat 9 entries.

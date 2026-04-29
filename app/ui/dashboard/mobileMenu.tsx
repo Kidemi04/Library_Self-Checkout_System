@@ -4,15 +4,11 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import { useTheme } from '@/app/ui/theme/themeProvider';
 import NavLinks from '@/app/ui/dashboard/navLinks';
 import SignOutButton from '@/app/ui/dashboard/signOutButton';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 
 export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
-
   // Track whether the drawer is open or closed
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -47,13 +43,10 @@ export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  // Trigger button — sits inside the MobileNav header at the top-left
-  const triggerClasses = clsx(
-    'inline-flex items-center justify-center rounded-lg p-2 transition-colors focus:outline-none focus-visible:ring-2',
-    isDark
-      ? 'text-slate-300 hover:bg-white/10 hover:text-white focus-visible:ring-emerald-400'
-      : 'text-swin-ivory hover:bg-swin-ivory/20 hover:text-white focus-visible:ring-swin-red',
-  );
+  // Trigger lives inside the MobileNav header (not yet migrated — still dark);
+  // keeps light-text-on-dark treatment until mobileNav.tsx is migrated.
+  const triggerClasses =
+    'inline-flex items-center justify-center rounded-btn p-2 text-on-dark transition-colors hover:bg-on-dark/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40';
 
   // The portal overlay — backdrop + drawer rendered directly into document.body.
   // This breaks out of any parent stacking context (transform, filter, will-change, etc.)
@@ -66,8 +59,7 @@ export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
         onClick={closeMenu}
         className={clsx(
           // z-[9998] ensures the backdrop sits above all page content
-          'fixed inset-0 z-[9998] transition-opacity duration-300 md:hidden',
-          isDark ? 'bg-slate-950/70' : 'bg-swin-charcoal/60',
+          'fixed inset-0 z-[9998] bg-black/60 transition-opacity duration-300 dark:bg-black/70 md:hidden',
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
         )}
       />
@@ -78,45 +70,25 @@ export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
         aria-label="Site navigation"
         aria-hidden={!isOpen}
         className={clsx(
-          'fixed inset-y-0 left-0 z-[9999] flex flex-col border-r shadow-2xl transition-transform duration-300 ease-in-out md:hidden',
-          // Use a solid background instead of backdrop-blur to avoid creating a
-          // new stacking context that could clip child elements
-          isDark
-            ? 'border-white/10 bg-slate-950 text-white'
-            : 'border-swin-charcoal/10 bg-swin-charcoal text-white',
+          'fixed inset-y-0 left-0 z-[9999] flex flex-col border-r border-hairline bg-canvas text-ink shadow-2xl transition-transform duration-300 ease-in-out dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark md:hidden',
           isOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
         {/* Drawer header */}
-        <div
-          className={clsx(
-            'flex items-center justify-between border-b px-5 py-4',
-            isDark ? 'border-white/10' : 'border-swin-charcoal/10',
-          )}
-        >
+        <div className="flex items-center justify-between border-b border-hairline px-5 py-4 dark:border-dark-hairline">
           <button
             type="button"
             onClick={closeMenu}
-            className={clsx(
-              'rounded-lg p-1.5 transition-colors focus:outline-none focus-visible:ring-2',
-              isDark
-                ? 'text-slate-400 hover:bg-white/10 hover:text-white focus-visible:ring-emerald-400'
-                : 'text-white/60 hover:bg-swin-charcoal/10 hover:text-white focus-visible:ring-swin-red',
-            )}
+            className="rounded-btn p-1.5 text-muted transition-colors hover:bg-surface-cream-strong hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:text-on-dark-soft dark:hover:bg-dark-surface-strong dark:hover:text-on-dark"
             aria-label="Close menu"
           >
             <XMarkIcon className="h-5 w-5" aria-hidden="true" />
           </button>
 
-          <span
-            className={clsx(
-              'text-sm font-semibold uppercase tracking-widest',
-              isDark ? 'text-slate-300' : 'text-white/80',
-            )}
-          >
+          <span className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
             Navigation
           </span>
-          
+
         </div>
 
         {/* Nav links — clicking any link also closes the drawer */}
@@ -130,32 +102,14 @@ export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
         </nav>
 
         {/* Drawer footer — Sign out */}
-        <div
-          className={clsx(
-            'border-t px-4 py-3',
-            isDark ? 'border-white/10' : 'border-white/10',
-          )}
-        >
-          <SignOutButton
-            className={clsx(
-              'inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition',
-              isDark
-                ? 'border-white/15 bg-white/5 text-white hover:bg-white/10'
-                : 'border-white/20 bg-white/10 text-white hover:bg-white/20',
-            )}
-            labelClassName="text-sm font-semibold"
-          />
+        <div className="border-t border-hairline px-4 py-3 dark:border-dark-hairline">
+          <SignOutButton />
         </div>
 
         {/* Brand-colour accent stripe at the bottom of the drawer */}
         <div
           aria-hidden="true"
-          className={clsx(
-            'h-1 w-full',
-            isDark
-              ? 'bg-gradient-to-r from-emerald-500/60 via-emerald-400/30 to-transparent'
-              : 'bg-gradient-to-r from-swin-red/60 via-swin-red/30 to-transparent',
-          )}
+          className="h-1 w-full bg-gradient-to-r from-primary/60 via-primary/30 to-transparent dark:from-dark-primary/60 dark:via-dark-primary/30"
         />
       </aside>
     </>

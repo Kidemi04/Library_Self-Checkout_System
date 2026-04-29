@@ -72,7 +72,7 @@ export default function StudentDashboard({
   const greeting = getGreeting();
 
   return (
-    <div className={`flex min-h-screen flex-col ${isDark ? 'bg-swin-dark-bg text-white' : 'bg-slate-50 text-swin-charcoal'}`}>
+    <div className="flex min-h-screen flex-col bg-canvas text-ink dark:bg-dark-canvas dark:text-on-dark">
 
       {/* ========= MOBILE LAYOUT (hidden on md+) ========= */}
       <div className="md:hidden flex flex-col pb-24">
@@ -94,7 +94,7 @@ export default function StudentDashboard({
                 <p className="font-display text-[32px] font-[500] leading-none tracking-tight">
                   {greeting},
                 </p>
-                <p className="font-display text-[32px] font-[500] italic leading-none tracking-tight text-swin-red">
+                <p className="font-display text-[32px] font-[500] italic leading-none tracking-tight text-primary dark:text-dark-primary">
                   {firstName}.
                 </p>
               </div>
@@ -102,28 +102,28 @@ export default function StudentDashboard({
                 type="button"
                 onClick={toggleTheme}
                 aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                className="mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-swin-charcoal/10 bg-white text-swin-charcoal/70 transition hover:text-swin-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/50 dark:border-white/10 dark:bg-swin-dark-surface dark:text-white/70 dark:hover:text-white"
+                className="mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-surface-card text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
               >
                 {isDark ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
               </button>
             </div>
 
             {/* Stats strip */}
-            <div className="flex items-center gap-2.5 rounded-2xl border border-swin-charcoal/10 bg-white p-4 dark:border-white/10 dark:bg-swin-dark-surface">
+            <div className="flex items-center gap-2.5 rounded-card border border-hairline bg-surface-card p-4 dark:border-dark-hairline dark:bg-dark-surface-card">
               <div className="flex-1">
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[1.5px] text-swin-charcoal/40 dark:text-white/40">Borrowed</p>
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[1.5px] text-muted-soft dark:text-on-dark-soft">Borrowed</p>
                 <p className="mt-0.5 font-display text-[26px] font-semibold leading-none tracking-tight">
                   {activeLoans.length}
-                  <span className="ml-1 font-sans text-[13px] font-normal text-swin-charcoal/50 dark:text-white/50">books</span>
+                  <span className="ml-1 font-sans text-[13px] font-normal text-muted dark:text-on-dark-soft">books</span>
                 </p>
               </div>
-              <div className="h-8 w-px bg-swin-charcoal/10 dark:bg-white/10" />
+              <div className="h-8 w-px bg-hairline dark:bg-dark-hairline" />
               <div className="flex-1">
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[1.5px] text-swin-charcoal/40 dark:text-white/40">Due soon</p>
-                <p className={`mt-0.5 font-display text-[26px] font-semibold leading-none tracking-tight ${urgentLoans.length > 0 ? 'text-swin-red' : ''}`}>
+                <p className="font-mono text-[10px] font-semibold uppercase tracking-[1.5px] text-muted-soft dark:text-on-dark-soft">Due soon</p>
+                <p className={`mt-0.5 font-display text-[26px] font-semibold leading-none tracking-tight ${urgentLoans.length > 0 ? 'text-primary dark:text-dark-primary' : ''}`}>
                   {urgentLoans.length}
                   {overdueLoans.length > 0 && (
-                    <span className="ml-1.5 font-mono text-[11px] font-semibold text-swin-red">· {overdueLoans.length} late</span>
+                    <span className="ml-1.5 font-mono text-[11px] font-semibold text-primary dark:text-dark-primary">· {overdueLoans.length} late</span>
                   )}
                 </p>
               </div>
@@ -155,14 +155,14 @@ export default function StudentDashboard({
               <Link
                 key={q.label}
                 href={q.href}
-                className="flex flex-col gap-2.5 rounded-[14px] border border-swin-charcoal/10 bg-white p-4 dark:border-white/10 dark:bg-swin-dark-surface"
+                className="flex flex-col gap-2.5 rounded-card border border-hairline bg-surface-card p-4 transition hover:border-primary/20 dark:border-dark-hairline dark:bg-dark-surface-card dark:hover:border-dark-primary/30"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-swin-gold/12 text-swin-gold dark:bg-swin-gold/15 dark:text-yellow-300">
+                <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-accent-amber/12 text-accent-amber dark:bg-accent-amber/15">
                   <q.icon className="h-[18px] w-[18px]" />
                 </div>
                 <div>
                   <p className="text-[14px] font-semibold tracking-tight">{q.label}</p>
-                  <p className="mt-0.5 text-[12px] text-swin-charcoal/45 dark:text-white/45">{q.sub}</p>
+                  <p className="mt-0.5 text-[12px] text-muted dark:text-on-dark-soft">{q.sub}</p>
                 </div>
               </Link>
             ))}
@@ -175,10 +175,9 @@ export default function StudentDashboard({
             <div className="mx-5 mb-6">
               <Link
                 href="/dashboard/my-books?tab=reservations"
-                className="flex items-center gap-3 rounded-[14px] bg-swin-red p-3.5 text-white"
-                style={{ boxShadow: '0 8px 24px rgba(200,35,51,0.25)' }}
+                className="flex items-center gap-3 rounded-card bg-primary p-3.5 text-on-primary transition hover:bg-primary-active dark:bg-dark-primary dark:hover:bg-primary-active"
               >
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] bg-white/18">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] bg-on-primary/18">
                   <BookmarkIcon className="h-[18px] w-[18px]" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -202,15 +201,15 @@ export default function StudentDashboard({
         <BlurFade delay={0.25} yOffset={10}>
           <div className="mb-3.5 flex items-baseline justify-between px-5">
             <h2 className="font-display text-[22px] font-semibold tracking-tight">Currently reading</h2>
-            <Link href="/dashboard/my-books" className="flex items-center gap-1 text-[12px] text-swin-charcoal/50 dark:text-white/50">
+            <Link href="/dashboard/my-books" className="flex items-center gap-1 text-[12px] text-muted dark:text-on-dark-soft">
               See all <ArrowRightIcon className="h-3 w-3" />
             </Link>
           </div>
           <div className="flex flex-col gap-2.5 px-5">
             {activeLoans.length === 0 ? (
-              <p className="rounded-xl border border-dashed border-swin-charcoal/15 bg-white p-6 text-center text-[13px] text-swin-charcoal/50 dark:border-white/10 dark:bg-swin-dark-surface dark:text-white/50">
+              <p className="rounded-card border border-dashed border-hairline bg-surface-card p-6 text-center text-[13px] text-muted dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft">
                 No books borrowed yet.{' '}
-                <Link href="/dashboard/book/items" className="text-swin-red underline">Browse catalogue</Link>
+                <Link href="/dashboard/book/items" className="text-primary underline dark:text-dark-primary">Browse catalogue</Link>
               </p>
             ) : (
               activeLoans.map(loan => <LoanCard key={loan.id} loan={loan} />)
@@ -223,9 +222,9 @@ export default function StudentDashboard({
           <BlurFade delay={0.3} yOffset={10}>
             <div className="mb-3.5 mt-7 flex items-baseline justify-between px-5">
               <h2 className="font-display text-[22px] font-semibold tracking-tight">On reserve</h2>
-              <span className="font-mono text-[11px] text-swin-charcoal/45 dark:text-white/45">
+              <span className="font-mono text-[11px] text-muted dark:text-on-dark-soft">
                 {readyHolds.length > 0 && (
-                  <span className="font-bold text-swin-red">{readyHolds.length} ready · </span>
+                  <span className="font-bold text-primary dark:text-dark-primary">{readyHolds.length} ready · </span>
                 )}
                 {holds.filter(h => h.status !== 'ready').length} queued
               </span>
@@ -242,14 +241,14 @@ export default function StudentDashboard({
             <div className="mt-7 flex items-baseline justify-between px-5 pb-3">
               <div>
                 <div className="mb-1 flex items-center gap-2">
-                  <SparklesIcon className="h-3.5 w-3.5 text-swin-gold" />
-                  <span className="font-mono text-[10px] font-semibold uppercase tracking-[2px] text-swin-gold">On the shelves</span>
+                  <SparklesIcon className="h-3.5 w-3.5 text-accent-amber" />
+                  <span className="font-mono text-[10px] font-semibold uppercase tracking-[2px] text-accent-amber">On the shelves</span>
                 </div>
                 <h2 className="font-display text-[22px] font-semibold tracking-tight">Available now</h2>
               </div>
               <Link
                 href="/dashboard/book/items?status=available"
-                className="flex items-center gap-1 text-[12px] text-swin-charcoal/50 dark:text-white/50"
+                className="flex items-center gap-1 text-[12px] text-muted dark:text-on-dark-soft"
               >
                 Browse <ArrowRightIcon className="h-3 w-3" />
               </Link>
@@ -259,7 +258,7 @@ export default function StudentDashboard({
                 <Link
                   key={r.id}
                   href={`/dashboard/book/items?q=${encodeURIComponent(r.title)}`}
-                  className="w-[130px] flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/50 rounded-md"
+                  className="w-[130px] flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-md"
                 >
                   <BookCover
                     gradient={getBookGradient(r.id)}
@@ -270,9 +269,9 @@ export default function StudentDashboard({
                     radius={6}
                   />
                   <p className="mt-2.5 truncate font-display text-[14px] font-semibold leading-tight tracking-tight">{r.title}</p>
-                  <p className="mt-0.5 truncate font-display text-[11px] italic text-swin-charcoal/55 dark:text-white/55">{r.author}</p>
+                  <p className="mt-0.5 truncate font-display text-[11px] italic text-muted dark:text-on-dark-soft">{r.author}</p>
                   {r.category && (
-                    <p className="mt-1.5 truncate font-mono text-[10px] uppercase tracking-wide text-swin-charcoal/40 dark:text-white/40">{r.category}</p>
+                    <p className="mt-1.5 truncate font-mono text-[10px] uppercase tracking-wide text-muted-soft dark:text-on-dark-soft">{r.category}</p>
                   )}
                 </Link>
               ))}
@@ -286,30 +285,30 @@ export default function StudentDashboard({
       {/* ========= DESKTOP LAYOUT (hidden on mobile) ========= */}
       <div className="hidden md:block">
         {/* Top bar */}
-        <div className="mb-8 flex items-center gap-4 border-b border-swin-charcoal/10 pb-5 dark:border-white/10">
+        <div className="mb-8 flex items-center gap-4 border-b border-hairline pb-5 dark:border-dark-hairline">
           <form
             action="/dashboard/book/items"
             method="get"
             role="search"
-            className="flex flex-1 max-w-[520px] items-center gap-2.5 rounded-xl bg-white px-3.5 py-2.5 transition focus-within:ring-2 focus-within:ring-swin-red/40 dark:bg-swin-dark-surface"
+            className="flex flex-1 max-w-[520px] items-center gap-2.5 rounded-btn bg-surface-card px-3.5 py-2.5 transition focus-within:ring-2 focus-within:ring-primary/40 dark:bg-dark-surface-card"
           >
-            <BookOpenIcon className="h-4 w-4 text-swin-charcoal/35 dark:text-white/35" />
+            <BookOpenIcon className="h-4 w-4 text-muted-soft dark:text-on-dark-soft" />
             <label htmlFor="dash-search" className="sr-only">Search the catalogue</label>
             <input
               id="dash-search"
               name="q"
               type="search"
               placeholder="Search titles, authors, or ISBN…"
-              className="flex-1 border-0 bg-transparent text-[14px] placeholder-swin-charcoal/35 outline-none dark:placeholder-white/35"
+              className="flex-1 border-0 bg-transparent text-[14px] placeholder-muted-soft outline-none dark:placeholder-on-dark-soft"
             />
             <button
               type="submit"
-              className="rounded-lg bg-swin-red/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-swin-red transition hover:bg-swin-red/20"
+              className="rounded-btn bg-primary/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-primary transition hover:bg-primary/20 dark:bg-dark-primary/15 dark:text-dark-primary"
             >
               Search
             </button>
           </form>
-          <div className="ml-auto flex items-center gap-1.5 text-[12px] text-swin-charcoal/50 dark:text-white/50">
+          <div className="ml-auto flex items-center gap-1.5 text-[12px] text-muted dark:text-on-dark-soft">
             <span>Sarawak Campus · Library B</span>
           </div>
         </div>
@@ -317,16 +316,16 @@ export default function StudentDashboard({
         {/* Hero + stats rail */}
         <div className="mb-8 grid grid-cols-[1.2fr_1fr] items-end gap-10">
           <div>
-            <p className="mb-2.5 font-mono text-[11px] font-bold uppercase tracking-[2.4px] text-swin-gold">
+            <p className="mb-2.5 font-mono text-[11px] font-bold uppercase tracking-[2.4px] text-accent-amber">
               · {new Date().toLocaleDateString('en-MY', { weekday: 'long', month: 'long', day: 'numeric' })}
             </p>
-            <h1 className="font-display text-[56px] font-[500] leading-none tracking-[-1.5px] text-swin-charcoal dark:text-white">
+            <h1 className="font-display text-[56px] font-[500] leading-none tracking-[-1.5px] text-ink dark:text-on-dark">
               Welcome back,
             </h1>
-            <h1 className="mt-0.5 font-display text-[56px] font-[500] italic leading-none tracking-[-1.5px] text-swin-red">
+            <h1 className="mt-0.5 font-display text-[56px] font-[500] italic leading-none tracking-[-1.5px] text-primary dark:text-dark-primary">
               {firstName}.
             </h1>
-            <p className="mt-4 max-w-[480px] font-display text-[18px] italic leading-relaxed text-swin-charcoal/55 dark:text-white/55">
+            <p className="mt-4 max-w-[480px] font-display text-[18px] italic leading-relaxed text-muted dark:text-on-dark-soft">
               {overdueLoans.length > 0
                 ? `You have ${overdueLoans.length} overdue ${overdueLoans.length === 1 ? 'loan' : 'loans'} — return or renew to avoid fines.`
                 : urgentLoans.length > 0
@@ -336,7 +335,7 @@ export default function StudentDashboard({
           </div>
 
           {/* Stats rail */}
-          <div className="grid grid-cols-3 overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface">
+          <div className="grid grid-cols-3 overflow-hidden rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card">
             {(() => {
               const ready = readyHolds.length;
               const queued = holds.filter(h => h.status !== 'ready').length;
@@ -348,11 +347,11 @@ export default function StudentDashboard({
                 { label: 'In queue', value: queued, accent: false },
               ];
             })().map((s, i) => (
-              <div key={s.label} className={`p-5 ${i < 2 ? 'border-r border-swin-charcoal/10 dark:border-white/10' : ''}`}>
-                <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
+              <div key={s.label} className={`p-5 ${i < 2 ? 'border-r border-hairline dark:border-dark-hairline' : ''}`}>
+                <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-muted-soft dark:text-on-dark-soft">
                   {s.label}
                 </p>
-                <p className={`font-display text-[42px] font-semibold leading-none tracking-[-1px] ${s.accent ? 'text-swin-red' : 'text-swin-charcoal dark:text-white'}`}>
+                <p className={`font-display text-[42px] font-semibold leading-none tracking-[-1px] ${s.accent ? 'text-primary dark:text-dark-primary' : 'text-ink dark:text-on-dark'}`}>
                   {s.value}
                 </p>
               </div>
@@ -378,14 +377,14 @@ export default function StudentDashboard({
             <Link
               key={q.label}
               href={q.href}
-              className="flex items-center gap-3.5 rounded-2xl border border-swin-charcoal/10 bg-white p-5 transition hover:border-swin-charcoal/20 dark:border-white/10 dark:bg-swin-dark-surface dark:hover:border-white/20"
+              className="flex items-center gap-3.5 rounded-card border border-hairline bg-surface-card p-5 transition hover:border-primary/20 dark:border-dark-hairline dark:bg-dark-surface-card dark:hover:border-dark-primary/30"
             >
-              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[12px] bg-swin-gold/12 text-swin-gold dark:bg-swin-gold/15 dark:text-yellow-300">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[12px] bg-accent-amber/12 text-accent-amber dark:bg-accent-amber/15">
                 <q.icon className="h-5 w-5" />
               </div>
               <div className="flex-1">
                 <p className="font-display text-[17px] font-semibold leading-tight tracking-tight">{q.label}</p>
-                <p className="mt-0.5 text-[12px] text-swin-charcoal/45 dark:text-white/45">{q.sub}</p>
+                <p className="mt-0.5 text-[12px] text-muted dark:text-on-dark-soft">{q.sub}</p>
               </div>
             </Link>
           ))}
@@ -397,22 +396,22 @@ export default function StudentDashboard({
           <div>
             <div className="mb-3.5 flex items-baseline justify-between">
               <div>
-                <h2 className="font-display text-[28px] font-semibold leading-none tracking-tight text-swin-charcoal dark:text-white">
+                <h2 className="font-display text-[28px] font-semibold leading-none tracking-tight text-ink dark:text-on-dark">
                   Currently reading
                 </h2>
-                <p className="mt-1 font-mono text-[12px] text-swin-charcoal/40 dark:text-white/40">
+                <p className="mt-1 font-mono text-[12px] text-muted-soft dark:text-on-dark-soft">
                   {activeLoans.length} active · {activeLoans.reduce((a, l) => a + l.renewedCount, 0)} renewals this term
                 </p>
               </div>
-              <Link href="/dashboard/my-books" className="flex items-center gap-1 text-[12px] text-swin-charcoal/50 dark:text-white/50">
+              <Link href="/dashboard/my-books" className="flex items-center gap-1 text-[12px] text-muted dark:text-on-dark-soft">
                 View history <ArrowRightIcon className="h-3 w-3" />
               </Link>
             </div>
             <div className="flex flex-col gap-2.5">
               {activeLoans.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-swin-charcoal/15 bg-white p-8 text-center text-[13px] text-swin-charcoal/50 dark:border-white/10 dark:bg-swin-dark-surface dark:text-white/50">
+                <p className="rounded-card border border-dashed border-hairline bg-surface-card p-8 text-center text-[13px] text-muted dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft">
                   No books borrowed.{' '}
-                  <Link href="/dashboard/book/items" className="text-swin-red underline">Browse catalogue →</Link>
+                  <Link href="/dashboard/book/items" className="text-primary underline dark:text-dark-primary">Browse catalogue →</Link>
                 </p>
               ) : (
                 activeLoans.map(loan => <LoanCard key={loan.id} loan={loan} />)
@@ -424,9 +423,9 @@ export default function StudentDashboard({
           <div>
             <div className="mb-3.5">
               <h2 className="font-display text-[22px] font-semibold leading-none tracking-tight">On reserve</h2>
-              <p className="mt-1 font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">
+              <p className="mt-1 font-mono text-[11px] text-muted-soft dark:text-on-dark-soft">
                 {readyHolds.length > 0 && (
-                  <span className="font-bold text-swin-red">{readyHolds.length} ready · </span>
+                  <span className="font-bold text-primary dark:text-dark-primary">{readyHolds.length} ready · </span>
                 )}
                 {holds.filter(h => h.status !== 'ready').length} in queue
               </p>
@@ -440,10 +439,10 @@ export default function StudentDashboard({
 
             {/* Available pick */}
             {featuredPick && (
-              <div className="rounded-[14px] border border-swin-charcoal/10 bg-white p-5 dark:border-white/10 dark:bg-swin-dark-surface">
+              <div className="rounded-card border border-hairline bg-surface-card p-5 dark:border-dark-hairline dark:bg-dark-surface-card">
                 <div className="mb-2.5 flex items-center gap-1.5">
-                  <SparklesIcon className="h-3 w-3 text-swin-gold" />
-                  <span className="font-mono text-[9px] font-bold uppercase tracking-[2px] text-swin-gold">Available now</span>
+                  <SparklesIcon className="h-3 w-3 text-accent-amber" />
+                  <span className="font-mono text-[9px] font-bold uppercase tracking-[2px] text-accent-amber">Available now</span>
                 </div>
                 <div className="flex gap-3.5">
                   <BookCover
@@ -455,20 +454,20 @@ export default function StudentDashboard({
                     radius={4}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="font-display text-[18px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
+                    <p className="font-display text-[18px] font-semibold leading-tight tracking-tight text-ink dark:text-on-dark">
                       {featuredPick.title}
                     </p>
-                    <p className="mt-0.5 font-display text-[12px] italic text-swin-charcoal/55 dark:text-white/55">
+                    <p className="mt-0.5 font-display text-[12px] italic text-muted dark:text-on-dark-soft">
                       by {featuredPick.author}
                     </p>
                     {featuredPick.category && (
-                      <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-swin-charcoal/40 dark:text-white/40">
+                      <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-muted-soft dark:text-on-dark-soft">
                         {featuredPick.category}
                       </p>
                     )}
                     <Link
                       href={`/dashboard/book/items?q=${encodeURIComponent(featuredPick.title)}`}
-                      className="mt-2.5 inline-flex rounded-lg bg-swin-red px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-swin-red/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/50"
+                      className="mt-2.5 inline-flex rounded-btn bg-primary px-3 py-1.5 text-[11px] font-semibold text-on-primary transition hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:bg-dark-primary dark:hover:bg-primary-active"
                     >
                       View in catalogue
                     </Link>
