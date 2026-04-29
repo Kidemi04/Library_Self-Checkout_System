@@ -1,6 +1,7 @@
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import BookCover, { getBookGradient } from '@/app/ui/dashboard/primitives/BookCover';
 import BarChartMini from '@/app/ui/dashboard/primitives/BarChartMini';
+import { Button } from '@/app/ui/button';
 import type { DashboardSummary } from '@/app/lib/supabase/types';
 import type { Loan } from '@/app/lib/supabase/types';
 import type { TopBorrowedBook } from '@/app/lib/supabase/queries';
@@ -9,11 +10,11 @@ import Link from 'next/link';
 
 type ActivityType = 'borrowed' | 'returned' | 'held' | 'overdue';
 
-const ACTIVITY_COLORS: Record<ActivityType, string> = {
-  borrowed: '#C9A961',
-  returned: '#2F8F5A',
-  held:     '#4A6FA5',
-  overdue:  '#C82333',
+const ACTIVITY_DOT_CLASSES: Record<ActivityType, string> = {
+  borrowed: 'bg-accent-amber',
+  returned: 'bg-success',
+  held:     'bg-accent-teal',
+  overdue:  'bg-primary',
 };
 
 const ACTIVITY_LABELS: Record<ActivityType, string> = {
@@ -73,12 +74,11 @@ export default function AdminDashboard({
       title={`${tod}, ${firstName}`}
       description="Full catalogue and circulation access enabled. Sarawak Campus library is operating normally."
       primaryAction={
-        <Link
-          href="/dashboard/book/items"
-          className="flex items-center gap-1.5 rounded-xl bg-swin-red px-3.5 py-2.5 text-[12px] font-semibold text-white transition hover:bg-swin-red/90"
-        >
-          <PlusIcon className="h-3.5 w-3.5" />
-          Add book
+        <Link href="/dashboard/book/items" className="contents">
+          <Button>
+            <PlusIcon className="mr-1.5 h-3.5 w-3.5" />
+            Add book
+          </Button>
         </Link>
       }
     >
@@ -87,12 +87,12 @@ export default function AdminDashboard({
         {kpis.map(k => (
           <div
             key={k.label}
-            className="rounded-[14px] border border-swin-charcoal/10 bg-white p-5 dark:border-white/10 dark:bg-swin-dark-surface"
+            className="rounded-card border border-hairline bg-surface-card p-5 dark:border-dark-hairline dark:bg-dark-surface-card"
           >
-            <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
+            <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-muted-soft dark:text-on-dark-soft">
               {k.label}
             </p>
-            <p className={`font-display text-[38px] font-semibold leading-none tracking-[-1px] ${k.danger ? 'text-swin-red' : 'text-swin-charcoal dark:text-white'}`}>
+            <p className={`font-display text-[38px] font-semibold leading-none tracking-[-1px] ${k.danger ? 'text-primary dark:text-dark-primary' : 'text-ink dark:text-on-dark'}`}>
               {k.value}
             </p>
           </div>
@@ -101,18 +101,18 @@ export default function AdminDashboard({
 
       {/* Chart + overdue alert */}
       <div className="mb-8 grid grid-cols-1 gap-3.5 lg:grid-cols-[2fr_1fr]">
-        <div className="rounded-[14px] border border-swin-charcoal/10 bg-white p-7 dark:border-white/10 dark:bg-swin-dark-surface">
+        <div className="rounded-card border border-hairline bg-surface-card p-7 dark:border-dark-hairline dark:bg-dark-surface-card">
           <div className="mb-5 flex items-start justify-between">
             <div>
-              <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
+              <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-muted-soft dark:text-on-dark-soft">
                 Circulation · Last 14 days
               </p>
-              <h2 className="font-display text-[24px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+              <h2 className="font-display text-display-md text-ink dark:text-on-dark">
                 {recent7} loans this week
               </h2>
               {prev7 > 0 && (
-                <p className="mt-1 text-[12px] text-swin-charcoal/60 dark:text-white/50">
-                  <span className={`font-semibold ${trendPositive ? 'text-green-600 dark:text-green-400' : 'text-swin-red'}`}>
+                <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
+                  <span className={`font-semibold ${trendPositive ? 'text-success' : 'text-primary dark:text-dark-primary'}`}>
                     {trendPositive ? '+' : ''}{trendPct}%
                   </span>{' '}
                   vs previous week
@@ -123,36 +123,33 @@ export default function AdminDashboard({
           <BarChartMini data={chartData} height={120} />
         </div>
 
-        <div
-          className="rounded-[14px] border bg-white p-6 dark:bg-swin-dark-surface"
-          style={{ borderColor: '#C82333', borderLeft: '3px solid #C82333' }}
-        >
+        <div className="rounded-card border border-primary border-l-[3px] bg-surface-card p-6 dark:bg-dark-surface-card">
           <div className="mb-3.5 flex items-center gap-2">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-swin-red">
+            <span className="font-mono text-[10px] font-bold uppercase tracking-[2px] text-primary dark:text-dark-primary">
               ⚠ Attention required
             </span>
           </div>
-          <p className="font-display text-[42px] font-semibold leading-none tracking-[-1px] text-swin-charcoal dark:text-white">
+          <p className="font-display text-[42px] font-semibold leading-none tracking-[-1px] text-ink dark:text-on-dark">
             {summary.overdueLoans}
           </p>
-          <p className="mt-1 text-[13px] text-swin-charcoal/60 dark:text-white/50">
+          <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
             Overdue items{' '}
-            <span className="font-semibold text-swin-red">· {Math.round(summary.overdueLoans * 0.25)} &gt; 14 days</span>
+            <span className="font-semibold text-primary dark:text-dark-primary">· {Math.round(summary.overdueLoans * 0.25)} &gt; 14 days</span>
           </p>
           <div className="mt-4 space-y-2">
             {[
-              { n: Math.round(summary.overdueLoans * 0.75), label: 'Under 7 days', color: 'text-amber-600 dark:text-amber-400' },
-              { n: Math.round(summary.overdueLoans * 0.25), label: 'Over 14 days', color: 'text-swin-red' },
+              { n: Math.round(summary.overdueLoans * 0.75), label: 'Under 7 days', color: 'text-warning' },
+              { n: Math.round(summary.overdueLoans * 0.25), label: 'Over 14 days', color: 'text-primary dark:text-dark-primary' },
             ].map(r => (
-              <div key={r.label} className="flex items-center justify-between border-b border-swin-charcoal/8 py-1.5 dark:border-white/8">
-                <span className="font-mono text-[11px] text-swin-charcoal/55 dark:text-white/55">{r.label}</span>
+              <div key={r.label} className="flex items-center justify-between border-b border-hairline-soft py-1.5 dark:border-dark-hairline">
+                <span className="font-mono text-[11px] text-muted dark:text-on-dark-soft">{r.label}</span>
                 <span className={`font-display text-[14px] font-bold ${r.color}`}>{r.n}</span>
               </div>
             ))}
           </div>
           <Link
             href="/dashboard/admin/overdue"
-            className="mt-4 block w-full rounded-lg bg-swin-red py-2.5 text-center text-[12px] font-semibold text-white transition hover:bg-swin-red/90"
+            className="mt-4 block w-full rounded-btn bg-primary py-2.5 text-center font-sans text-button text-on-primary transition hover:bg-primary-active dark:bg-dark-primary"
           >
             Review overdue list
           </Link>
@@ -163,76 +160,73 @@ export default function AdminDashboard({
       <div className="mb-8 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
         <Link
           href="/dashboard/admin/overdue"
-          className="group flex items-center justify-between rounded-[14px] border border-swin-charcoal/10 bg-white p-5 transition hover:border-swin-red/40 hover:bg-swin-red/5 dark:border-white/10 dark:bg-swin-dark-surface dark:hover:border-swin-red/40 dark:hover:bg-swin-red/10"
+          className="group flex items-center justify-between rounded-card border border-hairline bg-surface-card p-5 transition hover:border-primary/40 hover:bg-primary/5 dark:border-dark-hairline dark:bg-dark-surface-card dark:hover:border-dark-primary/40 dark:hover:bg-dark-primary/10"
         >
           <div>
-            <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
+            <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-muted-soft dark:text-on-dark-soft">
               Circulation
             </p>
-            <p className="font-display text-[16px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+            <p className="font-display text-title-md text-ink dark:text-on-dark">
               View overdue loans
             </p>
           </div>
-          <span className="font-mono text-[18px] font-semibold text-swin-red transition group-hover:translate-x-0.5">→</span>
+          <span className="font-mono text-[18px] font-semibold text-primary transition group-hover:translate-x-0.5 dark:text-dark-primary">→</span>
         </Link>
         <Link
           href="/dashboard/admin/books/new"
-          className="group flex items-center justify-between rounded-[14px] border border-swin-charcoal/10 bg-white p-5 transition hover:border-swin-gold/60 hover:bg-swin-gold/5 dark:border-white/10 dark:bg-swin-dark-surface dark:hover:border-swin-gold/60 dark:hover:bg-swin-gold/10"
+          className="group flex items-center justify-between rounded-card border border-hairline bg-surface-card p-5 transition hover:border-accent-amber/60 hover:bg-accent-amber/5 dark:border-dark-hairline dark:bg-dark-surface-card dark:hover:border-accent-amber/60 dark:hover:bg-accent-amber/10"
         >
           <div>
-            <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
+            <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-muted-soft dark:text-on-dark-soft">
               Catalogue
             </p>
-            <p className="font-display text-[16px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+            <p className="font-display text-title-md text-ink dark:text-on-dark">
               Add new book
             </p>
           </div>
-          <span className="font-mono text-[18px] font-semibold text-swin-gold transition group-hover:translate-x-0.5">→</span>
+          <span className="font-mono text-[18px] font-semibold text-accent-amber transition group-hover:translate-x-0.5">→</span>
         </Link>
       </div>
 
       {/* Recent activity + top books */}
       <div className="grid grid-cols-1 gap-3.5 lg:grid-cols-[3fr_2fr]">
-        <div className="rounded-[14px] border border-swin-charcoal/10 bg-white p-7 dark:border-white/10 dark:bg-swin-dark-surface">
+        <div className="rounded-card border border-hairline bg-surface-card p-7 dark:border-dark-hairline dark:bg-dark-surface-card">
           <div className="mb-4 flex items-baseline justify-between">
             <div>
-              <h2 className="font-display text-[22px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+              <h2 className="font-display text-display-md text-ink dark:text-on-dark">
                 Recent activity
               </h2>
-              <p className="mt-0.5 font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">
+              <p className="mt-0.5 font-mono text-[11px] text-muted-soft dark:text-on-dark-soft">
                 Last {recentActivity.length} transaction{recentActivity.length === 1 ? '' : 's'}
               </p>
             </div>
             <Link
               href="/dashboard/staff/history"
-              className="rounded-md border border-swin-charcoal/10 bg-slate-50 px-2.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-swin-charcoal/60 transition hover:text-swin-charcoal dark:border-white/10 dark:bg-white/5 dark:text-white/55 dark:hover:text-white"
+              className="rounded-btn border border-hairline bg-surface-cream-strong px-2.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-muted transition hover:text-ink dark:border-dark-hairline dark:bg-dark-surface-strong dark:text-on-dark-soft dark:hover:text-on-dark"
             >
               Full history
             </Link>
           </div>
           <div>
             {recentActivity.length === 0 ? (
-              <p className="py-8 text-center text-[13px] text-swin-charcoal/40 dark:text-white/40">No recent activity.</p>
+              <p className="py-8 text-center font-sans text-body-sm text-muted-soft dark:text-on-dark-soft">No recent activity.</p>
             ) : (
               recentActivity.map((r, i) => (
                 <div
                   key={i}
-                  className={`flex items-center gap-3.5 py-3 ${i < recentActivity.length - 1 ? 'border-b border-swin-charcoal/8 dark:border-white/8' : ''}`}
+                  className={`flex items-center gap-3.5 py-3 ${i < recentActivity.length - 1 ? 'border-b border-hairline-soft dark:border-dark-hairline' : ''}`}
                 >
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-swin-charcoal/10 bg-slate-50 font-sans text-[11px] font-semibold text-swin-charcoal/60 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border border-hairline bg-surface-cream-strong font-sans text-[11px] font-semibold text-muted dark:border-dark-hairline dark:bg-dark-surface-strong dark:text-on-dark-soft">
                     {r.avatar}
                   </div>
-                  <p className="min-w-0 flex-1 text-[13px] text-swin-charcoal dark:text-white">
+                  <p className="min-w-0 flex-1 font-sans text-body-sm text-ink dark:text-on-dark">
                     <span className="font-semibold">{r.user}</span>{' '}
-                    <span className="text-swin-charcoal/55 dark:text-white/55">{ACTIVITY_LABELS[r.type]}</span>{' '}
+                    <span className="text-muted dark:text-on-dark-soft">{ACTIVITY_LABELS[r.type]}</span>{' '}
                     <span className="font-display italic">{r.book}</span>
                   </p>
                   <div className="flex flex-shrink-0 items-center gap-2">
-                    <span
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{ background: ACTIVITY_COLORS[r.type] }}
-                    />
-                    <span className="font-mono text-[10px] text-swin-charcoal/40 dark:text-white/40">{r.time}</span>
+                    <span className={`h-1.5 w-1.5 rounded-full ${ACTIVITY_DOT_CLASSES[r.type]}`} />
+                    <span className="font-mono text-[10px] text-muted-soft dark:text-on-dark-soft">{r.time}</span>
                   </div>
                 </div>
               ))
@@ -240,36 +234,36 @@ export default function AdminDashboard({
           </div>
         </div>
 
-        <div className="rounded-[14px] border border-swin-charcoal/10 bg-white p-7 dark:border-white/10 dark:bg-swin-dark-surface">
+        <div className="rounded-card border border-hairline bg-surface-card p-7 dark:border-dark-hairline dark:bg-dark-surface-card">
           <div className="mb-4">
-            <h2 className="font-display text-[22px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+            <h2 className="font-display text-display-md text-ink dark:text-on-dark">
               Most borrowed
             </h2>
-            <p className="mt-0.5 font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">Last 30 days</p>
+            <p className="mt-0.5 font-mono text-[11px] text-muted-soft dark:text-on-dark-soft">Last 30 days</p>
           </div>
           <div className="space-y-3.5">
             {topBooks.length === 0 ? (
-              <p className="py-4 text-center text-[13px] text-swin-charcoal/45 dark:text-white/45">
+              <p className="py-4 text-center font-sans text-body-sm text-muted-soft dark:text-on-dark-soft">
                 No loans in the last 30 days.
               </p>
             ) : (
               topBooks.map((b, idx) => (
                 <div key={b.bookId} className="flex items-center gap-3">
-                  <span className="w-6 flex-shrink-0 font-display text-[18px] font-semibold leading-none tracking-tight text-swin-charcoal/35 dark:text-white/35">
+                  <span className="w-6 flex-shrink-0 font-display text-[18px] font-semibold leading-none tracking-tight text-muted-soft dark:text-on-dark-soft">
                     {idx + 1}
                   </span>
                   <BookCover gradient={getBookGradient(b.bookId)} w={30} h={42} />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-display text-[14px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+                    <p className="truncate font-display text-title-md text-ink dark:text-on-dark">
                       {b.title}
                     </p>
                     {b.author && (
-                      <p className="truncate font-display text-[11px] italic text-swin-charcoal/55 dark:text-white/55">
+                      <p className="truncate font-display text-[11px] italic text-muted dark:text-on-dark-soft">
                         {b.author}
                       </p>
                     )}
                   </div>
-                  <span className="flex-shrink-0 font-mono text-[11px] font-bold text-swin-gold">{b.count}×</span>
+                  <span className="flex-shrink-0 font-mono text-[11px] font-bold text-accent-amber">{b.count}×</span>
                 </div>
               ))
             )}

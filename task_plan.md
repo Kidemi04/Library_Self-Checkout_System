@@ -128,6 +128,17 @@ Decisions outside literal plan recipe logged in `findings.md` 2026-04-29 Chat 9 
 
 ---
 
+## Chat 13 — Admin shell + dashboard + users + nav carry-overs ✅ DONE
+
+- [x] Task 1: Migrate `app/ui/dashboard/mobileNav.tsx` + `app/ui/dashboard/navLinks.tsx` (Chat 9 carry-over). `useTheme` apparatus dropped; nav-active uses `bg-primary/10 text-primary` tint per Chat 9 sidenav decision; bottom-nav center CTA gradient + boxShadow dropped per spec §6.4 (now solid `bg-primary`); role badges remapped to semantic tokens (admin → primary, staff → accent-amber, student → cream-strong).
+- [x] Task 2: Verify `app/dashboard/admin/layout.tsx` + `app/dashboard/admin/page.tsx` + `app/admin/page.tsx` — all 3 are 0-hit server-only files (layout: 13-line wrapper; page: server delegator to adminDashboard; admin/page: server redirect). No edits needed.
+- [x] Task 3: Migrate `app/ui/dashboard/admin/adminDashboard.tsx` (281 lines). KPI cards + chart card + overdue alert + quick actions + recent activity + most borrowed all migrated. ACTIVITY_COLORS literal hex map replaced with className-based ACTIVITY_DOT_CLASSES (semantic tokens: borrowed → accent-amber, returned → success, held → accent-teal, overdue → primary). "Add book" inline CTA replaced with shared `<Button>`. Quick action tile hover tints kept domain-themed (Circulation → primary, Catalogue → accent-amber).
+- [x] Task 4: Migrate `app/dashboard/admin/users/page.tsx` (1155 lines, ~61 hits) in 6 chunks: top "Add staff" form + status banner; section header + search + thead; desktop table cells + actions; mobile card list; pagination + delete confirmation modal; UserDetailEditor sub-component. Inline `<Button>` adopted for primary CTAs. Status banner: error → primary tokens, success → success tokens. Destructive Delete button: `border-primary/30 text-primary hover:bg-primary/5` pattern.
+- [x] Task 5: Verify `app/dashboard/admin/loading.tsx` + `app/dashboard/admin/users/loading.tsx` — both no-op (delegate to migrated `PageLoadingSkeleton`).
+- [x] Task 6: Chat 13 audit + combined commit (commit hash to be backfilled below).
+
+---
+
 ## Batch 2 COMPLETE ✅ (with documented carry-overs to Batch 3)
 
 All Chat 9–12 student-facing surfaces migrated. Carry-overs to Batch 3:

@@ -17,7 +17,6 @@ import {
 import clsx from 'clsx';
 import MobileMenu from '@/app/ui/dashboard/mobileMenu';
 import ThemeToggle from '@/app/ui/theme/themeToggle';
-import { useTheme } from '@/app/ui/theme/themeProvider';
 import type { DashboardUserProfile, DashboardRole } from '@/app/lib/auth/types';
 
 type BottomNavItem = {
@@ -62,8 +61,6 @@ type MobileNavProps = {
 
 export default function MobileNav({ user, isBypassed }: MobileNavProps) {
   const pathname = usePathname();
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
   const [hasUnread, setHasUnread] = useState(false);
 
   useEffect(() => {
@@ -95,14 +92,7 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
   return (
     <>
       {/* ── Top header ───────────────────────────── */}
-      <header
-        className={clsx(
-          'sticky top-0 z-40 flex items-center justify-between gap-3 border-b px-4 py-3 backdrop-blur-md md:hidden',
-          isDark
-            ? 'border-white/10 bg-swin-dark-surface/90 text-white'
-            : 'border-swin-charcoal/10 bg-white/90 text-swin-charcoal',
-        )}
-      >
+      <header className="sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-hairline bg-canvas/90 px-4 py-3 text-ink backdrop-blur-md dark:border-dark-hairline dark:bg-dark-canvas/90 dark:text-on-dark md:hidden">
         <div className="flex items-center gap-2">
           <MobileMenu user={user} />
         </div>
@@ -118,12 +108,12 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
           />
           <span
             className={clsx(
-              'rounded-full px-2 py-0.5 font-mono text-[9px] font-bold tracking-[1.8px]',
+              'rounded-pill px-2 py-0.5 font-mono text-[9px] font-bold tracking-[1.8px]',
               user.role === 'admin'
-                ? 'bg-swin-red/15 text-swin-red'
+                ? 'bg-primary/15 text-primary dark:bg-dark-primary/20 dark:text-dark-primary'
                 : user.role === 'staff'
-                ? 'bg-swin-gold/15 text-swin-gold'
-                : 'bg-swin-charcoal/10 text-swin-charcoal/60 dark:bg-white/10 dark:text-white/60',
+                ? 'bg-accent-amber/15 text-accent-amber'
+                : 'bg-surface-cream-strong text-muted dark:bg-dark-surface-strong dark:text-on-dark-soft',
             )}
           >
             {roleBadge(user.role)}
@@ -132,7 +122,7 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
 
         <div className="flex items-center gap-1.5">
           {isBypassed && (
-            <span className="rounded-full border border-amber-400/40 bg-amber-400/10 px-2 py-0.5 font-mono text-[9px] font-bold tracking-wider text-amber-600 dark:text-amber-300">
+            <span className="rounded-pill border border-warning/40 bg-warning/10 px-2 py-0.5 font-mono text-[9px] font-bold tracking-wider text-warning">
               DEV
             </span>
           )}
@@ -142,12 +132,7 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
 
       {/* ── Bottom navigation ────────────────────── */}
       <nav
-        className={clsx(
-          'fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur-xl md:hidden',
-          isDark
-            ? 'border-white/10 bg-swin-dark-surface/90'
-            : 'border-swin-charcoal/10 bg-white/90',
-        )}
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-hairline bg-canvas/90 backdrop-blur-xl dark:border-dark-hairline dark:bg-dark-canvas/90 md:hidden"
         aria-label="Primary mobile"
         style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 10px)' }}
       >
@@ -165,21 +150,13 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
                   className="flex flex-1 flex-col items-center gap-1"
                   aria-current={active ? 'page' : undefined}
                 >
-                  <div
-                    className="-mt-3.5 flex h-[46px] w-[46px] items-center justify-center rounded-[14px] text-white transition"
-                    style={{
-                      background: 'linear-gradient(135deg, #A81C2A, #C82333)',
-                      boxShadow: '0 8px 20px rgba(200,35,51,0.35)',
-                    }}
-                  >
+                  <div className="-mt-3.5 flex h-[46px] w-[46px] items-center justify-center rounded-[14px] bg-primary text-on-primary transition hover:bg-primary-active dark:bg-dark-primary">
                     <Icon className="h-5 w-5" strokeWidth={2} />
                   </div>
                   <span
                     className={clsx(
-                      'text-[10px] font-semibold',
-                      active
-                        ? 'text-swin-red'
-                        : 'text-swin-charcoal/50 dark:text-white/50',
+                      'font-sans text-[10px] font-semibold',
+                      active ? 'text-primary dark:text-dark-primary' : 'text-muted-soft dark:text-on-dark-soft',
                     )}
                   >
                     {item.label}
@@ -194,19 +171,17 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
                 href={item.href}
                 className={clsx(
                   'flex flex-1 flex-col items-center gap-0.5 py-1',
-                  active
-                    ? 'text-swin-red'
-                    : 'text-swin-charcoal/55 dark:text-white/55',
+                  active ? 'text-primary dark:text-dark-primary' : 'text-muted dark:text-on-dark-soft',
                 )}
                 aria-current={active ? 'page' : undefined}
               >
                 <span className="relative">
                   <Icon className="h-5 w-5" strokeWidth={active ? 2 : 1.6} />
                   {showDot && (
-                    <span className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full bg-swin-red ring-2 ring-white dark:ring-swin-dark-surface" />
+                    <span className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full bg-primary ring-2 ring-canvas dark:ring-dark-canvas" />
                   )}
                 </span>
-                <span className={clsx('text-[10px]', active ? 'font-semibold' : 'font-medium')}>
+                <span className={clsx('font-sans text-[10px]', active ? 'font-semibold' : 'font-medium')}>
                   {item.label}
                 </span>
               </Link>

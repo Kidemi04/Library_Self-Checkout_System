@@ -18,7 +18,6 @@ import {
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import BlurFade from '@/app/ui/magicUi/blurFade';
-import { useTheme } from '@/app/ui/theme/themeProvider';
 import type { DashboardRole } from '@/app/lib/auth/types';
 
 // Define the Link type to support nested children
@@ -114,7 +113,6 @@ export default function NavLinks({
   showLabels?: boolean;
 }) {
   const pathname = usePathname();
-  const { theme } = useTheme();
   const [openSection, setOpenSection] = useState<string | null>(null); // Track collapsed state
   const [hasUnread, setHasUnread] = useState(false);
 
@@ -143,24 +141,20 @@ export default function NavLinks({
   }, [pathname]);
   
   const links = role === 'admin' ? adminLinks : role === 'staff' ? staffLinks : userLinks;
-  const isDarkTheme = theme === 'dark';
 
   // Helper to toggle collapse
   const handleToggle = (name: string) => {
     setOpenSection(openSection === name ? null : name);
   };
 
-  const activeVariant = isDarkTheme
-    ? 'bg-gradient-to-r from-white/20 to-white/10 text-white shadow-xl shadow-white/10 scale-[1.02]'
-    : 'bg-gradient-to-r from-swin-red to-swin-red/90 text-swin-ivory shadow-xl shadow-swin-red/30 scale-[1.02]';
+  const activeVariant =
+    'bg-primary/10 text-primary border-primary/20 dark:bg-dark-primary/15 dark:text-dark-primary dark:border-dark-primary/30';
 
-  const inactiveVariant = isDarkTheme
-    ? 'bg-transparent text-slate-200/80 hover:bg-white/10 hover:text-white hover:scale-[1.01] hover:shadow-lg border-white/10'
-    : 'bg-black/10 text-swin-ivory/80 hover:bg-swin-red/80 hover:text-white hover:scale-[1.01] hover:shadow-lg border-transparent shadow-sm';
+  const inactiveVariant =
+    'bg-transparent text-body border-hairline hover:bg-surface-cream-strong hover:text-ink dark:text-on-dark/80 dark:border-dark-hairline dark:hover:bg-dark-surface-strong dark:hover:text-on-dark';
 
-  const subLinkVariant = isDarkTheme
-    ? 'text-slate-400 hover:text-white hover:bg-white/5'
-    : 'text-swin-ivory/70 hover:text-white hover:bg-white/10';
+  const subLinkVariant =
+    'text-muted hover:text-ink hover:bg-surface-cream-strong dark:text-on-dark-soft dark:hover:text-on-dark dark:hover:bg-dark-surface-strong';
 
   return (
     <>
@@ -178,7 +172,7 @@ export default function NavLinks({
                 <button
                   onClick={() => handleToggle(name)}
                   className={clsx(
-                    'flex h-auto w-full items-center justify-between gap-2 rounded-xl border py-3.5 px-3 text-sm font-medium transition-all duration-300 ease-out active:scale-95',
+                    'flex h-auto w-full items-center justify-between gap-2 rounded-btn border py-3.5 px-3 font-sans text-body-sm font-medium transition active:scale-95',
                     isActive ? activeVariant : inactiveVariant
                   )}
                 >
@@ -193,7 +187,7 @@ export default function NavLinks({
                 <Link
                   href={href}
                   className={clsx(
-                    'flex h-auto w-full items-center gap-2 rounded-xl border py-3.5 px-3 text-sm font-medium transition-all duration-300 ease-out active:scale-95',
+                    'flex h-auto w-full items-center gap-2 rounded-btn border py-3.5 px-3 font-sans text-body-sm font-medium transition active:scale-95',
                     isActive ? activeVariant : inactiveVariant
                   )}
                   onClick={onNavigate}
@@ -201,7 +195,7 @@ export default function NavLinks({
                   <span className="relative flex-shrink-0">
                     <LinkIcon className="w-5" />
                     {name === 'Notifications' && hasUnread && (
-                      <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-swin-red ring-2 ring-swin-charcoal/80 dark:ring-slate-950" />
+                      <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-canvas dark:ring-dark-canvas" />
                     )}
                   </span>
                   <span className={clsx(showLabels ? 'block' : 'hidden md:block')}>{name}</span>
@@ -219,8 +213,10 @@ export default function NavLinks({
                         href={child.href}
                         onClick={onNavigate}
                         className={clsx(
-                          'rounded-lg py-2.5 px-3 text-xs font-medium transition-all duration-200',
-                          isChildActive ? 'bg-white/20 text-white' : subLinkVariant
+                          'rounded-btn px-3 py-2.5 font-sans text-caption font-medium transition',
+                          isChildActive
+                            ? 'bg-primary/10 text-primary dark:bg-dark-primary/15 dark:text-dark-primary'
+                            : subLinkVariant
                         )}>
                         {child.name}
                       </Link>
