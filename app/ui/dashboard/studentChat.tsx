@@ -828,23 +828,29 @@ export default function StudentChat({
             Courses on LinkedIn Learning
           </h3>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-            Suggested based on your interests. Opens LinkedIn Learning search.
+            Suggested based on your interests. Opens LinkedIn Learning.
           </p>
           <div className="mt-3 flex flex-col gap-2">
-            {linkedInSuggestions.map((suggestion) => (
-              <a
-                key={suggestion.query}
-                href={`https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(suggestion.query)}`}
+            {linkedInSuggestions.map((suggestion) => {
+              const href = suggestion.url
+                ? suggestion.url
+                : `https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(suggestion.query)}`;
+
+              return (
+                <a
+                  key={suggestion.url ?? suggestion.query}
+                  href={href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-sm transition hover:border-[#0A66C2] hover:text-[#0A66C2] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-[#0A66C2] dark:hover:text-[#70B5F9]"
-              >
-                <span>{suggestion.title}</span>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 shrink-0 opacity-50">
-                  <path fillRule="evenodd" d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h4a.75.75 0 010 1.5h-4zm6.5-1a.75.75 0 010-1.5h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V5.56l-3.72 3.72a.75.75 0 11-1.06-1.06l3.72-3.72H10.75z" clipRule="evenodd" />
-                </svg>
-              </a>
-            ))}
+                >
+                  <span>{suggestion.title}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 shrink-0 opacity-50">
+                    <path fillRule="evenodd" d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h4a.75.75 0 010 1.5h-4zm6.5-1a.75.75 0 010-1.5h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V5.56l-3.72 3.72a.75.75 0 11-1.06-1.06l3.72-3.72H10.75z" clipRule="evenodd" />
+                  </svg>
+                </a>
+              );
+            })}
           </div>
         </div>
       )}
