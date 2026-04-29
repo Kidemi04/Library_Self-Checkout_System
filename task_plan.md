@@ -135,7 +135,7 @@ Decisions outside literal plan recipe logged in `findings.md` 2026-04-29 Chat 9 
 - [x] Task 3: Migrate `app/ui/dashboard/admin/adminDashboard.tsx` (281 lines). KPI cards + chart card + overdue alert + quick actions + recent activity + most borrowed all migrated. ACTIVITY_COLORS literal hex map replaced with className-based ACTIVITY_DOT_CLASSES (semantic tokens: borrowed → accent-amber, returned → success, held → accent-teal, overdue → primary). "Add book" inline CTA replaced with shared `<Button>`. Quick action tile hover tints kept domain-themed (Circulation → primary, Catalogue → accent-amber).
 - [x] Task 4: Migrate `app/dashboard/admin/users/page.tsx` (1155 lines, ~61 hits) in 6 chunks: top "Add staff" form + status banner; section header + search + thead; desktop table cells + actions; mobile card list; pagination + delete confirmation modal; UserDetailEditor sub-component. Inline `<Button>` adopted for primary CTAs. Status banner: error → primary tokens, success → success tokens. Destructive Delete button: `border-primary/30 text-primary hover:bg-primary/5` pattern.
 - [x] Task 5: Verify `app/dashboard/admin/loading.tsx` + `app/dashboard/admin/users/loading.tsx` — both no-op (delegate to migrated `PageLoadingSkeleton`).
-- [x] Task 6: Chat 13 audit + combined commit (commit hash to be backfilled below).
+- [x] Task 6: Chat 13 audit + combined commit (`a5962ca`).
 
 ---
 
