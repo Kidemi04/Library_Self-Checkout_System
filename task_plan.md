@@ -80,7 +80,7 @@ Decisions outside literal plan recipe logged in `findings.md` 2026-04-29 Chat 9 
 - [x] Task 13: Migrate `app/ui/dashboard/borrowingHistoryFilter.tsx` (form input recipe; eyebrow labels; secondary cream reset button)
 - [x] Task 14: Migrate `app/ui/dashboard/activeLoansTable.tsx` + `app/ui/dashboard/bookCatalogTable.tsx` (table recipe: surface-card wrapper, surface-cream-strong header, hairline-soft row dividers; status badges remapped to semantic tokens; modal form uses form input recipe; ManageBookModal save button uses primary CTA recipe)
 - [x] Task 14b: Migrate `app/ui/dashboard/student/myBooksTabs.tsx` (history-territory carry-over from Chat 9 audit; tab bar with primary underline; history table recipe; reservations card recipe)
-- [x] Task 15: Chat 10 audit + combined commit (commit hash backfilled in progress.md)
+- [x] Task 15: Chat 10 audit + combined commit (`834f48a`)
 
 **Decisions outside literal plan recipe** (see `progress.md` Chat 10 entry):
 - `book/page.tsx` is a server-side redirect — no UI to migrate.
