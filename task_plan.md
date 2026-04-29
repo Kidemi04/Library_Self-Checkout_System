@@ -117,7 +117,7 @@ Decisions outside literal plan recipe logged in `findings.md` 2026-04-29 Chat 9 
 - [x] Task 27: Migrate `app/ui/dashboard/learning/searchResultsPanel.tsx`
 - [x] Task 28: Migrate `app/ui/dashboard/learning-path-generator.tsx` (STAGE_STYLES remap to success/warning/primary)
 - [x] Task 29: Migrate `app/ui/dashboard/studentChat.tsx` (921 lines; user bubble → primary per plan literal; LinkedIn `[#0A66C2]` and Google logo SVG hex retained as third-party brand-color domain coloring)
-- [x] Task 30: Chat 12 audit + Batch 2 acceptance + combined commit (commit hash to be backfilled below)
+- [x] Task 30: Chat 12 audit + Batch 2 acceptance + combined commit (`c422069`)
 
 **Decisions outside literal plan recipe** (see `findings.md` 2026-04-30 Chat 12 entries):
 - `app/dashboard/learning/page.tsx` is a redirect — actual UI lives at `linkedin/page.tsx` (mirrors Chat 10 `book/page.tsx` pattern). Migrated `linkedin/page.tsx` as part of Task 23 scope.
