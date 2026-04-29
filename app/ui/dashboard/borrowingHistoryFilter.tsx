@@ -29,18 +29,18 @@ export default function BorrowingHistoryFilter({ action = '/dashboard/book/histo
     formRef.current?.requestSubmit();
   };
 
-  const desktopLabel = 'hidden sm:block text-xs font-semibold text-slate-900 dark:text-slate-200';
+  const desktopLabel = 'hidden sm:block font-sans text-caption-uppercase text-muted dark:text-on-dark-soft';
 
   const unifiedSelectClass = `
-    cursor-pointer focus:outline-none focus:ring-2 focus:ring-swin-red/50
+    cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas
     absolute inset-0 opacity-0 sm:relative sm:opacity-100
-    sm:mt-1 sm:block sm:rounded-xl sm:border sm:border-slate-300 sm:bg-white sm:px-3 sm:py-2 sm:text-sm
-    dark:sm:border-slate-700 dark:sm:bg-slate-900 dark:sm:text-slate-100
+    sm:mt-1 sm:block sm:rounded-btn sm:border sm:border-hairline sm:bg-canvas sm:px-3 sm:py-2 sm:font-sans sm:text-body-sm sm:text-ink
+    dark:sm:border-dark-hairline dark:sm:bg-dark-surface-soft dark:sm:text-on-dark
   `;
 
   const mobileIconStyle = `
-    flex items-center justify-center w-10 h-10 rounded-full
-    bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400
+    flex items-center justify-center w-10 h-10 rounded-pill
+    bg-surface-cream-strong dark:bg-dark-surface-strong text-muted dark:text-on-dark-soft
     sm:hidden pointer-events-none
   `;
 
@@ -50,8 +50,8 @@ export default function BorrowingHistoryFilter({ action = '/dashboard/book/histo
       action={action}
       method="get"
       className={clsx(
-        'rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition-all',
-        'dark:border-slate-700 dark:bg-slate-900/80',
+        'rounded-card border border-hairline bg-surface-card p-3 transition-all',
+        'dark:border-dark-hairline dark:bg-dark-surface-card/80',
         'flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end',
         className,
       )}
@@ -61,7 +61,7 @@ export default function BorrowingHistoryFilter({ action = '/dashboard/book/histo
         <label htmlFor="q" className={desktopLabel}>Search</label>
         <div className="relative mt-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none sm:hidden">
-            <MagnifyingGlassIcon className="h-4 w-4 text-slate-400" />
+            <MagnifyingGlassIcon className="h-4 w-4 text-muted-soft dark:text-on-dark-soft" />
           </div>
           <input
             id="q"
@@ -69,7 +69,7 @@ export default function BorrowingHistoryFilter({ action = '/dashboard/book/histo
             defaultValue={q}
             placeholder="Search by title or author..."
             onKeyDown={(e) => e.key === 'Enter' && handleAutoSubmit()}
-            className="w-full rounded-xl border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-swin-red/50 sm:pl-3 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            className="w-full rounded-btn border border-hairline bg-canvas py-2 pl-9 pr-3 font-sans text-body-md text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas sm:pl-3 dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
           />
         </div>
       </div>
@@ -100,11 +100,11 @@ export default function BorrowingHistoryFilter({ action = '/dashboard/book/histo
         <div className="flex items-center sm:ml-auto">
           <a
             href={action}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 sm:h-auto sm:w-auto sm:rounded-xl sm:px-4 sm:py-2 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
+            className="flex h-10 w-10 items-center justify-center rounded-pill border border-hairline bg-surface-card text-ink hover:bg-surface-cream-strong sm:h-auto sm:w-auto sm:rounded-btn sm:px-4 sm:py-2 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong transition-colors"
             title="Reset Filters"
           >
             <ArrowPathIcon className="h-5 w-5 sm:hidden" />
-            <span className="hidden sm:inline text-sm font-semibold">Reset</span>
+            <span className="hidden sm:inline font-sans text-button">Reset</span>
           </a>
         </div>
       </div>

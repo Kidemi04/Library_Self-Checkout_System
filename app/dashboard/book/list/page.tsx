@@ -126,8 +126,8 @@ export default async function BookListPage({
       {/* Editable table (Manage / Delete handled inside the component) */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Catalogue</h2>
-          <p className="text-sm text-swin-charcoal/60 dark:text-slate-300">Showing {uiBooks.length} records</p>
+          <h2 className="font-display text-display-md text-ink dark:text-on-dark">Catalogue</h2>
+          <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">Showing {uiBooks.length} records</p>
         </div>
         <BookCatalogTable books={uiBooks} />
       </section>

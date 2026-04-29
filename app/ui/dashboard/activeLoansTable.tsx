@@ -35,75 +35,73 @@ export default function ActiveLoansTable({
 }) {
   if (!loans.length) {
     return (
-      <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 text-center text-sm text-swin-charcoal/60 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200/80">
+      <div className="rounded-card border border-hairline bg-surface-card p-6 text-center font-sans text-body-md text-muted dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft">
         No books are currently on loan.
       </div>
     );
   }
 
   return (
-    <div className="rounded-2xl border border-swin-charcoal/10 bg-white shadow-sm shadow-swin-charcoal/5 dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-black/20">
-      <div className="rounded-2xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-swin-charcoal/10 dark:divide-slate-800">
-            <thead className="bg-swin-ivory dark:bg-slate-900">
-              <tr className="text-left text-xs font-semibold uppercase tracking-wider text-swin-charcoal/70 dark:text-slate-200/80">
-                <th className="px-6 py-3">Borrower</th>
-                <th className="px-6 py-3">Book</th>
-                <th className="px-6 py-3">Due</th>
-                {showActions ? <th className="px-6 py-3 text-right">Return</th> : null}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-swin-charcoal/10 bg-white text-sm dark:divide-slate-800 dark:bg-slate-900 dark:text-slate-200">
-              {loans.map((loan) => {
-                const overdue = isOverdue(loan);
+    <div className="rounded-card border border-hairline bg-surface-card overflow-hidden dark:border-dark-hairline dark:bg-dark-surface-card">
+      <div className="overflow-x-auto">
+        <table className="min-w-full">
+          <thead className="bg-surface-cream-strong dark:bg-dark-surface-strong">
+            <tr className="text-left font-sans text-caption-uppercase text-ink dark:text-on-dark">
+              <th className="px-6 py-3">Borrower</th>
+              <th className="px-6 py-3">Book</th>
+              <th className="px-6 py-3">Due</th>
+              {showActions ? <th className="px-6 py-3 text-right">Return</th> : null}
+            </tr>
+          </thead>
+          <tbody className="font-sans text-body-sm text-body dark:text-on-dark/80">
+            {loans.map((loan) => {
+              const overdue = isOverdue(loan);
 
-                return (
-                  <tr key={loan.id} className="transition hover:bg-swin-ivory dark:hover:bg-slate-800/80">
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-swin-charcoal dark:text-slate-100">{loan.borrowerName ?? 'Unknown borrower'}</div>
-                      <p className="text-xs capitalize text-swin-charcoal/60 dark:text-slate-400">
-                        {roleLabel(loan.borrowerRole)} · ID {loan.borrowerIdentifier ?? '—'}
-                      </p>
+              return (
+                <tr key={loan.id} className="border-t border-hairline-soft transition hover:bg-surface-cream-strong/50 dark:border-dark-hairline dark:hover:bg-dark-surface-strong/50">
+                  <td className="px-6 py-4">
+                    <div className="font-sans text-title-md text-ink dark:text-on-dark">{loan.borrowerName ?? 'Unknown borrower'}</div>
+                    <p className="font-sans text-caption capitalize text-muted dark:text-on-dark-soft">
+                      {roleLabel(loan.borrowerRole)} · ID {loan.borrowerIdentifier ?? '—'}
+                    </p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="font-sans text-title-md text-ink dark:text-on-dark">
+                      {loan.book?.title ?? 'Untitled'}
+                    </div>
+                    <p className="font-mono text-code text-muted dark:text-on-dark-soft">
+                      {loan.copy?.barcode
+                        ? `Barcode ${loan.copy.barcode}`
+                        : loan.book?.isbn
+                          ? `ISBN ${loan.book.isbn}`
+                          : '—'}
+                    </p>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`inline-flex items-center rounded-pill px-3 py-1 font-sans text-caption font-semibold ${
+                        overdue
+                          ? 'bg-primary text-on-primary'
+                          : 'bg-surface-cream-strong text-ink dark:bg-dark-surface-strong dark:text-on-dark'
+                      }`}
+                    >
+                      {formatDate(loan.dueAt)}
+                    </span>
+                  </td>
+                  {showActions ? (
+                    <td className="px-6 py-4 text-right">
+                      <QuickCheckInButton
+                        loanId={loan.id}
+                        bookTitle={loan.book?.title ?? undefined}
+                        borrowerName={loan.borrowerName ?? undefined}
+                      />
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="font-medium text-swin-charcoal dark:text-slate-100">
-                        {loan.book?.title ?? 'Untitled'}
-                      </div>
-                      <p className="text-xs text-swin-charcoal/60 dark:text-slate-400">
-                        {loan.copy?.barcode
-                          ? `Barcode ${loan.copy.barcode}`
-                          : loan.book?.isbn
-                            ? `ISBN ${loan.book.isbn}`
-                            : '—'}
-                      </p>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                          overdue
-                            ? 'bg-swin-red/10 text-swin-red dark:bg-swin-red/25 dark:text-red-100'
-                            : 'bg-swin-charcoal/10 text-swin-charcoal dark:bg-slate-800 dark:text-slate-100'
-                        }`}
-                      >
-                        {formatDate(loan.dueAt)}
-                      </span>
-                    </td>
-                    {showActions ? (
-                      <td className="px-6 py-4 text-right">
-                        <QuickCheckInButton
-                          loanId={loan.id}
-                          bookTitle={loan.book?.title ?? undefined}
-                          borrowerName={loan.borrowerName ?? undefined}
-                        />
-                      </td>
-                    ) : null}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                  ) : null}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

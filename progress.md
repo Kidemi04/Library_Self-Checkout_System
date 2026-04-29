@@ -14,10 +14,10 @@
 
 ## Current position
 
-- **Current batch:** 2 (Student-facing) — Chat 9 of 4 done
-- **Current chat:** 7 of 16 done (this chat = Chat 9 in spec numbering — Login + main dashboard + nav full migration)
-- **Last completed:** Tasks 1–8 of Chat 9. Files migrated: `sidenav.tsx`, `mobileMenu.tsx`, `app/login/page.tsx` (no-op), `app/login/LoginClient.tsx`, `app/ui/loginForm.tsx`, `app/dashboard/page.tsx` (no-op), `app/ui/dashboard/student/studentDashboard.tsx` (option-A user-aligned scope addition), `app/ui/dashboard/student/myBooksCard.tsx`, `app/ui/dashboard/student/quickActions.tsx`, `app/ui/dashboard/summaryCards.tsx`. Combined commit `0e33402`. `pnpm tsc --noEmit` clean throughout. Per-file residue grep: 0 hits for legacy `swin-*`, `bg-white`, `text-gray|slate`, `bg-gray|slate`, `border-gray|slate`, `rounded-2xl` across all 8 in-scope files.
-- **Next step:** **Open a new chat to start Chat 10 (book browse + borrow history).** First action: read this `progress.md` + `task_plan.md` + Batch 2 plan (`docs/superpowers/plans/2026-04-29-ui-claude-batch-2-student-facing.md`) "Chat 10" section, then execute via `superpowers:executing-plans`. Files in scope per spec §7 / Batch 2 plan Chat 10: `book/page`, `book/list/page`, `book/history/page+loading`, `bookListMobile`, `borrowingHistoryFilter`, `activeLoansTable`, `bookCatalogTable`. Chat 10 should also pick up `app/ui/dashboard/student/myBooksTabs.tsx` (23+ legacy hits; consumed by `app/dashboard/my-books/page.tsx` which is history-adjacent) — was discovered during Chat 9 audit, defer to Chat 10 since it's history-territory not main-dashboard.
+- **Current batch:** 2 (Student-facing) — Chat 10 of 4 done
+- **Current chat:** 8 of 16 done (this chat = Chat 10 in spec numbering — Book browse + borrow history)
+- **Last completed:** Tasks 9–14b + 15 of Chat 10. Files migrated: `app/dashboard/book/page.tsx` (no-op redirect), `app/dashboard/book/list/page.tsx`, `app/dashboard/book/history/page.tsx`, `app/dashboard/book/history/loading.tsx` (no-op — delegates to shared `PageLoadingSkeleton`, deferred), `app/ui/dashboard/bookListMobile.tsx`, `app/ui/dashboard/borrowingHistoryFilter.tsx`, `app/ui/dashboard/activeLoansTable.tsx`, `app/ui/dashboard/bookCatalogTable.tsx`, `app/ui/dashboard/student/myBooksTabs.tsx`. Combined commit hash backfilled below. `pnpm tsc --noEmit` clean throughout. Per-file residue grep: 0 hits for legacy `swin-*|bg-white|text-gray|bg-gray|text-slate|bg-slate|border-slate|border-gray|rounded-2xl` across all 9 in-scope files. **4 retained `text-white` literals** in `bookCatalogTable.tsx` for category-palette filter chips (blue/emerald/purple/orange) — domain coloring, intentional retention documented in commit body.
+- **Next step:** **Open a new chat to start Chat 11 (camera scan + profile + notifications).** First action: read this `progress.md` + `task_plan.md` + Batch 2 plan "Chat 11" section, then execute via `superpowers:executing-plans`. Files in scope per spec §7 / Batch 2 plan Chat 11: `cameraScan/page`, `profile/page`, `profileEditForm`, `profileNameForm`, `profileAvatarForm`, `notifications/loading`, `notificationPanel`, `notificationToast`. Chat 11 will likely encounter the shared `PageLoadingSkeleton` (`app/ui/pageLoadingSkeleton.tsx`) since `notifications/loading.tsx` consumes it — decide whether to migrate the shared skeleton in Chat 11 (affects 6 pages) or defer to Batch 3 cleanup.
 
 ## What's done
 
@@ -72,12 +72,25 @@
   - [x] Task 7: `summaryCards.tsx` (dropped GlassCard wrapper for plain card recipe — glass on cream is barely visible; semantic icon colors per spec §3.5: totalBooks → muted, availableBooks → success, activeLoans → accent-teal, overdueLoans → primary; KPI numeral uses `font-display text-display-sm` per spec §6.2)
   - [x] Task 8: Quality gate — `pnpm tsc --noEmit` clean throughout; per-file residue grep on all 8 in-scope files = 0 hits across `swin-charcoal|swin-ivory|swin-gold|swin-dark-bg|swin-dark-surface|swin-red|bg-white|text-white|text-gray-|bg-gray-|text-slate-|bg-slate-|border-slate-|border-gray-|rounded-2xl`; combined commit, progress update.
   - **Decisions outside plan literal text:** see `findings.md` 2026-04-29 Chat 9 — three entries covering (1) sidenav active nav uses primary tint (plan author was conservative — spec §3.5 sanctions primary for active state), (2) sidenav inline labeled theme toggle preserved (better UX in vertical sidebar than icon-only ThemeToggle), (3) mobileMenu drawer goes cream-in-light per Claude design with documented temporary mismatch against still-dark mobileNav header.
+- [x] **Chat 10 (spec) — Book browse + borrow history** (combined commit hash backfilled below)
+  - [x] Task 9: `app/dashboard/book/page.tsx` (no-op — server-only redirect to `/dashboard/book/items`)
+  - [x] Task 10: `app/dashboard/book/list/page.tsx` (server component composing `<DashboardTitleBar>` + `<SearchForm>` + `<CreateBookForm>` + `<BookCatalogTable>`; only the inline section heading `<h2>Catalogue</h2>` + "Showing N records" caption needed token swaps — h2 → `font-display text-display-md text-ink dark:text-on-dark`, caption → `font-sans text-body-sm text-muted dark:text-on-dark-soft`)
+  - [x] Task 11: `app/dashboard/book/history/page.tsx` (full migration: EmptyState card recipe + primary CTA, HistoryRow per table recipe with row title `font-sans text-title-md`, author italic `text-body-sm muted`, mono date cells with returned-date in `text-success`, table thead `bg-surface-cream-strong`, header cells `text-caption-uppercase text-ink`, table wrapper `rounded-card border-hairline bg-surface-card`, h2 "Past loans" → `font-display text-display-md`) + `loading.tsx` (NO-OP — delegates to shared `app/ui/pageLoadingSkeleton.tsx` which is consumed by 6 pages including Chat 11's `notifications/loading.tsx`; migrating would silently affect Chat 11 audit, so deferred)
+  - [x] Task 12: `app/ui/dashboard/bookListMobile.tsx` (full migration: outer wrapper card recipe; row hover `hover:bg-surface-cream-strong` with `p-5` per LoanCard density; status pills cream-strong/primary-tint conditional; description as `text-body-sm body`; metadata grid uses `text-caption-uppercase` labels with `font-mono text-code` values; tags as cream-strong rounded-pill chips)
+  - [x] Task 13: `app/ui/dashboard/borrowingHistoryFilter.tsx` (full migration: form container card recipe minus shadow; eyebrow desktop labels; search input form recipe with primary focus ring; mobile filter icon backgrounds → `bg-surface-cream-strong`; reset link → secondary cream button responsive (round on mobile, btn on desktop))
+  - [x] Task 14: `app/ui/dashboard/activeLoansTable.tsx` + `app/ui/dashboard/bookCatalogTable.tsx` (table recipe: `surface-card` wrapper, `surface-cream-strong` thead band, `hairline-soft` row dividers, hover `surface-cream-strong/50`; row-level title `text-title-md`, ISBN/barcode `font-mono text-code`; status pills overdue → solid primary fill, default → cream-strong; `bookCatalogTable.tsx` modal form fields use form input recipe; Save → primary CTA recipe; Manage/Cancel → secondary cream; Delete buttons → `border-primary/20 text-primary hover:bg-primary/5`; `renderStatusBadge` + `renderSipStatusBadge` remapped to semantic tokens (success/warning/accent-teal/primary); `Th`/`Td`/`HeaderLabel`/`Field` helpers all migrated)
+  - [x] Task 14b: `app/ui/dashboard/student/myBooksTabs.tsx` (history-territory carry-over from Chat 9 audit; tab bar with `border-hairline` underline; active tab text-ink with `bg-primary` underline-stripe; inactive tabs muted-soft hover muted; tab-count badges cream/primary-tint conditional; History panel uses table recipe + row-level title `text-title-md`, author italic `text-body-sm muted`, mono date cells with returned-date `text-success`; Reservations panel uses card recipe per hold with cancel-action divider `border-hairline-soft`; both empty states use card recipe + display-sm + primary CTA)
+  - [x] Task 15: Chat 10 audit + combined commit. Project-wide `pnpm tsc --noEmit` clean. Per-file residue grep across all 9 in-scope files = 0 hits for `swin-*|bg-white|text-gray|bg-gray|text-slate|bg-slate|border-slate|border-gray|rounded-2xl`. **Retained 4 `text-white` literals** in `bookCatalogTable.tsx` lines 389-392 for category-palette filter chips (`bg-blue-600 text-white`, `bg-emerald-600 text-white`, `bg-purple-600 text-white`, `bg-orange-600 text-white`) — these are intentional domain-color category badges; `text-on-primary` (= `#FFFFFF`) is value-identical but semantic mismatch on non-primary backgrounds.
+  - **Decisions outside plan literal text:**
+    - `book/history/loading.tsx` left untouched because it delegates to shared `PageLoadingSkeleton`. Migrating the shared skeleton would silently change 6 pages (incl. Chat 11's `notifications/loading.tsx` which is in scope for Chat 11 audit). Defer to Chat 11 or Batch 3 cleanup.
+    - `bookCatalogTable.tsx` category-palette colors (blue/emerald/purple/orange tints with `text-white` solids) preserved as domain coloring. The audit grep against the 4 lines is documented as known retention.
+    - `bookCatalogTable.tsx` `renderStatusBadge` had domain status colors (`bg-green-100/text-green-700`, `bg-amber-100/text-amber-800`, `bg-indigo-*`, `bg-rose-*`, `bg-yellow-*`, `bg-sky-*`, `bg-violet-*`, `bg-orange-*`) remapped to semantic design tokens (`success/warning/accent-teal/primary`). This loses the per-status hue contrast but stays inside the design system. If visual review reveals the consolidated palette is too uniform, Batch 3 may extend the token system with more semantic hues.
+    - `bookCatalogTable.tsx` `Field` helper component is defined but I see no usage — migrated for consistency / future use. Left in place rather than deleted (Batch 3 dead-code sweep can remove if confirmed unused).
 
-## What's next (Batch 2 — Chats 10/11/12 remaining)
+## What's next (Batch 2 — Chats 11/12 remaining)
 
-Chat 9 done. Three more Chats in Batch 2:
-- **Chat 10** — book browse + borrow history. Files: `dashboard/book/page`, `dashboard/book/list/page`, `dashboard/book/history/page+loading`, `bookListMobile`, `borrowingHistoryFilter`, `activeLoansTable`, `bookCatalogTable`. **Plus** `app/ui/dashboard/student/myBooksTabs.tsx` (discovered Chat 9; consumed by `app/dashboard/my-books/page.tsx`; ~23+ legacy hits; history-territory).
-- **Chat 11** — camera scan + profile + notifications.
+Chat 10 done. Two more Chats in Batch 2:
+- **Chat 11** — camera scan + profile + notifications. Files: `cameraScan/page`, `profile/page`, `profileEditForm`, `profileNameForm`, `profileAvatarForm`, `notifications/loading`, `notificationPanel`, `notificationToast`. Decide skeleton-shared question (see Chat 10 deferred decision) at start of Chat 11.
 - **Chat 12** — learning module + Batch 2 acceptance audit.
 
 Plan source of truth: `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-student-facing.md` (committed `24ff5f0`). Each subsequent chat reads the plan's relevant Chat section and executes via `superpowers:executing-plans`.
@@ -92,14 +105,17 @@ Plan source of truth: `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-stude
 
 ## Notes for next chat
 
-- **Chat 9 of Batch 2 is COMPLETE.** Next chat starts Chat 10 (book browse + borrow history — see plan file).
+- **Chat 10 of Batch 2 is COMPLETE.** Next chat starts Chat 11 (camera scan + profile + notifications — see plan file).
 - All commits are local. **User has not been asked to push.** Per user preference (memory `feedback_git_push.md`): always confirm branch + non-main destination before pushing.
 - `.worktrees/` is ignored / untracked — leave alone.
 - `DESIGN.md` (project root) is currently untracked. User may want to commit it separately; not part of this redesign work.
 - The custom `ThemeProvider` at `app/ui/theme/themeProvider.tsx` is what drives `dark` class on `<html>`. **Do not introduce `next-themes`** — Tailwind `dark:` prefix already works against the custom provider. Note: ThemeProvider applies the `dark` class via post-hydration `useEffect` (no pre-hydration script), so dark-mode users see a brief light-mode flash on first load. Fixing this is a Batch 2/3 ThemeProvider-side cookie-read SSR change, not a per-component fix. See `findings.md` 2026-04-29 Chat 8 first entry for context.
 - **No `pnpm lint` script exists in this project** — quality gate is `pnpm tsc --noEmit` only. See `findings.md` 2026-04-29 Chat 2 entry. Do not chase the missing lint setup.
-- **Visual confirmation pending for Batches 1+2-Chat-9:** Font self-host, primitives, shell + chrome (Batch 1) and login + main dashboard + nav full migration (Chat 9) have not been browser-verified. User handles UI testing per memory `feedback_testing.md`. `pnpm tsc --noEmit` clean throughout — structural pass only. **The `/dev/primitives` page is live** — visit `http://localhost:3000/dev/primitives` after `pnpm dev`. The `/dashboard` and `/login` routes now show migrated UI for visual review.
+- **Visual confirmation pending for Batches 1+2-Chat-9+10:** Font self-host, primitives, shell + chrome (Batch 1), login + main dashboard + nav (Chat 9), and book browse + borrow history (Chat 10) have not been browser-verified. User handles UI testing per memory `feedback_testing.md`. `pnpm tsc --noEmit` clean throughout — structural pass only. **The `/dev/primitives` page is live** — visit `http://localhost:3000/dev/primitives` after `pnpm dev`. Routes now showing migrated UI: `/login`, `/dashboard`, `/dashboard/book/list`, `/dashboard/book/history`, `/dashboard/my-books` (uses `myBooksTabs.tsx`).
 - **Chat 9 known mismatches awaiting later chats:** (1) mobileMenu drawer is cream in light mode but `mobileNav.tsx` header is still dark/un-migrated (visible in light-mode mobile view) — `mobileNav.tsx` and `navLinks.tsx` are nav-shell siblings missed by Batch 1 Chat 8; pick up in Batch 3 cleanup. (2) `staffDashboard.tsx` (287 lines, 31 legacy hits) un-migrated — staff-facing, Batch 3 territory.
+- **Chat 10 deferred items for Chat 11/Batch 3:**
+  - **Shared `app/ui/pageLoadingSkeleton.tsx`** still uses `bg-slate-100/200/700/800`, `dark:bg-slate-700/800`, `border-slate-100/800`, `rounded-2xl`. Consumed by 6 active pages. Recommend migrating in Chat 11 (since `notifications/loading.tsx` is in Chat 11 scope and is one of the consumers) — or, if Chat 11 wants to stay scope-tight, leave for Batch 3 cleanup. Either way, document the decision at top of Chat 11.
+  - **`bookCatalogTable.tsx` category palette** retains 4 `text-white` literals on saturated category buttons (`bg-{blue|emerald|purple|orange}-600`). These are intentional domain coloring; do not chase in subsequent residue grep audits.
 - **Cormorant residue:** **fully cleared** for `app/` as of Chat 7. Project-wide `grep` for `Cormorant` returns 0 results across `app/` and `tailwind.config.ts`. The `Cormorant` literal still appears in `findings.md` and `progress.md` historical notes; that's documentation, not code, so it does not block Batch 3 acceptance criteria (which targets `app/`).
 - **Dev gallery scope:** `/dev/primitives` exercises `Button`, `Chip`, `StatusBadge`, `KpiCard`, plus typography + color tokens. It does NOT exercise Chat 7 primitives (`BookCover`, `BarChartMini`, `IsbnLookupBox`, `BarcodePreview`) or Chat 8 chrome (`dashboardShell`, `adminShell`, `dashboardTitleBar`, `signOutButton`, `themeToggle`). Plan templates didn't include them. Batch 2/3 may extend the gallery or retire it in Batch 3 per spec §7.
 - **`rounded-pill` token:** Chat 5 added `pill: '9999px'` to `tailwind.config.ts` borderRadius to make plan-written `rounded-pill` classes resolve. Future chats can use `rounded-pill` freely.
@@ -112,31 +128,34 @@ Plan source of truth: `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-stude
 
 ## How to start the next chat
 
-Chat 9 已完成。下一聊做 Chat 10（book browse + borrow history）。Batch 2 plan 已写好并提交（commit `24ff5f0`）。
+Chat 10 已完成。下一聊做 Chat 11（camera scan + profile + notifications）。Batch 2 plan 已写好并提交（commit `24ff5f0`）。
 
 Paste this into the new chat:
 
-> 继续 UI 改造工作。Chat 9 已完成；这一聊做 Chat 10（book browse + borrow history）。
+> 继续 UI 改造工作。Chat 10 已完成；这一聊做 Chat 11（camera scan + profile + notifications）。
 >
 > 先按顺序读：
 > 1. `MEMORY.md`
 > 2. `progress.md`（当前进度）
-> 3. `task_plan.md`（Chat 9 已全部打勾）
-> 4. `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-student-facing.md` 的 "Chat 10" 部分
->    —— 顶部的 "Spec deltas" 是高层 recipe；Chat 10 任务列表在中段
+> 3. `task_plan.md`（Chat 10 已全部打勾）
+> 4. `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-student-facing.md` 的 "Chat 11" 部分
+>    —— 顶部的 "Spec deltas" 是高层 recipe；Chat 11 任务列表在 Tasks 16–22 段
 > 5. Batch 1 plan 顶部的 "Token Migration Reference Table" 当 class-swap 字典
 >
-> 读完直接调 `superpowers:executing-plans` 执行 Chat 10。
+> 读完直接调 `superpowers:executing-plans` 执行 Chat 11。
 >
-> Chat 10 范围 = `book/page`, `book/list/page`, `book/history/page+loading`,
-> `bookListMobile`, `borrowingHistoryFilter`, `activeLoansTable`, `bookCatalogTable`,
-> 加上 `app/ui/dashboard/student/myBooksTabs.tsx`（Chat 9 audit 时发现 ~23 处 legacy
-> token；它服务 `app/dashboard/my-books/page.tsx`，归属 history-territory，所以推到
-> Chat 10 一起做）。
+> Chat 11 范围 = `cameraScan/page`, `profile/page`, `profileEditForm`, `profileNameForm`,
+> `profileAvatarForm`, `notifications/loading`, `notificationPanel`, `notificationToast`.
 >
 > 注意事项：
-> - 表格类组件（activeLoansTable, bookCatalogTable, myBooksTabs）按 Batch 2 plan 的
->   "Spec deltas → Card / panel recipe" + 表格 recipe 处理：surface-card wrapper +
->   surface-cream-strong 表头 + hairline-soft 行分割。
-> - 对 row 级别的状态条件渲染（overdue / available 等）保留逻辑、只换 className 字符串。
+> - **共享 skeleton 决策点：** `app/ui/pageLoadingSkeleton.tsx` 还没动（被 6 个 loading.tsx 共
+>   用，包括本聊 scope 的 `notifications/loading.tsx`）。开聊先决定：是否在 Chat 11 一并迁
+>   shared skeleton？建议：迁。因为 notifications/loading.tsx 是它的消费者之一，本聊本来
+>   就要 audit 这条路径。
+> - 表单（profileEditForm/NameForm/AvatarForm）按 form input recipe + primary `<Button>`
+>   submit；Cancel 用 secondary cream button。
+> - notificationPanel 有现成的 `<NotificationItem>` primitive（Batch 1 已迁）— 内联 item
+>   markup 的话，考虑切到 primitive。
+> - **Chat 10 已留下的 4 处 `text-white` retention** 在 `bookCatalogTable.tsx` 是 category
+>   palette domain color — audit grep 时不要去清。
 > - 每动一个文件跑一次 `pnpm tsc --noEmit`，结尾合并提交一次。

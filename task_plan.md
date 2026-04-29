@@ -68,3 +68,22 @@ All 26 tasks done (Tasks 1–6 token system; 7–14 interactive primitives; 15�
 - [x] Task 8: Chat 9 audit + combined commit (`0e33402`)
 
 Decisions outside literal plan recipe logged in `findings.md` 2026-04-29 Chat 9 entries.
+
+---
+
+## Chat 10 — Book browse + borrow history ✅ DONE
+
+- [x] Task 9: Migrate `app/dashboard/book/page.tsx` (no-op — server-only redirect to `/dashboard/book/items`)
+- [x] Task 10: Migrate `app/dashboard/book/list/page.tsx` (server component; only the section header `<h2>`/caption needed token swaps)
+- [x] Task 11: Migrate `app/dashboard/book/history/page.tsx` (full migration: empty state, table, history rows) + `loading.tsx` (no-op — delegates to shared `PageLoadingSkeleton`; deferred per scope decision)
+- [x] Task 12: Migrate `app/ui/dashboard/bookListMobile.tsx` (card recipe rows p-5; status pills cream/primary-tint; metadata grid uses caption-uppercase + mono codes)
+- [x] Task 13: Migrate `app/ui/dashboard/borrowingHistoryFilter.tsx` (form input recipe; eyebrow labels; secondary cream reset button)
+- [x] Task 14: Migrate `app/ui/dashboard/activeLoansTable.tsx` + `app/ui/dashboard/bookCatalogTable.tsx` (table recipe: surface-card wrapper, surface-cream-strong header, hairline-soft row dividers; status badges remapped to semantic tokens; modal form uses form input recipe; ManageBookModal save button uses primary CTA recipe)
+- [x] Task 14b: Migrate `app/ui/dashboard/student/myBooksTabs.tsx` (history-territory carry-over from Chat 9 audit; tab bar with primary underline; history table recipe; reservations card recipe)
+- [x] Task 15: Chat 10 audit + combined commit (commit hash backfilled in progress.md)
+
+**Decisions outside literal plan recipe** (see `progress.md` Chat 10 entry):
+- `book/page.tsx` is a server-side redirect — no UI to migrate.
+- `book/history/loading.tsx` delegates to shared `PageLoadingSkeleton` (consumed by 6 other pages including Chat 11's `notifications/loading.tsx`); migrating the shared skeleton would silently affect Chat 11 acceptance, so deferred to Chat 11 / Batch 3 cleanup.
+- `bookCatalogTable.tsx` retains 4 `text-white` literals on category-palette filter chips (`bg-blue-600 text-white`, `bg-emerald-600 text-white`, etc.) — these are domain-specific category coloring, not part of the design token system. `text-on-primary` (= `#FFFFFF`) is value-identical but semantically misleading on non-primary backgrounds.
+- `bookCatalogTable.tsx` keeps the per-category Tailwind palette (`blue-300/700/950`, `emerald-300/700/950`, `purple-300/700/950`, `orange-300/700/950`) for the unselected filter chip borders/hovers — same rationale as above.

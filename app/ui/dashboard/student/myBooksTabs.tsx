@@ -44,7 +44,7 @@ export default function MyBooksTabs({
       <div
         role="tablist"
         aria-label="My books"
-        className="mb-7 flex border-b border-swin-charcoal/10 dark:border-white/10"
+        className="mb-7 flex border-b border-hairline dark:border-dark-hairline"
       >
         {tabDef.map(t => {
           const isActive = activeTab === t.id;
@@ -68,24 +68,24 @@ export default function MyBooksTabs({
                 setActiveTab(next.id);
                 document.getElementById(`my-books-tab-${next.id}`)?.focus();
               }}
-              className={`relative pb-3 pr-5 text-[13px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/40 ${
+              className={`relative pb-3 pr-5 font-sans text-button transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 ${
                 isActive
-                  ? 'text-swin-charcoal dark:text-white'
-                  : 'text-swin-charcoal/45 hover:text-swin-charcoal/70 dark:text-white/45 dark:hover:text-white/70'
+                  ? 'text-ink dark:text-on-dark'
+                  : 'text-muted-soft hover:text-muted dark:text-on-dark-soft dark:hover:text-on-dark/70'
               }`}
             >
               {t.label}
               {t.count > 0 && (
-                <span className={`ml-1.5 rounded-full px-1.5 py-0.5 font-mono text-[10px] font-bold ${
+                <span className={`ml-1.5 rounded-pill px-1.5 py-0.5 font-mono text-code font-bold ${
                   isActive
-                    ? 'bg-swin-red/10 text-swin-red'
-                    : 'bg-swin-charcoal/8 text-swin-charcoal/50 dark:bg-white/8 dark:text-white/50'
+                    ? 'bg-primary/10 text-primary dark:bg-dark-primary/15 dark:text-dark-primary'
+                    : 'bg-surface-cream-strong text-muted dark:bg-dark-surface-strong dark:text-on-dark-soft'
                 }`}>
                   {t.count}
                 </span>
               )}
               {isActive && (
-                <span className="absolute bottom-0 left-0 right-5 h-0.5 rounded-t-full bg-swin-red" />
+                <span className="absolute bottom-0 left-0 right-5 h-0.5 rounded-t-full bg-primary" />
               )}
             </button>
           );
@@ -100,10 +100,10 @@ export default function MyBooksTabs({
           className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"
         >
           {activeLoans.length === 0 ? (
-            <div className="col-span-2 rounded-xl border border-dashed border-swin-charcoal/15 bg-white p-10 text-center dark:border-white/10 dark:bg-swin-dark-surface">
-              <p className="font-display text-[18px] font-semibold text-swin-charcoal dark:text-white">No books borrowed</p>
-              <p className="mt-1 text-[13px] text-swin-charcoal/50 dark:text-white/50">You don't have any books checked out right now.</p>
-              <Link href="/dashboard/book/items" className="mt-4 inline-flex rounded-full bg-swin-red px-5 py-2 text-[13px] font-semibold text-white transition hover:bg-swin-red/90">
+            <div className="col-span-2 rounded-card border border-dashed border-hairline bg-surface-card p-10 text-center dark:border-dark-hairline dark:bg-dark-surface-card">
+              <p className="font-display text-display-sm text-ink dark:text-on-dark">No books borrowed</p>
+              <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">You don't have any books checked out right now.</p>
+              <Link href="/dashboard/book/items" className="mt-4 inline-flex items-center justify-center rounded-btn bg-primary px-5 h-10 font-sans text-button text-on-primary transition hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas">
                 Browse catalogue
               </Link>
             </div>
@@ -120,16 +120,16 @@ export default function MyBooksTabs({
           role="tabpanel"
           id="my-books-panel-history"
           aria-labelledby="my-books-tab-history"
-          className="overflow-hidden rounded-[14px] border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface"
+          className="overflow-hidden rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card"
         >
           {loanHistory.length === 0 ? (
-            <p className="p-10 text-center text-[13px] text-swin-charcoal/50 dark:text-white/50">No loan history yet.</p>
+            <p className="p-10 text-center font-sans text-body-md text-muted dark:text-on-dark-soft">No loan history yet.</p>
           ) : (
             <table className="w-full border-collapse">
               <thead>
-                <tr className="bg-slate-50 dark:bg-swin-dark-bg">
+                <tr className="bg-surface-cream-strong dark:bg-dark-surface-strong">
                   {['Book', 'Borrowed', 'Returned'].map(h => (
-                    <th key={h} className="border-b border-swin-charcoal/8 px-4 py-3.5 text-left font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:border-white/8 dark:text-white/40">
+                    <th key={h} className="border-b border-hairline-soft px-4 py-3.5 text-left font-sans text-caption-uppercase text-ink dark:border-dark-hairline dark:text-on-dark">
                       {h}
                     </th>
                   ))}
@@ -139,25 +139,25 @@ export default function MyBooksTabs({
                 {loanHistory.map((loan, i) => (
                   <tr
                     key={loan.id}
-                    className={`transition hover:bg-slate-50 dark:hover:bg-white/5 ${i < loanHistory.length - 1 ? 'border-b border-swin-charcoal/8 dark:border-white/8' : ''}`}
+                    className={`transition hover:bg-surface-cream-strong/50 dark:hover:bg-dark-surface-strong/50 ${i < loanHistory.length - 1 ? 'border-b border-hairline-soft dark:border-dark-hairline' : ''}`}
                   >
                     <td className="px-4 py-4">
                       <div className="flex items-center gap-3">
                         <BookCover gradient={getBookGradient(loan.id)} w={32} h={46} />
                         <div>
-                          <p className="font-display text-[15px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
+                          <p className="font-sans text-title-md leading-tight text-ink dark:text-on-dark">
                             {loan.book?.title ?? 'Untitled'}
                           </p>
-                          <p className="font-display text-[11px] italic text-swin-charcoal/55 dark:text-white/55">
+                          <p className="font-sans text-body-sm italic text-muted dark:text-on-dark-soft">
                             {loan.book?.author ?? 'Unknown'}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 font-mono text-[12px] text-swin-charcoal/55 dark:text-white/55">
+                    <td className="px-4 py-4 font-mono text-code text-muted dark:text-on-dark-soft">
                       {formatDate(loan.borrowedAt)}
                     </td>
-                    <td className="px-4 py-4 font-mono text-[12px] font-semibold text-green-600 dark:text-green-400">
+                    <td className="px-4 py-4 font-mono text-code font-semibold text-success">
                       {formatDate(loan.returnedAt)}
                     </td>
                   </tr>
@@ -176,10 +176,10 @@ export default function MyBooksTabs({
           className="flex flex-col gap-3"
         >
           {holds.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-swin-charcoal/15 bg-white p-10 text-center dark:border-white/10 dark:bg-swin-dark-surface">
-              <p className="font-display text-[18px] font-semibold text-swin-charcoal dark:text-white">No active reservations</p>
-              <p className="mt-1 text-[13px] text-swin-charcoal/50 dark:text-white/50">Browse the catalogue to place a hold on an unavailable book.</p>
-              <Link href="/dashboard/book/items" className="mt-4 inline-flex rounded-full bg-swin-red px-5 py-2 text-[13px] font-semibold text-white transition hover:bg-swin-red/90">
+            <div className="rounded-card border border-dashed border-hairline bg-surface-card p-10 text-center dark:border-dark-hairline dark:bg-dark-surface-card">
+              <p className="font-display text-display-sm text-ink dark:text-on-dark">No active reservations</p>
+              <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">Browse the catalogue to place a hold on an unavailable book.</p>
+              <Link href="/dashboard/book/items" className="mt-4 inline-flex items-center justify-center rounded-btn bg-primary px-5 h-10 font-sans text-button text-on-primary transition hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas">
                 Browse catalogue
               </Link>
             </div>
@@ -189,13 +189,13 @@ export default function MyBooksTabs({
               return (
                 <div
                   key={hold.id}
-                  className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface"
+                  className="overflow-hidden rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card"
                 >
                   <div className="p-1">
                     <HoldCard hold={hold} />
                   </div>
                   {canCancel && (
-                    <div className="flex justify-end border-t border-swin-charcoal/8 px-4 py-3 dark:border-white/8">
+                    <div className="flex justify-end border-t border-hairline-soft px-4 py-3 dark:border-dark-hairline">
                       <CancelHoldButton
                         holdId={hold.id}
                         bookTitle={hold.title}
