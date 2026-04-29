@@ -1,3 +1,4 @@
+import { searchLinkedInLearningCourses } from '@/app/lib/linkedin/service';
 import type { UserContext } from '@/app/lib/recommendations/user-context';
 import { tokenizeInterests } from '@/app/lib/recommendations/recommender';
 
@@ -15,6 +16,7 @@ export type AiResult = {
 export type LinkedInCourseSuggestion = {
   title: string;
   query: string;
+  url?: string | null;
 };
 
 // ─── Faculty → Book Category mapping ─────────────────────────────────────────
@@ -363,10 +365,38 @@ export async function suggestLinkedInCourses(
     }
 
     if (!parsed || !Array.isArray(parsed.courses)) return [];
-    return parsed.courses
+
+    const baseSuggestions = parsed.courses
       .filter((c) => c.title && c.query)
       .map((c) => ({ title: c.title!.trim(), query: c.query!.trim() }))
       .slice(0, 3);
+
+    if (!baseSuggestions.length) return [];
+
+    const enriched = await Promise.all(
+      baseSuggestions.map(async (suggestion) => {
+        try {
+          const result = await searchLinkedInLearningCourses({
+            query: suggestion.query,
+            limit: 1,
+          });
+          const asset = result.items[0];
+          if (asset) {
+            return {
+              title: asset.title || suggestion.title,
+              query: suggestion.query,
+              url: asset.url ?? null,
+            };
+          }
+        } catch {
+          // Fall back to the AI suggestion.
+        }
+
+        return suggestion;
+      }),
+    );
+
+    return enriched;
   } catch {
     return [];
   }

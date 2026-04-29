@@ -832,10 +832,15 @@ export default function StudentChat({
             Suggested based on your interests. Opens LinkedIn Learning search.
           </p>
           <div className="mt-3 flex flex-col gap-2">
-            {linkedInSuggestions.map((suggestion) => (
-              <a
-                key={suggestion.query}
-                href={`https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(suggestion.query)}`}
+            {linkedInSuggestions.map((suggestion) => {
+              const href = suggestion.url
+                ? suggestion.url
+                : `https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(suggestion.query)}`;
+
+              return (
+                <a
+                  key={suggestion.url ?? suggestion.query}
+                  href={href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-between gap-3 rounded-card border border-hairline bg-surface-card px-4 py-3 font-sans text-body-sm font-medium text-ink transition hover:border-[#0A66C2] hover:text-[#0A66C2] dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:border-[#0A66C2] dark:hover:text-[#70B5F9]"
