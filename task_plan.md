@@ -99,7 +99,7 @@ Decisions outside literal plan recipe logged in `findings.md` 2026-04-29 Chat 9 
 - [x] Task 19: `app/dashboard/notifications/loading.tsx` — no-op (already delegates to migrated shared `PageLoadingSkeleton`)
 - [x] Task 20: Migrate `app/ui/dashboard/notificationPanel.tsx` (kept inline markup, NOT switched to `<NotificationItem>` primitive due to per-row mark-as-read affordance mismatch — see findings.md; per-type colors remapped to semantic tokens matching primitive's TYPE_STYLES)
 - [x] Task 21: Migrate `app/ui/dashboard/notificationToast.tsx` (card recipe + retained shadow per spec §6.4 floating; per-type colors → semantic tokens; close button → cream secondary icon recipe with primary focus ring)
-- [x] Task 22: Chat 11 audit + combined commit (`pnpm tsc --noEmit` clean; per-file residue grep across all 9 in-scope files = 0 hits)
+- [x] Task 22: Chat 11 audit + combined commit (`0519b6d`; `pnpm tsc --noEmit` clean; per-file residue grep across all 10 in-scope files = 0 hits)
 
 **Decisions outside literal plan recipe** (see `findings.md` 2026-04-30 Chat 11 entries):
 - Shared `pageLoadingSkeleton.tsx` migrated alongside Chat 11 scope (Chat 10 deferred decision resolved YES per user pre-flight recommendation).
