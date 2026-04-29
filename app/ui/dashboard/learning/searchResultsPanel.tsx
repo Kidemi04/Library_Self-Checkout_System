@@ -45,7 +45,7 @@ export default function SearchResultsPanel({ items, query }: Props) {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="rounded-3xl border border-dashed border-swin-charcoal/20 bg-white p-8 text-center text-sm text-swin-charcoal/70 dark:border-white/20 dark:bg-slate-900/40 dark:text-slate-300/80"
+        className="rounded-card border border-dashed border-hairline bg-surface-card p-8 text-center font-sans text-body-md text-muted dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft"
       >
         No courses found for &ldquo;{query}&rdquo;. Try a different keyword.
       </motion.div>

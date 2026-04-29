@@ -14,10 +14,10 @@
 
 ## Current position
 
-- **Current batch:** 2 (Student-facing) — Chat 11 of 4 done
-- **Current chat:** 11 of 16 done (this chat = Chat 11 in spec numbering — Camera scan + profile + notifications)
-- **Last completed:** Tasks 16–22 of Chat 11 + the deferred shared skeleton from Chat 10. Files migrated: `app/ui/pageLoadingSkeleton.tsx` (shared — affects 6 consumer loading.tsx pages), `app/dashboard/cameraScan/page.tsx`, `app/profile/page.tsx` (the actual profile page; `app/dashboard/profile/page.tsx` is a one-line re-export, untouched), `app/profile/profileEditForm.tsx`, `app/profile/profileNameForm.tsx`, `app/profile/profileAvatarForm.tsx`, `app/ui/dashboard/notificationPanel.tsx`, `app/ui/dashboard/notificationToast.tsx`. `app/dashboard/notifications/loading.tsx` is a no-op (already delegates to shared `PageLoadingSkeleton`). Combined commit hash backfilled below. `pnpm tsc --noEmit` clean throughout. Per-file residue grep: 0 hits across all 10 in-scope files (legacy `swin-*|bg-white|text-white|text-gray-|bg-gray-|text-slate-|bg-slate-|border-slate-|border-gray-|border-white|rounded-2xl` plus the per-type raw palettes from old notification configs `text-blue-|bg-blue-|text-emerald-|bg-emerald-|text-amber-|bg-amber-|text-violet-|bg-violet-|text-sky-|bg-sky-|text-rose-|text-orange-|bg-orange-|from-swin|to-orange|from-emerald|to-teal|focus:ring-swin|focus:ring-emerald|ring-emerald|ring-slate|ring-white`).
-- **Next step:** **Open a new chat to start Chat 12 (learning module).** First action: read this `progress.md` + `task_plan.md` + Batch 2 plan "Chat 12" section, then execute via `superpowers:executing-plans`. Files in scope per spec §7 / Batch 2 plan Chat 12: `app/dashboard/learning/page.tsx`, `app/ui/dashboard/learning/collectionsPanel.tsx`, `app/ui/dashboard/learning/courseCard.tsx`, `app/ui/dashboard/learning/searchForm.tsx`, `app/ui/dashboard/learning/searchResultsPanel.tsx`, `app/ui/dashboard/learning-path-generator.tsx`, `app/ui/dashboard/studentChat.tsx`. Chat 12 also includes the Batch 2 acceptance audit at end.
+- **Current batch:** 2 (Student-facing) — **COMPLETE** (with documented carry-overs to Batch 3)
+- **Current chat:** 12 of 16 done (this chat = Chat 12 in spec numbering — Learning module + Batch 2 acceptance audit)
+- **Last completed:** Tasks 23–30 of Chat 12. Files migrated: `app/dashboard/learning/linkedin/page.tsx` (the actual landing UI — `app/dashboard/learning/page.tsx` is a 5-line redirect, see findings.md), `app/ui/dashboard/learning/collectionsPanel.tsx`, `app/ui/dashboard/learning/courseCard.tsx`, `app/ui/dashboard/learning/searchForm.tsx`, `app/ui/dashboard/learning/searchResultsPanel.tsx`, `app/ui/dashboard/learning-path-generator.tsx`, `app/ui/dashboard/studentChat.tsx` (921 lines). Combined commit hash backfilled below. `pnpm tsc --noEmit` clean throughout. Per-file residue grep across all 8 in-scope files = 0 hits (extended regex incl. `text-emerald-|bg-emerald-|text-amber-|bg-amber-|text-rose-|bg-rose-|text-red-[0-9]|bg-red-[0-9]|hover:bg-red|hover:text-red|hover:border-red`).
+- **Next step:** **Open a new chat to start Batch 3 (admin/staff + carry-overs).** First action: write the Batch 3 plan via `superpowers:writing-plans` against spec §7 Batch 3; the plan must explicitly include the Batch 2 carry-overs (see "What's next" below). Then execute via `superpowers:executing-plans`. Batch 3 plan does **not** yet exist — must be written before any Chat 13 file work begins.
 
 ## What's done
 
@@ -86,6 +86,17 @@
     - `bookCatalogTable.tsx` category-palette colors (blue/emerald/purple/orange tints with `text-white` solids) preserved as domain coloring. The audit grep against the 4 lines is documented as known retention.
     - `bookCatalogTable.tsx` `renderStatusBadge` had domain status colors (`bg-green-100/text-green-700`, `bg-amber-100/text-amber-800`, `bg-indigo-*`, `bg-rose-*`, `bg-yellow-*`, `bg-sky-*`, `bg-violet-*`, `bg-orange-*`) remapped to semantic design tokens (`success/warning/accent-teal/primary`). This loses the per-status hue contrast but stays inside the design system. If visual review reveals the consolidated palette is too uniform, Batch 3 may extend the token system with more semantic hues.
     - `bookCatalogTable.tsx` `Field` helper component is defined but I see no usage — migrated for consistency / future use. Left in place rather than deleted (Batch 3 dead-code sweep can remove if confirmed unused).
+- [x] **Chat 12 (spec) — Learning module + Batch 2 acceptance audit** (combined commit hash backfilled below)
+  - [x] Task 23: `app/dashboard/learning/page.tsx` (5-line redirect — no UI to migrate) + `app/dashboard/learning/linkedin/page.tsx` (the actual 185-line landing UI; mirrors Chat 10 `book/page.tsx` discovery — see findings.md). Inline filter chips → cream-strong rounded-pill, search-results h2 → display-sm, error notice → warning token recipe, sparkles icon → text-primary, eyebrow + body text → caption-uppercase + body-sm semantic tokens.
+  - [x] Task 24: `collectionsPanel.tsx` (panel container card recipe p-8, display-sm panel title; cream-canvas Browse-all pill button; surface-cream-strong dashed empty-state). Motion entrance animations preserved.
+  - [x] Task 25: `courseCard.tsx` (motion `whileHover` shadow drop per spec §6.4; lift kept; image-fallback gradient → flat surface-cream-strong + text-primary play icon; per-image content-type badge → canvas/90 rounded-pill; tag pills → primary/10 tint; "View course" inline pill → bg-primary text-on-primary). `<Chip>` primitive considered but kept inline due to opacity/icon-prefix needs.
+  - [x] Task 26: `searchForm.tsx` (form input recipe with focus-within ring on the search-icon wrapper; select element form-recipe styled with primary focus-visible ring; Search button → shared `<Button>`; Reset button → cream secondary inline button).
+  - [x] Task 27: `searchResultsPanel.tsx` (only the empty-state tile needed migration — courseCard handles result rows; no outer panel wrapper added since result grid sits on the page background and double-card would create visual noise). Motion stagger preserved.
+  - [x] Task 28: `learning-path-generator.tsx` (STAGE_STYLES remap from emerald/amber/rose to semantic success/warning/primary; outer card recipe p-8; form input recipe; shared `<Button>` for Generate; preset chips → cream secondary rounded-pill; error notice → warning token recipe; book row card recipe minus shadow; availability pill → success/cream-strong tint; stage-number numeral keeps `bg-primary text-on-primary`).
+  - [x] Task 29: `studentChat.tsx` (921 lines — largest Batch 2 file). STAGE_STYLES same remap as Task 28; outer chat shell card recipe p-6 (responsive fullscreen); AI provider toggle → bg-ink active state (neutral, doesn't compete with primary CTAs); fullscreen + Clear chat → cream secondary icon recipe; onboarding panel → card recipe p-5 with cream-canvas inner; tag selector active state → bg-ink text-on-dark (selected = ink contrast); Save Interests CTA → shared `<Button>`; messages container → bg-canvas inner card; **user bubble → bg-primary text-on-primary per plan literal** (overrides existing inverted-dark Claude-imitation aesthetic — see findings.md); assistant bubble → border-hairline bg-surface-cream-strong; rec card cover-image fallback uses cream-strong; Borrow CTA → bg-primary; YouTube hover → text-primary; **LinkedIn `[#0A66C2]`/`[#70B5F9]` brand-blue hover retained** as third-party brand fidelity (mirrors bookCatalogTable category retention); **Google logo SVG keeps `#4285F4`/`#34A853`/`#FBBC05`/`#EA4335` brand-mark fills**; typing indicator → font-sans caption italic muted; Scroll-to-latest + quick prompts → cream secondary rounded-pill; textarea form input recipe with primary focus-visible ring; Send button → shared `<Button>`; LinkedIn suggestions panel + learning path panel → card recipe with cream-canvas inner; **literal `text-swin-red` topic accent inside learning-path heading remapped to `text-primary dark:text-dark-primary`**.
+  - [x] Task 30: Chat 12 audit + Batch 2 acceptance + combined commit. Project-wide `pnpm tsc --noEmit` clean throughout. Per-file residue grep across all 8 in-scope files = 0 hits (extended regex incl. raw red/emerald/amber/rose). **Cross-batch acceptance audit revealed 6 book sub-workflow pages outside any chat scope** (`book/holds/page.tsx`, `book/checkout/page.tsx`, `book/[id]/page.tsx`, `book/checkin/page.tsx`, `book/items/page.tsx`, `book/reservation/page.tsx`); per user-aligned option B these were **deferred to Batch 3** (mirrors Chat 9 carry-over pattern for `staffDashboard.tsx`/`mobileNav.tsx`). Narrowed acceptance audit to actually-in-scope files = clean. See findings.md 2026-04-30 Chat 12 entries (5 entries: redirect target discovery, third-party brand color retention, STAGE_STYLES remap, user bubble color decision, spec gap).
+  - **Decisions outside plan literal text:** see `findings.md` 2026-04-30 Chat 12 — five entries.
+
 - [x] **Chat 11 (spec) — Camera scan + profile + notifications** (combined commit `0519b6d`)
   - [x] Pre-task: Migrate shared `app/ui/pageLoadingSkeleton.tsx` (Chat 10 deferred decision resolved YES — consumed by 6 loading.tsx pages incl. Chat 11's `notifications/loading.tsx`. Slate palette → cream tokens, `rounded-2xl` → `rounded-card`, shimmer overlay swapped to canvas/on-dark variants. Six consumer pages inherit the visual update without touching their own files.)
   - [x] Task 16: `app/dashboard/cameraScan/page.tsx` (header card recipe, `<Button>` for Start, cream secondary inline buttons for Stop + Upload, crosshair ring `accent-teal/60`, scanning indicator dot `bg-accent-teal animate-pulse`, debug log inner panel keeps `bg-ink text-success` mono-terminal aesthetic)
@@ -97,12 +108,34 @@
   - [x] Task 22: Chat 11 audit + combined commit. Project-wide `pnpm tsc --noEmit` clean. Per-file residue grep across all 10 in-scope files = 0 hits. Three findings logged.
   - **Decisions outside plan literal text:** see `findings.md` 2026-04-30 Chat 11 — three entries covering (1) shared `pageLoadingSkeleton` migration timing, (2) `isPrivileged` form theming retirement, (3) `notificationPanel` kept inline rather than switched to `<NotificationItem>` primitive due to per-row mark-as-read affordance mismatch.
 
-## What's next (Batch 2 — Chat 12 remaining)
+## What's next (Batch 3 — admin/staff + Batch 2 carry-overs)
 
-Chat 11 done. One more Chat in Batch 2:
-- **Chat 12** — learning module + Batch 2 acceptance audit. Files: `app/dashboard/learning/page.tsx`, `app/ui/dashboard/learning/collectionsPanel.tsx`, `app/ui/dashboard/learning/courseCard.tsx`, `app/ui/dashboard/learning/searchForm.tsx`, `app/ui/dashboard/learning/searchResultsPanel.tsx`, `app/ui/dashboard/learning-path-generator.tsx`, `app/ui/dashboard/studentChat.tsx`.
+Batch 2 done. Batch 3 plan does **not** yet exist — must be written first.
 
-Plan source of truth: `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-student-facing.md` (committed `24ff5f0`). Each subsequent chat reads the plan's relevant Chat section and executes via `superpowers:executing-plans`.
+**Batch 3 mandatory file scope** (carry-overs from Batch 2 that must be migrated alongside the spec §7 Batch 3 list):
+- `app/dashboard/book/holds/page.tsx`
+- `app/dashboard/book/checkout/page.tsx`
+- `app/dashboard/book/[id]/page.tsx` (book detail)
+- `app/dashboard/book/checkin/page.tsx`
+- `app/dashboard/book/items/page.tsx` (student book browse landing — target of `book/page.tsx` redirect)
+- `app/dashboard/book/reservation/page.tsx`
+- `app/ui/dashboard/staffDashboard.tsx` (Chat 9 carry-over)
+- `app/ui/dashboard/mobileNav.tsx` + `app/ui/dashboard/navLinks.tsx` (Chat 9 carry-over — fixes the cream-drawer-vs-dark-header mobile mismatch)
+
+**Batch 3 spec-listed scope** (per spec §7 Batch 3 — admin/staff): TBD when reading the spec for plan-writing.
+
+**Batch 3 cleanup candidates:**
+- Delete dead template files: `app/ui/loginForm.tsx`, `app/ui/customers/*`, `app/ui/invoices/*`, `app/ui/dashboard/revenueChart.tsx`, `app/ui/dashboard/latestInvoices.tsx`, `app/ui/fonts.ts`
+- Drop dormant `isPrivileged` prop from profile form signatures (Chat 11 carry-over) once the `actions.ts` + `app/profile/page.tsx` callers can be coordinated
+- Consider extending `<NotificationItem>` primitive with a `secondaryAction` prop so `notificationPanel` can adopt the primitive (Chat 11 carry-over)
+- Rename `accent='gold'` / `tone='gold'` props to `'amber'` for clarity (or keep as-is — they resolve to `accent-amber` correctly)
+- Decide whether to delete `tailwind.config.ts` legacy `swin-*` tokens now that all in-app references are gone (only `swin-red-brand` remains live)
+- Optionally extend `/dev/primitives` gallery with Chat 7 primitives (`BookCover`, `BarChartMini`, `IsbnLookupBox`, `BarcodePreview`) and Chat 8 chrome (`dashboardShell`, `adminShell`, `dashboardTitleBar`, `signOutButton`, `themeToggle`) — or retire the gallery per spec §7
+
+Plan sources of truth (existing):
+- Batch 1: `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md` (committed `8f94019`)
+- Batch 2: `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-student-facing.md` (committed `24ff5f0`)
+- Batch 3: TBD — write via `superpowers:writing-plans` against spec §7 Batch 3 + the carry-over list above
 
 ## Open issues / Decisions deferred
 
@@ -114,13 +147,14 @@ Plan source of truth: `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-stude
 
 ## Notes for next chat
 
-- **Chat 11 of Batch 2 is COMPLETE.** Next chat starts Chat 12 (learning module + Batch 2 acceptance audit — see plan file).
+- **Batch 2 of 3 is COMPLETE** (with documented carry-overs to Batch 3). Next chat must (a) write the Batch 3 plan via `superpowers:writing-plans` against spec §7 Batch 3 + the Batch 2 carry-over list in "What's next" above, then (b) execute via `superpowers:executing-plans`.
 - All commits are local. **User has not been asked to push.** Per user preference (memory `feedback_git_push.md`): always confirm branch + non-main destination before pushing.
 - `.worktrees/` is ignored / untracked — leave alone.
 - `DESIGN.md` (project root) is currently untracked. User may want to commit it separately; not part of this redesign work.
 - The custom `ThemeProvider` at `app/ui/theme/themeProvider.tsx` is what drives `dark` class on `<html>`. **Do not introduce `next-themes`** — Tailwind `dark:` prefix already works against the custom provider. Note: ThemeProvider applies the `dark` class via post-hydration `useEffect` (no pre-hydration script), so dark-mode users see a brief light-mode flash on first load. Fixing this is a Batch 2/3 ThemeProvider-side cookie-read SSR change, not a per-component fix. See `findings.md` 2026-04-29 Chat 8 first entry for context.
 - **No `pnpm lint` script exists in this project** — quality gate is `pnpm tsc --noEmit` only. See `findings.md` 2026-04-29 Chat 2 entry. Do not chase the missing lint setup.
-- **Visual confirmation pending for Batches 1+2-Chat-9+10+11:** Font self-host, primitives, shell + chrome (Batch 1), login + main dashboard + nav (Chat 9), book browse + borrow history (Chat 10), and camera scan + profile + notifications (Chat 11) have not been browser-verified. User handles UI testing per memory `feedback_testing.md`. `pnpm tsc --noEmit` clean throughout — structural pass only. **The `/dev/primitives` page is live** — visit `http://localhost:3000/dev/primitives` after `pnpm dev`. Routes now showing migrated UI: `/login`, `/dashboard`, `/dashboard/book/list`, `/dashboard/book/history`, `/dashboard/my-books`, `/dashboard/cameraScan`, `/dashboard/profile` (and `/profile`), `/dashboard/notifications`. Six other loading.tsx pages also gain the migrated cream skeleton (admin, admin/users, dashboard, book/items, book/history, notifications).
+- **Visual confirmation pending for entire Batch 1 + Batch 2:** Font self-host, primitives, shell + chrome (Batch 1), login + main dashboard + nav (Chat 9), book browse + borrow history (Chat 10), camera scan + profile + notifications (Chat 11), and learning module (Chat 12) have not been browser-verified. User handles UI testing per memory `feedback_testing.md`. `pnpm tsc --noEmit` clean throughout — structural pass only. **The `/dev/primitives` page is live** — visit `http://localhost:3000/dev/primitives` after `pnpm dev`. Routes now showing migrated UI: `/login`, `/dashboard`, `/dashboard/book/list`, `/dashboard/book/history`, `/dashboard/my-books`, `/dashboard/cameraScan`, `/dashboard/profile` (and `/profile`), `/dashboard/notifications`, `/dashboard/learning` (redirects to `/dashboard/learning/linkedin`). Six loading.tsx pages also gain the migrated cream skeleton.
+- **Batch 2 known unmigrated routes** (will appear visually inconsistent until Batch 3): `/dashboard/book/items` (student book browse landing), `/dashboard/book/holds`, `/dashboard/book/checkout`, `/dashboard/book/checkin`, `/dashboard/book/reservation`, `/dashboard/book/[id]` (book detail). See findings.md 2026-04-30 Chat 12 spec-gap entry.
 - **Chat 9 known mismatches awaiting later chats:** (1) mobileMenu drawer is cream in light mode but `mobileNav.tsx` header is still dark/un-migrated (visible in light-mode mobile view) — `mobileNav.tsx` and `navLinks.tsx` are nav-shell siblings missed by Batch 1 Chat 8; pick up in Batch 3 cleanup. (2) `staffDashboard.tsx` (287 lines, 31 legacy hits) un-migrated — staff-facing, Batch 3 territory.
 - **Chat 10 deferred items resolved in Chat 11:**
   - ~~Shared `app/ui/pageLoadingSkeleton.tsx`~~ — **migrated in Chat 11** (resolved YES per user pre-flight recommendation).
@@ -141,34 +175,34 @@ Plan source of truth: `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-stude
 
 ## How to start the next chat
 
-Chat 11 已完成。下一聊做 Chat 12（learning module + Batch 2 acceptance audit）。Batch 2 plan 已写好并提交（commit `24ff5f0`）。
+Batch 2 已完成。下一聊开始 Batch 3（admin/staff + 6 个 book 子页面 carry-over）。**Batch 3 plan 还没写**，新聊要先用 `superpowers:writing-plans` 写出来再执行。
 
 Paste this into the new chat:
 
-> 继续 UI 改造工作。Chat 11 已完成；这一聊做 Chat 12（learning module + Batch 2 acceptance audit）。
+> 继续 UI 改造工作。Batch 2 已完成；这一聊开始 Batch 3。
 >
 > 先按顺序读：
 > 1. `MEMORY.md`
-> 2. `progress.md`（当前进度）
-> 3. `task_plan.md`（Chat 11 已全部打勾）
-> 4. `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-student-facing.md` 的 "Chat 12" 部分
->    —— 顶部的 "Spec deltas" 是高层 recipe；Chat 12 任务列表在 Tasks 23–29 段
-> 5. Batch 1 plan 顶部的 "Token Migration Reference Table" 当 class-swap 字典
+> 2. `progress.md`（当前进度 — 注意 "What's next (Batch 3 — admin/staff + Batch 2 carry-overs)" 那段是 Batch 3 必须吃下的文件清单）
+> 3. `task_plan.md`（Batch 2 已全部打勾，含 carry-over 列表）
+> 4. `findings.md` 2026-04-30 Chat 12 5 条（spec gap、redirect target 模式、third-party brand color 保留、STAGE_STYLES 重映射、user bubble 颜色决策）
+> 5. `docs/superpowers/specs/2026-04-29-ui-claude-style-redesign-design.md` §7 Batch 3 段
+> 6. Batch 1 plan 顶部的 "Token Migration Reference Table" 当 class-swap 字典
+> 7. Batch 2 plan 顶部的 "Spec deltas (higher-level recipe)" 当 page/component-level 字典
 >
-> 读完直接调 `superpowers:executing-plans` 执行 Chat 12。
+> 读完先调 `superpowers:writing-plans` **写出 Batch 3 plan**。Plan 必须包含：
+> - **Batch 2 carry-over 文件**（强制）：
+>   - `app/dashboard/book/{holds,checkout,[id],checkin,items,reservation}/page.tsx`（6 个 student-facing book 子工作流，spec/Batch 2 plan 漏了 — 见 findings.md 2026-04-30 Chat 12 spec-gap 条目）
+>   - `app/ui/dashboard/staffDashboard.tsx`（Chat 9 carry-over，287 行 31 hits）
+>   - `app/ui/dashboard/mobileNav.tsx` + `navLinks.tsx`（Chat 9 carry-over，修 mobile drawer 跟 header 的 cream/dark 不一致）
+> - **Spec §7 Batch 3 列出的文件**（admin/staff 范围 — 自己读 spec）
+> - **可选清理**：删 dead template files（`app/ui/loginForm.tsx`、`app/ui/customers/*`、`app/ui/invoices/*`、`app/ui/dashboard/revenueChart.tsx`、`app/ui/dashboard/latestInvoices.tsx`、`app/ui/fonts.ts`），删 `tailwind.config.ts` 的 legacy `swin-*` tokens（只剩 `swin-red-brand` 在用），drop dormant `isPrivileged` 参数（Chat 11 carry-over），考虑给 `<NotificationItem>` 加 `secondaryAction` prop 让 `notificationPanel` 能复用（Chat 11 carry-over）。
 >
-> Chat 12 范围 = `app/dashboard/learning/page.tsx`, `app/ui/dashboard/learning/collectionsPanel.tsx`,
-> `app/ui/dashboard/learning/courseCard.tsx`, `app/ui/dashboard/learning/searchForm.tsx`,
-> `app/ui/dashboard/learning/searchResultsPanel.tsx`, `app/ui/dashboard/learning-path-generator.tsx`,
-> `app/ui/dashboard/studentChat.tsx`。末尾还有 Batch 2 acceptance audit。
+> 写完 plan 提交，然后调 `superpowers:executing-plans` 按计划执行。
 >
 > 注意事项：
 > - 表单/输入按 form input recipe；CTA 用 shared `<Button>`。
-> - 课程卡 (`courseCard`) 跟 chat surface (`studentChat`) 视情况看是否能复用 `<LoanCard>` /
->   message-bubble pattern；不能复用就按 card recipe inline。
-> - **Chat 11 已留下的 carry-overs**：`isPrivileged` 在 profile 表单签名上 dormant；
->   `notificationPanel` ↔ `<NotificationItem>` 走的不同 markup（per-row mark-read affordance）。
->   两者都是 Batch 3 territory，本聊不动。
-> - **`bookCatalogTable.tsx` 4 处 `text-white` retention** 仍是 category palette domain color —
->   audit grep 时不要去清。
-> - 每动一个文件跑一次 `pnpm tsc --noEmit`，结尾合并提交一次 + Batch 2 acceptance audit。
+> - 第三方品牌色（LinkedIn `[#0A66C2]`、Google logo 4 色、bookCatalogTable category palette）保留 —
+>   audit grep 时不要去清，沿用 Chat 12 / Chat 10 的 retention 文档化模式。
+> - 每动一个文件跑一次 `pnpm tsc --noEmit`，每聊结尾合并提交一次 + 文件名+决策写进 commit body。
+> - 推送前必须先确认分支名 + 不会合到 main（per memory `feedback_git_push.md`）。

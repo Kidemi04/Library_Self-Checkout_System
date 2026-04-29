@@ -37,22 +37,22 @@ function CollectionSection({
       initial={{ opacity: 0, y: 32 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.45, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className="space-y-4 rounded-3xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/50"
+      className="space-y-4 rounded-card border border-hairline bg-surface-card p-8 dark:border-dark-hairline dark:bg-dark-surface-card"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-swin-charcoal/60 dark:text-slate-400">
+          <p className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
             Spotlight topic
           </p>
-          <h3 className="text-lg font-semibold text-swin-charcoal dark:text-white">{definition.title}</h3>
+          <h3 className="font-display text-display-sm text-ink dark:text-on-dark">{definition.title}</h3>
           {definition.description ? (
-            <p className="text-sm text-swin-charcoal/70 dark:text-slate-300/80">{definition.description}</p>
+            <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">{definition.description}</p>
           ) : null}
         </div>
         <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}>
           <Link
             href={browseHref}
-            className="rounded-full border border-swin-charcoal/10 px-4 py-2 text-sm font-medium text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-white/20 dark:text-white"
+            className="rounded-pill border border-hairline bg-canvas px-4 py-2 font-sans text-body-sm font-medium text-ink transition hover:border-primary/20 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:hover:border-dark-primary/30 dark:hover:text-dark-primary"
           >
             Browse all
           </Link>
@@ -73,7 +73,7 @@ function CollectionSection({
           ))}
         </motion.div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-swin-charcoal/20 bg-white/40 p-6 text-sm text-swin-charcoal/70 dark:border-white/15 dark:bg-slate-900/30 dark:text-slate-300/80">
+        <div className="rounded-card border border-dashed border-hairline bg-canvas p-6 font-sans text-body-sm text-muted dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark-soft">
           No courses found for this topic. Try the search form above.
         </div>
       )}
@@ -96,7 +96,7 @@ const buildBrowseHref = (query: string, difficulty: string) => {
 export default function CollectionsPanel({ collections, difficulty }: Props) {
   if (!collections.length) {
     return (
-      <div className="rounded-3xl border border-dashed border-swin-charcoal/20 bg-white p-6 text-center text-sm text-swin-charcoal/70 dark:border-white/20 dark:bg-slate-900/40 dark:text-slate-300/80">
+      <div className="rounded-card border border-dashed border-hairline bg-surface-card p-6 text-center font-sans text-body-sm text-muted dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft">
         No courses found. Try the search form above.
       </div>
     );

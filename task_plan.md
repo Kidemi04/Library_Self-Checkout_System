@@ -105,3 +105,39 @@ Decisions outside literal plan recipe logged in `findings.md` 2026-04-29 Chat 9 
 - Shared `pageLoadingSkeleton.tsx` migrated alongside Chat 11 scope (Chat 10 deferred decision resolved YES per user pre-flight recommendation).
 - `isPrivileged` form theming retired across all three profile forms — single primary recipe; role distinction stays on `<RoleBadge>`. Prop kept on signatures (callers unchanged, non-breaking).
 - `notificationPanel` kept inline (not switched to `<NotificationItem>` primitive) due to per-row mark-as-read affordance not exposed by the primitive. Both surfaces use matching semantic TYPE_STYLES so they look semantically identical.
+
+---
+
+## Chat 12 — Learning module + Batch 2 acceptance audit ✅ DONE
+
+- [x] Task 23: Migrate `app/dashboard/learning/page.tsx` (5-line redirect — no UI; actual UI is `linkedin/page.tsx`, also migrated as part of this task — see `findings.md`)
+- [x] Task 24: Migrate `app/ui/dashboard/learning/collectionsPanel.tsx`
+- [x] Task 25: Migrate `app/ui/dashboard/learning/courseCard.tsx`
+- [x] Task 26: Migrate `app/ui/dashboard/learning/searchForm.tsx`
+- [x] Task 27: Migrate `app/ui/dashboard/learning/searchResultsPanel.tsx`
+- [x] Task 28: Migrate `app/ui/dashboard/learning-path-generator.tsx` (STAGE_STYLES remap to success/warning/primary)
+- [x] Task 29: Migrate `app/ui/dashboard/studentChat.tsx` (921 lines; user bubble → primary per plan literal; LinkedIn `[#0A66C2]` and Google logo SVG hex retained as third-party brand-color domain coloring)
+- [x] Task 30: Chat 12 audit + Batch 2 acceptance + combined commit (commit hash to be backfilled below)
+
+**Decisions outside literal plan recipe** (see `findings.md` 2026-04-30 Chat 12 entries):
+- `app/dashboard/learning/page.tsx` is a redirect — actual UI lives at `linkedin/page.tsx` (mirrors Chat 10 `book/page.tsx` pattern). Migrated `linkedin/page.tsx` as part of Task 23 scope.
+- `STAGE_STYLES` remapped from raw emerald/amber/rose to semantic success/warning/primary in both `learning-path-generator.tsx` and `studentChat.tsx`.
+- Third-party brand colors retained: LinkedIn brand blue `[#0A66C2]`/`[#70B5F9]` for hover state on LinkedIn Learning suggestion links; Google logo SVG keeps its 4-color brand palette (`#4285F4`/`#34A853`/`#FBBC05`/`#EA4335`).
+- studentChat user message bubble switched from inverted-dark Claude-imitation to `bg-primary text-on-primary` per plan literal recipe.
+- **Spec gap:** 6 book sub-workflow pages (`book/holds`, `book/checkout`, `book/[id]`, `book/checkin`, `book/items`, `book/reservation`) were never in any chat scope. Per user-aligned option B, deferred all 6 to Batch 3 (mirrors Chat 9 carry-over pattern for `staffDashboard.tsx` + `mobileNav.tsx`). Narrowed Chat 12 acceptance audit to actually-in-scope files only.
+
+---
+
+## Batch 2 COMPLETE ✅ (with documented carry-overs to Batch 3)
+
+All Chat 9–12 student-facing surfaces migrated. Carry-overs to Batch 3:
+- `app/dashboard/book/holds/page.tsx`
+- `app/dashboard/book/checkout/page.tsx`
+- `app/dashboard/book/[id]/page.tsx`
+- `app/dashboard/book/checkin/page.tsx`
+- `app/dashboard/book/items/page.tsx`
+- `app/dashboard/book/reservation/page.tsx`
+- `app/ui/dashboard/staffDashboard.tsx` (Chat 9 finding)
+- `app/ui/dashboard/mobileNav.tsx` + `app/ui/dashboard/navLinks.tsx` (Chat 9 finding)
+
+Plus Batch 3 spec scope (admin/staff per spec §7) — plan does not yet exist; new chat must invoke `superpowers:writing-plans` against spec §7 Batch 3.

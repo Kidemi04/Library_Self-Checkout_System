@@ -201,3 +201,64 @@ Backdrop uses `bg-black/60 dark:bg-black/70` (always-dark overlay) — none of t
 **What was found:** `<NotificationItem>` (Batch 1 migrated) renders a single full-row click target via `<button onClick>`. `NotificationPanel` rows have **two** independent affordances — the row body and a separate per-row "✓ mark as read" button next to the time. The primitive doesn't expose this secondary action; switching would either (a) lose the per-row mark-read affordance, or (b) require extending the primitive to accept `secondaryAction` props (out of scope for token migration).
 
 **Implication:** Kept the inline markup but unified the per-type color mapping with `<NotificationItem>`'s `TYPE_STYLES` (`primary`/`accent-teal`/`warning`/`accent-amber`/`success`) so both surfaces look semantically identical. Logged the divergence so a future Batch 3 (or follow-up UX pass) can either extend the primitive or accept the inline duplication permanently. Dropped the per-type raw palette (`bg-blue-500`, `text-emerald-600`, `bg-violet-500`, etc.) and the unused `dot` colors are now design tokens too.
+
+---
+
+## 2026-04-30 — Chat 12 — `app/dashboard/learning/page.tsx` is a redirect; actual UI lives at `linkedin/page.tsx`
+
+**What was expected:** Plan Task 23 says "Learning landing page. Composes the panels migrated in Tasks 24–28."
+
+**What was found:** `app/dashboard/learning/page.tsx` is a 5-line `redirect('/dashboard/learning/linkedin')` server-only component — no UI to migrate. The actual landing UI is at `app/dashboard/learning/linkedin/page.tsx` (185 lines, server component composing `<AdminShell>` + `<LinkedInLearningSearchForm>` + `<SearchResultsPanel>` + `<CollectionsPanel>` from Tasks 26/27/24, plus a Quick Topics chip rail, search-results summary, and Curated Collections eyebrow block). Without migrating this file, ~10 legacy-token call sites (`text-swin-charcoal/50`, `border-swin-charcoal/10`, `text-swin-red`, `bg-amber-50`, `text-slate-300/80`, etc.) would persist on the entire learning landing page and fail the Batch 2 audit.
+
+**Implication:** Migrated `linkedin/page.tsx` as part of Task 23 scope. This mirrors the Chat 10 finding for `app/dashboard/book/page.tsx` (also a redirect to a real listing page). Both URL paths (`/dashboard/learning` and `/dashboard/learning/linkedin`) render the migrated UI. Pattern to remember for Batch 3: if a `page.tsx` is a thin redirect, follow the redirect target before declaring "no UI to migrate".
+
+---
+
+## 2026-04-30 — Chat 12 — Third-party brand colors retained in `studentChat.tsx`
+
+**What was expected:** Token migration table maps `text-red-*`, `bg-red-*`, etc. to design tokens. Plan recipe says use `<Chip>` primitive or inline cream-strong tiles for category/brand badges.
+
+**What was found:** `studentChat.tsx` has three third-party brand-color affordances that don't map cleanly to our design tokens:
+1. **LinkedIn Learning suggestion links** — hover state uses the LinkedIn brand blue `[#0A66C2]` (light) / `[#70B5F9]` (dark). These are clickable links that open LinkedIn Learning search; the brand color signals destination.
+2. **Google logo SVG** — the multi-color logo paths use literal `#4285F4`/`#34A853`/`#FBBC05`/`#EA4335` for Google's brand-mark fills.
+3. **YouTube logo SVG** — uses `fill="currentColor"` on a `text-muted-soft` parent, so it inherits a neutral color in default state. Hover swapped from `text-red-600` to `text-primary` (our red-ish accent) since YouTube-red ≈ our primary in semantic intent ("media play / red action").
+
+**Implication:** Retained items 1 and 2 as literal brand hex (mirrors Chat 10's `bookCatalogTable` category-palette retention — explicit domain coloring outside the design token system). Item 3 was successfully tokenized to `text-primary`. The LinkedIn / Google literal hexes are documented here so future audit greps don't sweep them. If the design system later adds `accent-blue` / `accent-info` tokens, we can revisit the LinkedIn hover.
+
+---
+
+## 2026-04-30 — Chat 12 — `STAGE_STYLES` palette in learning-path-generator + studentChat remapped from emerald/amber/rose to success/warning/primary
+
+**What was expected:** No specific recipe in the plan for difficulty-level tints (Beginner/Intermediate/Advanced).
+
+**What was found:** Both `learning-path-generator.tsx` and `studentChat.tsx` had identical `STAGE_STYLES` records using raw Tailwind palette colors: Beginner = `emerald-50/200/700/300`, Intermediate = `amber-50/200/600/300`, Advanced = `rose-50/200/700/300`. These aren't user-controlled filter chips (which would justify a domain-color retention like `bookCatalogTable`); they're auto-generated content tints applied to AI-suggested learning stages.
+
+**Implication:** Remapped to semantic design tokens — Beginner = `success` (green), Intermediate = `warning` (amber), Advanced = `primary` (red). Same hue progression (green → amber → red as difficulty increases), but inside the design token system. Both files use the same mapping for visual consistency. The stage-number circular chip stays `bg-primary` regardless of stage (it's a numeric badge, not a difficulty signal).
+
+---
+
+## 2026-04-30 — Chat 12 — `studentChat.tsx` user message bubble switched from inverted-dark to `bg-primary` per plan literal
+
+**What was expected:** Plan Task 29 literal recipe: "User message bubble: `bg-primary text-on-primary rounded-card px-4 py-3 max-w-[75%] self-end`".
+
+**What was found:** Existing implementation used a Claude-imitation inverted-dark palette (`bg-slate-900 text-white` light → `bg-slate-200 text-slate-900` dark). This is a different aesthetic from the plan's recipe; Claude.ai uses dark bubbles for user messages, but the spec calls for primary brand fill.
+
+**Implication:** Followed plan literal. User bubbles now show as solid `bg-primary text-on-primary` (Swinburne UI red) in both modes, with `dark:bg-dark-primary` variant. Visual review may surface that the high-saturation red bubbles feel "loud" relative to Claude's quieter inverted-dark aesthetic; if so, an alternative is `bg-ink text-on-dark dark:bg-on-dark dark:text-ink` (the same neutral pattern used for the AI provider toggle's active state). Decision deferred to user's visual review per `feedback_testing.md`.
+
+---
+
+## 2026-04-30 — Chat 12 — Spec gap: 6 book sub-workflow pages outside any chat scope (deferred to Batch 3)
+
+**What was expected:** Plan Task 30 Step 3 cross-batch acceptance grep sweeps `app/dashboard/book` recursively, with expected 0 hits.
+
+**What was found:** Six book sub-workflow pages have **never** been in any chat's scope, yet sit inside the `app/dashboard/book` glob:
+- `app/dashboard/book/holds/page.tsx` (~9 legacy hits)
+- `app/dashboard/book/checkout/page.tsx` (~2 hits)
+- `app/dashboard/book/[id]/page.tsx` (~25+ hits — book detail page)
+- `app/dashboard/book/checkin/page.tsx` (~10 hits)
+- `app/dashboard/book/items/page.tsx` (~3 hits — student book browse landing, target of `book/page.tsx` redirect)
+- `app/dashboard/book/reservation/page.tsx` (~25+ hits)
+
+Chat 10 scope (per Batch 2 plan Tasks 9–14b) only covered `book/page.tsx`, `book/list/page.tsx`, `book/history/page.tsx`, plus 5 `app/ui/dashboard/book*.tsx` components. The 6 sub-workflow pages were missed by the spec §7 author and the Batch 2 plan author; the audit grep at Task 30 Step 3 globs the whole subtree and so the literal acceptance criterion fails on these unrelated files.
+
+**Implication:** Per user-aligned option B, deferred all 6 to Batch 3 (mirrors the Chat 9 carry-over pattern for `staffDashboard.tsx` and `mobileNav.tsx`). Several of these (`items`, `reservation`, `holds`, `[id]`) are clearly student-facing and arguably belong in Batch 2 by intent, but the spec/plan never listed them. Narrowed the actual Chat 12 audit to in-scope files only (the 7 learning files + the discovered `linkedin/page.tsx` redirect target — all 8 clean, 0 residue). Batch 3 plan must include these 6 files in its scope. Until then, `/dashboard/book/items`, `/dashboard/book/holds`, `/dashboard/book/checkout`, `/dashboard/book/checkin`, `/dashboard/book/reservation`, and any `/dashboard/book/[id]` route will render with legacy `swin-*` / slate / amber palette in production — visual review can confirm these are jarring against the migrated `/dashboard/book/list` and `/dashboard/book/history`.
