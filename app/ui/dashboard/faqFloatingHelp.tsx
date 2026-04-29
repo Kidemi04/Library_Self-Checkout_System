@@ -13,12 +13,17 @@ const guideTopics = [
   {
     id: 'due-dates',
     label: 'Loan Period & Due Dates',
-    description: '14-day loans, renewals & late returns',
+    description: '14-day loans, 2 renewals & overdue rules',
   },
   {
     id: 'returning',
     label: 'Returning Books',
     description: 'How to return and verify the record',
+  },
+  {
+    id: 'holds',
+    label: 'Holds & Reservations',
+    description: 'Reserve a book & 3-day pickup window',
   },
   {
     id: 'scanner',
@@ -28,14 +33,14 @@ const guideTopics = [
   {
     id: 'account',
     label: 'Account & Notifications',
-    description: 'Sign-in, profile and reminders',
+    description: 'Sign-in, profile, loan limit & reminders',
   },
 ];
 
 const quickActions = [
   { label: 'Borrow a book', href: '/dashboard/book/checkout' },
-  { label: 'Camera scan', href: '/dashboard/cameraScan' },
-  { label: 'Active loans', href: '/dashboard' },
+  { label: 'My Books', href: '/dashboard/my-books' },
+  { label: 'Dashboard', href: '/dashboard' },
 ];
 
 export default function FaqFloatingHelp() {

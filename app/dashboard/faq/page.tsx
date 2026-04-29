@@ -4,25 +4,26 @@ import { getDashboardSession } from '@/app/lib/auth/session';
 import { studentFaqSections } from '@/app/ui/dashboard/studentFaqData';
 import FaqScrollTopButton from '@/app/ui/dashboard/faqScrollTopButton';
 import AdminShell from '@/app/ui/dashboard/adminShell';
+import ZendeskChatButton from '@/app/ui/dashboard/zendeskChatButton';
 
 const quickHelpLinks = [
   {
     title: 'Borrow a book',
-    description: 'Search by title or scan the barcode to start a 14-day self-checkout right now.',
+    description: 'Search by title or scan the barcode to start a 14-day self-checkout. You can borrow up to 3 books at a time.',
     href: '/dashboard/book/checkout',
     actionLabel: 'Open Borrow Books',
   },
   {
-    title: 'View active loans',
-    description: 'See everything you currently have borrowed along with each due date.',
-    href: '/dashboard',
-    actionLabel: 'View dashboard',
+    title: 'My Books',
+    description: 'View your current loans, due dates, renewal options, borrowing history, and reservations in one place.',
+    href: '/dashboard/my-books',
+    actionLabel: 'Open My Books',
   },
   {
-    title: 'Scan a barcode',
-    description: 'Use your camera to identify a book instantly without typing anything.',
-    href: '/dashboard/cameraScan',
-    actionLabel: 'Open camera scan',
+    title: 'Dashboard home',
+    description: 'See your loan count, books due soon, and active reservations at a glance.',
+    href: '/dashboard',
+    actionLabel: 'View dashboard',
   },
 ];
 
@@ -119,15 +120,19 @@ export default async function StudentFaqPage() {
                     </div>
                   ) : null}
                   {item.contactLink ? (
-                    <p className="mt-4 text-sm">
+                    <div className="mt-4 text-sm">
                       Need a human?{' '}
-                      <a
-                        href={item.contactLink.href}
-                        className="font-semibold text-swin-red underline-offset-4 hover:underline"
-                      >
-                        {item.contactLink.label}
-                      </a>
-                    </p>
+                      {item.contactLink.zendesk ? (
+                        <ZendeskChatButton label={item.contactLink.label} />
+                      ) : (
+                        <a
+                          href={item.contactLink.href}
+                          className="font-semibold text-swin-red underline-offset-4 hover:underline"
+                        >
+                          {item.contactLink.label}
+                        </a>
+                      )}
+                    </div>
                   ) : null}
                 </div>
               </details>
