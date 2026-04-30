@@ -78,7 +78,7 @@ export default function HoldsManagementView({
           danger={counts.ready > 0}
           delta={counts.ready > 0 ? `${counts.ready} ready` : undefined}
           footer="awaiting collection"
-          className={counts.ready > 0 ? 'border-swin-red/40 dark:border-swin-red/40' : undefined}
+          className={counts.ready > 0 ? 'border-primary/40 dark:border-dark-primary/40' : undefined}
         />
         <KpiCard label="In queue" value={counts.queued} />
       </div>
@@ -86,21 +86,21 @@ export default function HoldsManagementView({
       {/* Filter pills */}
       <div className="flex items-center justify-between gap-3">
         <FilterPills<Filter> options={pillOptions} value={filter} onChange={setFilter} />
-        <p className="font-mono text-[11px] text-swin-charcoal/45 dark:text-white/45">
+        <p className="font-mono text-code text-muted dark:text-on-dark-soft">
           {filtered.length} of {counts.total}
         </p>
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface">
+      <div className="overflow-hidden rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card">
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
-              <tr className="bg-slate-50 dark:bg-swin-dark-bg/60">
+              <tr className="bg-surface-cream-strong dark:bg-dark-surface-strong">
                 {['Book', 'Patron', 'Status', 'Placed', 'Pickup / Queue', 'Actions'].map((h) => (
                   <th
                     key={h}
-                    className={`px-4 py-3 text-left font-mono text-[10px] font-bold uppercase tracking-[1.8px] text-swin-charcoal/45 dark:text-white/45 ${
+                    className={`px-4 py-3 text-left font-sans text-caption-uppercase text-ink dark:text-on-dark ${
                       h === 'Actions' ? 'text-right' : ''
                     }`}
                   >
@@ -112,20 +112,18 @@ export default function HoldsManagementView({
             <tbody>
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-sm text-swin-charcoal/45 dark:text-white/45">
+                  <td colSpan={6} className="px-4 py-10 text-center font-sans text-body-sm text-muted dark:text-on-dark-soft">
                     No holds match this filter.
                   </td>
                 </tr>
               )}
-              {filtered.map((h, i) => {
+              {filtered.map((h) => {
                 const isReady = h.status === 'ready';
                 const canMarkReady = firstInQueue.has(h.id) && available.has(h.book_id);
                 return (
                   <tr
                     key={h.id}
-                    className={`border-t border-swin-charcoal/8 dark:border-white/8 ${
-                      i % 2 === 1 ? 'bg-slate-50/40 dark:bg-white/2' : ''
-                    }`}
+                    className="border-t border-hairline-soft transition hover:bg-surface-cream-strong/50 dark:border-dark-hairline dark:hover:bg-dark-surface-strong/50"
                   >
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
@@ -134,32 +132,32 @@ export default function HoldsManagementView({
                           <img
                             src={h.book_cover}
                             alt=""
-                            className="h-10 w-7 flex-shrink-0 rounded object-cover ring-1 ring-swin-charcoal/10 dark:ring-white/10"
+                            className="h-10 w-7 flex-shrink-0 rounded object-cover ring-1 ring-hairline dark:ring-dark-hairline"
                           />
                         ) : (
                           <BookCover gradient={getBookGradient(h.book_title ?? h.id)} w={28} h={40} radius={3} />
                         )}
-                        <span className="font-display text-[14px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+                        <span className="font-sans text-title-md text-ink dark:text-on-dark">
                           {h.book_title ?? 'Unknown title'}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3.5 text-[13px] text-swin-charcoal/85 dark:text-white/85">
+                    <td className="px-4 py-3.5 font-sans text-body-sm text-ink dark:text-on-dark">
                       {h.patron_name ?? 'Unknown patron'}
                     </td>
                     <td className="px-4 py-3.5">
                       <StatusBadge status={isReady ? 'READY' : 'QUEUED'} />
                     </td>
-                    <td className="px-4 py-3.5 font-mono text-[11px] text-swin-charcoal/55 dark:text-white/55">
+                    <td className="px-4 py-3.5 font-mono text-code text-muted dark:text-on-dark-soft">
                       {fmtDate(h.placed_at)}
                     </td>
                     <td className="px-4 py-3.5">
                       {isReady ? (
-                        <span className="font-mono text-[11px] font-bold uppercase tracking-wide text-swin-red">
+                        <span className="font-mono text-caption-uppercase font-semibold text-primary">
                           Pickup by {fmtDate(h.expires_at)}
                         </span>
                       ) : (
-                        <span className="font-mono text-[11px] text-swin-charcoal/55 dark:text-white/55">
+                        <span className="font-mono text-code text-muted dark:text-on-dark-soft">
                           Awaiting copy
                         </span>
                       )}
@@ -181,7 +179,7 @@ export default function HoldsManagementView({
                             <input type="hidden" name="holdId" value={h.id} />
                             <button
                               type="submit"
-                              className="rounded-lg border border-swin-charcoal/15 bg-white px-3 py-1.5 text-[11px] font-semibold text-swin-charcoal/75 transition hover:border-swin-red/40 hover:text-swin-red dark:border-white/15 dark:bg-swin-dark-bg dark:text-white/75"
+                              className="inline-flex h-9 items-center rounded-btn border border-hairline bg-surface-card px-3 font-sans text-caption-uppercase text-ink transition hover:border-primary/30 hover:bg-primary/5 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas"
                             >
                               Cancel
                             </button>

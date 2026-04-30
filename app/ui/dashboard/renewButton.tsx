@@ -37,7 +37,7 @@ export default function RenewButton({ loan, holdCount }: RenewButtonProps) {
 
   if (state.status === 'success') {
     return (
-      <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+      <p className="font-sans text-caption font-medium text-success">
         Renewed!
       </p>
     );
@@ -48,7 +48,7 @@ export default function RenewButton({ loan, holdCount }: RenewButtonProps) {
       <input type="hidden" name="loanId" value={loan.id} />
       <SubmitBtn disabled={disabled} tooltip={tooltip} />
       {state.status === 'error' && (
-        <p className="mt-1 text-xs text-swin-red">{state.message}</p>
+        <p className="mt-1 font-sans text-caption text-primary">{state.message}</p>
       )}
     </form>
   );
@@ -63,10 +63,10 @@ function SubmitBtn({ disabled, tooltip }: { disabled: boolean; tooltip?: string 
       disabled={disabled || pending}
       title={tooltip}
       className={clsx(
-        'rounded-lg px-3 py-1.5 text-xs font-semibold transition',
+        'inline-flex h-9 items-center rounded-btn px-3 font-sans text-caption-uppercase transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
         disabled
-          ? 'cursor-not-allowed bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600'
-          : 'bg-swin-red/10 text-swin-red hover:bg-swin-red/20 dark:bg-rose-500/15 dark:text-rose-300 dark:hover:bg-rose-500/25',
+          ? 'cursor-not-allowed bg-surface-cream-strong text-muted-soft dark:bg-dark-surface-strong dark:text-on-dark-soft'
+          : 'bg-primary/10 text-primary hover:bg-primary/20 dark:bg-dark-primary/15 dark:text-dark-primary dark:hover:bg-dark-primary/25',
       )}
     >
       {pending ? 'Renewing…' : 'Renew'}

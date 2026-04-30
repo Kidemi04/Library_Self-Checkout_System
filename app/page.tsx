@@ -12,7 +12,7 @@ export default function HomePage() {
   noStore();
 
   return (
-    <main className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-swin-ivory text-swin-charcoal transition-colors dark:bg-slate-950 dark:text-slate-100">
+    <main className="relative flex min-h-screen flex-col justify-center overflow-hidden bg-canvas text-ink transition-colors dark:bg-dark-canvas dark:text-on-dark">
       <title>Home Page</title>
 
       {/* Background image */}

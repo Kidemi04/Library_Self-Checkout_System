@@ -10,7 +10,6 @@ import { Button } from '@/app/ui/button';
 type ProfileNameFormProps = {
   displayName: string | null;
   username: string | null;
-  isPrivileged: boolean;
 };
 
 function SubmitButton() {
@@ -39,7 +38,6 @@ function SubmitButton() {
 export default function ProfileNameForm({
   displayName,
   username,
-  isPrivileged,
 }: ProfileNameFormProps) {
   const [state, formAction] = useActionState(updateProfileNamesAction, {
     status: 'idle',

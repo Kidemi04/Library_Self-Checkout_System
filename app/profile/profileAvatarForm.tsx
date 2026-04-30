@@ -18,11 +18,9 @@ const initialState: ProfileAvatarFormState = { status: 'idle', message: '' };
 export default function ProfileAvatarForm({
   avatarUrl,
   displayName,
-  isPrivileged,
 }: {
   avatarUrl: string | null;
   displayName: string | null;
-  isPrivileged: boolean;
 }) {
   const [state, formAction] = useActionState(updateProfileAvatar, initialState);
   const [isUploading, setIsUploading] = useState(false);

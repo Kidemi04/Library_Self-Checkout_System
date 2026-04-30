@@ -14,10 +14,10 @@
 
 ## Current position
 
-- **Current batch:** 3 (Admin/Staff) — Chat 15 of 4 done
-- **Current chat:** 15 of 16 done (this chat = Chat 15 in spec numbering — Admin overdue + add-book + 4 book sub-workflow staff-side carry-overs)
-- **Last completed:** Tasks 15–21 of Chat 15 (combined commit `a817856`). Spec-listed files migrated: `app/ui/dashboard/admin/overdueViewer.tsx` (248 lines), `app/ui/dashboard/admin/addBookForm.tsx` (344 lines), `app/ui/dashboard/admin/cameraScanModal.tsx` (164 lines), `app/dashboard/book/holds/page.tsx` (inline stuck-holds warning only — `<HoldsManagementView>` deferred to Chat 16), `app/dashboard/book/reservation/page.tsx` (200 lines), `app/dashboard/book/checkout/page.tsx` (138 lines), `app/dashboard/book/checkin/page.tsx` (185 lines). **Eight unlisted dependency carry-overs migrated:** `searchForm.tsx`, `checkOutForm.tsx`, `patronCombobox.tsx`, `cameraScannerButton.tsx`, `cancelHoldButton.tsx`, `confirmModal.tsx`, `checkInForm.tsx`, `damageReportModal.tsx` (extends Chat 12/14 spec-gap pattern — see findings.md 2026-05-01 Chat 15 entries). Hero gradients on checkout/checkin/cameraScannerButton dropped to solid token fills per spec §6.4. `pnpm tsc --noEmit` clean throughout.
-- **Next step:** Continue Batch 3 — Chat 16 (staff dashboards + history + final QA + cleanup). Files per Batch 3 plan Tasks 22–31: `app/staff/page.tsx` (no-op verify), `app/dashboard/staff/history/page.tsx` + `app/ui/dashboard/staff/historyViewer.tsx` (276 lines), `app/dashboard/staff/damage-reports/page.tsx` + `app/ui/dashboard/staff/damageReportsViewer.tsx` (255 lines) + `app/ui/dashboard/staff/damageReportDetailModal.tsx` (190 lines), `app/ui/dashboard/staff/holdsManagementView.tsx` (201 lines), `app/ui/dashboard/staff/staffDashboard.tsx` (287 lines, Chat 9 carry-over). Plus cleanup phase: drop dormant `isPrivileged` prop, delete dead template files, remove `/dev/primitives` (per spec §7), delete legacy `swin-*` tokens from `tailwind.config.ts`, final project-wide audit, `pnpm build` sanity.
+- **Current batch:** 3 (Admin/Staff) — **COMPLETE** (Chat 16 of 4 done)
+- **Current chat:** **All 16 done** — v3.0.4 Claude-style redesign COMPLETE
+- **Last completed:** Tasks 22–31 of Chat 16 (combined commit hash backfilled below). **Migration phase** — staff dashboards + workflows: `app/dashboard/staff/history/page.tsx` + `historyViewer.tsx` (276 lines), `damage-reports/page.tsx` + `damageReportsViewer.tsx` (255 lines) + `damageReportDetailModal.tsx` (190 lines), `holdsManagementView.tsx` (201 lines), `staffDashboard.tsx` (287 lines, Chat 9 carry-over). Plus 1 unlisted dependency: `markReadyButton.tsx`. **Cleanup phase** — dropped dormant `isPrivileged` prop from 3 profile forms + 3 invocations; deleted 13 dead template files (`loginForm`, `customers/*`, `invoices/*`, `revenueChart`, `latestInvoices`, `fonts.ts`, **plus `acmeLogo.tsx`** as Decision-4 correction); deleted legacy `swin-{charcoal,ivory,gold,dark-bg,dark-surface}` keys from `tailwind.config.ts`; **deferred `/dev/primitives` deletion** per user decision. **Spec gap discovered + resolved mid-Chat 16:** 12 unlisted files / 98 hits with legacy `swin-*` (root `error/page/not-found`, FAQ page + 2 helpers, chat page, notification filter+list, recentLoans, quickCheckIn, placeHold) — user chose full-migration; all migrated. Plus 7 more files with raw slate/gray surfaced by Task 31 audit (4 migrated: dashboard/error, glassCard, pagination, renewButton; 3 deleted as 0-import dead code: skeletons, searchBar, tabSwitch). Final state: `pnpm tsc --noEmit` clean throughout; project-wide audit grep = **0 hits** (no documented retentions consumed); `pnpm build` succeeds.
+- **Next step:** Hand-off via `superpowers:finishing-a-development-branch` — present merge/PR options to user. **Do not push** until user confirms branch + non-main destination per memory `feedback_git_push.md`.
 
 ## What's done
 
@@ -86,6 +86,19 @@
     - `bookCatalogTable.tsx` category-palette colors (blue/emerald/purple/orange tints with `text-white` solids) preserved as domain coloring. The audit grep against the 4 lines is documented as known retention.
     - `bookCatalogTable.tsx` `renderStatusBadge` had domain status colors (`bg-green-100/text-green-700`, `bg-amber-100/text-amber-800`, `bg-indigo-*`, `bg-rose-*`, `bg-yellow-*`, `bg-sky-*`, `bg-violet-*`, `bg-orange-*`) remapped to semantic design tokens (`success/warning/accent-teal/primary`). This loses the per-status hue contrast but stays inside the design system. If visual review reveals the consolidated palette is too uniform, Batch 3 may extend the token system with more semantic hues.
     - `bookCatalogTable.tsx` `Field` helper component is defined but I see no usage — migrated for consistency / future use. Left in place rather than deleted (Batch 3 dead-code sweep can remove if confirmed unused).
+- [x] **Chat 16 (spec) — Staff dashboards + final cleanup; v3.0.4 redesign COMPLETE** (combined commit hash backfilled below)
+  - [x] Task 22: Verify `app/staff/page.tsx` — server redirect, no-op.
+  - [x] Task 23: `app/dashboard/staff/history/page.tsx` (server delegator no-op) + `app/ui/dashboard/staff/historyViewer.tsx` (276 lines, ~14 hits). Filter pills (active = `bg-primary text-on-primary`, inactive = cream secondary); search inputs form recipe; Export CSV cream secondary; table recipe; pagination cream-secondary. `Chip tone='gold'` retained (resolves to accent-amber per Chat 6 retention).
+  - [x] Task 24: `app/dashboard/staff/damage-reports/page.tsx` (server delegator no-op) + `app/ui/dashboard/staff/damageReportsViewer.tsx` (255 lines) + `app/ui/dashboard/staff/damageReportDetailModal.tsx` (190 lines). SEVERITY palette remap from raw amber/rose/sky to semantic `warning/primary/accent-teal` (extends Chat 12/14 STAGE_STYLES + STATUS_STYLE precedent). Form input recipe + table recipe; modal recipe + retained shadow per §6.4.
+  - [x] Task 25: `app/ui/dashboard/staff/holdsManagementView.tsx` (201 lines, Chat 15 deferred) + **carry-over** `app/ui/dashboard/markReadyButton.tsx` (8 hits — unlisted dependency, extends Chat 14/15 pattern). KpiCard className override → `border-primary/40`; FilterPills/StatusBadge primitives unchanged; table recipe; cream-secondary cancel action. markReadyButton trigger → solid `bg-success`; confirmation modal → modal recipe.
+  - [x] Task 26: `app/ui/dashboard/staff/staffDashboard.tsx` (287 lines, ~30 hits, Chat 9 carry-over). Drop hero gradient → solid `bg-primary` + drop boxShadow per §6.4 (mirrors Chat 15 checkout/checkin); semantic icon colors (Checked out → accent-amber, Available → success, Holds ready → accent-teal, Overdue → primary); stats grid card recipe + cream-secondary tile recipe; activity dots remapped (checkout → accent-amber, return → success); Quick scan primary CTA recipe.
+  - [x] Task 27: Drop dormant `isPrivileged` prop from `profileEditForm`, `profileNameForm`, `profileAvatarForm` signatures + 3 invocations in `app/profile/page.tsx`. Local derivation kept (still consumed by line 268 conditional render of "Managed by admin" caption).
+  - [x] Task 28: Deleted dead template files (verified 0 imports each) — `loginForm.tsx`, `customers/table.tsx` + dir, `invoices/{breadcrumbs,buttons,createForm,editForm,pagination,status,table}.tsx` + dir, `dashboard/{revenueChart,latestInvoices}.tsx`, `fonts.ts`, **plus `acmeLogo.tsx`** (Decision 4 plan assumption was wrong — verified 0 imports; was the only live consumer of `fonts.ts`; see findings.md).
+  - [x] Task 29: **DEFERRED** per user decision — `/dev/primitives` gallery kept (developer convenience, NODE_ENV-gated 404 in production, zero user impact). Spec §7 acceptance criterion documented as deliberate carve-out.
+  - [x] Task 30: **EXPANDED** — pre-deletion grep revealed 12 unlisted files / 98 hits using legacy `swin-charcoal/ivory/gold/dark-bg/dark-surface`: `app/error.tsx`, `app/page.tsx`, `app/not-found.tsx`, `dashboard/faq/page.tsx`, `dashboard/chat/page.tsx`, `ui/dashboard/{faqFloatingHelp, faqQuickPanel, notificationFilter, notificationList, recentLoans, quickCheckInButton, placeHoldButton}.tsx`. User chose full-migration option B; all 12 migrated using established recipes. Then deleted legacy `swin-{charcoal,ivory,gold,dark-bg,dark-surface}` keys from `tailwind.config.ts` (kept `red`, `black` per Decision 4 + retention list). `pnpm build` clean.
+  - [x] Task 31: Final acceptance audit — extended residue grep surfaced 7 more files with raw slate/gray (`app/dashboard/error.tsx`, `app/ui/skeletons.tsx`, `app/ui/searchBar.tsx`, `app/ui/dashboard/{pagination, renewButton, tabSwitch}.tsx`, `app/ui/magicUi/glassCard.tsx`). 4 migrated (dashboard/error, glassCard, pagination, renewButton); 3 deleted as 0-import dead code (skeletons, searchBar, tabSwitch — extends Task 28 pattern). Final state: `pnpm tsc --noEmit` clean; project-wide grep across `swin-charcoal|swin-ivory|swin-gold|swin-dark-bg|swin-dark-surface|Cormorant|text-gray-|bg-gray-|text-slate-|bg-slate-|border-slate-|border-gray-` = **0 hits**; `pnpm build` clean.
+  - **Decisions outside plan literal text:** see `findings.md` 2026-05-01 Chat 16 — six entries covering (1) markReadyButton unlisted dependency, (2) damage report SEVERITY palette remap, (3) 12-file (+7-file) spec gap discovery + full migration, (4) acmeLogo dead-code deletion (Decision 4 correction), (5) /dev/primitives retention per user decision, (6) staffDashboard hero gradient → solid bg-primary.
+
 - [x] **Chat 15 (spec) — Admin overdue + add-book + 4 book sub-workflow carry-overs** (combined commit `a817856`)
   - [x] Task 15: `app/dashboard/admin/overdue/page.tsx` (server delegator no-op) + `app/ui/dashboard/admin/overdueViewer.tsx` (248 lines, ~14 hits). Filter pills (active = `bg-primary text-on-primary`, inactive = cream secondary), search input form recipe, Export CSV cream secondary, status banner success/primary tokens, table recipe, Days-overdue badge primary-tinted, "All loans on time" empty state success-tinted card.
   - [x] Task 16: `app/dashboard/admin/books/new/page.tsx` (server delegator no-op) + `app/ui/dashboard/admin/addBookForm.tsx` (344 lines, ~11 hits) + `app/ui/dashboard/admin/cameraScanModal.tsx` (164 lines, ~5 hits). Form recipe everywhere, warning-tinted duplicate notice, primary submit, tags input cream-strong pills. cameraScanModal keeps dark panel chrome (camera viewfinder UX) with semantic dark tokens, accent-teal/80 aim brackets, warning notice for errors, primary CTA Use button.
@@ -138,34 +151,23 @@
   - [x] Task 22: Chat 11 audit + combined commit. Project-wide `pnpm tsc --noEmit` clean. Per-file residue grep across all 10 in-scope files = 0 hits. Three findings logged.
   - **Decisions outside plan literal text:** see `findings.md` 2026-04-30 Chat 11 — three entries covering (1) shared `pageLoadingSkeleton` migration timing, (2) `isPrivileged` form theming retirement, (3) `notificationPanel` kept inline rather than switched to `<NotificationItem>` primitive due to per-row mark-as-read affordance mismatch.
 
-## What's next (Batch 3 — admin/staff + Batch 2 carry-overs)
+## What's next — Hand-off to user for visual review
 
-Batch 2 done. Batch 3 plan does **not** yet exist — must be written first.
+**v3.0.4 Claude-style redesign is feature-complete.** All 16 chats done, all 3 batches done. Carry-overs absorbed.
 
-**Batch 3 mandatory file scope** (carry-overs from Batch 2 that must be migrated alongside the spec §7 Batch 3 list):
-- `app/dashboard/book/holds/page.tsx`
-- `app/dashboard/book/checkout/page.tsx`
-- `app/dashboard/book/[id]/page.tsx` (book detail)
-- `app/dashboard/book/checkin/page.tsx`
-- `app/dashboard/book/items/page.tsx` (student book browse landing — target of `book/page.tsx` redirect)
-- `app/dashboard/book/reservation/page.tsx`
-- `app/ui/dashboard/staffDashboard.tsx` (Chat 9 carry-over)
-- `app/ui/dashboard/mobileNav.tsx` + `app/ui/dashboard/navLinks.tsx` (Chat 9 carry-over — fixes the cream-drawer-vs-dark-header mobile mismatch)
+**User next steps:**
+1. **Visual review** — open the dev server (`pnpm dev`) and walk the migrated surfaces. Spot-check at least 10 random pages across roles (student / staff / admin) in both light + dark mode. Suggested routes: `/`, `/login`, `/dashboard`, `/dashboard/book/list`, `/dashboard/book/items`, `/dashboard/book/[id]`, `/dashboard/book/checkout`, `/dashboard/book/checkin`, `/dashboard/book/holds`, `/dashboard/book/reservation`, `/dashboard/book/history`, `/dashboard/my-books`, `/dashboard/cameraScan`, `/dashboard/profile`, `/dashboard/notifications`, `/dashboard/learning/linkedin`, `/dashboard/chat`, `/dashboard/faq`, `/dashboard/admin`, `/dashboard/admin/users`, `/dashboard/admin/overdue`, `/dashboard/admin/books/new`, `/dashboard/staff/history`, `/dashboard/staff/damage-reports`, `/dev/primitives` (kept per user decision).
+2. **Decide on push** — if visual review passes, push branch + open PR per memory `feedback_git_push.md`. **Do not merge to main without explicit user direction.**
+3. **Open issues** (none blocking; can be follow-ups):
+   - ThemeProvider hydration flash (post-hydration `useEffect` applies `dark` class, brief light-mode flash on dark-mode users' first load) — Batch 4 candidate if user wants. Not in v3.0.4 scope.
+   - `pnpm lint` script absent — separate task to add ESLint + Next.js config if lint discipline is desired.
+   - `swin-red` (non-`swin-red-brand`) class still appears on a few surfaces (`searchBar` deleted; `dashboard/error`, `faqScrollTopButton`, `renewButton`, `tabSwitch` deleted; `app/page.tsx` retained for landing accent). All resolve to `#C82333` via the kept `swin.red` token in tailwind config — visually identical, semantically might want to migrate to `primary` later.
+   - `accent='gold'` / `tone='gold'` props in `SectionCard` / `UserAvatar` / `Chip` still resolve to `accent-amber`. Could rename to `'amber'` for clarity in a future cleanup pass.
 
-**Batch 3 spec-listed scope** (per spec §7 Batch 3 — admin/staff): TBD when reading the spec for plan-writing.
-
-**Batch 3 cleanup candidates:**
-- Delete dead template files: `app/ui/loginForm.tsx`, `app/ui/customers/*`, `app/ui/invoices/*`, `app/ui/dashboard/revenueChart.tsx`, `app/ui/dashboard/latestInvoices.tsx`, `app/ui/fonts.ts`
-- Drop dormant `isPrivileged` prop from profile form signatures (Chat 11 carry-over) once the `actions.ts` + `app/profile/page.tsx` callers can be coordinated
-- Consider extending `<NotificationItem>` primitive with a `secondaryAction` prop so `notificationPanel` can adopt the primitive (Chat 11 carry-over)
-- Rename `accent='gold'` / `tone='gold'` props to `'amber'` for clarity (or keep as-is — they resolve to `accent-amber` correctly)
-- Decide whether to delete `tailwind.config.ts` legacy `swin-*` tokens now that all in-app references are gone (only `swin-red-brand` remains live)
-- Optionally extend `/dev/primitives` gallery with Chat 7 primitives (`BookCover`, `BarChartMini`, `IsbnLookupBox`, `BarcodePreview`) and Chat 8 chrome (`dashboardShell`, `adminShell`, `dashboardTitleBar`, `signOutButton`, `themeToggle`) — or retire the gallery per spec §7
-
-Plan sources of truth (existing):
-- Batch 1: `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md` (committed `8f94019`)
-- Batch 2: `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-student-facing.md` (committed `24ff5f0`)
-- Batch 3: TBD — write via `superpowers:writing-plans` against spec §7 Batch 3 + the carry-over list above
+Plan sources of truth (committed):
+- Batch 1: `docs/superpowers/plans/2026-04-29-ui-claude-batch-1-foundation.md` (`8f94019`)
+- Batch 2: `docs/superpowers/plans/2026-04-29-ui-claude-batch-2-student-facing.md` (`24ff5f0`)
+- Batch 3: `docs/superpowers/plans/2026-04-30-ui-claude-batch-3-admin-staff.md`
 
 ## Open issues / Decisions deferred
 
@@ -175,70 +177,31 @@ Plan sources of truth (existing):
 
 (none)
 
-## Notes for next chat
+## Notes for visual review hand-off
 
-- **Batch 2 of 3 is COMPLETE** (with documented carry-overs to Batch 3). Next chat must (a) write the Batch 3 plan via `superpowers:writing-plans` against spec §7 Batch 3 + the Batch 2 carry-over list in "What's next" above, then (b) execute via `superpowers:executing-plans`.
+- **All 16 chats COMPLETE.** v3.0.4 Claude-style redesign feature-complete. All Batch 1/2/3 carry-overs absorbed. Project-wide audit grep clean across `swin-*|Cormorant|text-gray-|bg-gray-|text-slate-|bg-slate-|border-slate-|border-gray-` = 0 hits. `pnpm tsc --noEmit` + `pnpm build` both clean.
 - All commits are local. **User has not been asked to push.** Per user preference (memory `feedback_git_push.md`): always confirm branch + non-main destination before pushing.
 - `.worktrees/` is ignored / untracked — leave alone.
 - `DESIGN.md` (project root) is currently untracked. User may want to commit it separately; not part of this redesign work.
-- The custom `ThemeProvider` at `app/ui/theme/themeProvider.tsx` is what drives `dark` class on `<html>`. **Do not introduce `next-themes`** — Tailwind `dark:` prefix already works against the custom provider. Note: ThemeProvider applies the `dark` class via post-hydration `useEffect` (no pre-hydration script), so dark-mode users see a brief light-mode flash on first load. Fixing this is a Batch 2/3 ThemeProvider-side cookie-read SSR change, not a per-component fix. See `findings.md` 2026-04-29 Chat 8 first entry for context.
+- The custom `ThemeProvider` at `app/ui/theme/themeProvider.tsx` is what drives `dark` class on `<html>`. **Do not introduce `next-themes`** — Tailwind `dark:` prefix already works against the custom provider. Note: ThemeProvider applies the `dark` class via post-hydration `useEffect` (no pre-hydration script), so dark-mode users see a brief light-mode flash on first load. Fixing this is a future ThemeProvider-side cookie-read SSR change, not in v3.0.4 scope. See `findings.md` 2026-04-29 Chat 8 first entry for context.
 - **No `pnpm lint` script exists in this project** — quality gate is `pnpm tsc --noEmit` only. See `findings.md` 2026-04-29 Chat 2 entry. Do not chase the missing lint setup.
-- **Visual confirmation pending for entire Batch 1 + Batch 2:** Font self-host, primitives, shell + chrome (Batch 1), login + main dashboard + nav (Chat 9), book browse + borrow history (Chat 10), camera scan + profile + notifications (Chat 11), and learning module (Chat 12) have not been browser-verified. User handles UI testing per memory `feedback_testing.md`. `pnpm tsc --noEmit` clean throughout — structural pass only. **The `/dev/primitives` page is live** — visit `http://localhost:3000/dev/primitives` after `pnpm dev`. Routes now showing migrated UI: `/login`, `/dashboard`, `/dashboard/book/list`, `/dashboard/book/history`, `/dashboard/my-books`, `/dashboard/cameraScan`, `/dashboard/profile` (and `/profile`), `/dashboard/notifications`, `/dashboard/learning` (redirects to `/dashboard/learning/linkedin`). Six loading.tsx pages also gain the migrated cream skeleton.
-- **Batch 2 known unmigrated routes** (will appear visually inconsistent until Batch 3): `/dashboard/book/items` (student book browse landing), `/dashboard/book/holds`, `/dashboard/book/checkout`, `/dashboard/book/checkin`, `/dashboard/book/reservation`, `/dashboard/book/[id]` (book detail). See findings.md 2026-04-30 Chat 12 spec-gap entry.
-- **Chat 9 known mismatches awaiting later chats:** (1) mobileMenu drawer is cream in light mode but `mobileNav.tsx` header is still dark/un-migrated (visible in light-mode mobile view) — `mobileNav.tsx` and `navLinks.tsx` are nav-shell siblings missed by Batch 1 Chat 8; pick up in Batch 3 cleanup. (2) `staffDashboard.tsx` (287 lines, 31 legacy hits) un-migrated — staff-facing, Batch 3 territory.
-- **Chat 10 deferred items resolved in Chat 11:**
-  - ~~Shared `app/ui/pageLoadingSkeleton.tsx`~~ — **migrated in Chat 11** (resolved YES per user pre-flight recommendation).
-  - **`bookCatalogTable.tsx` category palette** retains 4 `text-white` literals on saturated category buttons (`bg-{blue|emerald|purple|orange}-600`). These are intentional domain coloring; do not chase in subsequent residue grep audits.
-- **Chat 11 carry-over notes for Chat 12 / Batch 3:**
-  - **`isPrivileged` prop in profile forms** is still on the component signatures but no longer drives styling. Either keep dormant (current state, non-breaking) or drop the parameter in Batch 3 dead-code sweep. Decision: leave for now — `actions.ts` and `app/profile/page.tsx` still pass it, removing requires a coordinated multi-file change that's not worth the diff in this batch.
-  - **`notificationPanel` ↔ `<NotificationItem>` primitive divergence** — both surfaces share the semantic TYPE_STYLES color mapping but render via different markup paths (per-row mark-as-read affordance only on the panel). If a future UX pass wants a single source of truth, extend `<NotificationItem>` to accept a `secondaryAction` prop; until then, keep both.
-  - **`app/dashboard/profile/page.tsx`** is a one-line re-export of `@/app/profile/page` — left untouched in Chat 11 (no UI to migrate). Both URL paths (`/profile` and `/dashboard/profile`) render the same migrated page.
-- **Cormorant residue:** **fully cleared** for `app/` as of Chat 7. Project-wide `grep` for `Cormorant` returns 0 results across `app/` and `tailwind.config.ts`. The `Cormorant` literal still appears in `findings.md` and `progress.md` historical notes; that's documentation, not code, so it does not block Batch 3 acceptance criteria (which targets `app/`).
-- **Dev gallery scope:** `/dev/primitives` exercises `Button`, `Chip`, `StatusBadge`, `KpiCard`, plus typography + color tokens. It does NOT exercise Chat 7 primitives (`BookCover`, `BarChartMini`, `IsbnLookupBox`, `BarcodePreview`) or Chat 8 chrome (`dashboardShell`, `adminShell`, `dashboardTitleBar`, `signOutButton`, `themeToggle`). Plan templates didn't include them. Batch 2/3 may extend the gallery or retire it in Batch 3 per spec §7.
-- **`rounded-pill` token:** Chat 5 added `pill: '9999px'` to `tailwind.config.ts` borderRadius to make plan-written `rounded-pill` classes resolve. Future chats can use `rounded-pill` freely.
-- **`accent='gold'` / `tone='gold'` props still exist in `SectionCard` and `UserAvatar`:** they now resolve to `accent-amber`. Callers in Batches 2/3 should be reviewed: either keep the gold tone for category-style highlights, or rename the prop value to `'amber'` for clarity. Either way, no caller breaks today.
-- **`<SignOutButton>` callers** in `sidenav.tsx` + `mobileMenu.tsx` cleaned up in Chat 9 — both now inherit `DEFAULT_CLASS_NAME`.
-- **`themeToggle`** still icon-only-button per Batch 1 redesign; only used in `mobileNav.tsx`. `sidenav.tsx` had its unused import dropped in Chat 9. Worth visual review when `mobileNav.tsx` is migrated.
-- **Dead template files still present:** `app/ui/loginForm.tsx` (migrated in Chat 9 for residue cleanliness; not imported anywhere), `app/ui/customers/*`, `app/ui/invoices/*`, `app/ui/dashboard/revenueChart.tsx`, `app/ui/dashboard/latestInvoices.tsx`, `app/ui/fonts.ts` (Lusitana/Inter from Next.js Learn template; project actually uses next/font/google in app/layout.tsx since Batch 1 Chat 4). Recommend deleting all in Batch 3 final cleanup.
+- **Visual confirmation pending across the entire app.** User handles UI testing per memory `feedback_testing.md`. Suggested walk-through: 10+ random pages × {light, dark} × {student, staff, admin}. Pages with hero treatments to confirm: `/`, `/login`, `/dashboard` (student hero), `/dashboard/book/checkout` + `/dashboard/book/checkin` (staff hero), `/staff` redirect → checkout. Pages with table recipes to confirm: `/dashboard/admin/users`, `/dashboard/admin/overdue`, `/dashboard/staff/history`, `/dashboard/staff/damage-reports`, `/dashboard/book/list`. Modal recipes: damage-report detail, manage-copies, confirm modals. Mobile nav: hamburger drawer should now match cream surface in light mode (Chat 13 fixed the Chat 9 mismatch).
+- **`/dev/primitives` retained** per user decision Chat 16 (developer-only, NODE_ENV-gated 404 in production). Spec §7 acceptance criterion documented as deliberate carve-out. Future passes can extend with Chat 7 primitives + Chat 8 chrome if useful.
+- **Documented intentional retentions** (do not chase in any future audits):
+  - `swin-red-brand` alias in `tailwind.config.ts` — kept even though `acmeLogo.tsx` (cited consumer) was deleted; safe semantic infrastructure for any future brand-mark surface.
+  - `swin.red` token in `tailwind.config.ts` — kept; consumed by `bg-swin-red` / `text-swin-red` in `app/page.tsx` landing accent + a few other surfaces. Resolves to same `#C82333` value as `swin-red-brand` and `primary` (`#B83A35`) is a slightly different brand-red.
+  - `bookCatalogTable.tsx` lines 389-392 — 4 `text-white` literals on category-palette filter chips (`bg-{blue|emerald|purple|orange}-600 text-white`). Intentional domain coloring per Chat 10 finding.
+  - `studentChat.tsx` — LinkedIn brand-blue `[#0A66C2]` / `[#70B5F9]` hover state on LinkedIn Learning suggestion links + Google logo SVG `#4285F4` / `#34A853` / `#FBBC05` / `#EA4335` brand-mark fills. Intentional third-party brand fidelity per Chat 12 finding.
+  - `Chip tone='gold'` / `SectionCard accent='gold'` / `UserAvatar tone='gold'` — props still resolve to `accent-amber` correctly per Chat 6 retention. Could be renamed for clarity in a future cleanup pass.
+- **`accent-violet` token absent** — `manageCopiesModal` `hold_shelf` and `bookList` "On hold" both mapped to `accent-amber` per Chat 14 findings. If future UX wants a distinct violet/queued tone, the token can be added.
+- **`notificationPanel` ↔ `<NotificationItem>` primitive divergence** — both surfaces share semantic TYPE_STYLES but render via different markup paths (per-row mark-as-read affordance only on the panel). Future UX pass can extend `<NotificationItem>` with `secondaryAction` prop to converge.
+- **`app/dashboard/profile/page.tsx`** is a one-line re-export of `@/app/profile/page` — both URL paths render the same migrated profile page.
+- **Six `loading.tsx` pages** delegate to migrated `pageLoadingSkeleton.tsx` (Chat 11) — `book/history`, `book/items`, `dashboard`, `notifications`, `admin`, `admin/users` all inherit the cream skeleton.
 
 ---
 
 ## How to start the next chat
 
-Chat 15 已完成 (commit `a817856`，已推到 `origin/Kelvin-v3.0.4-EnhanceUIColour`)。下一聊 = **Chat 16，Batch 3 最后一个 chat = 整个 v3.0.4 redesign 的最后一聊**。Batch 3 plan 已经存在（`docs/superpowers/plans/2026-04-30-ui-claude-batch-3-admin-staff.md`，Tasks 22–31），不需要 re-plan，直接执行。
+**There is no next chat for v3.0.4 redesign.** All scope complete. Hand-off to user via `superpowers:finishing-a-development-branch`.
 
-Paste this into the new chat:
-
-> 继续 UI 改造工作。Chat 15 已完成；这一聊 = Chat 16，Batch 3 最后一聊（整个 v3.0.4 redesign 收尾）。
->
-> 先按顺序读：
-> 1. `MEMORY.md`
-> 2. `progress.md`（当前进度 — 注意 "Notes for next chat" 与 Chat 13/14/15 已完成段）
-> 3. `task_plan.md`（Chat 13/14/15 已打勾，看 Chat 16 还没动）
-> 4. `findings.md` 2026-05-01 Chat 14 + Chat 15 八条（unlisted dependency pattern、STATUS_STYLE 重映射、hero 渐变 → solid token、camera modal dark chrome 保留、book/holds plan 误描述）
-> 5. `docs/superpowers/plans/2026-04-30-ui-claude-batch-3-admin-staff.md` Tasks 22–31（Chat 16 完整范围）— **plan 已存在，不要 re-plan，直接执行**
-> 6. Batch 1 plan 顶部的 "Token Migration Reference Table" 当 class-swap 字典
-> 7. Batch 2 plan 顶部的 "Spec deltas (higher-level recipe)" 当 page/component-level 字典
->
-> 读完直接调 `superpowers:executing-plans` 按 Batch 3 plan Tasks 22–31 执行。
->
-> Chat 16 范围 (per Batch 3 plan):
-> - **Migration phase** (Tasks 22–26):
->   - `app/staff/page.tsx`（server redirect, 预期 no-op）
->   - `app/dashboard/staff/history/page.tsx` + `app/ui/dashboard/staff/historyViewer.tsx`（276 行）
->   - `app/dashboard/staff/damage-reports/page.tsx` + `app/ui/dashboard/staff/damageReportsViewer.tsx`（255 行）+ `app/ui/dashboard/staff/damageReportDetailModal.tsx`（190 行）
->   - `app/ui/dashboard/staff/holdsManagementView.tsx`（201 行 — Chat 15 deferred 的）
->   - `app/ui/dashboard/staff/staffDashboard.tsx`（287 行 30 hits — Chat 9 carry-over）
-> - **Cleanup phase** (Tasks 27–30，顺序重要):
->   - Task 27: drop dormant `isPrivileged` prop (`app/profile/{profileEditForm,profileNameForm,profileAvatarForm}.tsx` + `app/profile/page.tsx` + `app/profile/actions.ts`，全 grep 一次确认 0 references)
->   - Task 28: 删 dead template files（`app/ui/loginForm.tsx`、`app/ui/customers/*`、`app/ui/invoices/*`、`app/ui/dashboard/revenueChart.tsx`、`app/ui/dashboard/latestInvoices.tsx`、`app/ui/fonts.ts`，每个先 grep `from '@/app/ui/...'` 确认 0 imports 才删）
->   - Task 29: 删 `/dev/primitives` (`app/dev/primitives/page.tsx` + `app/dev/layout.tsx`) per spec §7 acceptance — **执行前先跟用户确认** per Decision 3
->   - Task 30: 删 `tailwind.config.ts` 的 legacy `swin-{charcoal,ivory,gold,dark-bg,dark-surface}` keys (`swin-red` + `swin-red-brand` alias 留下) — 删之前先 project-wide grep app/ 确认 0 hits，删之后 `pnpm build` sanity
-> - **Task 31 - Final acceptance audit:** project-wide tsc + extended residue grep (允许 retention: `swin-red-brand` brand glyph、`bookCatalogTable` 4 个 `text-white` category palette、`studentChat` LinkedIn `[#0A66C2]` + Google logo SVG 4 色) + `pnpm build` 成功
->
-> 注意事项:
-> - 第三方品牌色保留 — 沿用 Chat 10/12/14/15 的 retention 文档化模式。
-> - 每动一个文件跑一次 `pnpm tsc --noEmit`，每个 cleanup 步骤跑一次 tsc。
-> - 整个 chat 结尾合并提交一次（Migration + Cleanup 全部塞进一个 commit，按 plan Task 31 Step 6 commit message 模板）+ 文件名+决策写进 commit body。
-> - 推送前必须先确认分支名 + 不会合到 main（per memory `feedback_git_push.md`）。
-> - **Chat 16 = 整个 v3.0.4 收尾**。完成后用 `superpowers:finishing-a-development-branch` skill 提供 merge/PR 选项给用户决定下一步。
+If user wants to start follow-up work (visual review tweaks, ThemeProvider hydration flash fix, ESLint setup, etc.), open a new chat referencing this `progress.md` + `findings.md` for context — do not edit these to start a new task; instead create a fresh plan via `superpowers:writing-plans`.

@@ -4,18 +4,20 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import type { DamageReportRow, DamageSeverity } from '@/app/lib/supabase/queries';
 
+// Severity palette remap from raw amber/rose/sky to semantic tokens
+// (extends Chat 12 STAGE_STYLES + Chat 14 STATUS_STYLE precedent).
 const SEVERITY_LABEL: Record<DamageSeverity, { label: string; color: string }> = {
   damaged: {
     label: 'Damaged',
-    color: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200',
+    color: 'bg-warning/15 text-warning',
   },
   lost: {
     label: 'Lost',
-    color: 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200',
+    color: 'bg-primary/15 text-primary',
   },
   needs_inspection: {
     label: 'Needs inspection',
-    color: 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200',
+    color: 'bg-accent-teal/15 text-accent-teal',
   },
 };
 
@@ -47,22 +49,22 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
       aria-labelledby="damage-detail-title"
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
     >
-      <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-swin-dark-surface">
+      <div className="absolute inset-0 bg-ink/50 backdrop-blur-sm dark:bg-dark-canvas/70" onClick={onClose} />
+      <div className="relative max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-card border border-hairline bg-surface-card p-6 shadow-[0_4px_16px_rgba(20,20,19,0.08)] dark:border-dark-hairline dark:bg-dark-surface-card">
         {/* Header */}
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <p className="mb-1 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/45 dark:text-white/45">
+            <p className="mb-1 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Damage report · {formatDate(report.createdAt)}
             </p>
             <h2
               id="damage-detail-title"
-              className="font-display text-[22px] font-semibold tracking-tight text-swin-charcoal dark:text-white"
+              className="font-display text-display-sm text-ink dark:text-on-dark tracking-tight"
             >
               {report.copy?.book?.title ?? 'Unknown book'}
             </h2>
             {report.copy?.book?.author && (
-              <p className="mt-0.5 font-display text-[13px] italic text-swin-charcoal/65 dark:text-white/65">
+              <p className="mt-0.5 font-display text-body-sm italic text-muted dark:text-on-dark-soft">
                 by {report.copy.book.author}
               </p>
             )}
@@ -71,7 +73,7 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="rounded-full p-1 text-swin-charcoal/50 transition hover:bg-swin-charcoal/5 hover:text-swin-charcoal dark:text-white/50 dark:hover:bg-white/10 dark:hover:text-white"
+            className="rounded-pill p-1.5 text-muted transition hover:bg-surface-cream-strong hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:text-on-dark-soft dark:hover:bg-dark-surface-strong dark:hover:text-on-dark"
           >
             <XMarkIcon className="h-5 w-5" />
           </button>
@@ -81,7 +83,7 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
         <div className="mb-5">
           <span
             className={clsx(
-              'inline-flex items-center rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider',
+              'inline-flex items-center rounded-pill px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider',
               sev.color,
             )}
           >
@@ -90,36 +92,36 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
         </div>
 
         {/* Meta grid */}
-        <dl className="mb-5 grid gap-x-6 gap-y-3 rounded-xl border border-swin-charcoal/10 bg-slate-50/60 p-4 font-mono text-[11px] dark:border-white/10 dark:bg-white/[0.02] sm:grid-cols-2">
+        <dl className="mb-5 grid gap-x-6 gap-y-3 rounded-card border border-hairline bg-surface-cream-strong/40 p-4 font-mono text-code dark:border-dark-hairline dark:bg-dark-surface-strong/40 sm:grid-cols-2">
           <div>
-            <dt className="uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">
+            <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Copy barcode
             </dt>
-            <dd className="mt-0.5 text-swin-charcoal/85 dark:text-white/85">
+            <dd className="mt-0.5 text-ink dark:text-on-dark">
               {report.copy?.barcode ?? '—'}
             </dd>
           </div>
           <div>
-            <dt className="uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">
+            <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Borrower
             </dt>
-            <dd className="mt-0.5 text-swin-charcoal/85 dark:text-white/85">
+            <dd className="mt-0.5 text-ink dark:text-on-dark">
               {report.borrower?.displayName ?? report.borrower?.email ?? '—'}
             </dd>
           </div>
           <div>
-            <dt className="uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">
+            <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Reported by
             </dt>
-            <dd className="mt-0.5 text-swin-charcoal/85 dark:text-white/85">
+            <dd className="mt-0.5 text-ink dark:text-on-dark">
               {report.reportedBy?.displayName ?? report.reportedBy?.email ?? '—'}
             </dd>
           </div>
           <div>
-            <dt className="uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">
+            <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Loan due / returned
             </dt>
-            <dd className="mt-0.5 text-swin-charcoal/85 dark:text-white/85">
+            <dd className="mt-0.5 text-ink dark:text-on-dark">
               Due {formatDate(report.loan?.dueAt)}
               {report.loan?.returnedAt ? ` · Returned ${formatDate(report.loan.returnedAt)}` : ''}
             </dd>
@@ -128,15 +130,15 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
 
         {/* Notes */}
         <div className="mb-5">
-          <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55">
+          <p className="mb-1.5 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
             Notes
           </p>
           {report.notes ? (
-            <p className="whitespace-pre-wrap rounded-lg border border-swin-charcoal/10 bg-white p-3 text-[13px] text-swin-charcoal dark:border-white/10 dark:bg-swin-dark-surface dark:text-white/90">
+            <p className="whitespace-pre-wrap rounded-card border border-hairline bg-canvas p-3 font-sans text-body-sm text-ink dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark">
               {report.notes}
             </p>
           ) : (
-            <p className="rounded-lg border border-dashed border-swin-charcoal/15 p-3 text-center font-mono text-[11px] text-swin-charcoal/45 dark:border-white/10 dark:text-white/45">
+            <p className="rounded-card border border-dashed border-hairline p-3 text-center font-sans text-caption text-muted dark:border-dark-hairline dark:text-on-dark-soft">
               No notes recorded.
             </p>
           )}
@@ -144,11 +146,11 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
 
         {/* Photos */}
         <div>
-          <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55">
+          <p className="mb-2 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
             Photos ({report.photoPaths.length})
           </p>
           {report.photoPaths.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-swin-charcoal/15 p-3 text-center font-mono text-[11px] text-swin-charcoal/45 dark:border-white/10 dark:text-white/45">
+            <p className="rounded-card border border-dashed border-hairline p-3 text-center font-sans text-caption text-muted dark:border-dark-hairline dark:text-on-dark-soft">
               No photos attached.
             </p>
           ) : (
@@ -162,7 +164,7 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
                     target="_blank"
                     rel="noreferrer"
                     className={clsx(
-                      'group relative block aspect-square overflow-hidden rounded-lg border border-swin-charcoal/10 bg-slate-100 dark:border-white/10 dark:bg-white/5',
+                      'group relative block aspect-square overflow-hidden rounded-card border border-hairline bg-surface-cream-strong dark:border-dark-hairline dark:bg-dark-surface-strong',
                       !url && 'pointer-events-none opacity-60',
                     )}
                   >
@@ -174,7 +176,7 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
                         className="h-full w-full object-cover transition group-hover:scale-105"
                       />
                     ) : (
-                      <div className="flex h-full items-center justify-center font-mono text-[10px] text-swin-charcoal/40 dark:text-white/40">
+                      <div className="flex h-full items-center justify-center font-mono text-code text-muted dark:text-on-dark-soft">
                         Unable to load
                       </div>
                     )}

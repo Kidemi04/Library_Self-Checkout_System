@@ -77,11 +77,13 @@ export default function StaffDashboard({
   const h = new Date().getHours();
   const tod = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
 
+  // Semantic icon colors per spec §3.5: in-flight (checked out) → accent-amber,
+  // success (available) → success, attention (holds ready) → accent-teal, alert (overdue) → primary.
   const stats = [
-    { label: 'Checked out', value: summary.activeLoans, icon: BookOpenIcon, color: 'text-swin-gold' },
-    { label: 'Available',   value: summary.availableBooks, icon: ArrowPathIcon, color: 'text-green-600 dark:text-green-400' },
-    { label: 'Holds ready', value: readyHoldsCount, icon: BookmarkIcon, color: 'text-swin-red' },
-    { label: 'Overdue',     value: summary.overdueLoans, icon: ExclamationTriangleIcon, color: 'text-swin-red' },
+    { label: 'Checked out', value: summary.activeLoans, icon: BookOpenIcon, color: 'text-accent-amber' },
+    { label: 'Available',   value: summary.availableBooks, icon: ArrowPathIcon, color: 'text-success' },
+    { label: 'Holds ready', value: readyHoldsCount, icon: BookmarkIcon, color: 'text-accent-teal' },
+    { label: 'Overdue',     value: summary.overdueLoans, icon: ExclamationTriangleIcon, color: 'text-primary' },
   ];
 
   const activity = recentLoans.map((loan) => ({ id: loan.id, ...formatActivity(loan) }));
@@ -101,25 +103,22 @@ export default function StaffDashboard({
       primaryAction={
         <Link
           href="/dashboard/book/checkout"
-          className="flex items-center gap-1.5 rounded-xl bg-swin-red px-3.5 py-2.5 text-[12px] font-semibold text-white transition hover:bg-swin-red/90"
+          className="inline-flex h-10 items-center gap-1.5 rounded-btn bg-primary px-4 font-sans text-button text-on-primary transition hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
         >
-          <QrCodeIcon className="h-3.5 w-3.5" />
+          <QrCodeIcon className="h-4 w-4" />
           Quick scan
         </Link>
       }
     >
       {/* Scan form + stats */}
       <div className="mb-7 grid grid-cols-1 gap-4 lg:grid-cols-[1.6fr_1fr]">
-        {/* Scan form */}
-        <div
-          className="relative overflow-hidden rounded-2xl p-7 text-white"
-          style={{ background: 'linear-gradient(135deg, #A81C2A 0%, #C82333 70%)', boxShadow: '0 16px 40px rgba(200,35,51,0.2)' }}
-        >
-          <div className="absolute -right-8 -top-8 h-44 w-44 rounded-full bg-white/7" />
-          <p className="mb-2 font-mono text-[9px] font-bold uppercase tracking-[2px] opacity-80">
+        {/* Scan hero — solid bg-primary per spec §6.4 (drop gradient + boxShadow) */}
+        <div className="relative overflow-hidden rounded-card bg-primary p-7 text-on-primary">
+          <div className="absolute -right-8 -top-8 h-44 w-44 rounded-full bg-on-primary/10" aria-hidden="true" />
+          <p className="relative mb-2 font-sans text-caption-uppercase opacity-80">
             Self-Service Desk · Scan to Process
           </p>
-          <h2 className="mb-5 font-display text-[28px] font-semibold leading-none tracking-tight">
+          <h2 className="relative mb-5 font-display text-display-md tracking-tight">
             Quick checkout or return
           </h2>
           <form
@@ -127,7 +126,7 @@ export default function StaffDashboard({
               e.preventDefault();
               handleScan('checkout');
             }}
-            className="flex items-center gap-2.5 rounded-xl border border-white/22 bg-white/15 py-1 pl-3.5 pr-1.5"
+            className="relative flex items-center gap-2.5 rounded-btn border border-on-primary/25 bg-on-primary/15 py-1 pl-3.5 pr-1.5"
           >
             <QrCodeIcon className="h-4 w-4 opacity-80" />
             <label htmlFor="staff-scan" className="sr-only">Scan barcode or type SWI code</label>
@@ -137,27 +136,27 @@ export default function StaffDashboard({
               onChange={(e) => setScanInput(e.target.value)}
               placeholder="Scan barcode or type SWI-xxxxx…"
               autoComplete="off"
-              className="flex-1 bg-transparent text-[13px] text-white placeholder-white/55 outline-none"
+              className="flex-1 bg-transparent font-sans text-body-sm text-on-primary placeholder:text-on-primary/55 outline-none"
             />
             <button
               type="submit"
-              className="rounded-lg bg-white px-4 py-2 text-[12px] font-bold text-swin-red transition hover:bg-white/90"
+              className="inline-flex h-9 items-center rounded-btn bg-on-primary px-4 font-sans text-button text-primary transition hover:bg-on-primary/90"
             >
               Process
             </button>
           </form>
-          <div className="mt-3.5 flex gap-2">
+          <div className="relative mt-3.5 flex gap-2">
             <button
               type="button"
               onClick={() => handleScan('checkout')}
-              className="rounded-md border border-white/20 bg-white/12 px-3 py-1.5 text-[11px] font-semibold transition hover:bg-white/20"
+              className="rounded-btn border border-on-primary/25 bg-on-primary/15 px-3 py-1.5 font-sans text-caption-uppercase transition hover:bg-on-primary/25"
             >
               Checkout
             </button>
             <button
               type="button"
               onClick={() => handleScan('checkin')}
-              className="rounded-md border border-white/20 bg-white/12 px-3 py-1.5 text-[11px] font-semibold transition hover:bg-white/20"
+              className="rounded-btn border border-on-primary/25 bg-on-primary/15 px-3 py-1.5 font-sans text-caption-uppercase transition hover:bg-on-primary/25"
             >
               Return
             </button>
@@ -165,19 +164,19 @@ export default function StaffDashboard({
         </div>
 
         {/* Stats grid */}
-        <div className="grid grid-cols-2 gap-3.5 rounded-2xl border border-swin-charcoal/10 bg-white p-6 dark:border-white/10 dark:bg-swin-dark-surface">
+        <div className="grid grid-cols-2 gap-3.5 rounded-card border border-hairline bg-surface-card p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
           {stats.map((s) => {
             const Icon = s.icon;
             return (
               <div
                 key={s.label}
-                className="rounded-xl border border-swin-charcoal/8 bg-slate-50 p-3.5 dark:border-white/8 dark:bg-swin-dark-bg"
+                className="rounded-card border border-hairline-soft bg-surface-cream-strong p-3.5 dark:border-dark-hairline dark:bg-dark-surface-strong"
               >
                 <Icon className={`mb-2 h-4 w-4 ${s.color}`} />
-                <p className="font-display text-[28px] font-semibold leading-none tracking-tight text-swin-charcoal dark:text-white">
+                <p className="font-display text-display-sm text-ink dark:text-on-dark">
                   {s.value}
                 </p>
-                <p className="mt-1 font-mono text-[10px] uppercase tracking-[1px] text-swin-charcoal/40 dark:text-white/40">
+                <p className="mt-1 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
                   {s.label}
                 </p>
               </div>
@@ -189,49 +188,48 @@ export default function StaffDashboard({
       {/* Activity + holds to shelve */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr]">
         {/* Activity today */}
-        <div className="rounded-[14px] border border-swin-charcoal/10 bg-white p-6 dark:border-white/10 dark:bg-swin-dark-surface">
+        <div className="rounded-card border border-hairline bg-surface-card p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="font-display text-[22px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+              <h2 className="font-display text-display-sm text-ink dark:text-on-dark tracking-tight">
                 Recent activity
               </h2>
-              <p className="mt-0.5 font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">
+              <p className="mt-0.5 font-mono text-code text-muted dark:text-on-dark-soft">
                 Last {activity.length} transaction{activity.length === 1 ? '' : 's'}
               </p>
             </div>
             <Link
               href="/dashboard/staff/history"
-              className="rounded-md border border-swin-charcoal/10 bg-slate-50 px-2.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-swin-charcoal/60 transition hover:text-swin-charcoal dark:border-white/10 dark:bg-white/5 dark:text-white/55 dark:hover:text-white"
+              className="inline-flex h-9 items-center rounded-btn border border-hairline bg-surface-card px-3 font-sans text-caption-uppercase text-ink transition hover:bg-surface-cream-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas"
             >
               Full history
             </Link>
           </div>
           <div>
             {activity.length === 0 ? (
-              <p className="py-6 text-center text-[13px] text-swin-charcoal/45 dark:text-white/45">
+              <p className="py-6 text-center font-sans text-body-sm text-muted dark:text-on-dark-soft">
                 No recent transactions yet.
               </p>
             ) : (
               activity.map((q, i) => (
                 <div
                   key={q.id}
-                  className={`flex items-center gap-3.5 py-3 ${i < activity.length - 1 ? 'border-b border-swin-charcoal/8 dark:border-white/8' : ''}`}
+                  className={`flex items-center gap-3.5 py-3 ${i < activity.length - 1 ? 'border-b border-hairline-soft dark:border-dark-hairline' : ''}`}
                 >
                   <span
-                    className="h-2 w-2 flex-shrink-0 rounded-full"
-                    style={{ background: q.type === 'checkout' ? '#C9A961' : '#2F8F5A' }}
+                    className={`h-2 w-2 flex-shrink-0 rounded-full ${q.type === 'checkout' ? 'bg-accent-amber' : 'bg-success'}`}
                     aria-hidden="true"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[13px] font-semibold text-swin-charcoal dark:text-white">
+                    <p className="truncate font-sans text-body-sm font-semibold text-ink dark:text-on-dark">
                       {q.patron} —{' '}
                       <span className="font-display italic font-normal">{q.book}</span>
                     </p>
-                    <p className="font-mono text-[10px] uppercase tracking-wide text-swin-charcoal/40 dark:text-white/40">
+                    <p className="font-mono text-caption-uppercase text-muted dark:text-on-dark-soft">
                       {q.type === 'checkout' ? 'Checkout' : 'Return'} · {q.barcode}
                     </p>
                   </div>
-                  <span className="font-mono text-[10px] text-swin-charcoal/35 dark:text-white/35">
+                  <span className="font-mono text-code text-muted-soft dark:text-on-dark-soft">
                     {formatTimeAgo(q.minutesAgo)}
                   </span>
                 </div>
@@ -241,38 +239,38 @@ export default function StaffDashboard({
         </div>
 
         {/* Holds to shelve */}
-        <div className="rounded-[14px] border border-swin-charcoal/10 bg-white p-6 dark:border-white/10 dark:bg-swin-dark-surface">
+        <div className="rounded-card border border-hairline bg-surface-card p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <h2 className="font-display text-[22px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+              <h2 className="font-display text-display-sm text-ink dark:text-on-dark tracking-tight">
                 Holds to shelve
               </h2>
-              <p className="mt-0.5 font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">
+              <p className="mt-0.5 font-mono text-code text-muted dark:text-on-dark-soft">
                 {readyHoldsCount} ready for pickup
               </p>
             </div>
             <Link
               href="/dashboard/book/holds"
-              className="rounded-md border border-swin-charcoal/10 bg-slate-50 px-2.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-wide text-swin-charcoal/60 transition hover:text-swin-charcoal dark:border-white/10 dark:bg-white/5 dark:text-white/55 dark:hover:text-white"
+              className="inline-flex h-9 items-center rounded-btn border border-hairline bg-surface-card px-3 font-sans text-caption-uppercase text-ink transition hover:bg-surface-cream-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas"
             >
               Manage
             </Link>
           </div>
           <div>
             {readyHolds.length === 0 ? (
-              <p className="py-6 text-center text-[13px] text-swin-charcoal/45 dark:text-white/45">
+              <p className="py-6 text-center font-sans text-body-sm text-muted dark:text-on-dark-soft">
                 No holds awaiting pickup.
               </p>
             ) : (
               readyHolds.map((hold, i) => (
                 <div
                   key={hold.id}
-                  className={`py-3.5 ${i < readyHolds.length - 1 ? 'border-b border-swin-charcoal/8 dark:border-white/8' : ''}`}
+                  className={`py-3.5 ${i < readyHolds.length - 1 ? 'border-b border-hairline-soft dark:border-dark-hairline' : ''}`}
                 >
-                  <p className="font-display text-[16px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
+                  <p className="font-display text-title-md text-ink dark:text-on-dark tracking-tight">
                     {hold.bookTitle}
                   </p>
-                  <p className="mt-0.5 font-mono text-[11px] text-swin-charcoal/50 dark:text-white/50">
+                  <p className="mt-0.5 font-mono text-code text-muted dark:text-on-dark-soft">
                     Patron: {hold.patron}
                     {hold.expiresAt && ` · Expires ${formatExpires(hold.expiresAt)}`}
                   </p>

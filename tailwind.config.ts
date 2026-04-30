@@ -53,15 +53,13 @@ const config: Config = {
         section: '96px',
       },
       colors: {
-        // Legacy Swinburne tokens (RETAINED in Batch 1; deleted in Batch 3)
+        // Legacy Swinburne tokens — Batch 3 cleanup retained `red` (used by
+        // bg-swin-red/text-swin-red across surfaces still showing brand red)
+        // and `black` (tooling). Charcoal/ivory/gold/dark-bg/dark-surface
+        // dropped per spec §7 acceptance criterion (Chat 16 Task 30).
         swin: {
           red: '#C82333',
-          charcoal: '#343642',
           black: '#000000',
-          ivory: '#FEFDFD',
-          gold: '#C9A961',
-          'dark-bg': '#0F1115',
-          'dark-surface': '#181B21',
         },
 
         // Brand: dual-track Swinburne red

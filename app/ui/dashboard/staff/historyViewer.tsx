@@ -32,7 +32,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 // Chip tone enum is 'default' | 'danger' | 'gold' | 'success' | 'warn'.
-// 'borrowed' (Active) → 'gold' for in-progress emphasis.
+// 'gold' is the legacy prop name that resolves to accent-amber per Chat 6 retention.
 const STATUS_TONE: Record<string, 'gold' | 'success' | 'danger'> = {
   borrowed: 'gold',
   returned: 'success',
@@ -80,22 +80,26 @@ export default function HistoryViewer({ result, initialFilters }: Props) {
     ['all', 'All time'],
   ];
 
+  const inputClass =
+    'w-full rounded-btn border border-hairline bg-canvas px-3.5 h-10 font-sans text-body-sm text-ink placeholder:text-muted-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus:border-primary/40 dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark dark:placeholder:text-on-dark-soft';
+
+  const pillBase =
+    'rounded-pill px-3 py-1.5 font-sans text-caption-uppercase transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas';
+  const pillActive = 'bg-primary text-on-primary';
+  const pillInactive =
+    'border border-hairline bg-surface-card text-body hover:bg-surface-cream-strong dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/80 dark:hover:bg-dark-surface-strong';
+
   return (
-    <div className="space-y-6 text-swin-charcoal dark:text-white">
+    <div className="space-y-6 text-ink dark:text-on-dark">
       {/* Filters */}
-      <div className="space-y-3 rounded-2xl border border-swin-charcoal/10 bg-white p-4 dark:border-white/10 dark:bg-swin-dark-surface">
+      <div className="space-y-3 rounded-card border border-hairline bg-surface-card p-5 dark:border-dark-hairline dark:bg-dark-surface-card">
         <div className="flex flex-wrap gap-2">
           {STATUSES.map(([v, label]) => (
             <button
               key={v}
               type="button"
               onClick={() => setParam('status', v === 'all' ? null : v)}
-              className={clsx(
-                'rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide',
-                initialFilters.status === v
-                  ? 'bg-swin-charcoal text-white'
-                  : 'border border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10',
-              )}
+              className={clsx(pillBase, initialFilters.status === v ? pillActive : pillInactive)}
             >
               {label}
             </button>
@@ -107,12 +111,7 @@ export default function HistoryViewer({ result, initialFilters }: Props) {
               key={v}
               type="button"
               onClick={() => setParam('range', v === '30d' ? null : v)}
-              className={clsx(
-                'rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide',
-                initialFilters.range === v
-                  ? 'bg-swin-charcoal text-white'
-                  : 'border border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10',
-              )}
+              className={clsx(pillBase, initialFilters.range === v ? pillActive : pillInactive)}
             >
               {label}
             </button>
@@ -124,148 +123,153 @@ export default function HistoryViewer({ result, initialFilters }: Props) {
             onChange={(e) => setBorrowerQ(e.target.value)}
             onBlur={() => setParam('borrower', borrowerQ)}
             placeholder="Borrower (name / student ID)"
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-slate-950"
+            className={inputClass}
           />
           <input
             value={bookQ}
             onChange={(e) => setBookQ(e.target.value)}
             onBlur={() => setParam('book', bookQ)}
             placeholder="Book (title / author / barcode)"
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-slate-950"
+            className={inputClass}
           />
           <input
             value={handlerQ}
             onChange={(e) => setHandlerQ(e.target.value)}
             onBlur={() => setParam('handler', handlerQ)}
             placeholder="Handler (staff name)"
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-slate-950"
+            className={inputClass}
           />
         </div>
       </div>
 
       {/* Summary */}
-      <div className="flex items-center justify-between">
-        <p className="font-mono text-[11px] text-swin-charcoal/55 dark:text-white/55">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="font-mono text-code text-muted dark:text-on-dark-soft">
           Showing {result.rows.length} of {result.total} loans · {result.active} active ·{' '}
           {result.returned} returned · {result.overdue} overdue
         </p>
         <a
           href={exportHref}
           download
-          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-white/20 dark:bg-transparent dark:text-white"
+          className="inline-flex h-10 items-center rounded-btn border border-hairline bg-surface-card px-4 font-sans text-body-sm font-medium text-ink transition hover:bg-surface-cream-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas"
         >
           Export CSV
         </a>
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface">
-        <table className="min-w-full">
-          <thead>
-            <tr className="bg-slate-50 dark:bg-swin-dark-bg/60">
-              {['Book', 'Borrower', 'Borrowed', 'Due', 'Returned', 'Duration', 'Status', 'Handler'].map(
-                (h) => (
-                  <th
-                    key={h}
-                    className="px-4 py-3 text-left font-mono text-[10px] font-bold uppercase tracking-[1.8px] text-swin-charcoal/45 dark:text-white/45"
-                  >
-                    {h}
-                  </th>
-                ),
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {result.rows.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-slate-500">
-                  No loans match these filters.
-                </td>
+      <div className="overflow-hidden rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="bg-surface-cream-strong dark:bg-dark-surface-strong">
+                {['Book', 'Borrower', 'Borrowed', 'Due', 'Returned', 'Duration', 'Status', 'Handler'].map(
+                  (h) => (
+                    <th
+                      key={h}
+                      className="px-4 py-3 text-left font-sans text-caption-uppercase text-ink dark:text-on-dark"
+                    >
+                      {h}
+                    </th>
+                  ),
+                )}
               </tr>
-            ) : (
-              result.rows.map((r) => (
-                <tr key={r.id} className="border-t border-swin-charcoal/8 dark:border-white/8">
-                  <td className="px-4 py-3.5">
-                    <div className="flex items-center gap-3">
-                      {r.book?.coverImageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={r.book.coverImageUrl}
-                          alt=""
-                          className="h-12 w-8 rounded object-cover"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <BookCover
-                          gradient={getBookGradient(r.book?.title ?? r.id)}
-                          w={32}
-                          h={46}
-                          radius={3}
-                        />
-                      )}
-                      <div className="min-w-0">
-                        <p className="truncate font-display text-[14px] font-semibold">
-                          {r.book?.title ?? '—'}
-                        </p>
-                        <p className="truncate font-display text-[12px] italic text-swin-charcoal/55 dark:text-white/55">
-                          {r.book?.author ?? '—'}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3.5 text-[13px]">
-                    {r.borrower?.displayName ?? '—'}
-                    <br />
-                    <span className="font-mono text-[11px] text-swin-charcoal/55">
-                      {r.borrower?.studentId ?? ''}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5 font-mono text-[11px]">
-                    {new Date(r.borrowedAt).toLocaleDateString('en-MY')}
-                  </td>
-                  <td className="px-4 py-3.5 font-mono text-[11px]">
-                    {new Date(r.dueAt).toLocaleDateString('en-MY')}
-                  </td>
-                  <td className="px-4 py-3.5 font-mono text-[11px]">
-                    {r.returnedAt ? new Date(r.returnedAt).toLocaleDateString('en-MY') : '—'}
-                  </td>
-                  <td className="px-4 py-3.5 font-mono text-[11px]">{r.durationDays}d</td>
-                  <td className="px-4 py-3.5">
-                    <Chip mono tone={STATUS_TONE[r.status]}>
-                      {STATUS_LABEL[r.status]}
-                    </Chip>
-                  </td>
-                  <td className="px-4 py-3.5 text-[12px]">
-                    {r.handler?.isSelfCheckout
-                      ? 'Self-checkout'
-                      : r.handler?.displayName ?? '—'}
+            </thead>
+            <tbody>
+              {result.rows.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-10 text-center font-sans text-body-sm text-muted dark:text-on-dark-soft">
+                    No loans match these filters.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                result.rows.map((r) => (
+                  <tr
+                    key={r.id}
+                    className="border-t border-hairline-soft transition hover:bg-surface-cream-strong/50 dark:border-dark-hairline dark:hover:bg-dark-surface-strong/50"
+                  >
+                    <td className="px-4 py-3.5">
+                      <div className="flex items-center gap-3">
+                        {r.book?.coverImageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={r.book.coverImageUrl}
+                            alt=""
+                            className="h-12 w-8 rounded object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <BookCover
+                            gradient={getBookGradient(r.book?.title ?? r.id)}
+                            w={32}
+                            h={46}
+                            radius={3}
+                          />
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate font-sans text-title-md text-ink dark:text-on-dark">
+                            {r.book?.title ?? '—'}
+                          </p>
+                          <p className="truncate font-display text-body-sm italic text-muted dark:text-on-dark-soft">
+                            {r.book?.author ?? '—'}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5 font-sans text-body-sm text-ink dark:text-on-dark">
+                      {r.borrower?.displayName ?? '—'}
+                      <br />
+                      <span className="font-mono text-code text-muted dark:text-on-dark-soft">
+                        {r.borrower?.studentId ?? ''}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5 font-mono text-code text-muted dark:text-on-dark-soft">
+                      {new Date(r.borrowedAt).toLocaleDateString('en-MY')}
+                    </td>
+                    <td className="px-4 py-3.5 font-mono text-code text-muted dark:text-on-dark-soft">
+                      {new Date(r.dueAt).toLocaleDateString('en-MY')}
+                    </td>
+                    <td className="px-4 py-3.5 font-mono text-code text-muted dark:text-on-dark-soft">
+                      {r.returnedAt ? new Date(r.returnedAt).toLocaleDateString('en-MY') : '—'}
+                    </td>
+                    <td className="px-4 py-3.5 font-mono text-code text-muted dark:text-on-dark-soft">{r.durationDays}d</td>
+                    <td className="px-4 py-3.5">
+                      <Chip mono tone={STATUS_TONE[r.status]}>
+                        {STATUS_LABEL[r.status]}
+                      </Chip>
+                    </td>
+                    <td className="px-4 py-3.5 font-sans text-body-sm text-ink dark:text-on-dark">
+                      {r.handler?.isSelfCheckout
+                        ? 'Self-checkout'
+                        : r.handler?.displayName ?? '—'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Pagination */}
       {result.total > result.pageSize && (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center justify-end gap-3">
           <button
             type="button"
             onClick={() => goToPage(Math.max(1, initialFilters.page - 1))}
             disabled={initialFilters.page === 1}
-            className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase disabled:opacity-50 dark:border-white/20 dark:text-white"
+            className="inline-flex h-9 items-center rounded-btn border border-hairline bg-surface-card px-3 font-sans text-caption-uppercase text-ink transition hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas"
           >
             Previous
           </button>
-          <span className="text-xs">
+          <span className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
             Page {initialFilters.page} of {totalPages}
           </span>
           <button
             type="button"
             onClick={() => goToPage(Math.min(totalPages, initialFilters.page + 1))}
             disabled={initialFilters.page >= totalPages}
-            className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase disabled:opacity-50 dark:border-white/20 dark:text-white"
+            className="inline-flex h-9 items-center rounded-btn border border-hairline bg-surface-card px-3 font-sans text-caption-uppercase text-ink transition hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas"
           >
             Next
           </button>

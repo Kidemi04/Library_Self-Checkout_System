@@ -85,7 +85,7 @@ const formatMemberSince = (value?: string | null) => {
   return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(date);
 };
 
-const ProfileValue = ({ value }: { value?: string | null; isPrivileged: boolean }) => {
+const ProfileValue = ({ value }: { value?: string | null }) => {
   if (value && value.trim().length > 0) {
     return <span className="font-medium text-ink dark:text-on-dark">{value}</span>;
   }
@@ -170,7 +170,6 @@ export default async function ProfilePage() {
                     <ProfileAvatarForm
                       avatarUrl={profile.avatar_url ?? null}
                       displayName={preferredName}
-                      isPrivileged={isPrivileged}
                     />
                   </div>
                   <p className="font-display text-display-sm text-ink tracking-tight dark:text-on-dark">
@@ -247,7 +246,6 @@ export default async function ProfilePage() {
                       <ProfileNameForm
                         displayName={profile.display_name ?? user.name ?? null}
                         username={profile.username ?? null}
-                        isPrivileged={isPrivileged}
                       />
                     </div>
                   </div>
@@ -256,7 +254,7 @@ export default async function ProfilePage() {
                       Username
                     </span>
                     <div className="font-sans text-body-sm sm:text-right">
-                      <ProfileValue value={profile.username ?? null} isPrivileged={isPrivileged} />
+                      <ProfileValue value={profile.username ?? null} />
                     </div>
                   </div>
                   <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -264,7 +262,7 @@ export default async function ProfilePage() {
                       Student ID
                     </span>
                     <div className="font-sans text-body-sm sm:text-right">
-                      <ProfileValue value={profile.student_id ?? null} isPrivileged={isPrivileged} />
+                      <ProfileValue value={profile.student_id ?? null} />
                       {!isPrivileged && (
                         <p className="mt-0.5 font-sans text-caption text-muted-soft dark:text-on-dark-soft">
                           Managed by admin
@@ -288,7 +286,6 @@ export default async function ProfilePage() {
                   faculty={profile.faculty ?? null}
                   department={profile.department ?? null}
                   bio={profile.bio ?? null}
-                  isPrivileged={isPrivileged}
                 />
               </section>
             </BlurFade>

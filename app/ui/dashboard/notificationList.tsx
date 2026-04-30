@@ -59,13 +59,13 @@ function NotificationDetails({ n }: { n: Notification }) {
   rows.push({ label: 'Received', value: formatDateTime(n.created_at) });
 
   return (
-    <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-[12px] sm:grid-cols-3">
+    <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3">
       {rows.map(({ label, value }) => (
         <div key={label}>
-          <dt className="font-mono text-[10px] font-semibold uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">
+          <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
             {label}
           </dt>
-          <dd className="mt-0.5 break-all font-mono text-swin-charcoal dark:text-white">{value}</dd>
+          <dd className="mt-0.5 break-all font-mono text-code text-ink dark:text-on-dark">{value}</dd>
         </div>
       ))}
     </dl>
@@ -172,7 +172,7 @@ export default function NotificationList({ filter: initialFilter = 'all', search
     return (
       <div className="flex items-center justify-center py-16">
         <svg
-          className="h-6 w-6 animate-spin text-swin-charcoal/30 dark:text-white/30"
+          className="h-6 w-6 animate-spin text-muted-soft dark:text-on-dark-soft"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -188,22 +188,22 @@ export default function NotificationList({ filter: initialFilter = 'all', search
     <div className="space-y-4">
       {/* Search + sort bar */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative flex-1 min-w-[200px]">
-          <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-swin-charcoal/40 dark:text-white/40" />
+        <div className="relative min-w-[200px] flex-1">
+          <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-soft dark:text-on-dark-soft" />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search title, message, book…"
-            className="w-full rounded-xl border border-swin-charcoal/10 bg-white py-2 pl-9 pr-3 text-[13px] text-swin-charcoal placeholder:text-swin-charcoal/40 focus:border-swin-red/40 focus:outline-none focus:ring-2 focus:ring-swin-red/20 dark:border-white/10 dark:bg-swin-dark-surface dark:text-white dark:placeholder:text-white/40"
+            className="w-full rounded-btn border border-hairline bg-canvas py-2 pl-9 pr-3 font-sans text-body-sm text-ink placeholder:text-muted-soft focus:border-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark dark:placeholder:text-on-dark-soft"
           />
         </div>
-        <div className="flex items-center gap-1 rounded-xl border border-swin-charcoal/10 bg-white px-1 py-1 text-[12px] dark:border-white/10 dark:bg-swin-dark-surface">
-          <ArrowsUpDownIcon className="mx-1 h-4 w-4 text-swin-charcoal/40 dark:text-white/40" />
+        <div className="flex items-center gap-1 rounded-btn border border-hairline bg-surface-card px-1 py-1 font-sans text-body-sm dark:border-dark-hairline dark:bg-dark-surface-card">
+          <ArrowsUpDownIcon className="mx-1 h-4 w-4 text-muted-soft dark:text-on-dark-soft" />
           <select
             value={sortField}
             onChange={(e) => setSortField(e.target.value as SortField)}
-            className="cursor-pointer border-0 bg-transparent pl-2 pr-7 text-swin-charcoal outline-none focus:ring-0 dark:text-white"
+            className="cursor-pointer border-0 bg-transparent pl-2 pr-7 text-ink outline-none focus:ring-0 dark:text-on-dark"
             aria-label="Sort field"
           >
             <option value="date">Date</option>
@@ -212,7 +212,7 @@ export default function NotificationList({ filter: initialFilter = 'all', search
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as SortOrder)}
-            className="cursor-pointer border-0 bg-transparent pl-2 pr-7 text-swin-charcoal outline-none focus:ring-0 dark:text-white"
+            className="cursor-pointer border-0 bg-transparent pl-2 pr-7 text-ink outline-none focus:ring-0 dark:text-on-dark"
             aria-label="Sort order"
           >
             <option value="desc">Newest</option>
@@ -235,7 +235,7 @@ export default function NotificationList({ filter: initialFilter = 'all', search
           <button
             onClick={markAllRead}
             disabled={marking === 'all'}
-            className="inline-flex items-center gap-1.5 rounded-full border border-swin-charcoal/10 bg-white px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wider text-swin-charcoal/60 transition hover:text-swin-red disabled:opacity-50 dark:border-white/10 dark:bg-swin-dark-surface dark:text-white/60 dark:hover:text-swin-red"
+            className="inline-flex h-9 items-center gap-1.5 rounded-pill border border-hairline bg-surface-card px-3 font-sans text-caption-uppercase text-ink transition hover:text-primary disabled:opacity-50 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:text-dark-primary"
           >
             {marking === 'all' ? 'Marking…' : 'Mark all read'}
           </button>
@@ -243,15 +243,15 @@ export default function NotificationList({ filter: initialFilter = 'all', search
       </div>
 
       {/* Grouped list */}
-      <div className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface">
+      <div className="overflow-hidden rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card">
         {groups.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
-            <InboxIcon className="h-9 w-9 text-swin-charcoal/25 dark:text-white/25" />
+            <InboxIcon className="h-9 w-9 text-muted-soft dark:text-on-dark-soft" />
             <div>
-              <p className="font-display text-[20px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+              <p className="font-display text-display-sm text-ink dark:text-on-dark">
                 All caught up
               </p>
-              <p className="mt-1 text-[12px] text-swin-charcoal/50 dark:text-white/50">
+              <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
                 {search.trim()
                   ? 'No notifications match your search.'
                   : filter === 'unread'
@@ -264,13 +264,13 @@ export default function NotificationList({ filter: initialFilter = 'all', search
           groups.map(([dayLabel, items], gi) => (
             <div key={dayLabel}>
               <div
-                className={`border-b border-swin-charcoal/8 bg-slate-50/60 px-5 py-2 font-mono text-[10px] font-bold uppercase tracking-[1.8px] text-swin-charcoal/45 dark:border-white/8 dark:bg-white/[0.02] dark:text-white/45 ${
+                className={`border-b border-hairline-soft bg-surface-cream-strong/60 px-5 py-2 font-sans text-caption-uppercase text-muted dark:border-dark-hairline dark:bg-dark-surface-strong/60 dark:text-on-dark-soft ${
                   gi > 0 ? 'border-t' : ''
                 }`}
               >
                 {dayLabel}
               </div>
-              <ul className="divide-y divide-swin-charcoal/8 dark:divide-white/8">
+              <ul className="divide-y divide-hairline-soft dark:divide-dark-hairline">
                 {items.map((n) => (
                   <li key={n.id}>
                     <NotificationItem
@@ -294,7 +294,7 @@ export default function NotificationList({ filter: initialFilter = 'all', search
                                 markRead(n.id);
                               }}
                               disabled={marking === n.id}
-                              className="rounded-md bg-swin-charcoal/5 px-3 py-1.5 text-[11px] font-semibold text-swin-charcoal/70 transition hover:bg-swin-red/10 hover:text-swin-red disabled:opacity-50 dark:bg-white/5 dark:text-white/70"
+                              className="rounded-btn bg-surface-cream-strong px-3 py-1.5 font-sans text-caption-uppercase text-ink transition hover:bg-primary/10 hover:text-primary disabled:opacity-50 dark:bg-dark-surface-strong dark:text-on-dark dark:hover:bg-primary/15"
                             >
                               {marking === n.id ? '…' : 'Mark as read'}
                             </button>

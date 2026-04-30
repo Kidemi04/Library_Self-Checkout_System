@@ -14,7 +14,6 @@ type ProfileEditFormProps = {
   faculty: string | null;
   department: string | null;
   bio: string | null;
-  isPrivileged: boolean;
 };
 
 const inputClass =
@@ -54,7 +53,6 @@ export default function ProfileEditForm({
   faculty,
   department,
   bio,
-  isPrivileged,
 }: ProfileEditFormProps) {
   const [state, formAction] = useActionState(updateProfileAction, {
     status: 'idle',

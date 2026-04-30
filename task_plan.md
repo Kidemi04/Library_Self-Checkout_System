@@ -164,16 +164,22 @@ Decisions outside literal plan recipe logged in `findings.md` 2026-04-29 Chat 9 
 
 ---
 
-## Batch 2 COMPLETE ✅ (with documented carry-overs to Batch 3)
+## Chat 16 — Staff dashboards + history + final cleanup ✅ DONE
 
-All Chat 9–12 student-facing surfaces migrated. Carry-overs to Batch 3:
-- `app/dashboard/book/holds/page.tsx`
-- `app/dashboard/book/checkout/page.tsx`
-- `app/dashboard/book/[id]/page.tsx`
-- `app/dashboard/book/checkin/page.tsx`
-- `app/dashboard/book/items/page.tsx`
-- `app/dashboard/book/reservation/page.tsx`
-- `app/ui/dashboard/staffDashboard.tsx` (Chat 9 finding)
-- `app/ui/dashboard/mobileNav.tsx` + `app/ui/dashboard/navLinks.tsx` (Chat 9 finding)
+**Migration phase:**
+- [x] Task 22: Verify `app/staff/page.tsx` (server redirect, 0 hits — no edit needed).
+- [x] Task 23: Migrate `app/dashboard/staff/history/page.tsx` (server delegator no-op) + `app/ui/dashboard/staff/historyViewer.tsx` (276 lines, ~14 hits). Filter pills active = `bg-primary text-on-primary`; search inputs form recipe; Export CSV cream secondary; table recipe (cream-strong thead, hairline-soft row dividers); pagination cream-secondary. Chip tone enum `'gold'` retained (resolves to accent-amber per Chat 6 retention).
+- [x] Task 24: Migrate `app/dashboard/staff/damage-reports/page.tsx` (server delegator no-op) + `app/ui/dashboard/staff/damageReportsViewer.tsx` (255 lines) + `app/ui/dashboard/staff/damageReportDetailModal.tsx` (190 lines). SEVERITY palette remap from raw amber/rose/sky to semantic `warning/primary/accent-teal` (extends Chat 12 STAGE_STYLES + Chat 14 STATUS_STYLE precedent). Form input recipe + table recipe + modal recipe + retained shadow per §6.4.
+- [x] Task 25: Migrate `app/ui/dashboard/staff/holdsManagementView.tsx` (201 lines) + **carry-over** `app/ui/dashboard/markReadyButton.tsx` (8 hits — unlisted dependency). KpiCard primitive className override updated to `border-primary/40`; FilterPills + StatusBadge primitives unchanged; table recipe; cream-secondary cancel action. markReadyButton trigger → solid `bg-success`; confirmation modal → modal recipe.
+- [x] Task 26: Migrate `app/ui/dashboard/staff/staffDashboard.tsx` (287 lines, ~30 hits — Chat 9 carry-over). Mirror Chat 9 studentDashboard + Chat 15 hero pattern: drop hero gradient → solid `bg-primary` + drop boxShadow per §6.4; semantic icon colors (Checked out → accent-amber, Available → success, Holds ready → accent-teal, Overdue → primary); stats grid card recipe; activity dots remapped (checkout → accent-amber, return → success); Quick scan primary CTA recipe.
 
-Plus Batch 3 spec scope (admin/staff per spec §7) — plan does not yet exist; new chat must invoke `superpowers:writing-plans` against spec §7 Batch 3.
+**Cleanup phase:**
+- [x] Task 27: Drop dormant `isPrivileged` prop from 3 profile forms (`profileEditForm`, `profileNameForm`, `profileAvatarForm`) + 3 invocations in `app/profile/page.tsx`. Local `isPrivileged` derivation kept (still consumed by line 268 conditional render of "Managed by admin" caption for non-privileged users).
+- [x] Task 28: Delete dead template files (verified 0 imports each): `app/ui/loginForm.tsx`, `app/ui/customers/table.tsx` + dir, `app/ui/invoices/{breadcrumbs,buttons,createForm,editForm,pagination,status,table}.tsx` + dir, `app/ui/dashboard/{revenueChart,latestInvoices}.tsx`, `app/ui/fonts.ts`, **plus `app/ui/acmeLogo.tsx`** (Decision 4 plan assumption was wrong — verified 0 imports; was the only live consumer of `fonts.ts`).
+- [x] Task 29: **DEFERRED per user decision** — keep `/dev/primitives` gallery. Spec §7 acceptance criterion documented as deliberate carve-out, not unmet (see findings.md 2026-05-01 Chat 16 entry).
+- [x] Task 30: **EXPANDED** — project-wide grep at start of step revealed 12 unlisted files / 98 hits with `swin-charcoal/ivory/gold/dark-bg/dark-surface` (root error/page/not-found, FAQ trio, Chat page, notification filter+list, recentLoans, quickCheckIn, placeHold). User chose full-migration option B; all 12 migrated using established recipes. Then deleted legacy `swin-{charcoal,ivory,gold,dark-bg,dark-surface}` keys from `tailwind.config.ts` (kept `red`, `black` per Decision 4 + retention list). `pnpm build` clean.
+- [x] Task 31: Final acceptance audit — extended residue grep across full `app/` tree surfaced 7 more files with raw slate/gray (not in `swin-*` deletion blocking list, but in spec §7 acceptance grep): `app/dashboard/error.tsx`, `app/ui/skeletons.tsx`, `app/ui/searchBar.tsx`, `app/ui/dashboard/{pagination, renewButton, tabSwitch}.tsx`, `app/ui/magicUi/glassCard.tsx`. 4 migrated (dashboard/error, glassCard, pagination, renewButton); 3 deleted as 0-import dead code (skeletons, searchBar, tabSwitch — extends Task 28). Final state: `pnpm tsc --noEmit` clean; project-wide grep across `swin-charcoal|swin-ivory|swin-gold|swin-dark-bg|swin-dark-surface|Cormorant|text-gray-|bg-gray-|text-slate-|bg-slate-|border-slate-|border-gray-` = **0 hits**; `pnpm build` clean.
+
+---
+
+## Batch 3 COMPLETE ✅ — v3.0.4 Claude-style redesign COMPLETE

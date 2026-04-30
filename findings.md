@@ -344,3 +344,63 @@ Without migrating these, the entire checkout/checkin/reservation routes would re
 **What was found:** Both camera scan surfaces (admin `cameraScanModal.tsx` + the modal half of the general `cameraScannerButton.tsx`) need a **dark backdrop** so the camera feed and aim-frame brackets are clearly visible. A cream surface around a dark camera frame would create harsh edges and contrast issues. Mirrors the Chat 11 `app/dashboard/cameraScan/page.tsx` decision where the debug log inner panel kept `bg-ink text-success` mono-terminal aesthetic.
 
 **Implication:** Both modals retain the dark panel pattern but swap the slate raw palette for semantic dark tokens (`bg-dark-canvas text-on-dark`, `border-dark-hairline bg-dark-surface-card/40` for inner controls, `border-accent-teal/80` for aim brackets per Chat 11 + plan Task 16 recipe, `bg-success` for success flash, `text-warning` for error notices). Ground-level backdrop stays literal `bg-black/85` (always-dark overlay rationale per Chat 9 mobileMenu finding). The trigger button on the page (cameraScannerButton on-page CTA) DOES become `bg-primary` like the other hero CTAs; only the modal body stays dark.
+
+---
+
+## 2026-05-01 — Chat 16 — `markReadyButton` discovered as unlisted dependency of `holdsManagementView` (extends Chat 14/15 pattern)
+
+**What was expected:** Plan Task 25 lists `holdsManagementView.tsx` as the only Chat 15-deferred file. Underlying components assumed migrated.
+
+**What was found:** `holdsManagementView` consumes `app/ui/dashboard/markReadyButton.tsx` (8 legacy hits) for its in-row "Mark ready" action — never migrated, would render with raw emerald/slate palette + slate-200 confirmation modal.
+
+**Implication:** Migrated as Chat 16 carry-over (extends Chat 14 `bookList`/`bookItemsFilter` and Chat 15 `searchForm`/`checkOutForm`/etc. pattern). Trigger button → solid `bg-success` (semantic success for "ready for pickup"); confirmation modal → modal recipe with retained shadow per §6.4 (floating overlay), primary destructive submit. Pattern firmly established now: every chat has surfaced 1-8 unlisted dependencies; spec was page-scope-only, never component-subtree.
+
+---
+
+## 2026-05-01 — Chat 16 — Damage report SEVERITY palette remap (extends Chat 12/14 STAGE_STYLES + STATUS_STYLE precedent)
+
+**What was expected:** Plan Task 24 says "Per-row severity badge: `<StatusBadge>` with appropriate tone (success for resolved, warning for in-progress, primary for severe/escalated)."
+
+**What was found:** Both `damageReportsViewer` and `damageReportDetailModal` had identical `SEVERITY_OPTIONS` / `SEVERITY_LABEL` records using raw Tailwind palette: `damaged = bg-amber-100 text-amber-800`, `lost = bg-rose-100 text-rose-800`, `needs_inspection = bg-sky-100 text-sky-800`. Auto-generated content tints, not user-controlled.
+
+**Implication:** Remapped to semantic tokens following Chat 12 STAGE_STYLES + Chat 14 STATUS_STYLE precedent: `damaged → bg-warning/15 text-warning`, `lost → bg-primary/15 text-primary` (full alert), `needs_inspection → bg-accent-teal/15 text-accent-teal` (in-flight neutral). Same hue progression (warning yellow → alert red → teal in-flight) but inside the design token system. Used inline `<span>` chip with class — `<StatusBadge>` primitive's tone enum doesn't expose `accent-teal` as a tone string.
+
+---
+
+## 2026-05-01 — Chat 16 — Spec gap: 12 unlisted files still using legacy `swin-charcoal`/`ivory`/`gold`/`dark-bg`/`dark-surface` (98 hits)
+
+**What was expected:** Plan Task 30 step 1 says "Project-wide grep audit FIRST — Expected: 0 hits in `app/`. If any hit found, fix it BEFORE proceeding."
+
+**What was found:** 12 files / 98 hits across surfaces never in any chat scope: `app/error.tsx`, `app/page.tsx` (marketing landing), `app/not-found.tsx`, `app/dashboard/faq/page.tsx`, `app/dashboard/chat/page.tsx`, `app/ui/dashboard/{faqFloatingHelp, faqQuickPanel, notificationFilter, notificationList, recentLoans, quickCheckInButton, placeHoldButton}.tsx`. Plus 7 more files using raw slate/gray (not in `swin-*` deletion list but in plan §7 acceptance grep): `app/dashboard/error.tsx`, `app/ui/skeletons.tsx`, `app/ui/searchBar.tsx`, `app/ui/dashboard/{pagination, renewButton, tabSwitch}.tsx`, `app/ui/magicUi/glassCard.tsx`.
+
+**Implication:** Per user-aligned full-migration option (offered + chosen mid-execution), all 12 + 7 = 19 files cleaned up. 12 + 4 of the 7 migrated using established recipes (form input, card, table, primary/cream secondary buttons); 3 of the 7 (skeletons, searchBar, tabSwitch) confirmed as 0-import dead-code template artifacts and deleted (extends Task 28 pattern). The pattern of "spec gap discovery during final audit" is now consistent across Chats 12 (6 book sub-workflow pages), 14 (bookList/bookItemsFilter), 15 (8 checkout/checkin/reservation deps), and 16 (12 + 7 files). Future redesigns should grep the entire `app/` for legacy tokens BEFORE writing per-chat plans, not at acceptance-audit time.
+
+---
+
+## 2026-05-01 — Chat 16 — `acmeLogo.tsx` deleted as dead code (Decision 4 plan assumption was wrong)
+
+**What was expected:** Plan Decision 4 explicitly states: "The `swin-red-brand` alias **must** stay (it's used by `acmeLogo.tsx` brand mark + login hero brand mark)."
+
+**What was found:** Project-wide grep for `AcmeLogo|acmeLogo` returns only the file's own `export default function AcmeLogo()` definition — **0 imports** anywhere in the live `app/` tree. The login hero (`app/login/LoginClient.tsx`) builds its brand mark inline; `app/page.tsx` uses an `<img>` of the official Swinburne SVG; nothing else references AcmeLogo. The component also referenced `swin-ivory` (legacy token being deleted) and `lusitana` from `app/ui/fonts.ts` (template artifact also being deleted).
+
+**Implication:** Deleted `acmeLogo.tsx` alongside the other dead template files in Task 28 (`loginForm.tsx`, `customers/*`, `invoices/*`, etc.). The `swin-red-brand` alias is still kept in `tailwind.config.ts` per Decision 4 reasoning — even though acmeLogo was the cited consumer, the alias is still safe-to-keep semantic infrastructure for any future brand-mark surface. Worth a follow-up: spec §3.5 still lists "Logo, acmeLogo, login brand mark" as the `swin-red-brand` consumer — that text is now stale; future passes can update or simply drop the alias if no future brand-mark surface materializes.
+
+---
+
+## 2026-05-01 — Chat 16 — `/dev/primitives` retained per user decision (spec §7 acceptance criterion deferred)
+
+**What was expected:** Plan Decision 3 + spec §7 acceptance both say `/dev/primitives` removed. Plan defaults to "proceed if no response from user."
+
+**What was found:** User response: keep it. Reasoning per the user: it's developer-only (NODE_ENV-gated 404 in production), zero user impact, and useful for future component additions / ad-hoc visual checks.
+
+**Implication:** Task 29 marked deferred (not failing). Audit Step 2 excludes `/dev/primitives` files because they were Chat 7-migrated and contain 0 legacy tokens already. Spec §7 acceptance criterion "/dev/primitives removed" is documented here as a deliberate carve-out rather than an unmet criterion. If a future Batch revisits cleanup, the user can re-decide.
+
+---
+
+## 2026-05-01 — Chat 16 — `staffDashboard` hero gradient → solid `bg-primary` per spec §6.4 (extends Chat 15 checkout pattern)
+
+**What was expected:** Plan Task 26 recipe says "Drop gradient icon backgrounds + scale-on-hover + hover-shadow per spec §6.4; semantic icon colors."
+
+**What was found:** The Quick scan hero panel used a Swinburne-red gradient `linear-gradient(135deg, #A81C2A → #C82333)` with brand-color drop-shadow `boxShadow: '0 16px 40px rgba(200,35,51,0.2)'`, identical pattern to Chat 15 `book/checkout/page.tsx` hero (which the plan addressed). Same treatment + boxShadow drop applied; inner decorative elements (oversized circle blur, scan input chrome, mode toggles) preserved as cream-on-primary translucent layers using `bg-on-primary/10..25`. Process button → `bg-on-primary text-primary` (inverse-pair recipe).
+
+**Implication:** Chat 16 staffDashboard now matches Chat 15 checkout/checkin hero treatment for visual consistency. All 4 stat tiles got semantic icon colors (Checked out → accent-amber, Available → success, Holds ready → accent-teal, Overdue → primary) replacing the literal `text-swin-gold` / `text-swin-red` mix. Stats grid container migrated to card recipe; per-stat tile uses cream-secondary tile recipe with `border-hairline-soft`.

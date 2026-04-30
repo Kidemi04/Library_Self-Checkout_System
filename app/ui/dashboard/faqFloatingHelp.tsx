@@ -74,7 +74,7 @@ export default function FaqFloatingHelp() {
       {/* Panel */}
       {open && (
         <div
-          className="w-80 rounded-2xl border border-swin-charcoal/10 bg-white shadow-2xl shadow-swin-charcoal/15 dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/40"
+          className="w-80 rounded-card border border-hairline bg-surface-card shadow-[0_4px_16px_rgba(20,20,19,0.08)] dark:border-dark-hairline dark:bg-dark-surface-card"
           style={{ animation: 'faqPanelIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both' }}
         >
           <style>{`
@@ -84,17 +84,17 @@ export default function FaqFloatingHelp() {
             }
           `}</style>
 
-          {/* Header */}
-          <div className="flex items-center justify-between rounded-t-2xl bg-gradient-to-r from-swin-charcoal to-swin-red px-4 py-3">
+          {/* Header — solid primary per spec §6.4 (drop gradient) */}
+          <div className="flex items-center justify-between rounded-t-card bg-primary px-4 py-3">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-white/60">Student Guide</p>
-              <p className="text-sm font-semibold text-white">How to Use the System</p>
+              <p className="font-sans text-caption-uppercase text-on-primary/70">Student Guide</p>
+              <p className="font-sans text-body-sm font-semibold text-on-primary">How to Use the System</p>
             </div>
             <button
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Close panel"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-white/60 transition hover:bg-white/15 hover:text-white"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-on-primary/70 transition hover:bg-on-primary/15 hover:text-on-primary"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
                 <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
@@ -104,7 +104,7 @@ export default function FaqFloatingHelp() {
 
           {/* Guide topics */}
           <div className="p-3">
-            <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-widest text-swin-charcoal/50 dark:text-slate-500">
+            <p className="mb-2 px-1 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Guide Topics
             </p>
             <ul className="space-y-0.5">
@@ -113,16 +113,16 @@ export default function FaqFloatingHelp() {
                   <Link
                     href={topicHref(topic.id)}
                     onClick={() => setOpen(false)}
-                    className="group flex items-start gap-3 rounded-xl px-3 py-2 transition hover:bg-swin-red/8 dark:hover:bg-swin-red/10"
+                    className="group flex items-start gap-3 rounded-btn px-3 py-2 transition hover:bg-primary/5 dark:hover:bg-primary/10"
                   >
-                    <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-swin-charcoal/8 text-[10px] font-bold text-swin-charcoal/50 group-hover:bg-swin-red group-hover:text-white dark:bg-slate-700 dark:text-slate-400">
+                    <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-surface-cream-strong font-sans text-[10px] font-bold text-muted group-hover:bg-primary group-hover:text-on-primary dark:bg-dark-surface-strong dark:text-on-dark-soft">
                       {index + 1}
                     </span>
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold text-swin-charcoal group-hover:text-swin-red dark:text-slate-200 dark:group-hover:text-swin-red">
+                      <p className="font-sans text-caption font-semibold text-ink group-hover:text-primary dark:text-on-dark dark:group-hover:text-dark-primary">
                         {topic.label}
                       </p>
-                      <p className="text-[11px] text-swin-charcoal/50 dark:text-slate-500">
+                      <p className="font-sans text-caption text-muted dark:text-on-dark-soft">
                         {topic.description}
                       </p>
                     </div>
@@ -133,11 +133,11 @@ export default function FaqFloatingHelp() {
           </div>
 
           {/* Divider */}
-          <div className="mx-4 border-t border-swin-charcoal/10 dark:border-slate-700" />
+          <div className="mx-4 border-t border-hairline dark:border-dark-hairline" />
 
           {/* Quick actions */}
           <div className="p-3">
-            <p className="mb-2 px-1 text-[10px] font-semibold uppercase tracking-widest text-swin-charcoal/50 dark:text-slate-500">
+            <p className="mb-2 px-1 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Quick Actions
             </p>
             <div className="flex flex-wrap gap-2">
@@ -146,7 +146,7 @@ export default function FaqFloatingHelp() {
                   key={action.href}
                   href={action.href}
                   onClick={() => setOpen(false)}
-                  className="rounded-lg border border-swin-charcoal/10 bg-swin-ivory px-3 py-1.5 text-xs font-semibold text-swin-charcoal transition hover:border-swin-red/40 hover:bg-swin-red hover:text-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-swin-red dark:hover:text-white"
+                  className="rounded-btn border border-hairline bg-surface-cream-strong px-3 py-1.5 font-sans text-caption-uppercase text-ink transition hover:border-primary/40 hover:bg-primary hover:text-on-primary dark:border-dark-hairline dark:bg-dark-surface-strong dark:text-on-dark dark:hover:bg-primary"
                 >
                   {action.label}
                 </Link>
@@ -155,15 +155,15 @@ export default function FaqFloatingHelp() {
           </div>
 
           {/* Divider */}
-          <div className="mx-4 border-t border-swin-charcoal/10 dark:border-slate-700" />
+          <div className="mx-4 border-t border-hairline dark:border-dark-hairline" />
 
           {/* Contact footer */}
-          <div className="rounded-b-2xl px-4 py-3">
-            <p className="text-[11px] text-swin-charcoal/60 dark:text-slate-400">
+          <div className="rounded-b-card px-4 py-3">
+            <p className="font-sans text-caption text-muted dark:text-on-dark-soft">
               Still stuck? Visit Level 1 service desk or email{' '}
               <a
                 href="mailto:library@swinburne.edu.my"
-                className="font-semibold text-swin-red hover:underline"
+                className="font-semibold text-primary hover:underline"
               >
                 library@swinburne.edu.my
               </a>
@@ -177,7 +177,7 @@ export default function FaqFloatingHelp() {
         type="button"
         aria-label={open ? 'Close help panel' : 'Open student guide'}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-12 w-12 items-center justify-center rounded-full bg-swin-charcoal text-white shadow-lg shadow-swin-charcoal/30 transition-all duration-300 hover:bg-swin-red hover:scale-110 active:scale-95 dark:bg-slate-700 dark:shadow-black/40 dark:hover:bg-swin-red"
+        className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-on-dark shadow-lg transition-all duration-300 hover:bg-primary hover:scale-110 active:scale-95 dark:bg-dark-surface-strong dark:hover:bg-primary"
       >
         {open ? (
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">

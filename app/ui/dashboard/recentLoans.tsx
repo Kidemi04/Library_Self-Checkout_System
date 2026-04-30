@@ -22,20 +22,20 @@ const resolveStatus = (loan: Loan) => {
     const returned = loan.returnedAt ?? loan.updatedAt ?? loan.dueAt;
     return {
       label: `Returned ${formatDate(returned)}`,
-      className: 'bg-emerald-500/10 text-emerald-600',
+      className: 'bg-success/15 text-success',
     };
   }
 
   if (loan.status === 'overdue' || (Number.isFinite(dueTime) && dueTime < now)) {
     return {
       label: `Overdue since ${formatDate(loan.dueAt)}`,
-      className: 'bg-swin-red/10 text-swin-red',
+      className: 'bg-primary/15 text-primary',
     };
   }
 
   return {
     label: `Due ${formatDate(loan.dueAt)}`,
-    className: 'bg-swin-charcoal/10 text-swin-charcoal',
+    className: 'bg-surface-cream-strong text-ink dark:bg-dark-surface-strong dark:text-on-dark',
   };
 };
 
@@ -48,40 +48,49 @@ const roleLabel = (role: Loan['borrowerRole']) => {
 export default function RecentLoans({ loans }: { loans: Loan[] }) {
   if (!loans.length) {
     return (
-      <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-8 text-center text-sm text-swin-charcoal/60 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200/80">
+      <div className="rounded-card border border-hairline bg-surface-card p-8 text-center font-sans text-body-sm text-muted dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft">
         No activity recorded yet.
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white shadow-sm shadow-swin-charcoal/5 dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-black/20">
+    <div className="overflow-hidden rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-swin-charcoal/10 dark:divide-slate-800">
-          <thead className="bg-swin-ivory dark:bg-slate-900">
-            <tr className="text-left text-xs font-semibold uppercase tracking-wider text-swin-charcoal/70 dark:text-slate-200/80">
-              <th className="px-6 py-3">Borrower</th>
-              <th className="px-6 py-3">Book</th>
-              <th className="px-6 py-3">Borrowed</th>
-              <th className="px-6 py-3">Status</th>
+        <table className="min-w-full">
+          <thead className="bg-surface-cream-strong dark:bg-dark-surface-strong">
+            <tr className="text-left">
+              {['Borrower', 'Book', 'Borrowed', 'Status'].map((h) => (
+                <th
+                  key={h}
+                  className="px-6 py-3 font-sans text-caption-uppercase text-ink dark:text-on-dark"
+                >
+                  {h}
+                </th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-swin-charcoal/10 bg-white text-sm dark:divide-slate-800 dark:bg-slate-900 dark:text-slate-200">
+          <tbody>
             {loans.map((loan) => {
               const status = resolveStatus(loan);
               return (
-                <tr key={loan.id} className="transition hover:bg-swin-ivory dark:hover:bg-slate-800/80">
+                <tr
+                  key={loan.id}
+                  className="border-t border-hairline-soft transition hover:bg-surface-cream-strong/50 dark:border-dark-hairline dark:hover:bg-dark-surface-strong/50"
+                >
                   <td className="px-6 py-4">
-                    <div className="font-medium text-swin-charcoal dark:text-slate-100">{loan.borrowerName ?? 'Unknown borrower'}</div>
-                    <p className="text-xs capitalize text-swin-charcoal/60 dark:text-slate-400">
+                    <div className="font-sans text-body-sm font-medium text-ink dark:text-on-dark">
+                      {loan.borrowerName ?? 'Unknown borrower'}
+                    </div>
+                    <p className="font-sans text-caption capitalize text-muted dark:text-on-dark-soft">
                       {roleLabel(loan.borrowerRole)} · ID {loan.borrowerIdentifier ?? '—'}
                     </p>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="font-medium text-swin-charcoal dark:text-slate-100">
+                    <div className="font-sans text-body-sm font-medium text-ink dark:text-on-dark">
                       {loan.book?.title ?? 'Untitled'}
                     </div>
-                    <p className="text-xs text-swin-charcoal/60 dark:text-slate-400">
+                    <p className="font-mono text-code text-muted dark:text-on-dark-soft">
                       {loan.copy?.barcode
                         ? `Barcode ${loan.copy.barcode}`
                         : loan.book?.isbn
@@ -89,9 +98,11 @@ export default function RecentLoans({ loans }: { loans: Loan[] }) {
                           : '—'}
                     </p>
                   </td>
-                  <td className="px-6 py-4 text-swin-charcoal/70 dark:text-slate-300">{formatDate(loan.borrowedAt)}</td>
+                  <td className="px-6 py-4 font-mono text-code text-muted dark:text-on-dark-soft">
+                    {formatDate(loan.borrowedAt)}
+                  </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${status.className}`}>
+                    <span className={`inline-flex items-center rounded-pill px-3 py-1 font-sans text-caption-uppercase ${status.className}`}>
                       {status.label}
                     </span>
                   </td>

@@ -7,11 +7,7 @@ type PaginationProps = {
 };
 
 const buttonBaseClass =
-	'rounded-xl border px-5 py-1.5 text-sm font-medium ' +
-  'text-slate-800 bg-white border-slate-200 shadow-sm ' +
-  'dark:text-slate-200 dark:bg-slate-900 dark:border-slate-700 ' +
-  'hover:text-slate-500 dark:hover:text-slate-400 ' +
-	'disabled:opacity-50 disabled:cursor-not-allowed';
+	'inline-flex h-10 items-center justify-center rounded-btn border border-hairline bg-surface-card px-4 font-sans text-button text-ink transition hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas';
 
 export function Pagination({
 	currentPage,
@@ -27,11 +23,11 @@ export function Pagination({
         className={buttonBaseClass}
         aria-label="Previous page"
       >
-        <ChevronDoubleLeftIcon className="h-6 w-6" />
+        <ChevronDoubleLeftIcon className="h-5 w-5" />
       </button>
 
       {/* Page indicator */}
-      <span className="text-sm text-black dark:text-white/80">
+      <span className="font-sans text-body-sm text-ink dark:text-on-dark">
         Page {currentPage} of {totalPages}
       </span>
 
@@ -42,7 +38,7 @@ export function Pagination({
         className={buttonBaseClass}
         aria-label="Next page"
       >
-        <ChevronDoubleRightIcon className="h-6 w-6" />
+        <ChevronDoubleRightIcon className="h-5 w-5" />
       </button>
     </div>
   );
