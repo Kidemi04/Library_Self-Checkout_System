@@ -195,77 +195,79 @@ export default function ProfileEditForm({
         </div>
       </div>
 
-      {/* Program Selection */}
-      <div className="rounded-2xl border border-swin-charcoal/10 bg-slate-50/60 p-5 dark:border-white/10 dark:bg-swin-dark-bg/40">
-        <div className="mb-4 flex items-center gap-2">
-          <AcademicCapIcon className="h-5 w-5 text-swin-red dark:text-swin-red/70" />
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/45 dark:text-white/40">
-              Academic
+      {/* Program Selection — students only */}
+      {!isPrivileged && (
+        <div className="rounded-2xl border border-swin-charcoal/10 bg-slate-50/60 p-5 dark:border-white/10 dark:bg-swin-dark-bg/40">
+          <div className="mb-4 flex items-center gap-2">
+            <AcademicCapIcon className="h-5 w-5 text-swin-red dark:text-swin-red/70" />
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/45 dark:text-white/40">
+                Academic
+              </p>
+              <h3 className="text-sm font-semibold text-swin-charcoal dark:text-white">
+                Update Your Program Selection
+              </h3>
+            </div>
+          </div>
+
+          {/* Hidden inputs that carry the selected values */}
+          <input type="hidden" name="faculty" value={selectedFaculty ?? ''} />
+          <input type="hidden" name="department" value={selectedProgram} />
+
+          {/* Faculty grid */}
+          <p className={clsx(labelClass, 'mb-2')}>Faculty</p>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {FACULTY_LIST.map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => handleFacultySelect(f)}
+                className={clsx(
+                  'flex flex-col items-center gap-1.5 rounded-xl border px-3 py-3 text-center text-xs font-semibold transition-all duration-200',
+                  selectedFaculty === f
+                    ? 'border-swin-red bg-swin-red/5 text-swin-red dark:border-swin-red/60 dark:bg-swin-red/10 dark:text-swin-red/80'
+                    : 'border-swin-charcoal/10 bg-white text-swin-charcoal/70 hover:border-swin-red/40 hover:text-swin-red dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-swin-red/40 dark:hover:text-swin-red/70',
+                )}
+              >
+                <span className="text-xl">{FACULTY_ICONS[f]}</span>
+                <span className="leading-tight">{f}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Program dropdown */}
+          {selectedFaculty && (
+            <div className="mt-4">
+              <label className={clsx(labelClass, 'mb-2')}>Bachelor Program</label>
+              <select
+                value={selectedProgram}
+                onChange={(e) => setSelectedProgram(e.target.value)}
+                className={clsx(
+                  inputClass,
+                  'cursor-pointer',
+                  !selectedProgram && 'text-swin-charcoal/40 dark:text-white/30',
+                )}
+              >
+                <option value="">Select your program...</option>
+                {programs.map((prog) => (
+                  <option key={prog} value={prog}>{prog}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Current selection summary */}
+          {(selectedFaculty || faculty) && (
+            <p className="mt-3 text-[11px] text-swin-charcoal/50 dark:text-white/40">
+              {selectedFaculty
+                ? selectedProgram
+                  ? `Selected: ${selectedProgram}`
+                  : `Faculty selected — choose a program above`
+                : `Currently saved: ${faculty}${department ? ` · ${department}` : ''}`}
             </p>
-            <h3 className="text-sm font-semibold text-swin-charcoal dark:text-white">
-              Update Your Program Selection
-            </h3>
-          </div>
+          )}
         </div>
-
-        {/* Hidden inputs that carry the selected values */}
-        <input type="hidden" name="faculty" value={selectedFaculty ?? ''} />
-        <input type="hidden" name="department" value={selectedProgram} />
-
-        {/* Faculty grid */}
-        <p className={clsx(labelClass, 'mb-2')}>Faculty</p>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {FACULTY_LIST.map((f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => handleFacultySelect(f)}
-              className={clsx(
-                'flex flex-col items-center gap-1.5 rounded-xl border px-3 py-3 text-center text-xs font-semibold transition-all duration-200',
-                selectedFaculty === f
-                  ? 'border-swin-red bg-swin-red/5 text-swin-red dark:border-swin-red/60 dark:bg-swin-red/10 dark:text-swin-red/80'
-                  : 'border-swin-charcoal/10 bg-white text-swin-charcoal/70 hover:border-swin-red/40 hover:text-swin-red dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:border-swin-red/40 dark:hover:text-swin-red/70',
-              )}
-            >
-              <span className="text-xl">{FACULTY_ICONS[f]}</span>
-              <span className="leading-tight">{f}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Program dropdown */}
-        {selectedFaculty && (
-          <div className="mt-4">
-            <label className={clsx(labelClass, 'mb-2')}>Bachelor Program</label>
-            <select
-              value={selectedProgram}
-              onChange={(e) => setSelectedProgram(e.target.value)}
-              className={clsx(
-                inputClass,
-                'cursor-pointer',
-                !selectedProgram && 'text-swin-charcoal/40 dark:text-white/30',
-              )}
-            >
-              <option value="">Select your program...</option>
-              {programs.map((prog) => (
-                <option key={prog} value={prog}>{prog}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        {/* Current selection summary */}
-        {(selectedFaculty || faculty) && (
-          <p className="mt-3 text-[11px] text-swin-charcoal/50 dark:text-white/40">
-            {selectedFaculty
-              ? selectedProgram
-                ? `Selected: ${selectedProgram}`
-                : `Faculty selected — choose a program above`
-              : `Currently saved: ${faculty}${department ? ` · ${department}` : ''}`}
-          </p>
-        )}
-      </div>
+      )}
 
       {/* Bio */}
       <div>

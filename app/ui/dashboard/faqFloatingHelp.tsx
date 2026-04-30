@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { SparklesIcon } from '@heroicons/react/24/outline';
 
 const guideTopics = [
   {
@@ -176,6 +177,15 @@ export default function FaqFloatingHelp() {
           </div>
         </div>
       )}
+
+      {/* AI recommendations button — mobile only */}
+      <Link
+        href="/dashboard/recommendations"
+        aria-label="AI recommendations"
+        className="md:hidden flex h-12 w-12 items-center justify-center rounded-full bg-swin-red text-white shadow-lg shadow-swin-red/30 transition-all duration-300 hover:bg-swin-red/80 hover:scale-110 active:scale-95 dark:shadow-swin-red/40"
+      >
+        <SparklesIcon className="h-5 w-5" />
+      </Link>
 
       {/* FAB trigger */}
       <button

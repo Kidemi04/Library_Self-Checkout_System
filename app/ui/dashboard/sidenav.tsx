@@ -122,14 +122,16 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
     )}>
       {/* Logo */}
       <div className="mb-5 px-2.5 pb-5 border-b border-swin-charcoal/10 dark:border-white/10">
-        <Image
-          src="/swinburne-logo.png"
-          alt="Swinburne University of Technology Sarawak Campus"
-          width={220}
-          height={103}
-          className="w-full rounded-sm"
-          priority
-        />
+        <Link href="/dashboard" className="block">
+          <Image
+            src="/swinburne-logo.png"
+            alt="Swinburne University of Technology Sarawak Campus"
+            width={220}
+            height={103}
+            className="w-full rounded-sm"
+            priority
+          />
+        </Link>
         <p className="mt-2 font-display text-[11px] italic text-swin-charcoal/45 dark:text-white/40">
           Library · est. 1908
         </p>
