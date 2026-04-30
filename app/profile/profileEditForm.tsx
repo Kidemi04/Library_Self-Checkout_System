@@ -7,6 +7,7 @@ import { updateProfileAction, type ProfileUpdateFormState } from '@/app/profile/
 import { CheckIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 
 type ProfileEditFormProps = {
+  displayName: string | null;
   username: string | null;
   phone: string | null;
   preferredLanguage: string | null;
@@ -78,9 +79,7 @@ function SubmitButton({ isPrivileged }: { isPrivileged: boolean }) {
       disabled={pending}
       className={clsx(
         'inline-flex items-center justify-center rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed',
-        isPrivileged
-          ? 'bg-gradient-to-r from-swin-gold to-amber-500 hover:from-amber-400 hover:to-swin-gold focus:ring-swin-gold'
-          : 'bg-gradient-to-r from-swin-red to-orange-600 hover:from-red-600 hover:to-orange-500 focus:ring-swin-red',
+        'bg-[#e7000f] hover:bg-[#c8000d] focus:ring-[#e7000f]',
       )}
     >
       {pending ? (
@@ -102,6 +101,7 @@ function SubmitButton({ isPrivileged }: { isPrivileged: boolean }) {
 }
 
 export default function ProfileEditForm({
+  displayName,
   username,
   phone,
   preferredLanguage,
@@ -150,6 +150,20 @@ export default function ProfileEditForm({
   return (
     <form action={formAction} className="space-y-8">
       <div className="grid gap-6 sm:grid-cols-2">
+        {/* Display name */}
+        <div className="sm:col-span-2">
+          <label htmlFor="display_name" className={labelClass}>Display Name</label>
+          <input
+            id="display_name"
+            name="display_name"
+            type="text"
+            defaultValue={displayName ?? ''}
+            placeholder="Your display name"
+            className={inputClass}
+            maxLength={120}
+          />
+        </div>
+
         {/* Username */}
         <div>
           <label htmlFor="username" className={labelClass}>Username</label>

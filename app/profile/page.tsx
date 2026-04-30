@@ -3,7 +3,6 @@ import clsx from 'clsx';
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
-import ProfileNameForm from '@/app/profile/profileNameForm';
 import ProfileAvatarForm from '@/app/profile/profileAvatarForm';
 import ProfileEditForm from '@/app/profile/profileEditForm';
 import BlurFade from '@/app/ui/magicUi/blurFade';
@@ -250,12 +249,8 @@ export default async function ProfilePage() {
                     <span className="font-mono text-[10px] font-semibold uppercase tracking-[1.6px] text-swin-charcoal/45 dark:text-white/45">
                       Display name
                     </span>
-                    <div className="sm:text-right">
-                      <ProfileNameForm
-                        displayName={profile.display_name ?? user.name ?? null}
-                        username={profile.username ?? null}
-                        isPrivileged={isPrivileged}
-                      />
+                    <div className="sm:text-right text-[13px]">
+                      <ProfileValue value={preferredName} isPrivileged={isPrivileged} />
                     </div>
                   </div>
                   <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -289,6 +284,7 @@ export default async function ProfilePage() {
                   Contact & details
                 </h2>
                 <ProfileEditForm
+                  displayName={profile.display_name ?? user.name ?? null}
                   username={profile.username ?? null}
                   phone={profile.phone ?? null}
                   preferredLanguage={profile.preferred_language ?? null}
