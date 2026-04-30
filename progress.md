@@ -205,34 +205,40 @@ Plan sources of truth (existing):
 
 ## How to start the next chat
 
-Batch 2 已完成。下一聊开始 Batch 3（admin/staff + 6 个 book 子页面 carry-over）。**Batch 3 plan 还没写**，新聊要先用 `superpowers:writing-plans` 写出来再执行。
+Chat 15 已完成 (commit `a817856`，已推到 `origin/Kelvin-v3.0.4-EnhanceUIColour`)。下一聊 = **Chat 16，Batch 3 最后一个 chat = 整个 v3.0.4 redesign 的最后一聊**。Batch 3 plan 已经存在（`docs/superpowers/plans/2026-04-30-ui-claude-batch-3-admin-staff.md`，Tasks 22–31），不需要 re-plan，直接执行。
 
 Paste this into the new chat:
 
-> 继续 UI 改造工作。Batch 2 已完成；这一聊开始 Batch 3。
+> 继续 UI 改造工作。Chat 15 已完成；这一聊 = Chat 16，Batch 3 最后一聊（整个 v3.0.4 redesign 收尾）。
 >
 > 先按顺序读：
 > 1. `MEMORY.md`
-> 2. `progress.md`（当前进度 — 注意 "What's next (Batch 3 — admin/staff + Batch 2 carry-overs)" 那段是 Batch 3 必须吃下的文件清单）
-> 3. `task_plan.md`（Batch 2 已全部打勾，含 carry-over 列表）
-> 4. `findings.md` 2026-04-30 Chat 12 5 条（spec gap、redirect target 模式、third-party brand color 保留、STAGE_STYLES 重映射、user bubble 颜色决策）
-> 5. `docs/superpowers/specs/2026-04-29-ui-claude-style-redesign-design.md` §7 Batch 3 段
+> 2. `progress.md`（当前进度 — 注意 "Notes for next chat" 与 Chat 13/14/15 已完成段）
+> 3. `task_plan.md`（Chat 13/14/15 已打勾，看 Chat 16 还没动）
+> 4. `findings.md` 2026-05-01 Chat 14 + Chat 15 八条（unlisted dependency pattern、STATUS_STYLE 重映射、hero 渐变 → solid token、camera modal dark chrome 保留、book/holds plan 误描述）
+> 5. `docs/superpowers/plans/2026-04-30-ui-claude-batch-3-admin-staff.md` Tasks 22–31（Chat 16 完整范围）— **plan 已存在，不要 re-plan，直接执行**
 > 6. Batch 1 plan 顶部的 "Token Migration Reference Table" 当 class-swap 字典
 > 7. Batch 2 plan 顶部的 "Spec deltas (higher-level recipe)" 当 page/component-level 字典
 >
-> 读完先调 `superpowers:writing-plans` **写出 Batch 3 plan**。Plan 必须包含：
-> - **Batch 2 carry-over 文件**（强制）：
->   - `app/dashboard/book/{holds,checkout,[id],checkin,items,reservation}/page.tsx`（6 个 student-facing book 子工作流，spec/Batch 2 plan 漏了 — 见 findings.md 2026-04-30 Chat 12 spec-gap 条目）
->   - `app/ui/dashboard/staffDashboard.tsx`（Chat 9 carry-over，287 行 31 hits）
->   - `app/ui/dashboard/mobileNav.tsx` + `navLinks.tsx`（Chat 9 carry-over，修 mobile drawer 跟 header 的 cream/dark 不一致）
-> - **Spec §7 Batch 3 列出的文件**（admin/staff 范围 — 自己读 spec）
-> - **可选清理**：删 dead template files（`app/ui/loginForm.tsx`、`app/ui/customers/*`、`app/ui/invoices/*`、`app/ui/dashboard/revenueChart.tsx`、`app/ui/dashboard/latestInvoices.tsx`、`app/ui/fonts.ts`），删 `tailwind.config.ts` 的 legacy `swin-*` tokens（只剩 `swin-red-brand` 在用），drop dormant `isPrivileged` 参数（Chat 11 carry-over），考虑给 `<NotificationItem>` 加 `secondaryAction` prop 让 `notificationPanel` 能复用（Chat 11 carry-over）。
+> 读完直接调 `superpowers:executing-plans` 按 Batch 3 plan Tasks 22–31 执行。
 >
-> 写完 plan 提交，然后调 `superpowers:executing-plans` 按计划执行。
+> Chat 16 范围 (per Batch 3 plan):
+> - **Migration phase** (Tasks 22–26):
+>   - `app/staff/page.tsx`（server redirect, 预期 no-op）
+>   - `app/dashboard/staff/history/page.tsx` + `app/ui/dashboard/staff/historyViewer.tsx`（276 行）
+>   - `app/dashboard/staff/damage-reports/page.tsx` + `app/ui/dashboard/staff/damageReportsViewer.tsx`（255 行）+ `app/ui/dashboard/staff/damageReportDetailModal.tsx`（190 行）
+>   - `app/ui/dashboard/staff/holdsManagementView.tsx`（201 行 — Chat 15 deferred 的）
+>   - `app/ui/dashboard/staff/staffDashboard.tsx`（287 行 30 hits — Chat 9 carry-over）
+> - **Cleanup phase** (Tasks 27–30，顺序重要):
+>   - Task 27: drop dormant `isPrivileged` prop (`app/profile/{profileEditForm,profileNameForm,profileAvatarForm}.tsx` + `app/profile/page.tsx` + `app/profile/actions.ts`，全 grep 一次确认 0 references)
+>   - Task 28: 删 dead template files（`app/ui/loginForm.tsx`、`app/ui/customers/*`、`app/ui/invoices/*`、`app/ui/dashboard/revenueChart.tsx`、`app/ui/dashboard/latestInvoices.tsx`、`app/ui/fonts.ts`，每个先 grep `from '@/app/ui/...'` 确认 0 imports 才删）
+>   - Task 29: 删 `/dev/primitives` (`app/dev/primitives/page.tsx` + `app/dev/layout.tsx`) per spec §7 acceptance — **执行前先跟用户确认** per Decision 3
+>   - Task 30: 删 `tailwind.config.ts` 的 legacy `swin-{charcoal,ivory,gold,dark-bg,dark-surface}` keys (`swin-red` + `swin-red-brand` alias 留下) — 删之前先 project-wide grep app/ 确认 0 hits，删之后 `pnpm build` sanity
+> - **Task 31 - Final acceptance audit:** project-wide tsc + extended residue grep (允许 retention: `swin-red-brand` brand glyph、`bookCatalogTable` 4 个 `text-white` category palette、`studentChat` LinkedIn `[#0A66C2]` + Google logo SVG 4 色) + `pnpm build` 成功
 >
-> 注意事项：
-> - 表单/输入按 form input recipe；CTA 用 shared `<Button>`。
-> - 第三方品牌色（LinkedIn `[#0A66C2]`、Google logo 4 色、bookCatalogTable category palette）保留 —
->   audit grep 时不要去清，沿用 Chat 12 / Chat 10 的 retention 文档化模式。
-> - 每动一个文件跑一次 `pnpm tsc --noEmit`，每聊结尾合并提交一次 + 文件名+决策写进 commit body。
+> 注意事项:
+> - 第三方品牌色保留 — 沿用 Chat 10/12/14/15 的 retention 文档化模式。
+> - 每动一个文件跑一次 `pnpm tsc --noEmit`，每个 cleanup 步骤跑一次 tsc。
+> - 整个 chat 结尾合并提交一次（Migration + Cleanup 全部塞进一个 commit，按 plan Task 31 Step 6 commit message 模板）+ 文件名+决策写进 commit body。
 > - 推送前必须先确认分支名 + 不会合到 main（per memory `feedback_git_push.md`）。
+> - **Chat 16 = 整个 v3.0.4 收尾**。完成后用 `superpowers:finishing-a-development-branch` skill 提供 merge/PR 选项给用户决定下一步。
