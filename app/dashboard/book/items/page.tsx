@@ -1,12 +1,14 @@
 // app/dashboard/book-items/page.tsx
 import { redirect } from 'next/navigation';
-import BookList from '@/app/ui/dashboard/bookList'; // student-facing renderer (grid/list)
+import Link from 'next/link';
+import BookList from '@/app/ui/dashboard/bookList';
 import BookItemsFilter from '@/app/ui/dashboard/bookItemsFilter';
+import { CATEGORY_OPTIONS, type CategoryKey } from '@/app/ui/dashboard/bookCategories';
 import { fetchBooks } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import AdminShell from '@/app/ui/dashboard/adminShell';
+import { QrCodeIcon } from '@heroicons/react/24/outline';
 
-// Keep this in sync with your Supabase enum and the BookList component
 export type ItemStatus =
   | 'available'
   | 'checked_out'
@@ -18,7 +20,6 @@ type ViewMode = 'grid' | 'list';
 type SortField = 'title' | 'author' | 'year' | 'created_at';
 type SortOrder = 'asc' | 'desc';
 
-// A runtime type guard so TS safely narrows a string into ItemStatus
 function isItemStatus(x: unknown): x is ItemStatus {
   return (
     x === 'available' ||
@@ -29,7 +30,10 @@ function isItemStatus(x: unknown): x is ItemStatus {
   );
 }
 
-// Map DB rows -> UI books consumed by <BookList/>
+const CATEGORY_KEYS = new Set(CATEGORY_OPTIONS.map((c) => c.key));
+const isCategoryKey = (x: unknown): x is CategoryKey =>
+  typeof x === 'string' && CATEGORY_KEYS.has(x as CategoryKey);
+
 function toUIBook(db: any) {
   const available = db.availableCopies ?? db.available_copies ?? 0;
   const total = db.totalCopies ?? db.total_copies ?? db.copies?.length ?? 0;
@@ -51,7 +55,7 @@ function toUIBook(db: any) {
     status: isItemStatus(db.status) ? (db.status as ItemStatus) : derivedStatus,
     copies_available: available,
     total_copies: total,
-    copies_on_loan: (db.copies ?? []).filter((c: any) => c.status === 'on_loan').length,
+    copies_on_loan: onLoan,
   };
 }
 
@@ -60,16 +64,12 @@ export default async function BookItemsPage({
 }: {
   searchParams?: Promise<Record<string, string | string[]>>;
 }) {
-  // 🔹 Get logged-in user from your NextAuth-based session
   const { user } = await getDashboardSession();
-  if (!user) {
-    redirect('/login');
-  }
+  if (!user) redirect('/login');
   const patronId = user.id;
 
   const params = searchParams ? await searchParams : undefined;
 
-  // ----- read and sanitize query params -----
   const qp = (key: string) => {
     const v = params?.[key];
     return Array.isArray(v) ? v[0] : v;
@@ -78,25 +78,21 @@ export default async function BookItemsPage({
   const q = (qp('q') ?? '').trim();
 
   const rawStatus = (qp('status') ?? '').trim();
-  // ✅ Narrow the string to ItemStatus | undefined
-  const statusFilter: ItemStatus | undefined = isItemStatus(rawStatus)
-    ? rawStatus
-    : undefined;
+  const statusFilter: ItemStatus | undefined = isItemStatus(rawStatus) ? rawStatus : undefined;
 
   const sort = (qp('sort') as SortField) || 'title';
   const order: SortOrder = (qp('order') as SortOrder) === 'desc' ? 'desc' : 'asc';
   const view: ViewMode = (qp('view') as ViewMode) === 'list' ? 'list' : 'grid';
+  const rawCategory = qp('category');
+  const category: CategoryKey = isCategoryKey(rawCategory) ? rawCategory : 'all';
 
-  // ----- fetch from Supabase -----
   const dbBooks = await fetchBooks(q);
   let books = (dbBooks ?? []).map(toUIBook);
 
-  // ----- apply status filter -----
   if (statusFilter) {
     books = books.filter((b) => b.status === statusFilter);
   }
 
-  // ----- apply sorting -----
   const cmp = (a: any, b: any) => {
     const A = (a ?? '').toString().toLowerCase();
     const B = (b ?? '').toString().toLowerCase();
@@ -104,7 +100,6 @@ export default async function BookItemsPage({
     if (A > B) return order === 'asc' ? 1 : -1;
     return 0;
   };
-
   books.sort((a, b) => {
     if (sort === 'title') return cmp(a.title, b.title);
     if (sort === 'author') return cmp(a.author, b.author);
@@ -113,44 +108,48 @@ export default async function BookItemsPage({
     return 0;
   });
 
+  const isStaff = user.role !== 'user';
+
   return (
-    <main className="space-y-8">
-      <title>Book Items | Dashboard</title>
+    <>
+      <title>Book Catalogue | Dashboard</title>
 
-      <DashboardTitleBar
-        subtitle="Books"
-        title="Book Items"
-        description="Browse the catalogue and filter by status. Use title or author to narrow results."
-      />
+      <AdminShell
+        titleSubtitle="Catalogue"
+        title="Book Catalogue"
+        description="Browse and reserve books from the collection."
+        primaryAction={
+          <Link
+            href="/dashboard/book/checkout"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-swin-red px-3.5 py-2.5 text-[12px] font-semibold text-white transition hover:bg-swin-red/90"
+          >
+            <QrCodeIcon className="h-4 w-4" />
+            Scan
+          </Link>
+        }
+      >
+        <div className="space-y-6">
+          <BookItemsFilter
+            action="/dashboard/book/items"
+            defaults={{
+              q,
+              status: statusFilter,
+              sort,
+              order,
+              view,
+              category,
+            }}
+          />
 
-
-      <BookItemsFilter
-        action="/dashboard/book/items"
-        defaults={{
-          q,
-          status: statusFilter, // ItemStatus | undefined
-          sort,
-          order,
-          view,
-        }}
-      />
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between m-2 mb-6">
-          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Catalogue</h2>
-          <p className="text-sm text-swin-charcoal/60 dark:text-slate-300">
-            Showing {books.length} record{books.length === 1 ? '' : 's'}
-          </p>
+          <BookList
+            books={books}
+            variant={view}
+            patronId={patronId}
+            isStaff={isStaff}
+            category={category}
+          />
         </div>
-
-        {/* Student-friendly list/grid view */}
-        <BookList
-          books={books}
-          variant={view}
-          patronId={patronId}
-          isStaff={user.role !== 'user'}
-        />
-      </section>
-    </main>
+      </AdminShell>
+    </>
   );
 }

@@ -5,8 +5,8 @@ import { getDashboardSession } from '@/app/lib/auth/session';
 import { fetchHoldsForStaff, updateHoldStatus } from '@/app/lib/supabase/queries';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import { createUserNotification } from '@/app/lib/supabase/notifications';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
-import MarkReadyButton from '@/app/ui/dashboard/markReadyButton';
+import AdminShell from '@/app/ui/dashboard/adminShell';
+import HoldsManagementView from '@/app/ui/dashboard/staff/holdsManagementView';
 
 // ---------- server actions ----------
 
@@ -106,8 +106,8 @@ export default async function HoldsManagementPage() {
   const supabaseForPage = getSupabaseServerClient();
   const allHolds = await fetchHoldsForStaff();
 
-  // Only show holds that are still actionable — hide ready/canceled records.
-  const holds = allHolds.filter((h: any) => h.status === 'queued');
+  // Show queued + ready holds (both actionable from this screen).
+  const holds = allHolds.filter((h: any) => h.status === 'queued' || h.status === 'ready');
 
   // Compute which hold ID is first in queue per book (holds are already ordered by placed_at asc).
   const seenQueuedBooks = new Set<string>();
@@ -137,201 +137,107 @@ export default async function HoldsManagementPage() {
   }
 
   // Holds where the book has no copies at all (or none on loan) — these are stuck
-  const stuckHolds = holds.filter((h: any) => !onLoanBookIds.has(h.book_id) && !availableBookIds.has(h.book_id));
-  const activeHolds = holds.filter((h: any) => onLoanBookIds.has(h.book_id) || availableBookIds.has(h.book_id));
+  const stuckHolds = holds.filter((h: any) =>
+    h.status === 'queued' && !onLoanBookIds.has(h.book_id) && !availableBookIds.has(h.book_id),
+  );
+  const mainHolds = holds.filter((h: any) =>
+    h.status === 'ready' || onLoanBookIds.has(h.book_id) || availableBookIds.has(h.book_id),
+  );
 
   return (
-    <main className="space-y-8">
+    <>
       <title>Manage Holds | Dashboard</title>
 
-      <DashboardTitleBar
-        subtitle="Holds"
+      <AdminShell
+        titleSubtitle="Holds Management"
         title="Manage Holds"
         description="View the reservation queue for each book and mark holds as ready or cancelled."
-      />
+      >
+        <div className="space-y-8">
+          {/* Stuck holds warning */}
+          {stuckHolds.length > 0 && (
+            <section className="space-y-3">
+              <div className="rounded-xl border-l-[3px] border border-amber-300 border-l-amber-500 bg-amber-50 px-4 py-3 dark:border-amber-700/60 dark:border-l-amber-500 dark:bg-amber-950/30">
+                <p className="font-mono text-[10px] font-bold uppercase tracking-[1.8px] text-amber-700 dark:text-amber-300">
+                  Attention required
+                </p>
+                <p className="mt-1 text-[13px] font-semibold text-amber-900 dark:text-amber-100">
+                  {stuckHolds.length} hold{stuckHolds.length !== 1 ? 's' : ''} cannot be fulfilled
+                </p>
+                <p className="mt-0.5 text-[12px] text-amber-700 dark:text-amber-300/80">
+                  The following books have no copies currently on loan or available in the system.
+                  These holds should be cancelled.
+                </p>
+              </div>
+              <div className="overflow-hidden rounded-2xl border border-amber-200/70 bg-white dark:border-amber-900/40 dark:bg-swin-dark-surface">
+                <table className="min-w-full text-sm text-swin-charcoal dark:text-white">
+                  <thead>
+                    <tr className="bg-amber-50/60 text-left font-mono text-[10px] font-bold uppercase tracking-[1.8px] text-swin-charcoal/50 dark:bg-amber-950/20 dark:text-white/50">
+                      <th className="px-4 py-3">Book</th>
+                      <th className="px-4 py-3">Patron</th>
+                      <th className="px-4 py-3">Placed at</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stuckHolds.map((hold: any) => (
+                      <tr key={hold.id} className="border-t border-swin-charcoal/8 dark:border-white/8">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            {hold.book_cover ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={hold.book_cover}
+                                alt=""
+                                className="h-10 w-7 rounded object-cover ring-1 ring-swin-charcoal/10 dark:ring-white/10"
+                              />
+                            ) : (
+                              <div className="h-10 w-7 rounded bg-slate-200 dark:bg-swin-dark-bg" />
+                            )}
+                            <div>
+                              <p className="font-display text-[14px] font-semibold tracking-tight">
+                                {hold.book_title ?? 'Unknown title'}
+                              </p>
+                              <p className="font-mono text-[10px] text-amber-700 dark:text-amber-300">
+                                No copies in system
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-[13px]">{hold.patron_name ?? 'Unknown patron'}</td>
+                        <td className="px-4 py-3 font-mono text-[11px] text-swin-charcoal/55 dark:text-white/55">
+                          {hold.placed_at ? new Date(hold.placed_at).toLocaleString() : '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end">
+                            <form action={cancelHold}>
+                              <input type="hidden" name="holdId" value={hold.id} />
+                              <button
+                                type="submit"
+                                className="rounded-lg border border-swin-red/30 bg-swin-red/5 px-3 py-1.5 text-[11px] font-semibold text-swin-red transition hover:bg-swin-red/10"
+                              >
+                                Cancel hold
+                              </button>
+                            </form>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
 
-      {/* Stuck holds warning */}
-      {stuckHolds.length > 0 && (
-        <section className="space-y-3">
-          <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-700 dark:bg-amber-950/40">
-            <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-              {stuckHolds.length} hold{stuckHolds.length !== 1 ? 's' : ''} cannot be fulfilled
-            </p>
-            <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-400">
-              The following books have no copies currently on loan or available in the system. These holds should be cancelled.
-            </p>
-          </div>
-          <div className="overflow-x-auto rounded-2xl border border-amber-200 bg-white shadow-sm dark:border-amber-900/50 dark:bg-slate-900">
-            <table className="min-w-full text-sm text-slate-900 dark:text-slate-100">
-              <thead className="bg-amber-50 dark:bg-slate-900">
-                <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
-                  <th className="px-4 py-3">Book</th>
-                  <th className="px-4 py-3">Patron</th>
-                  <th className="px-4 py-3">Placed at</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {stuckHolds.map((hold: any) => (
-                  <tr key={hold.id} className="border-t border-slate-100 dark:border-slate-800">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        {hold.book_cover ? (
-                          <img src={hold.book_cover} alt="" className="h-10 w-8 rounded object-cover ring-1 ring-slate-300 dark:ring-slate-700" />
-                        ) : (
-                          <div className="h-10 w-8 rounded bg-slate-200 dark:bg-slate-800" />
-                        )}
-                        <div>
-                          <span className="font-medium text-slate-900 dark:text-slate-100">{hold.book_title ?? 'Unknown title'}</span>
-                          <p className="text-xs text-amber-600 dark:text-amber-400">No copies in system</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-900 dark:text-slate-200">{hold.patron_name ?? 'Unknown patron'}</td>
-                    <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400">
-                      {hold.placed_at ? new Date(hold.placed_at).toLocaleString() : '—'}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end">
-                        <form action={cancelHold}>
-                          <input type="hidden" name="holdId" value={hold.id} />
-                          <button type="submit" className="rounded-xl border border-red-300 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-950/30">
-                            Cancel hold
-                          </button>
-                        </form>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
-
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-slate-100">Pending holds</h2>
-          <p className="text-sm text-swin-charcoal/60 dark:text-slate-400">
-            {activeHolds.length} queued
-          </p>
+          <HoldsManagementView
+            holds={mainHolds as any}
+            firstInQueueIds={[...firstInQueueIds]}
+            availableBookIds={[...availableBookIds]}
+            markReadyAction={markReady}
+            cancelHoldAction={cancelHold}
+          />
         </div>
-
-        <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <table className="min-w-full text-sm text-slate-900 dark:text-slate-100">
-            <thead className="bg-slate-50 dark:bg-slate-900">
-              <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
-                <th className="px-4 py-3">Book</th>
-                <th className="px-4 py-3">Patron</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Placed at</th>
-                <th className="px-4 py-3">Ready / Expires</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activeHolds.map((hold: any) => (
-                <tr key={hold.id} className="border-t border-slate-100 dark:border-slate-800">
-                  {/* Book */}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      {hold.book_cover ? (
-                        <img
-                          src={hold.book_cover}
-                          alt=""
-                          className="h-10 w-8 rounded object-cover ring-1 ring-slate-300 dark:ring-slate-700"
-                        />
-                      ) : (
-                        <div className="h-10 w-8 rounded bg-slate-200 dark:bg-slate-800" />
-                      )}
-                      <span className="font-medium text-slate-900 dark:text-slate-100">
-                        {hold.book_title ?? 'Unknown title'}
-                      </span>
-                    </div>
-                  </td>
-
-                  {/* Patron */}
-                  <td className="px-4 py-3">
-                    <span className="text-slate-900 dark:text-slate-200">
-                      {hold.patron_name ?? 'Unknown patron'}
-                    </span>
-                  </td>
-
-                  {/* Status */}
-                  <td className="px-4 py-3">
-                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                      {hold.status}
-                    </span>
-                  </td>
-
-                  {/* Placed at */}
-                  <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400">
-                    {hold.placed_at
-                      ? new Date(hold.placed_at).toLocaleString()
-                      : '—'}
-                  </td>
-
-                  {/* Ready / Expires */}
-                  <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400">
-                    {hold.ready_at ? (
-                      <>
-                        Ready:{' '}
-                        {new Date(hold.ready_at).toLocaleString()}
-                        <br />
-                        Expires:{' '}
-                        {hold.expires_at
-                          ? new Date(hold.expires_at).toLocaleString()
-                          : '—'}
-                      </>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-
-                  {/* Actions */}
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
-                      {hold.status === 'queued' && firstInQueueIds.has(hold.id) && (
-                        <MarkReadyButton
-                          holdId={hold.id}
-                          patronId={hold.patron_id}
-                          bookId={hold.book_id}
-                          bookTitle={hold.book_title ?? ''}
-                          action={markReady}
-                          available={availableBookIds.has(hold.book_id)}
-                        />
-                      )}
-
-                      {(hold.status === 'queued' || hold.status === 'ready') && (
-                        <form action={cancelHold}>
-                          <input type="hidden" name="holdId" value={hold.id} />
-                          <button
-                            type="submit"
-                            className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
-                          >
-                            Cancel
-                          </button>
-                        </form>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-
-              {activeHolds.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-6 text-center text-sm text-slate-500"
-                  >
-                    No pending holds.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </main>
+      </AdminShell>
+    </>
   );
 }

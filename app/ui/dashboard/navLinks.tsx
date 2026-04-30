@@ -70,7 +70,8 @@ const staffLinks: NavItem[] = [
         children: [
           { name: 'Book List', href: '/dashboard/book/list' }, // New staff sub-item
           ...(link.children || []), // Keep existing user sub-items
-          { name: 'Manage Holds', href: '/dashboard/book/holds' }, 
+          { name: 'Manage Holds', href: '/dashboard/book/holds' },
+          { name: 'Borrow History', href: '/dashboard/book/history' },
         ],
       };
     }

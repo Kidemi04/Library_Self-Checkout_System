@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import StudentChat from '@/app/ui/dashboard/studentChat';
+import AdminShell from '@/app/ui/dashboard/adminShell';
 import { userNeedsOnboarding } from '@/app/lib/recommendations/user-context';
 
 const supportFacts = [
@@ -70,30 +71,31 @@ export default async function StudentChatPage() {
   }
 
   return (
-    <main className="space-y-8">
+    <>
       <title>Chat Support | Dashboard</title>
 
-      <header className="rounded-2xl bg-swin-charcoal p-8 text-swin-ivory shadow-lg shadow-swin-charcoal/30">
-        <p className="text-xs uppercase tracking-[0.35em] text-swin-ivory/70">Talk to us</p>
-        <h1 className="mt-2 text-3xl font-semibold">Student chat support</h1>
-        <p className="mt-3 max-w-2xl text-sm text-swin-ivory/70">
-          Get real-time help with loans, holds, or account issues. Messages stay synced with your student account so
-          you can pick up the conversation on any device.
-        </p>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          {supportFacts.map((fact) => (
-            <div
-              key={fact.title}
-              className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm shadow-inner shadow-swin-charcoal/20"
-            >
-              <p className="text-xs uppercase tracking-wide text-swin-ivory/70">{fact.title}</p>
-              <p className="mt-2 text-base font-semibold text-white">{fact.detail}</p>
-              <p className="mt-1 text-xs text-swin-ivory/70">{fact.description}</p>
-            </div>
-          ))}
-        </div>
-      </header>
+      <AdminShell
+        titleSubtitle="Talk to us"
+        title="Student chat support"
+        description="Get real-time help with loans, holds, or account issues. Messages stay synced with your student account so you can pick up the conversation on any device."
+      >
+        <div className="space-y-6">
+      <section className="grid gap-3 md:grid-cols-3">
+        {supportFacts.map((fact) => (
+          <div
+            key={fact.title}
+            className="rounded-2xl border border-swin-charcoal/10 bg-white p-4 dark:border-white/10 dark:bg-swin-dark-surface"
+          >
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[1.8px] text-swin-charcoal/45 dark:text-white/45">
+              {fact.title}
+            </p>
+            <p className="mt-2 font-display text-[17px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+              {fact.detail}
+            </p>
+            <p className="mt-1 text-[12px] text-swin-charcoal/55 dark:text-white/55">{fact.description}</p>
+          </div>
+        ))}
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(260px,1fr)]">
         <StudentChat studentName={displayName} needsOnboarding={needsOnboarding} userId={user.id} />
@@ -146,6 +148,8 @@ export default async function StudentChatPage() {
           </div>
         </aside>
       </div>
-    </main>
+        </div>
+      </AdminShell>
+    </>
   );
 }

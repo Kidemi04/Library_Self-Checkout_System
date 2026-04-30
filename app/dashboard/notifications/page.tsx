@@ -1,16 +1,12 @@
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
-import NotificationsFilter, {
-  type NotificationFilterType,
-} from '@/app/ui/dashboard/notificationFilter';
+import AdminShell from '@/app/ui/dashboard/adminShell';
 import NotificationList from '@/app/ui/dashboard/notificationList';
+import type { NotificationFilterType } from '@/app/ui/dashboard/notificationFilter';
 
 interface SearchParams {
   q?: string;
   filter?: string;
-  sort?: string;
-  order?: string;
 }
 
 export default async function NotificationsPage({
@@ -30,24 +26,20 @@ export default async function NotificationsPage({
   const isStaffOrAdmin = user.role === 'staff' || user.role === 'admin';
 
   return (
-    <main className="space-y-6">
+    <>
       <title>Notifications</title>
-      <DashboardTitleBar
-        subtitle="Notifications"
-        title="Notifications"
+
+      <AdminShell
+        titleSubtitle="Notifications"
+        title="Inbox"
         description={
           isStaffOrAdmin
-            ? 'Circulation alerts — book borrowals and returns appear here in real time.'
-            : 'Your loan confirmations and return reminders appear here.'
+            ? 'Circulation alerts — book borrowals, returns and system events appear here in real time.'
+            : 'Your loan confirmations, due-date reminders, and hold alerts appear here.'
         }
-      />
-
-      <NotificationsFilter
-        action="/dashboard/notifications"
-        defaults={{ q, filter }}
-      />
-
-      <NotificationList filter={filter} searchQuery={q} />
-    </main>
+      >
+        <NotificationList filter={filter} searchQuery={q} />
+      </AdminShell>
+    </>
   );
 }

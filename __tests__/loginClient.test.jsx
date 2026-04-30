@@ -1,8 +1,25 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import LoginClient from '@/app/login/LoginClient'
+import LoginClient from '@/app/login/loginClient'
 
 const mockSignIn = jest.fn(() => Promise.resolve({}));
+
+const OMIT_PROPS = new Set([
+  'fill',
+  'priority',
+  'placeholder',
+  'blurDataURL',
+]);
+
+jest.mock('next/image', () => ({
+  __esModule: true,
+  default: (props) => {
+    const filteredProps = Object.fromEntries(
+      Object.entries(props).filter(([key]) => !OMIT_PROPS.has(key))
+    );
+    return <img {...filteredProps} />;
+  },
+}));
 
 jest.mock('next-auth/react', () => ({
   signIn: (...args) => mockSignIn(...args),
@@ -18,29 +35,23 @@ jest.mock('@/app/ui/magicUi/glassCard', () => ({
   default: ({ children, className }) => <div className={className}>{children}</div>,
 }));
 
-jest.mock('next/image', () => ({
-  __esModule: true,
-  default: (props) => <img {...props} />,
-}));
-
-
 describe('Login Page', () => {
 	it('Render Title', () => {
-		render(<LoginClient/>)
-
+		render(<LoginClient callbackUrl="/" />)
+		
 		const heading = screen.getByRole('heading', { name: /Swinburne Sarawak Library/i });
 		expect(heading).toBeInTheDocument();
 	})
 
 	it('Render Logo', () => {
-		render(<LoginClient/>)
+		render(<LoginClient callbackUrl="/" />)
 
 		const logo = screen.getByAltText(/Swinburne logo/i);
 		expect(logo).toBeInTheDocument();
 	})
 
 	it('Render Login Button', () => {
-		render(<LoginClient/>)
+		render(<LoginClient callbackUrl="/" />)
 
 		const button = screen.getByRole('button');
 		expect(button).toHaveTextContent(/Sign in with Microsoft/i);
@@ -53,7 +64,12 @@ describe('Login Page', () => {
 		fireEvent.click(loginButton);
 
 		await waitFor(() => {
-      expect(mockSignIn).toHaveBeenCalledWith('azure-ad', expect.any(Object));
-    });
+			expect(mockSignIn).toHaveBeenCalledWith(
+				'azure-ad',
+				expect.objectContaining({
+					callbackUrl: '/dashboard'
+				}),
+				expect.any(Object)
+			);    });
 	})
 })

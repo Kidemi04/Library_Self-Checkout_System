@@ -6,6 +6,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/themeProvider';
 import NavLinks from '@/app/ui/dashboard/navLinks';
+import SignOutButton from '@/app/ui/dashboard/signOutButton';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 
 export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
@@ -122,10 +123,29 @@ export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
         <nav
           className="flex flex-1 flex-col gap-1 overflow-y-auto px-3 py-4"
         >
-          <NavLinks 
+          <NavLinks
           role={user.role}
+          onNavigate={closeMenu}
           showLabels={true}/>
         </nav>
+
+        {/* Drawer footer — Sign out */}
+        <div
+          className={clsx(
+            'border-t px-4 py-3',
+            isDark ? 'border-white/10' : 'border-white/10',
+          )}
+        >
+          <SignOutButton
+            className={clsx(
+              'inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition',
+              isDark
+                ? 'border-white/15 bg-white/5 text-white hover:bg-white/10'
+                : 'border-white/20 bg-white/10 text-white hover:bg-white/20',
+            )}
+            labelClassName="text-sm font-semibold"
+          />
+        </div>
 
         {/* Brand-colour accent stripe at the bottom of the drawer */}
         <div

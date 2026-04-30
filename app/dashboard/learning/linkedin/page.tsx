@@ -9,7 +9,7 @@ import type { LinkedInLearningLevel, LinkedInLearningTopicDefinition } from '@/a
 import LinkedInLearningSearchForm from '@/app/ui/dashboard/learning/searchForm';
 import SearchResultsPanel from '@/app/ui/dashboard/learning/searchResultsPanel';
 import CollectionsPanel from '@/app/ui/dashboard/learning/collectionsPanel';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import AdminShell from '@/app/ui/dashboard/adminShell';
 
 // LinkedIn Learning — professional & tech skills focus
 const linkedInTopics: LinkedInLearningTopicDefinition[] = [
@@ -106,13 +106,12 @@ export default async function LinkedInLearningPage({
     : 'Explore free courses across computer science, mathematics, science, humanities, and economics — curated from Khan Academy for Swinburne students.';
 
   return (
-    <main className="space-y-8">
-      <DashboardTitleBar
-        subtitle="Online learning resources"
-        title={providerLabel}
-        description={titleDescription}
-      />
-
+    <AdminShell
+      titleSubtitle="Online learning resources"
+      title={providerLabel}
+      description={titleDescription}
+    >
+      <div className="space-y-8">
       <LinkedInLearningSearchForm
         defaults={{ query: trimmedQuery, difficulty }}
         providerLabel={providerLabel}
@@ -180,6 +179,7 @@ export default async function LinkedInLearningPage({
           />
         </section>
       )}
-    </main>
+      </div>
+    </AdminShell>
   );
 }

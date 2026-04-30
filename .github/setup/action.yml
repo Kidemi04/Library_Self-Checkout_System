@@ -1,15 +1,16 @@
 name: 'Setup Environment'
-runs-on: "ubuntu-latest"
+description: 'Install dependencies using pnpm'
+
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
-    - uses: pnpm/action-setup@v4
+    - uses: pnpm/action-setup@v5
       with:
         version: 10.17.1
 
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
         node-version: 22.19.0
         cache: 'pnpm'
