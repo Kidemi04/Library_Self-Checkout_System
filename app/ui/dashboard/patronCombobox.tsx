@@ -128,18 +128,18 @@ export default function PatronCombobox({
 
   return (
     <div ref={rootRef} className="relative">
-      <label className="mb-1 block font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55">
+      <label className="mb-1 block font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft">
         Patron
       </label>
       <div
         className={clsx(
-          'flex items-center gap-2 rounded-lg border bg-white px-3 py-2 transition focus-within:border-swin-red focus-within:ring-2 focus-within:ring-swin-red/30 dark:bg-swin-dark-surface',
+          'flex items-center gap-2 rounded-btn border bg-canvas dark:bg-dark-surface-soft px-3 h-10 transition focus-within:ring-2 focus-within:ring-primary/40 focus-within:ring-offset-2 focus-within:ring-offset-canvas dark:focus-within:ring-offset-dark-canvas',
           selected
-            ? 'border-emerald-400/60 dark:border-emerald-400/50'
-            : 'border-swin-charcoal/15 dark:border-white/15',
+            ? 'border-success/60'
+            : 'border-hairline dark:border-dark-hairline',
         )}
       >
-        <MagnifyingGlassIcon className="h-4 w-4 text-swin-charcoal/45 dark:text-white/45" />
+        <MagnifyingGlassIcon className="h-4 w-4 text-muted-soft dark:text-on-dark-soft" />
         <input
           type="text"
           value={query}
@@ -153,7 +153,7 @@ export default function PatronCombobox({
             if (results.length > 0 && !selected) setOpen(true);
           }}
           onKeyDown={handleKeyDown}
-          className="flex-1 border-0 bg-transparent text-[13px] text-swin-charcoal placeholder-swin-charcoal/40 outline-none dark:text-white dark:placeholder-white/40"
+          className="flex-1 border-0 bg-transparent font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft outline-none"
           role="combobox"
           aria-expanded={open}
           aria-autocomplete="list"
@@ -162,20 +162,20 @@ export default function PatronCombobox({
           <button
             type="button"
             onClick={clear}
-            className="rounded-full border border-swin-charcoal/15 px-2 py-0.5 text-[10px] font-semibold text-swin-charcoal/60 transition hover:text-swin-red dark:border-white/15 dark:text-white/60"
+            className="rounded-pill border border-hairline dark:border-dark-hairline px-2 py-0.5 font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft transition hover:text-primary dark:hover:text-dark-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           >
             Clear
           </button>
         )}
         {loading && !selected && (
-          <span className="font-mono text-[10px] text-swin-charcoal/40 dark:text-white/40">…</span>
+          <span className="font-mono text-code text-muted-soft dark:text-on-dark-soft">…</span>
         )}
       </div>
 
       {open && results.length > 0 && (
         <ul
           role="listbox"
-          className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-lg border border-swin-charcoal/10 bg-white shadow-lg dark:border-white/10 dark:bg-swin-dark-surface"
+          className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card shadow-[0_4px_16px_rgba(20,20,19,0.08)]"
         >
           {results.map((option, i) => (
             <li
@@ -188,24 +188,24 @@ export default function PatronCombobox({
               }}
               onMouseEnter={() => setActiveIndex(i)}
               className={clsx(
-                'flex cursor-pointer items-center gap-3 border-b border-swin-charcoal/6 px-3 py-2.5 last:border-b-0 dark:border-white/6',
-                i === activeIndex && 'bg-swin-red/8 dark:bg-swin-red/15',
+                'flex cursor-pointer items-center gap-3 border-b border-hairline-soft px-3 py-2.5 last:border-b-0 dark:border-dark-hairline',
+                i === activeIndex && 'bg-primary/8 dark:bg-dark-primary/15',
               )}
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-semibold text-swin-charcoal dark:text-white">
+                <p className="truncate font-sans text-body-sm font-semibold text-ink dark:text-on-dark">
                   {option.displayName ?? option.email ?? 'Unnamed patron'}
                 </p>
-                <p className="truncate font-mono text-[11px] text-swin-charcoal/50 dark:text-white/50">
+                <p className="truncate font-mono text-code text-muted dark:text-on-dark-soft">
                   {option.studentId ?? option.username ?? option.email ?? option.id}
                 </p>
               </div>
-              <div className="flex flex-shrink-0 items-center gap-1.5 font-mono text-[10px] text-swin-charcoal/55 dark:text-white/55">
+              <div className="flex flex-shrink-0 items-center gap-1.5 font-mono text-code text-muted dark:text-on-dark-soft">
                 <span>
                   {option.activeLoans} loan{option.activeLoans === 1 ? '' : 's'}
                 </span>
                 {option.hasOverdue && (
-                  <span className="flex items-center gap-0.5 text-swin-red">
+                  <span className="flex items-center gap-0.5 text-primary dark:text-dark-primary">
                     <ExclamationTriangleIcon className="h-3 w-3" /> overdue
                   </span>
                 )}
@@ -222,9 +222,9 @@ export default function PatronCombobox({
         value={selected?.displayName ?? ''}
       />
       {selected && (
-        <p className="mt-1.5 font-mono text-[11px] text-swin-charcoal/55 dark:text-white/55">
+        <p className="mt-1.5 font-mono text-code text-muted dark:text-on-dark-soft">
           Selected · {selected.activeLoans}/5 active loans
-          {selected.hasOverdue && <span className="ml-1 text-swin-red">· has overdue</span>}
+          {selected.hasOverdue && <span className="ml-1 text-primary dark:text-dark-primary">· has overdue</span>}
         </p>
       )}
     </div>

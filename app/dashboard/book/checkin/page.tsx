@@ -39,29 +39,23 @@ export default async function ReturningBooksPage({
           : 'Review which books are currently on loan before speaking with library staff.'}
       >
         <div className="space-y-6">
-          {/* Gradient return hero */}
-          <div
-            className="relative overflow-hidden rounded-2xl p-6 text-white"
-            style={{
-              background: 'linear-gradient(120deg, #1F6E47 0%, #2F8F5A 60%, #58B483 100%)',
-              boxShadow: '0 16px 40px rgba(47,143,90,0.2)',
-            }}
-          >
-            <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/8" />
+          {/* Return hero — solid success per spec §6.4 (drop gradient + boxShadow) */}
+          <div className="relative overflow-hidden rounded-card bg-success p-6 text-on-dark">
+            <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-on-dark/10" />
             <div className="relative flex items-start gap-5">
-              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[14px] border border-white/22 bg-white/16">
+              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[14px] border border-on-dark/25 bg-on-dark/15">
                 <ArrowPathIcon className="h-7 w-7" strokeWidth={1.8} />
               </div>
               <div className="flex-1">
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[2px] opacity-80">
+                <p className="font-sans text-caption-uppercase font-bold opacity-80">
                   Return Desk · Scan to Complete
                 </p>
-                <h2 className="mt-1 font-display text-[26px] font-semibold leading-tight tracking-tight">
+                <h2 className="mt-1 font-display text-display-md font-semibold leading-tight tracking-tight">
                   {canProcessReturns
                     ? 'Scan the returned copy barcode'
                     : 'Drop by the library counter to return'}
                 </h2>
-                <p className="mt-1 text-[12px] opacity-85">
+                <p className="mt-1 font-sans text-body-sm opacity-85">
                   {canProcessReturns
                     ? 'Once scanned, the loan is closed and the copy is returned to the shelf.'
                     : 'Staff will confirm the return on the spot — no form needed.'}
@@ -105,34 +99,34 @@ export default async function ReturningBooksPage({
                   });
                 if (attention.length === 0) return null;
                 return (
-                  <div className="rounded-2xl border border-amber-400/40 bg-amber-400/10 p-5 dark:border-amber-400/30 dark:bg-amber-400/10">
-                    <p className="font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-amber-700 dark:text-amber-300">
+                  <div className="rounded-card border border-warning/40 bg-warning/10 p-5">
+                    <p className="font-sans text-caption-uppercase font-semibold text-warning">
                       Returning soon
                     </p>
-                    <h3 className="mt-1 font-display text-[18px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+                    <h3 className="mt-1 font-display text-display-sm font-semibold tracking-tight text-ink dark:text-on-dark">
                       You have {attention.length} book{attention.length === 1 ? '' : 's'} to bring back
                     </h3>
                     <ul className="mt-3 space-y-2">
                       {attention.map((entry) => (
                         <li
                           key={entry.id}
-                          className="flex items-center justify-between gap-3 rounded-lg border border-amber-400/30 bg-white/50 px-3 py-2 text-[13px] dark:border-amber-400/20 dark:bg-white/5"
+                          className="flex items-center justify-between gap-3 rounded-btn border border-warning/30 bg-surface-card dark:bg-dark-surface-card/40 px-3 py-2 font-sans text-body-sm"
                         >
                           <div className="min-w-0">
-                            <p className="truncate font-display font-semibold text-swin-charcoal dark:text-white">
+                            <p className="truncate font-display font-semibold text-ink dark:text-on-dark">
                               {entry.title}
                             </p>
                             {entry.author && (
-                              <p className="truncate font-display text-[11px] italic text-swin-charcoal/60 dark:text-white/60">
+                              <p className="truncate font-display text-caption italic text-muted dark:text-on-dark-soft">
                                 {entry.author}
                               </p>
                             )}
                           </div>
                           <span
-                            className={`flex-shrink-0 rounded-full px-2.5 py-0.5 font-mono text-[10px] font-bold ${
+                            className={`flex-shrink-0 rounded-pill px-2.5 py-0.5 font-mono text-code font-bold ${
                               entry.overdue
-                                ? 'bg-swin-red/15 text-swin-red'
-                                : 'bg-amber-400/20 text-amber-700 dark:text-amber-300'
+                                ? 'bg-primary/15 text-primary dark:bg-dark-primary/20 dark:text-dark-primary'
+                                : 'bg-warning/20 text-warning'
                             }`}
                           >
                             {entry.overdue
@@ -148,15 +142,15 @@ export default async function ReturningBooksPage({
                 );
               })()}
 
-              <div className="flex gap-4 rounded-2xl border border-swin-charcoal/10 bg-white p-5 dark:border-white/10 dark:bg-swin-dark-surface">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-swin-charcoal/8 text-swin-charcoal dark:bg-white/10 dark:text-white/80">
+              <div className="flex gap-4 rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-5">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-surface-cream-strong dark:bg-dark-surface-strong text-ink dark:text-on-dark">
                   <MapPinIcon className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="font-display text-[16px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+                  <p className="font-display text-title-lg font-semibold tracking-tight text-ink dark:text-on-dark">
                     Bring your book to the library counter
                   </p>
-                  <p className="mt-1 text-[13px] text-swin-charcoal/60 dark:text-white/55">
+                  <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
                     Staff will process your return — no form needed. Just hand over the book and you&apos;re done.
                   </p>
                 </div>
@@ -166,10 +160,10 @@ export default async function ReturningBooksPage({
 
           <section className="space-y-3">
             <div className="flex items-baseline justify-between">
-              <h2 className="font-display text-[22px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+              <h2 className="font-display text-display-md tracking-tight text-ink dark:text-on-dark">
                 {canProcessReturns ? 'Books currently not available' : 'Your current loans'}
               </h2>
-              <p className="font-mono text-[11px] text-swin-charcoal/45 dark:text-white/45">
+              <p className="font-mono text-code text-muted-soft dark:text-on-dark-soft">
                 {canProcessReturns
                   ? `Showing ${activeLoans.length} of ${totalBorrowed} borrowed books`
                   : `${activeLoans.length} book${activeLoans.length === 1 ? '' : 's'} on loan`}

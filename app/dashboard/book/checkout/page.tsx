@@ -72,27 +72,21 @@ export default async function BorrowBooksPage({
           : 'Borrow a title by scanning your copy or searching the catalogue, then confirm your details.'}
       >
         <div className="space-y-6">
-          {/* Gradient scan hero */}
-          <div
-            className="relative overflow-hidden rounded-2xl p-6 text-white"
-            style={{
-              background: 'linear-gradient(120deg, #A81C2A 0%, #C82333 60%, #E85566 100%)',
-              boxShadow: '0 16px 40px rgba(200,35,51,0.2)',
-            }}
-          >
-            <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/8" />
+          {/* Scan hero — solid primary per spec §6.4 (drop gradient + boxShadow) */}
+          <div className="relative overflow-hidden rounded-card bg-primary p-6 text-on-primary">
+            <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-on-primary/10" />
             <div className="relative flex items-start gap-5">
-              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[14px] border border-white/22 bg-white/16">
+              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[14px] border border-on-primary/25 bg-on-primary/15">
                 <QrCodeIcon className="h-7 w-7" strokeWidth={1.8} />
               </div>
               <div className="flex-1">
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[2px] opacity-80">
+                <p className="font-sans text-caption-uppercase font-bold opacity-80">
                   Self-Service Desk · Scan to Process
                 </p>
-                <h2 className="mt-1 font-display text-[26px] font-semibold leading-tight tracking-tight">
+                <h2 className="mt-1 font-display text-display-md font-semibold leading-tight tracking-tight">
                   Scan a barcode or pick a title below
                 </h2>
-                <p className="mt-1 text-[12px] opacity-85">
+                <p className="mt-1 font-sans text-body-sm opacity-85">
                   Point the camera at the book barcode, or find it in the catalogue and confirm your loan.
                 </p>
               </div>
@@ -120,10 +114,10 @@ export default async function BorrowBooksPage({
 
           <section className="space-y-3">
             <div className="flex items-baseline justify-between">
-              <h2 className="font-display text-[22px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+              <h2 className="font-display text-display-md tracking-tight text-ink dark:text-on-dark">
                 {canProcessLoans ? 'Books currently not available' : 'Your current loans'}
               </h2>
-              <p className="font-mono text-[11px] text-swin-charcoal/45 dark:text-white/45">
+              <p className="font-mono text-code text-muted-soft dark:text-on-dark-soft">
                 {canProcessLoans
                   ? `${activeLoans.length} books are with borrowers right now`
                   : `${activeLoans.length} book${activeLoans.length === 1 ? '' : 's'} on loan`}

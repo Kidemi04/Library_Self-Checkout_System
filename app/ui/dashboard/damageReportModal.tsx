@@ -115,23 +115,23 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
     >
       <div
-        className="absolute inset-0 bg-black/55 backdrop-blur-sm"
+        className="absolute inset-0 bg-ink/50 dark:bg-dark-canvas/70 backdrop-blur-sm"
         onClick={() => !busy && onClose()}
       />
-      <div className="relative w-full max-w-lg rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-swin-dark-surface">
+      <div className="relative w-full max-w-lg rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6 shadow-[0_4px_16px_rgba(20,20,19,0.08)]">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-swin-red/10">
-              <ExclamationTriangleIcon className="h-5 w-5 text-swin-red" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-pill bg-primary/10 dark:bg-dark-primary/15">
+              <ExclamationTriangleIcon className="h-5 w-5 text-primary dark:text-dark-primary" />
             </div>
             <div>
               <h2
                 id="damage-report-title"
-                className="font-display text-[20px] font-semibold text-swin-charcoal dark:text-white"
+                className="font-display text-display-sm text-ink dark:text-on-dark"
               >
                 Report condition
               </h2>
-              <p className="mt-0.5 text-[12px] text-swin-charcoal/60 dark:text-white/60">
+              <p className="mt-0.5 font-sans text-body-sm text-muted dark:text-on-dark-soft">
                 Capture any damage before marking the return complete.
               </p>
             </div>
@@ -141,14 +141,14 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
             onClick={onClose}
             disabled={busy}
             aria-label="Close"
-            className="rounded-full p-1 text-swin-charcoal/50 transition hover:bg-swin-charcoal/5 hover:text-swin-charcoal dark:text-white/50 dark:hover:bg-white/10 dark:hover:text-white"
+            className="rounded-pill p-1 text-muted dark:text-on-dark-soft transition hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong hover:text-ink dark:hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           >
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
 
         <fieldset className="mb-4">
-          <legend className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55">
+          <legend className="mb-2 font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft">
             Severity
           </legend>
           <div className="grid gap-2 sm:grid-cols-3">
@@ -158,22 +158,22 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
                 type="button"
                 onClick={() => setSeverity(opt.value)}
                 className={clsx(
-                  'rounded-lg border px-3 py-2.5 text-left text-[12px] transition',
+                  'rounded-btn border px-3 py-2.5 text-left font-sans text-body-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                   severity === opt.value
-                    ? 'border-swin-red bg-swin-red/8 text-swin-red dark:bg-swin-red/15'
-                    : 'border-swin-charcoal/15 bg-white text-swin-charcoal/70 hover:border-swin-charcoal/25 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white/70',
+                    ? 'border-primary bg-primary/8 text-primary dark:bg-dark-primary/15 dark:border-dark-primary dark:text-dark-primary'
+                    : 'border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card text-muted dark:text-on-dark-soft hover:border-primary/30',
                 )}
                 aria-pressed={severity === opt.value}
               >
                 <p className="font-semibold">{opt.label}</p>
-                <p className="mt-0.5 text-[11px] opacity-75">{opt.hint}</p>
+                <p className="mt-0.5 text-caption opacity-75">{opt.hint}</p>
               </button>
             ))}
           </div>
         </fieldset>
 
         <div className="mb-4">
-          <span className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55">
+          <span className="mb-1.5 block font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft">
             Notes (optional)
           </span>
           <div className="mb-2 flex flex-wrap gap-1.5">
@@ -183,7 +183,7 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
                 type="button"
                 onClick={() => appendPresetNote(preset)}
                 disabled={busy}
-                className="rounded-full border border-swin-charcoal/15 bg-white px-2.5 py-1 text-[11px] font-medium text-swin-charcoal/75 transition hover:border-swin-red/40 hover:bg-swin-red/5 hover:text-swin-red disabled:opacity-50 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white/75 dark:hover:border-swin-red/50 dark:hover:bg-swin-red/15"
+                className="rounded-pill border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card px-2.5 py-1 font-sans text-caption font-medium text-muted dark:text-on-dark-soft transition hover:border-primary/40 hover:bg-primary/5 hover:text-primary dark:hover:text-dark-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 + {preset}
               </button>
@@ -195,23 +195,23 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
             placeholder="e.g. cover torn on spine, water damage on pages 40-60"
-            className="w-full rounded-lg border border-swin-charcoal/15 bg-white px-3 py-2 text-[13px] text-swin-charcoal focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/30 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white"
+            className="w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 py-2 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
           />
-          <p className="mt-1 text-right font-mono text-[10px] text-swin-charcoal/40 dark:text-white/40">
+          <p className="mt-1 text-right font-mono text-code text-muted-soft dark:text-on-dark-soft">
             {notes.length}/500
           </p>
         </div>
 
         <div className="mb-5">
           <div className="mb-1.5 flex items-center justify-between">
-            <span className="font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55">
+            <span className="font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft">
               Photos (optional, up to {MAX_PHOTOS})
             </span>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={photos.length >= MAX_PHOTOS || busy}
-              className="flex items-center gap-1.5 rounded-full border border-swin-charcoal/15 bg-white px-3 py-1 text-[11px] font-semibold text-swin-charcoal transition hover:border-swin-charcoal/30 disabled:opacity-50 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white"
+              className="flex items-center gap-1.5 rounded-pill border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card px-3 py-1 font-sans text-caption font-semibold text-ink dark:text-on-dark transition hover:border-primary/30 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               <PhotoIcon className="h-3.5 w-3.5" /> Add photo
             </button>
@@ -225,7 +225,7 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
             />
           </div>
           {photos.length === 0 ? (
-            <p className="rounded-lg border border-dashed border-swin-charcoal/15 p-3 text-center font-mono text-[11px] text-swin-charcoal/45 dark:border-white/10 dark:text-white/45">
+            <p className="rounded-btn border border-dashed border-hairline dark:border-dark-hairline p-3 text-center font-mono text-code text-muted-soft dark:text-on-dark-soft">
               No photos attached.
             </p>
           ) : (
@@ -233,15 +233,15 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
               {photos.map((file, idx) => (
                 <li
                   key={`${file.name}-${idx}`}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-swin-charcoal/10 bg-white px-3 py-2 text-[12px] dark:border-white/10 dark:bg-swin-dark-surface"
+                  className="flex items-center justify-between gap-3 rounded-btn border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card px-3 py-2 font-sans text-body-sm"
                 >
-                  <span className="truncate font-mono text-swin-charcoal/70 dark:text-white/70">
+                  <span className="truncate font-mono text-code text-muted dark:text-on-dark-soft">
                     {file.name} · {(file.size / 1024).toFixed(0)} KB
                   </span>
                   <button
                     type="button"
                     onClick={() => removePhoto(idx)}
-                    className="rounded-full border border-swin-charcoal/15 px-2 py-0.5 text-[10px] font-semibold text-swin-charcoal/60 hover:text-swin-red dark:border-white/15 dark:text-white/60"
+                    className="rounded-pill border border-hairline dark:border-dark-hairline px-2 py-0.5 font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft hover:text-primary dark:hover:text-dark-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                   >
                     Remove
                   </button>
@@ -251,14 +251,14 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
           )}
         </div>
 
-        {error && <p className="mb-3 text-[12px] font-semibold text-swin-red">{error}</p>}
+        {error && <p className="mb-3 font-sans text-body-sm font-semibold text-primary dark:text-dark-primary">{error}</p>}
 
         <div className="flex justify-end gap-2.5">
           <button
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="rounded-xl border border-swin-charcoal/15 bg-white px-4 py-2.5 text-[13px] font-semibold text-swin-charcoal transition hover:bg-swin-charcoal/5 disabled:opacity-60 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white"
+            className="rounded-btn border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card px-4 h-10 font-sans text-button text-ink dark:text-on-dark transition hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
           >
             Cancel
           </button>
@@ -266,7 +266,8 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
             type="button"
             onClick={handleSubmit}
             disabled={busy}
-            className="rounded-xl bg-swin-red px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-swin-red/90 disabled:opacity-60"
+            aria-disabled={busy}
+            className="rounded-btn bg-primary hover:bg-primary-active px-4 h-10 font-sans text-button text-on-primary transition disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
           >
             {busy ? 'Uploading\u2026' : 'Attach to return'}
           </button>

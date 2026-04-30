@@ -157,22 +157,22 @@ export default async function HoldsManagementPage() {
           {/* Stuck holds warning */}
           {stuckHolds.length > 0 && (
             <section className="space-y-3">
-              <div className="rounded-xl border-l-[3px] border border-amber-300 border-l-amber-500 bg-amber-50 px-4 py-3 dark:border-amber-700/60 dark:border-l-amber-500 dark:bg-amber-950/30">
-                <p className="font-mono text-[10px] font-bold uppercase tracking-[1.8px] text-amber-700 dark:text-amber-300">
+              <div className="rounded-card border-l-[3px] border border-warning/40 border-l-warning bg-warning/10 px-4 py-3">
+                <p className="font-sans text-caption-uppercase font-bold text-warning">
                   Attention required
                 </p>
-                <p className="mt-1 text-[13px] font-semibold text-amber-900 dark:text-amber-100">
+                <p className="mt-1 font-sans text-title-md font-semibold text-ink dark:text-on-dark">
                   {stuckHolds.length} hold{stuckHolds.length !== 1 ? 's' : ''} cannot be fulfilled
                 </p>
-                <p className="mt-0.5 text-[12px] text-amber-700 dark:text-amber-300/80">
+                <p className="mt-0.5 font-sans text-body-sm text-warning">
                   The following books have no copies currently on loan or available in the system.
                   These holds should be cancelled.
                 </p>
               </div>
-              <div className="overflow-hidden rounded-2xl border border-amber-200/70 bg-white dark:border-amber-900/40 dark:bg-swin-dark-surface">
-                <table className="min-w-full text-sm text-swin-charcoal dark:text-white">
+              <div className="overflow-hidden rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card">
+                <table className="min-w-full font-sans text-body-sm text-ink dark:text-on-dark">
                   <thead>
-                    <tr className="bg-amber-50/60 text-left font-mono text-[10px] font-bold uppercase tracking-[1.8px] text-swin-charcoal/50 dark:bg-amber-950/20 dark:text-white/50">
+                    <tr className="bg-warning/5 text-left font-sans text-caption-uppercase text-ink dark:text-on-dark">
                       <th className="px-4 py-3">Book</th>
                       <th className="px-4 py-3">Patron</th>
                       <th className="px-4 py-3">Placed at</th>
@@ -181,7 +181,7 @@ export default async function HoldsManagementPage() {
                   </thead>
                   <tbody>
                     {stuckHolds.map((hold: any) => (
-                      <tr key={hold.id} className="border-t border-swin-charcoal/8 dark:border-white/8">
+                      <tr key={hold.id} className="border-t border-hairline-soft dark:border-dark-hairline">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
                             {hold.book_cover ? (
@@ -189,23 +189,23 @@ export default async function HoldsManagementPage() {
                               <img
                                 src={hold.book_cover}
                                 alt=""
-                                className="h-10 w-7 rounded object-cover ring-1 ring-swin-charcoal/10 dark:ring-white/10"
+                                className="h-10 w-7 rounded object-cover ring-1 ring-hairline dark:ring-dark-hairline"
                               />
                             ) : (
-                              <div className="h-10 w-7 rounded bg-slate-200 dark:bg-swin-dark-bg" />
+                              <div className="h-10 w-7 rounded bg-surface-cream-strong dark:bg-dark-surface-strong" />
                             )}
                             <div>
-                              <p className="font-display text-[14px] font-semibold tracking-tight">
+                              <p className="font-display text-title-md font-semibold tracking-tight">
                                 {hold.book_title ?? 'Unknown title'}
                               </p>
-                              <p className="font-mono text-[10px] text-amber-700 dark:text-amber-300">
+                              <p className="font-mono text-code text-warning">
                                 No copies in system
                               </p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-[13px]">{hold.patron_name ?? 'Unknown patron'}</td>
-                        <td className="px-4 py-3 font-mono text-[11px] text-swin-charcoal/55 dark:text-white/55">
+                        <td className="px-4 py-3 font-sans text-body-sm">{hold.patron_name ?? 'Unknown patron'}</td>
+                        <td className="px-4 py-3 font-mono text-code text-muted-soft dark:text-on-dark-soft">
                           {hold.placed_at ? new Date(hold.placed_at).toLocaleString() : '—'}
                         </td>
                         <td className="px-4 py-3">
@@ -214,7 +214,7 @@ export default async function HoldsManagementPage() {
                               <input type="hidden" name="holdId" value={hold.id} />
                               <button
                                 type="submit"
-                                className="rounded-lg border border-swin-red/30 bg-swin-red/5 px-3 py-1.5 text-[11px] font-semibold text-swin-red transition hover:bg-swin-red/10"
+                                className="rounded-btn border border-primary/30 bg-primary/5 px-3 py-1.5 font-sans text-button text-primary transition hover:bg-primary/10 dark:border-dark-primary/30 dark:bg-dark-primary/10 dark:text-dark-primary dark:hover:bg-dark-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                               >
                                 Cancel hold
                               </button>

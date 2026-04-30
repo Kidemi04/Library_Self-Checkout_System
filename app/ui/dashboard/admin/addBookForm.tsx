@@ -120,15 +120,15 @@ export default function AddBookForm() {
   };
 
   return (
-    <div className="space-y-6 text-swin-charcoal dark:text-white">
+    <div className="space-y-6 text-ink dark:text-on-dark">
       {error && (
-        <div className="rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-500 dark:bg-rose-500/10 dark:text-rose-100">
+        <div className="rounded-btn border border-primary/30 bg-primary/10 px-4 py-3 font-sans text-body-sm text-primary dark:border-dark-primary/30 dark:bg-dark-primary/15 dark:text-dark-primary">
           {error}
         </div>
       )}
 
-      <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 dark:border-white/10 dark:bg-swin-dark-surface">
-        <h2 className="font-display text-[18px] font-semibold mb-3">ISBN duplicate check</h2>
+      <section className="rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6">
+        <h2 className="font-display text-display-sm text-ink dark:text-on-dark mb-3">ISBN duplicate check</h2>
         <IsbnLookupBox
           value={isbn}
           onChange={setIsbn}
@@ -137,9 +137,9 @@ export default function AddBookForm() {
           pending={lookupPending}
         />
         {existing && (
-          <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-500/30 dark:bg-amber-500/10">
-            <p className="text-sm font-semibold">This book already exists in the library:</p>
-            <p className="mt-1 text-sm">
+          <div className="mt-4 rounded-card border border-warning/30 bg-warning/10 p-4">
+            <p className="font-sans text-body-sm font-semibold text-ink dark:text-on-dark">This book already exists in the library:</p>
+            <p className="mt-1 font-sans text-body-sm text-ink dark:text-on-dark">
               &ldquo;{existing.title}&rdquo; by {existing.author ?? 'Unknown'} ({existing.copyCount}{' '}
               cop{existing.copyCount === 1 ? 'y' : 'ies'})
             </p>
@@ -147,14 +147,14 @@ export default function AddBookForm() {
               <button
                 type="button"
                 onClick={() => router.push(`/dashboard/book/${existing.id}`)}
-                className="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white"
+                className="rounded-btn bg-warning hover:bg-warning/90 px-3 py-1.5 font-sans text-button text-on-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
               >
                 Go to that book
               </button>
               <button
                 type="button"
                 onClick={() => setExisting(null)}
-                className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-800 dark:border-amber-500/30 dark:text-amber-200"
+                className="rounded-btn border border-warning/40 px-3 py-1.5 font-sans text-button text-warning hover:bg-warning/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
               >
                 Continue creating new entry
               </button>
@@ -163,8 +163,8 @@ export default function AddBookForm() {
         )}
       </section>
 
-      <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 dark:border-white/10 dark:bg-swin-dark-surface">
-        <h2 className="font-display text-[18px] font-semibold mb-3">Basic information</h2>
+      <section className="rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6">
+        <h2 className="font-display text-display-sm text-ink dark:text-on-dark mb-3">Basic information</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Title *">
             <input
@@ -216,8 +216,8 @@ export default function AddBookForm() {
         </div>
       </section>
 
-      <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 dark:border-white/10 dark:bg-swin-dark-surface">
-        <h2 className="font-display text-[18px] font-semibold mb-3">Category &amp; tags</h2>
+      <section className="rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6">
+        <h2 className="font-display text-display-sm text-ink dark:text-on-dark mb-3">Category &amp; tags</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Category">
             <select
@@ -233,17 +233,17 @@ export default function AddBookForm() {
             </select>
           </Field>
           <Field label="Tags">
-            <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-300 bg-white p-2 dark:border-white/10 dark:bg-slate-950">
+            <div className="flex flex-wrap items-center gap-1.5 rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft p-2 focus-within:ring-2 focus-within:ring-primary/40 focus-within:ring-offset-2 focus-within:ring-offset-canvas dark:focus-within:ring-offset-dark-canvas">
               {tags.map((t) => (
                 <span
                   key={t}
-                  className="flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-xs dark:bg-white/10"
+                  className="flex items-center gap-1 rounded-pill bg-surface-cream-strong dark:bg-dark-surface-strong px-2 py-1 font-sans text-body-sm text-ink dark:text-on-dark"
                 >
                   {t}
                   <button
                     type="button"
                     onClick={() => setTags(tags.filter((x) => x !== t))}
-                    className="text-slate-400 hover:text-rose-600"
+                    className="text-muted-soft hover:text-primary dark:hover:text-dark-primary"
                   >
                     ×
                   </button>
@@ -259,15 +259,15 @@ export default function AddBookForm() {
                   }
                 }}
                 placeholder="Type and press Enter"
-                className="flex-1 min-w-[8rem] bg-transparent px-2 py-0.5 text-sm focus:outline-none"
+                className="flex-1 min-w-[8rem] bg-transparent px-2 py-0.5 font-sans text-body-sm text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus:outline-none"
               />
             </div>
           </Field>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 dark:border-white/10 dark:bg-swin-dark-surface">
-        <h2 className="font-display text-[18px] font-semibold mb-3">Copies</h2>
+      <section className="rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6">
+        <h2 className="font-display text-display-sm text-ink dark:text-on-dark mb-3">Copies</h2>
         <Field label="Number of copies">
           <input
             type="number"
@@ -290,7 +290,8 @@ export default function AddBookForm() {
           type="button"
           onClick={submit}
           disabled={submitting}
-          className="rounded-xl bg-swin-red px-8 py-3 text-sm font-semibold text-white shadow transition hover:bg-swin-red/90 disabled:opacity-60 dark:bg-emerald-600 dark:hover:bg-emerald-500"
+          aria-disabled={submitting}
+          className="rounded-btn bg-primary hover:bg-primary-active px-8 py-3 font-sans text-button text-on-primary transition disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
         >
           {submitting
             ? 'Creating…'
@@ -330,12 +331,12 @@ export default function AddBookForm() {
 }
 
 const inputCls =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-white/10 dark:bg-slate-950 dark:text-white';
+  'w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-xs font-semibold uppercase tracking-wide text-swin-charcoal/55 dark:text-white/55">
+      <span className="font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft">
         {label}
       </span>
       {children}

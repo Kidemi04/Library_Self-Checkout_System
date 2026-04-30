@@ -126,10 +126,10 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
             <li
               key={entry.when}
               className={clsx(
-                'flex items-center gap-2 rounded-lg border px-3 py-2 text-[12px]',
+                'flex items-center gap-2 rounded-btn border px-3 py-2 font-sans text-body-sm',
                 entry.tone === 'damaged'
-                  ? 'border-amber-400/40 bg-amber-400/10 text-amber-700 dark:text-amber-300'
-                  : 'border-emerald-400/40 bg-emerald-400/10 text-emerald-700 dark:text-emerald-300',
+                  ? 'border-warning/40 bg-warning/10 text-warning'
+                  : 'border-success/40 bg-success/10 text-success',
               )}
             >
               <CheckCircleIcon className="h-4 w-4" />
@@ -139,17 +139,17 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
         </ul>
       )}
 
-      <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 dark:shadow-black/20">
+      <section className="rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
-            <h2 className="font-display text-[20px] font-semibold text-swin-charcoal dark:text-white">
+            <h2 className="font-display text-display-sm text-ink dark:text-on-dark">
               Record a return
             </h2>
-            <p className="text-[12px] text-swin-charcoal/60 dark:text-white/60">
+            <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
               {activeLoanCount} book{activeLoanCount === 1 ? '' : 's'} currently on loan.
             </p>
           </div>
-          <label className="flex items-center gap-2 text-[12px] font-medium text-swin-charcoal/70 dark:text-white/70">
+          <label className="flex items-center gap-2 font-sans text-body-sm font-medium text-muted dark:text-on-dark-soft">
             <input
               type="checkbox"
               checked={bulkMode}
@@ -163,7 +163,7 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
         </div>
 
         {/* Mode tabs */}
-        <div role="tablist" aria-label="Lookup mode" className="mb-4 flex gap-1 rounded-lg border border-swin-charcoal/10 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5">
+        <div role="tablist" aria-label="Lookup mode" className="mb-4 flex gap-1 rounded-btn border border-hairline dark:border-dark-hairline bg-surface-cream-strong dark:bg-dark-surface-strong p-1">
           {(['scan', 'patron'] as Mode[]).map((m) => {
             const active = mode === m;
             return (
@@ -174,10 +174,10 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
                 aria-selected={active}
                 onClick={() => setMode(m)}
                 className={clsx(
-                  'flex-1 rounded-md px-3 py-2 text-[12px] font-semibold transition',
+                  'flex-1 rounded-btn px-3 py-2 font-sans text-button transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                   active
-                    ? 'bg-white text-swin-charcoal shadow-sm dark:bg-swin-dark-surface dark:text-white'
-                    : 'text-swin-charcoal/55 hover:text-swin-charcoal dark:text-white/55 dark:hover:text-white',
+                    ? 'bg-surface-card dark:bg-dark-surface-card text-ink dark:text-on-dark'
+                    : 'text-muted dark:text-on-dark-soft hover:text-ink dark:hover:text-on-dark',
                 )}
               >
                 {m === 'scan' ? 'Scan copy' : 'Find by borrower'}
@@ -200,7 +200,7 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
             <div>
               <label
                 htmlFor="identifier"
-                className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55"
+                className="mb-1.5 block font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft"
               >
                 Copy barcode or loan ID
               </label>
@@ -214,7 +214,7 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
                 required
                 placeholder="Scan SWI-xxxxx or paste loan ID"
                 autoComplete="off"
-                className="w-full rounded-lg border border-swin-charcoal/15 bg-white px-3 py-2.5 text-[13px] text-swin-charcoal focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/30 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white"
+                className="w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
               />
             </div>
           ) : (
@@ -223,7 +223,7 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
               <div>
                 <label
                   htmlFor="patron-loan"
-                  className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55"
+                  className="mb-1.5 block font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft"
                 >
                   Loan to return
                 </label>
@@ -233,7 +233,7 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
                   value={patronLoanId}
                   onChange={(e) => setPatronLoanId(e.target.value)}
                   disabled={patronLoans.length === 0}
-                  className="w-full rounded-lg border border-swin-charcoal/15 bg-white px-3 py-2.5 text-[13px] text-swin-charcoal disabled:opacity-60 focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/30 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white"
+                  className="w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                 >
                   <option value="">
                     {patronLoadingFor
@@ -258,7 +258,7 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
 
           {/* Damage chip */}
           {damage ? (
-            <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-[12px] text-amber-700 dark:text-amber-300">
+            <div className="flex items-center justify-between gap-3 rounded-btn border border-warning/40 bg-warning/10 px-3 py-2 font-sans text-body-sm text-warning">
               <span>
                 Flagged as {SEVERITY_LABEL[damage.severity]}
                 {damage.photoUrls.length > 0 && ` \u00b7 ${damage.photoUrls.length} photo${damage.photoUrls.length === 1 ? '' : 's'}`}
@@ -267,7 +267,7 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
               <button
                 type="button"
                 onClick={() => setDamage(null)}
-                className="rounded-full border border-amber-400/50 px-2 py-0.5 text-[10px] font-semibold hover:bg-amber-400/20"
+                className="rounded-pill border border-warning/50 px-2 py-0.5 font-sans text-caption-uppercase font-semibold hover:bg-warning/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 Clear
               </button>
@@ -277,17 +277,17 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
               type="button"
               onClick={() => setDamageOpen(true)}
               disabled={!canSubmit}
-              className="text-[12px] font-semibold text-swin-charcoal/70 underline underline-offset-2 transition hover:text-swin-red disabled:opacity-50 dark:text-white/70"
+              className="font-sans text-body-sm font-semibold text-muted dark:text-on-dark-soft underline underline-offset-2 transition hover:text-primary dark:hover:text-dark-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               Report damage or missing
             </button>
           )}
 
           {state.status === 'error' && state.message && (
-            <p className="text-[13px] font-semibold text-swin-red">{state.message}</p>
+            <p className="font-sans text-body-sm font-semibold text-primary dark:text-dark-primary">{state.message}</p>
           )}
           {singleReceipt && (
-            <p className="rounded-lg border border-emerald-400/40 bg-emerald-400/10 px-3 py-2 text-[12px] text-emerald-700 dark:text-emerald-300">
+            <p className="rounded-btn border border-success/40 bg-success/10 px-3 py-2 font-sans text-body-sm text-success">
               {bulkFeed[0]!.label}
             </p>
           )}
@@ -306,12 +306,12 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
           aria-labelledby="confirm-return-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
         >
-          <div className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={() => setConfirmOpen(false)} />
-          <div className="relative w-full max-w-md rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-swin-dark-surface">
-            <h2 id="confirm-return-title" className="font-display text-[18px] font-semibold text-swin-charcoal dark:text-white">
+          <div className="absolute inset-0 bg-ink/50 dark:bg-dark-canvas/70 backdrop-blur-sm" onClick={() => setConfirmOpen(false)} />
+          <div className="relative w-full max-w-md rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6 shadow-[0_4px_16px_rgba(20,20,19,0.08)]">
+            <h2 id="confirm-return-title" className="font-display text-display-sm text-ink dark:text-on-dark">
               Confirm book return
             </h2>
-            <p className="mt-1 text-[13px] text-swin-charcoal/70 dark:text-white/70">
+            <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
               This will mark the loan as returned and update the copy status
               {damage ? ` to ${SEVERITY_LABEL[damage.severity]}` : ''}.
             </p>
@@ -319,7 +319,7 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
               <button
                 type="button"
                 onClick={() => setConfirmOpen(false)}
-                className="flex-1 rounded-xl border border-swin-charcoal/15 bg-white px-4 py-2.5 text-[13px] font-semibold text-swin-charcoal transition hover:bg-swin-charcoal/5 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white"
+                className="flex-1 rounded-btn border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card px-4 h-10 font-sans text-button text-ink dark:text-on-dark transition hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
               >
                 Cancel
               </button>
@@ -327,7 +327,7 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
                 ref={confirmButtonRef}
                 type="button"
                 onClick={doSubmit}
-                className="flex-1 rounded-xl bg-swin-red px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-swin-red/90"
+                className="flex-1 rounded-btn bg-primary hover:bg-primary-active px-4 h-10 font-sans text-button text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
               >
                 Yes, mark returned
               </button>
@@ -348,12 +348,14 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
 
 function SubmitButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
   const { pending } = useFormStatus();
+  const isDisabled = disabled || pending;
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled || pending}
-      className="inline-flex items-center justify-center rounded-xl bg-swin-charcoal px-5 py-2.5 text-[13px] font-semibold uppercase tracking-wide text-white shadow-sm shadow-swin-charcoal/30 transition hover:bg-swin-charcoal/90 disabled:cursor-not-allowed disabled:bg-swin-charcoal/30"
+      disabled={isDisabled}
+      aria-disabled={isDisabled}
+      className="inline-flex items-center justify-center rounded-btn bg-primary hover:bg-primary-active px-5 h-10 font-sans text-button text-on-primary transition disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
     >
       {pending ? 'Processing\u2026' : 'Mark returned'}
     </button>

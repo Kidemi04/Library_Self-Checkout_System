@@ -78,8 +78,8 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
     initialFilters.bucket === 'all'
   ) {
     return (
-      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-10 text-center dark:border-emerald-500/30 dark:bg-emerald-500/5">
-        <p className="font-display text-[20px] font-semibold tracking-tight text-emerald-700 dark:text-emerald-300">
+      <div className="rounded-card border border-success/30 bg-success/5 p-10 text-center">
+        <p className="font-display text-display-sm tracking-tight text-success">
           All loans are on time. Nice.
         </p>
       </div>
@@ -87,7 +87,7 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
   }
 
   return (
-    <div className="space-y-6 text-swin-charcoal dark:text-white">
+    <div className="space-y-6 text-ink dark:text-on-dark">
       {/* Filter row */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap items-center gap-2">
@@ -97,10 +97,10 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
               type="button"
               onClick={() => setBucket(b.value)}
               className={clsx(
-                'rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition',
+                'rounded-pill px-3 py-1.5 font-sans text-caption-uppercase font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
                 initialFilters.bucket === b.value
-                  ? 'bg-swin-red text-white'
-                  : 'border border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10',
+                  ? 'bg-primary text-on-primary'
+                  : 'border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card text-body dark:text-on-dark/80 hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong hover:text-ink dark:hover:text-on-dark',
               )}
             >
               {b.label}
@@ -113,12 +113,12 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
             placeholder="Search borrower / book / barcode"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-72 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-slate-950 dark:text-white"
+            className="w-72 rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
           />
           <a
             href={exportHref}
             download
-            className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 dark:border-white/20 dark:bg-transparent dark:text-white"
+            className="rounded-btn border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card px-3 h-10 inline-flex items-center font-sans text-button text-ink dark:text-on-dark hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
           >
             Export CSV
           </a>
@@ -128,10 +128,10 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
       {(statusMessage || errorMessage) && (
         <div
           className={clsx(
-            'rounded-lg border px-4 py-3 text-sm',
+            'rounded-btn border px-4 py-3 font-sans text-body-sm',
             errorMessage
-              ? 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-500 dark:bg-rose-500/10 dark:text-rose-100'
-              : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400 dark:bg-emerald-400/10 dark:text-emerald-100',
+              ? 'border-primary/30 bg-primary/10 text-primary dark:border-dark-primary/30 dark:bg-dark-primary/15 dark:text-dark-primary'
+              : 'border-success/30 bg-success/10 text-success',
           )}
         >
           {errorMessage ?? statusMessage}
@@ -139,15 +139,15 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
       )}
 
       {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface">
+      <div className="overflow-hidden rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card">
         <table className="min-w-full">
           <thead>
-            <tr className="bg-slate-50 dark:bg-swin-dark-bg/60">
+            <tr className="bg-surface-cream-strong dark:bg-dark-surface-strong">
               {['Book', 'Borrower', 'Borrowed', 'Due', 'Days overdue', 'Reminder', 'Action'].map(
                 (h) => (
                   <th
                     key={h}
-                    className="px-4 py-3 text-left font-mono text-[10px] font-bold uppercase tracking-[1.8px] text-swin-charcoal/45 dark:text-white/45"
+                    className="px-4 py-3 text-left font-sans text-caption-uppercase text-ink dark:text-on-dark"
                   >
                     {h}
                   </th>
@@ -159,7 +159,7 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
             {loans.map((loan) => (
               <tr
                 key={loan.id}
-                className="border-t border-swin-charcoal/8 dark:border-white/8"
+                className="border-t border-hairline-soft dark:border-dark-hairline hover:bg-surface-cream-strong/50 dark:hover:bg-dark-surface-strong/40"
               >
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-3">
@@ -180,10 +180,10 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
                       />
                     )}
                     <div className="min-w-0">
-                      <p className="truncate font-display text-[14px] font-semibold tracking-tight">
+                      <p className="truncate font-display text-title-md font-semibold tracking-tight text-ink dark:text-on-dark">
                         {loan.book?.title ?? '—'}
                       </p>
-                      <p className="truncate font-display text-[12px] italic text-swin-charcoal/55 dark:text-white/55">
+                      <p className="truncate font-display text-body-sm italic text-muted-soft dark:text-on-dark-soft">
                         {loan.book?.author ?? 'Unknown author'}
                       </p>
                     </div>
@@ -197,27 +197,27 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
                       tone="charcoal"
                     />
                     <div className="min-w-0">
-                      <p className="truncate text-[13px] font-semibold">
+                      <p className="truncate font-sans text-body-sm font-semibold text-ink dark:text-on-dark">
                         {loan.borrower?.displayName ?? loan.borrower?.email ?? '—'}
                       </p>
-                      <p className="truncate font-mono text-[11px] text-swin-charcoal/55 dark:text-white/55">
+                      <p className="truncate font-mono text-code text-muted-soft dark:text-on-dark-soft">
                         {loan.borrower?.studentId ?? loan.borrower?.email ?? ''}
                       </p>
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-3.5 font-mono text-[11px] text-swin-charcoal/60 dark:text-white/60">
+                <td className="px-4 py-3.5 font-mono text-code text-muted dark:text-on-dark-soft">
                   {new Date(loan.borrowedAt).toLocaleDateString('en-MY')}
                 </td>
-                <td className="px-4 py-3.5 font-mono text-[11px] text-rose-600 dark:text-rose-400">
+                <td className="px-4 py-3.5 font-mono text-code text-primary dark:text-dark-primary">
                   {new Date(loan.dueAt).toLocaleDateString('en-MY')}
                 </td>
                 <td className="px-4 py-3.5">
-                  <span className="rounded-full bg-rose-100 px-2.5 py-1 font-mono text-[11px] font-semibold text-rose-700 dark:bg-rose-500/15 dark:text-rose-200">
+                  <span className="rounded-pill bg-primary/15 px-2.5 py-1 font-mono text-code font-semibold text-primary dark:bg-dark-primary/20 dark:text-dark-primary">
                     {loan.daysOverdue}d
                   </span>
                 </td>
-                <td className="px-4 py-3.5 text-[12px] text-swin-charcoal/60 dark:text-white/60">
+                <td className="px-4 py-3.5 font-sans text-body-sm text-muted dark:text-on-dark-soft">
                   {loan.lastRemindedAt
                     ? `Reminded ${formatRelative(loan.lastRemindedAt)}${
                         loan.lastRemindedByName ? ` by ${loan.lastRemindedByName}` : ''
@@ -235,7 +235,7 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
             ))}
             {loans.length === 0 && (
               <tr>
-                <td className="px-4 py-8 text-center text-slate-500" colSpan={7}>
+                <td className="px-4 py-8 text-center font-sans text-body-sm text-muted dark:text-on-dark-soft" colSpan={7}>
                   No overdue loans match these filters.
                 </td>
               </tr>

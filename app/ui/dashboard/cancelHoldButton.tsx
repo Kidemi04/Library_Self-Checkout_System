@@ -28,7 +28,7 @@ export default function CancelHoldButton({ holdId, bookTitle, cancelAction }: Pr
         type="button"
         disabled={isPending}
         onClick={() => setShowConfirm(true)}
-        className="rounded-full border border-slate-300 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 transition hover:border-slate-400 hover:text-slate-900 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white"
+        className="rounded-pill border border-hairline dark:border-dark-hairline px-4 py-2 font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft transition hover:border-primary/30 hover:text-ink dark:hover:text-on-dark disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
       >
         {isPending ? 'Cancelling...' : 'Cancel hold'}
       </button>

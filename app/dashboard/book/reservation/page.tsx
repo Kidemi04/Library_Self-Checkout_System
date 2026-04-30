@@ -96,29 +96,29 @@ export default async function MyReservationsPage() {
             danger={ready.length > 0}
             delta={ready.length > 0 ? `${ready.length} ready` : undefined}
             footer="collect at desk"
-            className={ready.length > 0 ? 'border-swin-red/40 dark:border-swin-red/40' : undefined}
+            className={ready.length > 0 ? 'border-primary/40 dark:border-dark-primary/40' : undefined}
           />
           <KpiCard label="In queue" value={queued.length} />
         </div>
 
         {holds.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-swin-charcoal/15 bg-white p-10 text-center dark:border-white/10 dark:bg-swin-dark-surface">
-            <p className="font-display text-[20px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+          <div className="rounded-card border border-dashed border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-10 text-center">
+            <p className="font-display text-display-sm tracking-tight text-ink dark:text-on-dark">
               No active reservations
             </p>
-            <p className="mt-2 text-[13px] text-swin-charcoal/55 dark:text-white/55">
+            <p className="mt-2 font-sans text-body-sm text-muted-soft dark:text-on-dark-soft">
               You have not reserved any books yet. Browse the catalogue to place a hold.
             </p>
             <Link
               href="/dashboard/book/items"
-              className="mt-5 inline-flex rounded-full bg-swin-red px-5 py-2 text-[13px] font-semibold text-white transition hover:bg-swin-red/90"
+              className="mt-5 inline-flex rounded-pill bg-primary hover:bg-primary-active px-5 py-2 font-sans text-button text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             >
               Browse catalogue
             </Link>
           </div>
         ) : (
           <>
-            <h2 className="mb-3 font-display text-[22px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+            <h2 className="mb-3 font-display text-display-md tracking-tight text-ink dark:text-on-dark">
               Active reservations
             </h2>
             <ul className="space-y-4">
@@ -127,44 +127,44 @@ export default async function MyReservationsPage() {
                 return (
                   <li
                     key={hold.id}
-                    className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface"
+                    className="overflow-hidden rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card"
                   >
                     <div className="p-1">
                       <HoldCard hold={hold} />
                     </div>
 
                     {/* Details row */}
-                    <dl className="grid grid-cols-1 gap-3 border-t border-swin-charcoal/8 px-4 py-3 text-[12px] dark:border-white/8 sm:grid-cols-3">
+                    <dl className="grid grid-cols-1 gap-3 border-t border-hairline-soft dark:border-dark-hairline px-4 py-3 font-sans text-body-sm sm:grid-cols-3">
                       <div>
-                        <dt className="font-mono text-[10px] font-semibold uppercase tracking-[1.6px] text-swin-charcoal/45 dark:text-white/45">
+                        <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
                           Placed on
                         </dt>
-                        <dd className="mt-0.5 font-medium text-swin-charcoal dark:text-white">
+                        <dd className="mt-0.5 font-medium text-ink dark:text-on-dark">
                           {formatDate(hold.placedAt)}
                         </dd>
                       </div>
                       <div>
-                        <dt className="font-mono text-[10px] font-semibold uppercase tracking-[1.6px] text-swin-charcoal/45 dark:text-white/45">
+                        <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
                           Ready since
                         </dt>
-                        <dd className="mt-0.5 font-medium text-swin-charcoal dark:text-white">
+                        <dd className="mt-0.5 font-medium text-ink dark:text-on-dark">
                           {hold.readyAt ? formatDateTime(hold.readyAt) : 'Not yet ready'}
                         </dd>
                       </div>
                       <div>
-                        <dt className="font-mono text-[10px] font-semibold uppercase tracking-[1.6px] text-swin-charcoal/45 dark:text-white/45">
+                        <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
                           Expires
                         </dt>
-                        <dd className="mt-0.5 font-medium text-swin-charcoal dark:text-white">
+                        <dd className="mt-0.5 font-medium text-ink dark:text-on-dark">
                           {hold.expiresAt ? formatDateTime(hold.expiresAt) : '—'}
                         </dd>
                       </div>
                       {hold.isbn && (
                         <div className="sm:col-span-3">
-                          <dt className="font-mono text-[10px] font-semibold uppercase tracking-[1.6px] text-swin-charcoal/45 dark:text-white/45">
+                          <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
                             ISBN
                           </dt>
-                          <dd className="mt-0.5 font-mono text-[12px] text-swin-charcoal/80 dark:text-white/80">
+                          <dd className="mt-0.5 font-mono text-code text-ink/80 dark:text-on-dark/80">
                             {hold.isbn}
                           </dd>
                         </div>
@@ -173,10 +173,10 @@ export default async function MyReservationsPage() {
 
                     {/* Footer with action + message */}
                     <div
-                      className={`flex flex-wrap items-center justify-between gap-3 border-t border-swin-charcoal/8 px-4 py-3 text-[12px] dark:border-white/8 ${
+                      className={`flex flex-wrap items-center justify-between gap-3 border-t border-hairline-soft dark:border-dark-hairline px-4 py-3 font-sans text-body-sm ${
                         hold.status === 'ready'
-                          ? 'text-swin-red'
-                          : 'text-swin-charcoal/65 dark:text-white/65'
+                          ? 'text-primary dark:text-dark-primary'
+                          : 'text-muted dark:text-on-dark-soft'
                       }`}
                     >
                       <p>{getReadyMessage(hold)}</p>

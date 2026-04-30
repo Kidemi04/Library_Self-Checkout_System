@@ -249,12 +249,12 @@ export default function CheckOutForm({
   }
 
   return (
-    <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 dark:shadow-black/30">
+    <section className="rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6">
       <div className="mb-4 space-y-1">
-        <h2 className="font-display text-[20px] font-semibold text-swin-charcoal dark:text-white">
+        <h2 className="font-display text-display-sm text-ink dark:text-on-dark">
           {selfCheckout ? 'Borrow a book' : 'Record a loan'}
         </h2>
-        <p className="text-[13px] text-swin-charcoal/60 dark:text-white/60">
+        <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
           Scan the copy barcode (or ISBN), then confirm the details.
         </p>
       </div>
@@ -274,10 +274,10 @@ export default function CheckOutForm({
       {lookupMessage && (
         <p
           className={clsx(
-            'mt-2 text-[12px] font-medium',
-            lookupMessage.tone === 'success' && 'text-emerald-600',
-            lookupMessage.tone === 'error' && 'text-swin-red',
-            lookupMessage.tone === 'neutral' && 'text-swin-charcoal/70 dark:text-white/70',
+            'mt-2 font-sans text-body-sm font-medium',
+            lookupMessage.tone === 'success' && 'text-success',
+            lookupMessage.tone === 'error' && 'text-primary dark:text-dark-primary',
+            lookupMessage.tone === 'neutral' && 'text-muted dark:text-on-dark-soft',
           )}
         >
           {lookupMessage.text}
@@ -291,7 +291,7 @@ export default function CheckOutForm({
 
         {/* Book picker */}
         <div>
-          <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55" htmlFor="bookId">
+          <label className="mb-1.5 block font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft" htmlFor="bookId">
             Book to borrow
           </label>
           <select
@@ -299,7 +299,7 @@ export default function CheckOutForm({
             name="bookId"
             value={selectedBookId}
             onChange={(e) => setSelectedBookId(e.target.value)}
-            className="w-full rounded-lg border border-swin-charcoal/15 bg-white px-3 py-2 text-[13px] text-swin-charcoal focus:border-swin-red focus:outline-none focus:ring-2 focus:ring-swin-red/30 dark:border-white/15 dark:bg-swin-dark-surface dark:text-white"
+            className="w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             required
           >
             <option value="" disabled>
@@ -312,7 +312,7 @@ export default function CheckOutForm({
             ))}
           </select>
           {bookOptions.length > 0 && (
-            <p className="mt-1 font-mono text-[11px] text-swin-charcoal/45 dark:text-white/45">
+            <p className="mt-1 font-mono text-code text-muted-soft dark:text-on-dark-soft">
               {bookOptions.length} titles ready to borrow.
             </p>
           )}
@@ -320,38 +320,38 @@ export default function CheckOutForm({
 
         {/* Preview card for selected book */}
         {selectedBook && (
-          <div className="rounded-xl border border-swin-charcoal/10 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/5">
-            <p className="font-display text-[17px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+          <div className="rounded-card border border-hairline dark:border-dark-hairline bg-surface-cream-strong dark:bg-dark-surface-strong p-4">
+            <p className="font-display text-title-lg font-semibold tracking-tight text-ink dark:text-on-dark">
               {selectedBook.title}
             </p>
             {selectedBook.author && (
-              <p className="mt-0.5 font-display text-[13px] italic text-swin-charcoal/65 dark:text-white/65">
+              <p className="mt-0.5 font-display text-body-sm italic text-muted dark:text-on-dark-soft">
                 by {selectedBook.author}
               </p>
             )}
-            <dl className="mt-3 grid gap-x-6 gap-y-1 font-mono text-[11px] sm:grid-cols-2">
+            <dl className="mt-3 grid gap-x-6 gap-y-1 font-mono text-code sm:grid-cols-2">
               <div>
-                <dt className="uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">Availability</dt>
-                <dd className="text-swin-charcoal/85 dark:text-white/85">
+                <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">Availability</dt>
+                <dd className="text-ink dark:text-on-dark">
                   {selectedBook.availableCopies} of {selectedBook.totalCopies} copies available
                 </dd>
               </div>
               {selectedCopyBarcode && (
                 <div>
-                  <dt className="uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">Selected copy</dt>
-                  <dd className="text-swin-charcoal/85 dark:text-white/85">{selectedCopyBarcode}</dd>
+                  <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">Selected copy</dt>
+                  <dd className="text-ink dark:text-on-dark">{selectedCopyBarcode}</dd>
                 </div>
               )}
               {selectedBook.isbn && (
                 <div>
-                  <dt className="uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">ISBN</dt>
-                  <dd className="text-swin-charcoal/85 dark:text-white/85">{selectedBook.isbn}</dd>
+                  <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">ISBN</dt>
+                  <dd className="text-ink dark:text-on-dark">{selectedBook.isbn}</dd>
                 </div>
               )}
               {selectedBook.classification && (
                 <div>
-                  <dt className="uppercase tracking-wider text-swin-charcoal/45 dark:text-white/45">Call number</dt>
-                  <dd className="text-swin-charcoal/85 dark:text-white/85">{selectedBook.classification}</dd>
+                  <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">Call number</dt>
+                  <dd className="text-ink dark:text-on-dark">{selectedBook.classification}</dd>
                 </div>
               )}
             </dl>
@@ -364,16 +364,16 @@ export default function CheckOutForm({
             <input type="hidden" name="borrowerIdentifier" value={selfUserId ?? ''} />
             <input type="hidden" name="borrowerName" value={selfUserName ?? ''} />
             <input type="hidden" name="dueDate" value={defaultDueDate} />
-            <div className="flex items-center gap-3 rounded-xl border border-swin-charcoal/10 bg-swin-ivory px-4 py-3 dark:border-white/10 dark:bg-white/5">
+            <div className="flex items-center gap-3 rounded-card border border-hairline dark:border-dark-hairline bg-surface-cream-strong dark:bg-dark-surface-strong px-4 py-3">
               <div className="min-w-0">
-                <p className="font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/50 dark:text-white/50">
+                <p className="font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft">
                   Borrowing as
                 </p>
-                <p className="text-[14px] font-semibold text-swin-charcoal dark:text-white">
+                <p className="font-sans text-body-md font-semibold text-ink dark:text-on-dark">
                   {selfUserName ?? 'You'}
                 </p>
               </div>
-              <span className="ml-auto rounded-full bg-swin-charcoal/8 px-2.5 py-1 font-mono text-[10px] text-swin-charcoal/60 dark:bg-white/8 dark:text-white/55">
+              <span className="ml-auto rounded-pill bg-surface-card dark:bg-dark-surface-card px-2.5 py-1 font-mono text-code text-muted dark:text-on-dark-soft">
                 14-day loan
               </span>
             </div>
@@ -382,7 +382,7 @@ export default function CheckOutForm({
           <div className="grid gap-4 md:grid-cols-2">
             <PatronCombobox onSelect={setPickedPatron} />
             <div>
-              <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/55 dark:text-white/55">
+              <label className="mb-1.5 block font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft">
                 Due date
               </label>
               <DueDatePicker defaultDate={defaultDueDate} />
@@ -400,10 +400,10 @@ export default function CheckOutForm({
                 <li
                   key={w.key}
                   className={clsx(
-                    'flex items-start gap-2 rounded-lg border px-3 py-2 text-[12px]',
+                    'flex items-start gap-2 rounded-btn border px-3 py-2 font-sans text-body-sm',
                     isBlock
-                      ? 'border-swin-red/40 bg-swin-red/8 text-swin-red'
-                      : 'border-amber-400/40 bg-amber-400/10 text-amber-700 dark:text-amber-300',
+                      ? 'border-primary/40 bg-primary/10 text-primary dark:border-dark-primary/40 dark:bg-dark-primary/15 dark:text-dark-primary'
+                      : 'border-warning/40 bg-warning/10 text-warning',
                   )}
                 >
                   <Icon className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -416,7 +416,7 @@ export default function CheckOutForm({
 
         {/* Staff override — only when a soft warn is present and no hard block */}
         {!selfCheckout && hasSoftWarn && !hasHardBlock && (
-          <label className="flex items-start gap-2 rounded-lg border border-dashed border-swin-charcoal/20 px-3 py-2 text-[12px] text-swin-charcoal/70 dark:border-white/20 dark:text-white/70">
+          <label className="flex items-start gap-2 rounded-btn border border-dashed border-hairline dark:border-dark-hairline px-3 py-2 font-sans text-body-sm text-muted dark:text-on-dark-soft">
             <input
               type="checkbox"
               name="override"
@@ -429,14 +429,14 @@ export default function CheckOutForm({
         )}
 
         {state.status === 'error' && state.message && (
-          <p className="text-[13px] font-semibold text-swin-red">{state.message}</p>
+          <p className="font-sans text-body-sm font-semibold text-primary dark:text-dark-primary">{state.message}</p>
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-2">
           {!selfCheckout && (
             <Link
               href="/dashboard"
-              className="text-[12px] font-medium text-swin-charcoal/60 underline-offset-2 hover:underline dark:text-white/60"
+              className="font-sans text-body-sm font-medium text-muted dark:text-on-dark-soft underline-offset-2 hover:underline hover:text-ink dark:hover:text-on-dark"
             >
               Cancel
             </Link>
@@ -453,11 +453,13 @@ export default function CheckOutForm({
 
 function SubmitButton({ disabled, label }: { disabled: boolean; label: string }) {
   const { pending } = useFormStatus();
+  const isDisabled = disabled || pending;
   return (
     <button
       type="submit"
-      disabled={disabled || pending}
-      className="inline-flex items-center justify-center rounded-xl bg-swin-red px-5 py-2.5 text-[13px] font-semibold text-white shadow-sm shadow-swin-red/25 transition hover:bg-swin-red/90 disabled:cursor-not-allowed disabled:bg-swin-charcoal/25 disabled:text-white/70 disabled:shadow-none"
+      disabled={isDisabled}
+      aria-disabled={isDisabled}
+      className="inline-flex items-center justify-center rounded-btn bg-primary hover:bg-primary-active px-5 h-10 font-sans text-button text-on-primary transition disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
     >
       {pending ? 'Processing\u2026' : label}
     </button>

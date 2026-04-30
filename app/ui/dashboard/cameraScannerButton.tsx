@@ -236,24 +236,23 @@ export default function CameraScannerButton({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="group relative flex w-full items-center gap-4 overflow-hidden rounded-2xl p-5 text-left text-white shadow-md shadow-swin-red/20 transition hover:shadow-lg hover:shadow-swin-red/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/50"
-          style={{ background: 'linear-gradient(135deg, #A81C2A 0%, #C82333 55%, #E85566 100%)' }}
+          className="group relative flex w-full items-center gap-4 overflow-hidden rounded-card bg-primary p-5 text-left text-on-primary transition hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
         >
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-white/10 blur-sm transition group-hover:scale-110"
+            className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-on-primary/10 blur-sm transition group-hover:scale-110"
           />
-          <span className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-white/25 bg-white/15 backdrop-blur-sm">
+          <span className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-card border border-on-primary/25 bg-on-primary/15 backdrop-blur-sm">
             <ViewfinderCircleIcon className="h-6 w-6" strokeWidth={1.8} />
           </span>
           <span className="relative min-w-0 flex-1">
-            <span className="block font-mono text-[10px] font-semibold uppercase tracking-[2px] opacity-85">
+            <span className="block font-sans text-caption-uppercase font-semibold opacity-85">
               Fastest way
             </span>
-            <span className="mt-0.5 block font-display text-[19px] font-semibold leading-tight tracking-tight">
+            <span className="mt-0.5 block font-display text-display-sm font-semibold leading-tight tracking-tight">
               Scan with camera
             </span>
-            <span className="mt-0.5 block text-[12px] opacity-80">
+            <span className="mt-0.5 block font-sans text-body-sm opacity-80">
               Point at the barcode &middot; auto-captures
             </span>
           </span>
@@ -264,13 +263,13 @@ export default function CameraScannerButton({
           <button
             type="button"
             onClick={() => uploadInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 text-[12px] font-medium text-swin-charcoal/65 underline-offset-4 transition hover:text-swin-red hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/40 dark:text-white/65 dark:hover:text-white"
+            className="inline-flex items-center gap-1.5 font-sans text-body-sm font-medium text-muted dark:text-on-dark-soft underline-offset-4 transition hover:text-primary dark:hover:text-dark-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           >
             <PhotoIcon className="h-3.5 w-3.5" />
             {uploadLabel}
           </button>
           {lastScan && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
+            <span className="inline-flex items-center gap-1.5 rounded-pill border border-success/30 bg-success/10 px-2.5 py-0.5 font-mono text-code font-semibold text-success">
               <CheckCircleIcon className="h-3 w-3" />
               {lastScanPrefix} &middot; {lastScan}
             </span>
@@ -278,12 +277,12 @@ export default function CameraScannerButton({
         </div>
 
         {statusMessage && (
-          <p className="text-[11px] font-medium text-swin-charcoal/70 dark:text-white/70">
+          <p className="font-sans text-body-sm font-medium text-muted dark:text-on-dark-soft">
             {statusMessage}
           </p>
         )}
         {errorMessage && !open && (
-          <p className="text-[11px] font-medium text-swin-red">{errorMessage}</p>
+          <p className="font-sans text-body-sm font-medium text-primary dark:text-dark-primary">{errorMessage}</p>
         )}
       </div>
 
@@ -319,19 +318,19 @@ export default function CameraScannerButton({
             aria-labelledby="scanner-title"
             className="fixed inset-0 z-[60] flex items-center justify-center bg-black sm:bg-black/85 sm:p-4"
           >
-            <div className="relative flex h-full w-full flex-col overflow-hidden bg-slate-950 text-white sm:h-[680px] sm:max-h-[92vh] sm:max-w-xl sm:rounded-3xl sm:shadow-2xl sm:shadow-black/50">
+            <div className="relative flex h-full w-full flex-col overflow-hidden bg-dark-canvas text-on-dark sm:h-[680px] sm:max-h-[92vh] sm:max-w-xl sm:rounded-card sm:shadow-[0_4px_16px_rgba(20,20,19,0.08)]">
               {/* Top bar */}
-              <header className="relative z-10 flex items-center justify-between gap-3 border-b border-white/10 bg-black/30 px-4 py-3 backdrop-blur-sm">
+              <header className="relative z-10 flex items-center justify-between gap-3 border-b border-dark-hairline bg-black/30 px-4 py-3 backdrop-blur-sm">
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[12px] font-semibold text-white/80 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  className="flex items-center gap-1.5 rounded-full border border-dark-hairline bg-dark-surface-card/40 px-3 py-1.5 font-sans text-button text-on-dark/80 transition hover:bg-dark-surface-strong hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                   aria-label="Close scanner"
                 >
                   <ArrowLeftIcon className="h-3.5 w-3.5" />
                   Back
                 </button>
-                <h2 id="scanner-title" className="absolute left-1/2 -translate-x-1/2 font-display text-[15px] font-semibold">
+                <h2 id="scanner-title" className="absolute left-1/2 -translate-x-1/2 font-display text-title-md font-semibold">
                   {modalTitle}
                 </h2>
                 <div className="flex items-center gap-1.5">
@@ -341,7 +340,7 @@ export default function CameraScannerButton({
                       onClick={toggleFacingMode}
                       disabled={Boolean(selectedDeviceId)}
                       aria-label="Switch camera"
-                      className="rounded-full border border-white/15 bg-white/5 p-2 text-white/80 transition hover:bg-white/10 hover:text-white disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                      className="rounded-pill border border-dark-hairline bg-dark-surface-card/40 p-2 text-on-dark/80 transition hover:bg-dark-surface-strong hover:text-on-dark disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
                     >
                       <ArrowPathIcon className="h-4 w-4" />
                     </button>
@@ -351,10 +350,10 @@ export default function CameraScannerButton({
                     onClick={() => setSettingsOpen((v) => !v)}
                     aria-label="Scanner settings"
                     className={clsx(
-                      'rounded-full border p-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
+                      'rounded-pill border p-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                       settingsOpen
-                        ? 'border-white/40 bg-white/15 text-white'
-                        : 'border-white/15 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white',
+                        ? 'border-on-dark/40 bg-on-dark/15 text-on-dark'
+                        : 'border-dark-hairline bg-dark-surface-card/40 text-on-dark/80 hover:bg-dark-surface-strong hover:text-on-dark',
                     )}
                   >
                     <Cog6ToothIcon className="h-4 w-4" />
@@ -391,7 +390,7 @@ export default function CameraScannerButton({
                         className={clsx(
                           'absolute h-10 w-10 transition-colors',
                           cls,
-                          successFlash ? 'border-emerald-300' : 'border-white',
+                          successFlash ? 'border-success' : 'border-accent-teal/80',
                         )}
                       />
                     ))}
@@ -400,7 +399,7 @@ export default function CameraScannerButton({
                     {!successFlash && (
                       <span
                         aria-hidden="true"
-                        className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-gradient-to-r from-transparent via-swin-red to-transparent shadow-[0_0_18px_rgba(200,35,51,0.75)]"
+                        className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_18px_rgba(184,58,53,0.75)]"
                         style={{ animation: 'scanLineDown 2.2s ease-in-out infinite' }}
                       />
                     )}
@@ -408,11 +407,11 @@ export default function CameraScannerButton({
                     {/* Success flash */}
                     {successFlash && (
                       <div
-                        className="absolute inset-0 flex items-center justify-center rounded-3xl bg-emerald-500/20 backdrop-blur-[2px]"
+                        className="absolute inset-0 flex items-center justify-center rounded-card bg-success/20 backdrop-blur-[2px]"
                         style={{ animation: 'successPop 380ms ease-out' }}
                       >
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500 shadow-[0_0_32px_rgba(16,185,129,0.6)]">
-                          <CheckCircleIcon className="h-10 w-10 text-white" strokeWidth={1.8} />
+                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success shadow-[0_0_32px_rgba(34,180,108,0.6)]">
+                          <CheckCircleIcon className="h-10 w-10 text-on-dark" strokeWidth={1.8} />
                         </div>
                       </div>
                     )}
@@ -421,12 +420,12 @@ export default function CameraScannerButton({
 
                 {/* Helper copy below the viewfinder */}
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/75 via-black/40 to-transparent px-6 pb-6 pt-10 text-center">
-                  <p className="font-mono text-[10px] font-semibold uppercase tracking-[2px] text-white/60">
+                  <p className="font-mono text-caption-uppercase font-semibold tracking-[2px] text-on-dark/60">
                     Align barcode inside the frame
                   </p>
-                  <p className="mt-1 text-[12px] text-white/75">{modalDescription}</p>
+                  <p className="mt-1 font-sans text-body-sm text-on-dark/75">{modalDescription}</p>
                   {errorMessage && (
-                    <p className="pointer-events-auto mx-auto mt-3 inline-block rounded-lg border border-amber-400/40 bg-amber-500/10 px-3 py-1.5 text-[11px] font-medium text-amber-200">
+                    <p className="pointer-events-auto mx-auto mt-3 inline-block rounded-btn border border-warning/40 bg-warning/10 px-3 py-1.5 font-sans text-body-sm font-medium text-warning">
                       {errorMessage}
                     </p>
                   )}
@@ -434,12 +433,12 @@ export default function CameraScannerButton({
               </div>
 
               {/* Bottom action bar */}
-              <footer className="relative z-10 flex flex-col gap-2 border-t border-white/10 bg-black/40 px-4 py-3 backdrop-blur-sm">
+              <footer className="relative z-10 flex flex-col gap-2 border-t border-dark-hairline bg-black/40 px-4 py-3 backdrop-blur-sm">
                 <div className="flex items-center justify-between gap-2">
                   <button
                     type="button"
                     onClick={() => setManualOpen(true)}
-                    className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[12px] font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                    className="flex items-center gap-1.5 rounded-full border border-dark-hairline bg-dark-surface-card/40 px-3 py-1.5 font-sans text-button text-on-dark/80 transition hover:bg-dark-surface-strong hover:text-on-dark"
                   >
                     <PencilSquareIcon className="h-3.5 w-3.5" />
                     Type barcode
@@ -447,7 +446,7 @@ export default function CameraScannerButton({
                   <button
                     type="button"
                     onClick={() => modalUploadInputRef.current?.click()}
-                    className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[12px] font-semibold text-white/80 transition hover:bg-white/10 hover:text-white"
+                    className="flex items-center gap-1.5 rounded-full border border-dark-hairline bg-dark-surface-card/40 px-3 py-1.5 font-sans text-button text-on-dark/80 transition hover:bg-dark-surface-strong hover:text-on-dark"
                   >
                     <PhotoIcon className="h-3.5 w-3.5" />
                     Upload photo
@@ -458,9 +457,9 @@ export default function CameraScannerButton({
                 {manualOpen && (
                   <form
                     onSubmit={handleManualSubmit}
-                    className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-3 py-2"
+                    className="flex items-center gap-2 rounded-btn border border-dark-hairline bg-dark-surface-card/40 px-3 py-2"
                   >
-                    <PencilSquareIcon className="h-4 w-4 flex-shrink-0 text-white/55" />
+                    <PencilSquareIcon className="h-4 w-4 flex-shrink-0 text-on-dark-soft" />
                     <input
                       ref={manualInputRef}
                       type="text"
@@ -468,12 +467,13 @@ export default function CameraScannerButton({
                       onChange={(e) => setManualValue(e.target.value)}
                       placeholder="Enter ISBN, SWI barcode, or loan ID"
                       autoComplete="off"
-                      className="flex-1 border-0 bg-transparent text-[13px] text-white placeholder-white/40 outline-none"
+                      className="flex-1 border-0 bg-transparent font-sans text-body-sm text-on-dark placeholder:text-on-dark-soft outline-none"
                     />
                     <button
                       type="submit"
                       disabled={!manualValue.trim()}
-                      className="rounded-lg bg-white px-3 py-1.5 text-[11px] font-bold text-swin-red transition hover:bg-white/90 disabled:opacity-50"
+                      aria-disabled={!manualValue.trim()}
+                      className="rounded-btn bg-primary hover:bg-primary-active px-3 py-1.5 font-sans text-button text-on-primary transition disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                     >
                       Submit
                     </button>
@@ -484,7 +484,7 @@ export default function CameraScannerButton({
                         setManualValue('');
                       }}
                       aria-label="Cancel manual entry"
-                      className="rounded-full p-1 text-white/60 hover:bg-white/10 hover:text-white"
+                      className="rounded-pill p-1 text-on-dark-soft hover:bg-dark-surface-strong hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                     >
                       <XMarkIcon className="h-4 w-4" />
                     </button>
@@ -493,9 +493,9 @@ export default function CameraScannerButton({
 
                 {/* Settings drawer */}
                 {settingsOpen && (
-                  <div className="space-y-2 rounded-xl border border-white/15 bg-white/5 p-3 text-[12px] text-white/80">
+                  <div className="space-y-2 rounded-btn border border-dark-hairline bg-dark-surface-card/40 p-3 font-sans text-body-sm text-on-dark/80">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-white/55">
+                      <p className="font-sans text-caption-uppercase font-semibold text-on-dark-soft">
                         Camera source
                       </p>
                       <button
@@ -503,7 +503,7 @@ export default function CameraScannerButton({
                         onClick={() => {
                           void refreshDeviceOptions();
                         }}
-                        className="inline-flex items-center gap-1 rounded-md border border-white/15 px-2 py-0.5 text-[10px] font-semibold text-white/70 hover:bg-white/10 hover:text-white"
+                        className="inline-flex items-center gap-1 rounded-btn border border-dark-hairline px-2 py-0.5 font-sans text-caption-uppercase font-semibold text-on-dark/70 hover:bg-dark-surface-strong hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                       >
                         <ArrowPathIcon
                           className={clsx('h-3 w-3', enumeratingDevices && 'animate-spin')}
@@ -518,7 +518,7 @@ export default function CameraScannerButton({
                           setSelectedDeviceId(e.target.value);
                           setErrorMessage(null);
                         }}
-                        className="w-full rounded-md border border-white/15 bg-slate-900/60 px-2.5 py-1.5 text-[12px] text-white focus:border-white/40 focus:outline-none"
+                        className="w-full rounded-btn border border-dark-hairline bg-dark-surface-soft px-2.5 py-1.5 font-sans text-body-sm text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
                       >
                         <option value="">Auto (browser picks best)</option>
                         {availableDevices.map((d) => (
@@ -526,7 +526,7 @@ export default function CameraScannerButton({
                         ))}
                       </select>
                     ) : (
-                      <p className="text-[11px] text-white/50">
+                      <p className="font-sans text-body-sm text-on-dark-soft">
                         {deviceListError ??
                           (enumeratingDevices
                             ? 'Detecting connected cameras\u2026'
@@ -535,12 +535,12 @@ export default function CameraScannerButton({
                     )}
 
                     <details className="mt-2">
-                      <summary className="cursor-pointer font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-white/55">
+                      <summary className="cursor-pointer font-sans text-caption-uppercase font-semibold text-on-dark-soft">
                         Debug log ({debugLog.length})
                       </summary>
-                      <div className="mt-1.5 max-h-40 overflow-y-auto rounded-md bg-black/70 p-1.5 font-mono text-[10px] leading-relaxed text-green-400/90">
+                      <div className="mt-1.5 max-h-40 overflow-y-auto rounded-btn bg-ink p-1.5 font-mono text-code leading-relaxed text-success">
                         {debugLog.length === 0 ? (
-                          <p className="text-white/30">Waiting for events...</p>
+                          <p className="text-on-dark/30">Waiting for events...</p>
                         ) : (
                           debugLog.map((line, i) => (
                             <p key={i} className="break-all">{line}</p>

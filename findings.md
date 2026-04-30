@@ -294,3 +294,53 @@ Pattern to remember for Chats 15/16: when a page in scope uses delegated child c
 **What was found:** The "On hold" status chip uses violet specifically to differentiate from the red "On loan" alert state (when no copies are free) and the green "Available" success state. The design token system has no `accent-violet`; closest semantic match is `accent-amber` (transitional/queued state — same as `manageCopiesModal` `hold_shelf` decision).
 
 **Implication:** Mapped to `bg-accent-amber/15 text-accent-amber`. Consistent with `manageCopiesModal` `hold_shelf` migration. Both surfaces now signal "in queue / awaiting pickup" with amber, contrasting clearly with success-green (available) and primary-red (on loan).
+
+---
+
+## 2026-05-01 — Chat 15 — `book/holds/page.tsx` is staff/admin holds management, NOT student holds list (plan misdescription)
+
+**What was expected:** Plan Task 17 calls `app/dashboard/book/holds/page.tsx` "Student holds list" and recommends using `<HoldCard>` primitive with empty state + primary CTA.
+
+**What was found:** The file is actually a **staff/admin holds management page** with role guards (`if (user.role === 'user') redirect('/dashboard')`). It composes `<HoldsManagementView>` (a Chat 16 Task 25 file) plus an inline "Stuck holds" warning section with its own table. The student-facing reservation list is at `app/dashboard/book/reservation/page.tsx` (Plan Task 18).
+
+**Implication:** Migrated only the inline stuck-holds warning section (warning-tinted notice card + table per recipe; `<HoldsManagementView>` migration deferred to Chat 16 as planned). Plan task description should be read as "the holds-related page" not "student holds list".
+
+---
+
+## 2026-05-01 — Chat 15 — Six unlisted dependencies discovered across checkout/checkin/reservation flows (extends Chat 12/14 spec-gap pattern)
+
+**What was expected:** Plan Tasks 17–20 list page-level files only; the underlying components are assumed migrated.
+
+**What was found:** Six dependencies of in-scope files were NOT in any chat's scope but had legacy tokens:
+- `app/ui/dashboard/searchForm.tsx` (4 hits) — consumed by checkout & checkin pages
+- `app/ui/dashboard/checkOutForm.tsx` (29 hits) — consumed by checkout page
+- `app/ui/dashboard/patronCombobox.tsx` (16 hits) — consumed by checkOutForm + checkInForm
+- `app/ui/dashboard/cameraScannerButton.tsx` (24 hits) — consumed by checkout/checkin pages
+- `app/ui/dashboard/cancelHoldButton.tsx` (1 hit) — consumed by reservation page
+- `app/ui/dashboard/confirmModal.tsx` (11 hits) — consumed by addBookForm + cancelHoldButton
+- `app/ui/dashboard/checkInForm.tsx` (19 hits) — consumed by checkin page
+- `app/ui/dashboard/damageReportModal.tsx` (22 hits) — consumed by checkInForm
+
+Without migrating these, the entire checkout/checkin/reservation routes would render with legacy palette even after the page-level files were clean.
+
+**Implication:** All 8 migrated as Chat 15 carry-overs (mirrors Chat 14 `bookList`/`bookItemsFilter` pattern). Pattern now firmly established: when a page is in scope, grep its imports for legacy hits BEFORE declaring the page coherent. This is the third batch of "unlisted dependencies" found post-spec-write — the pattern is structural to how the original spec was written (page-level scope only, not component subtree).
+
+---
+
+## 2026-05-01 — Chat 15 — Hero gradient panels in checkout/checkin pages dropped to solid `bg-primary` / `bg-success` per spec §6.4
+
+**What was expected:** Plan didn't specify what to do with the brand-red gradient hero panels (`linear-gradient(120deg, #A81C2A → #C82333 → #E85566)` for checkout, `linear-gradient(120deg, #1F6E47 → #2F8F5A → #58B483)` for checkin). Spec §6.4 elevation strategy says drop shadows; spec §6.2 hero strategy + Chat 9 LoginClient finding say drop gradients/shimmer for hero CTAs.
+
+**What was found:** Both hero panels used multi-stop brand-color gradients with brand-color drop-shadows (`boxShadow: 'rgba(200,35,51,0.2)'` and `rgba(47,143,90,0.2)`). The gradients carried no brand-bearing semantics (they're decorative scan-CTA chrome).
+
+**Implication:** Replaced gradients with solid token fills — `bg-primary text-on-primary` for checkout's "Scan to process" hero, `bg-success text-on-dark` for checkin's "Return Desk" hero. Drop both `boxShadow` values per §6.4. Same treatment applied to `cameraScannerButton.tsx` trigger button (line 240) which shared the checkout gradient. Inner decorative elements (oversized circle blur, icon container) preserved as cream-on-primary translucent layers using `bg-on-primary/10` / `bg-on-dark/10` so the visual silhouette stays.
+
+---
+
+## 2026-05-01 — Chat 15 — `cameraScanModal` + `cameraScannerButton` keep dark panel chrome with semantic tokens (camera viewfinder UX)
+
+**What was expected:** Plan Task 16 recipe says "Modal panel: card recipe `p-6` + retained shadow per §6.4 (it's a floating overlay)"; default token system surfaces are cream-canvas in light mode.
+
+**What was found:** Both camera scan surfaces (admin `cameraScanModal.tsx` + the modal half of the general `cameraScannerButton.tsx`) need a **dark backdrop** so the camera feed and aim-frame brackets are clearly visible. A cream surface around a dark camera frame would create harsh edges and contrast issues. Mirrors the Chat 11 `app/dashboard/cameraScan/page.tsx` decision where the debug log inner panel kept `bg-ink text-success` mono-terminal aesthetic.
+
+**Implication:** Both modals retain the dark panel pattern but swap the slate raw palette for semantic dark tokens (`bg-dark-canvas text-on-dark`, `border-dark-hairline bg-dark-surface-card/40` for inner controls, `border-accent-teal/80` for aim brackets per Chat 11 + plan Task 16 recipe, `bg-success` for success flash, `text-warning` for error notices). Ground-level backdrop stays literal `bg-black/85` (always-dark overlay rationale per Chat 9 mobileMenu finding). The trigger button on the page (cameraScannerButton on-page CTA) DOES become `bg-primary` like the other hero CTAs; only the modal body stays dark.
