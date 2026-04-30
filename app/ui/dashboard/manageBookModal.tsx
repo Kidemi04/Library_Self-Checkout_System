@@ -54,30 +54,30 @@ export default function ManageBookModal({
       {/* Backdrop */}
       <div
         className={clsx(
-          'absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300',
+          'absolute inset-0 bg-ink/50 dark:bg-dark-canvas/70 backdrop-blur-sm transition-opacity duration-300',
           isVisible ? 'opacity-100' : 'opacity-0',
         )}
       />
 
-      {/* Modal surface */}
+      {/* Modal surface — card recipe + retained shadow per spec §6.4 (floating overlay) */}
       <div
         className={clsx(
-          'relative w-full max-w-2xl rounded-2xl bg-white shadow-xl transition-all duration-300 ease-out dark:bg-slate-950 dark:text-slate-100',
+          'relative w-full max-w-2xl rounded-card bg-surface-card dark:bg-dark-surface-card border border-hairline dark:border-dark-hairline text-ink dark:text-on-dark shadow-[0_4px_16px_rgba(20,20,19,0.08)] transition-all duration-300 ease-out',
           isVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-4 scale-95 opacity-0',
         )}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b px-5 py-4 dark:border-slate-800">
+        <div className="flex items-center justify-between border-b border-hairline dark:border-dark-hairline px-6 py-4">
           <div>
-            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{title}</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <h2 className="font-display text-display-sm text-ink dark:text-on-dark">{title}</h2>
+            <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
               Update catalogue details to keep the inventory accurate.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded px-2 py-1 text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="rounded-btn px-2 py-1 text-muted dark:text-on-dark-soft transition hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong hover:text-ink dark:hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             aria-label="Close"
           >
             X
@@ -85,7 +85,7 @@ export default function ManageBookModal({
         </div>
 
         {/* Body (scrollable inside the modal; follows touch scroll) */}
-        <div className="max-h-[70vh] overflow-y-auto px-5 py-4">{children}</div>
+        <div className="max-h-[70vh] overflow-y-auto px-6 py-4">{children}</div>
       </div>
     </div>,
     document.body,

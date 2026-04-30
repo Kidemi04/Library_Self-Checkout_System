@@ -84,13 +84,13 @@ export default function BookItemsFilter({ action, defaults, className }: Props) 
     >
       {/* Search box */}
       <div className="relative flex-1 min-w-0 lg:max-w-sm">
-        <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-swin-charcoal/40 dark:text-white/40" />
+        <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-soft dark:text-on-dark-soft" />
         <input
           id="q"
           name="q"
           defaultValue={q}
           placeholder="Search title, author, ISBN…"
-          className="w-full rounded-full border border-swin-charcoal/10 bg-white py-2.5 pl-11 pr-4 text-[13px] text-swin-charcoal placeholder:text-swin-charcoal/40 focus:border-swin-red/40 focus:outline-none focus:ring-2 focus:ring-swin-red/20 dark:border-white/10 dark:bg-swin-dark-surface dark:text-white dark:placeholder:text-white/40"
+          className="w-full rounded-pill border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft py-2.5 pl-11 pr-4 font-sans text-body-sm text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
         />
       </div>
 
@@ -108,10 +108,10 @@ export default function BookItemsFilter({ action, defaults, className }: Props) 
               disabled={isPending}
               aria-pressed={active}
               className={clsx(
-                'rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition-colors',
+                'rounded-pill px-3.5 py-1.5 font-sans text-body-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
                 active
-                  ? 'bg-swin-charcoal text-white dark:bg-white dark:text-swin-charcoal'
-                  : 'border border-swin-charcoal/10 bg-white text-swin-charcoal/75 hover:border-swin-charcoal/25 hover:text-swin-charcoal dark:border-white/10 dark:bg-swin-dark-surface dark:text-white/70 dark:hover:text-white',
+                  ? 'bg-ink text-on-dark dark:bg-on-dark dark:text-ink'
+                  : 'border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card text-body dark:text-on-dark/70 hover:border-primary/30 hover:text-ink dark:hover:text-on-dark',
               )}
             >
               {cat.label}
@@ -121,17 +121,17 @@ export default function BookItemsFilter({ action, defaults, className }: Props) 
       </div>
 
       {/* Grid/List toggle */}
-      <div className="inline-flex items-center rounded-full border border-swin-charcoal/10 bg-white p-1 dark:border-white/10 dark:bg-swin-dark-surface">
+      <div className="inline-flex items-center rounded-pill border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-1">
         <button
           type="button"
           onClick={() => updateParams({ view: 'grid' })}
           aria-pressed={view === 'grid'}
           aria-label="Grid view"
           className={clsx(
-            'flex h-8 w-8 items-center justify-center rounded-full transition',
+            'flex h-8 w-8 items-center justify-center rounded-pill transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
             view === 'grid'
-              ? 'bg-swin-charcoal text-white dark:bg-white dark:text-swin-charcoal'
-              : 'text-swin-charcoal/55 hover:text-swin-charcoal dark:text-white/55 dark:hover:text-white',
+              ? 'bg-ink text-on-dark dark:bg-on-dark dark:text-ink'
+              : 'text-muted-soft hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark',
           )}
         >
           <Squares2X2Icon className="h-4 w-4" />
@@ -142,10 +142,10 @@ export default function BookItemsFilter({ action, defaults, className }: Props) 
           aria-pressed={view === 'list'}
           aria-label="List view"
           className={clsx(
-            'flex h-8 w-8 items-center justify-center rounded-full transition',
+            'flex h-8 w-8 items-center justify-center rounded-pill transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
             view === 'list'
-              ? 'bg-swin-charcoal text-white dark:bg-white dark:text-swin-charcoal'
-              : 'text-swin-charcoal/55 hover:text-swin-charcoal dark:text-white/55 dark:hover:text-white',
+              ? 'bg-ink text-on-dark dark:bg-on-dark dark:text-ink'
+              : 'text-muted-soft hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark',
           )}
         >
           <ListBulletIcon className="h-4 w-4" />

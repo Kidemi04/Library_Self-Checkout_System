@@ -11,12 +11,12 @@ type CopyRow = {
 };
 
 const STATUS_STYLE: Record<string, { label: string; chip: string }> = {
-  available:  { label: 'Available',   chip: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' },
-  on_loan:    { label: 'On loan',     chip: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' },
-  lost:       { label: 'Lost',        chip: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
-  damaged:    { label: 'Damaged',     chip: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' },
-  processing: { label: 'Processing',  chip: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
-  hold_shelf: { label: 'Hold shelf',  chip: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300' },
+  available:  { label: 'Available',   chip: 'bg-success/15 text-success' },
+  on_loan:    { label: 'On loan',     chip: 'bg-warning/15 text-warning' },
+  lost:       { label: 'Lost',        chip: 'bg-primary/15 text-primary dark:bg-dark-primary/20 dark:text-dark-primary' },
+  damaged:    { label: 'Damaged',     chip: 'bg-primary/10 text-primary dark:bg-dark-primary/15 dark:text-dark-primary' },
+  processing: { label: 'Processing',  chip: 'bg-accent-teal/15 text-accent-teal' },
+  hold_shelf: { label: 'Hold shelf',  chip: 'bg-accent-amber/15 text-accent-amber' },
 };
 
 interface Props {
@@ -130,21 +130,21 @@ export default function ManageCopiesModal({ bookId, bookTitle, isOpen, onClose, 
       aria-modal="true"
       onClick={onClose}
     >
-      <div className="absolute inset-0 bg-black/50" />
+      <div className="absolute inset-0 bg-ink/50 dark:bg-dark-canvas/70" />
 
       <div
-        className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
+        className="relative w-full max-w-lg rounded-card bg-surface-card dark:bg-dark-surface-card border border-hairline dark:border-dark-hairline shadow-[0_4px_16px_rgba(20,20,19,0.08)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-700">
+        <div className="flex items-start justify-between border-b border-hairline dark:border-dark-hairline px-6 py-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Manage Copies</h2>
-            <p className="mt-0.5 line-clamp-1 text-xs text-slate-500 dark:text-slate-400">{bookTitle}</p>
+            <h2 className="font-display text-display-sm text-ink dark:text-on-dark">Manage Copies</h2>
+            <p className="mt-0.5 line-clamp-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">{bookTitle}</p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+            className="rounded-btn p-1 text-muted-soft hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong hover:text-ink dark:hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             aria-label="Close"
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
@@ -154,50 +154,50 @@ export default function ManageCopiesModal({ bookId, bookTitle, isOpen, onClose, 
         </div>
 
         {/* Body */}
-        <div className="max-h-[60vh] space-y-4 overflow-y-auto px-5 py-4">
+        <div className="max-h-[60vh] space-y-4 overflow-y-auto px-6 py-4">
 
           {/* Summary pill */}
           {!loading && (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">{availableCount}</span> available
+            <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
+              <span className="font-semibold text-success">{availableCount}</span> available
               {' · '}
-              <span className="font-semibold text-slate-700 dark:text-slate-200">{copies.length}</span> total
+              <span className="font-semibold text-ink dark:text-on-dark">{copies.length}</span> total
             </p>
           )}
 
           {/* Copies table */}
           {loading ? (
             <div className="flex justify-center py-8">
-              <svg className="h-5 w-5 animate-spin text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="h-5 w-5 animate-spin text-muted-soft" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
             </div>
           ) : copies.length === 0 ? (
-            <p className="py-6 text-center text-sm text-slate-400 dark:text-slate-500">
+            <p className="py-6 text-center font-sans text-body-sm text-muted-soft dark:text-on-dark-soft">
               No copies yet. Add one below.
             </p>
           ) : (
-            <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+            <div className="overflow-hidden rounded-card border border-hairline dark:border-dark-hairline">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-800/60">
-                  <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                <thead className="bg-surface-cream-strong dark:bg-dark-surface-strong">
+                  <tr className="text-left font-sans text-caption-uppercase text-ink dark:text-on-dark">
                     <th className="px-3 py-2">Barcode</th>
                     <th className="px-3 py-2">Status</th>
                     <th className="px-3 py-2 text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className="divide-y divide-hairline-soft dark:divide-dark-hairline">
                   {copies.map((copy) => {
                     const s = STATUS_STYLE[copy.status] ?? STATUS_STYLE.available;
                     const canRemove = copy.status !== 'on_loan';
                     return (
-                      <tr key={copy.id} className="bg-white dark:bg-slate-900">
-                        <td className="px-3 py-2.5 font-mono text-xs text-slate-700 dark:text-slate-300">
+                      <tr key={copy.id} className="bg-surface-card dark:bg-dark-surface-card">
+                        <td className="px-3 py-2.5 font-mono text-code text-muted dark:text-on-dark-soft">
                           {copy.barcode}
                         </td>
                         <td className="px-3 py-2.5">
-                          <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${s.chip}`}>
+                          <span className={`inline-flex rounded-pill px-2 py-0.5 text-[10px] font-semibold ${s.chip}`}>
                             {s.label}
                           </span>
                         </td>
@@ -206,7 +206,7 @@ export default function ManageCopiesModal({ bookId, bookTitle, isOpen, onClose, 
                             onClick={() => handleRemove(copy.id, copy.barcode)}
                             disabled={!canRemove || removingId === copy.id}
                             title={!canRemove ? 'Cannot remove — copy is currently on loan' : 'Remove this copy'}
-                            className="rounded-lg border border-red-200 px-2.5 py-1 text-[10px] font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-950/30"
+                            className="rounded-btn border border-primary/30 px-2.5 py-1 text-[10px] font-medium text-primary hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-40 dark:border-dark-primary/30 dark:text-dark-primary dark:hover:bg-dark-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                           >
                             {removingId === copy.id ? '…' : 'Remove'}
                           </button>
@@ -221,12 +221,12 @@ export default function ManageCopiesModal({ bookId, bookTitle, isOpen, onClose, 
 
           {/* Feedback */}
           {error && (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-950/40 dark:text-red-400">
+            <p className="rounded-btn bg-primary/10 px-3 py-2 font-sans text-body-sm text-primary dark:bg-dark-primary/15 dark:text-dark-primary">
               {error}
             </p>
           )}
           {success && (
-            <p className="rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+            <p className="rounded-btn bg-success/15 px-3 py-2 font-sans text-body-sm text-success">
               {success}
             </p>
           )}
@@ -239,12 +239,12 @@ export default function ManageCopiesModal({ bookId, bookTitle, isOpen, onClose, 
               value={barcode}
               onChange={(e) => { setBarcode(e.target.value); setError(null); setSuccess(null); }}
               placeholder="Enter barcode"
-              className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-swin-charcoal focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500"
+              className="flex-1 rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             />
             <button
               type="submit"
               disabled={adding || !barcode.trim()}
-              className="rounded-xl bg-swin-charcoal px-4 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-swin-charcoal"
+              className="rounded-btn bg-primary hover:bg-primary-active px-5 h-10 font-sans text-button text-on-primary disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             >
               {adding ? 'Adding…' : 'Add copy'}
             </button>

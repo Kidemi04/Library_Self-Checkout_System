@@ -38,24 +38,24 @@ export default function ManageBookModal({
       onClick={onClose}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 bg-ink/50 dark:bg-dark-canvas/70" />
 
-      {/* Panel (keep your current visual style) */}
+      {/* Panel — card recipe + retained shadow per spec §6.4 (floating overlay) */}
       <div
-        className="relative w-full max-w-2xl rounded-2xl bg-white shadow-xl"
+        className="relative w-full max-w-2xl rounded-card bg-surface-card dark:bg-dark-surface-card border border-hairline dark:border-dark-hairline shadow-[0_4px_16px_rgba(20,20,19,0.08)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b px-5 py-4">
+        <div className="flex items-center justify-between border-b border-hairline dark:border-dark-hairline px-6 py-4">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">{title}</h2>
-            <p className="text-xs text-slate-500">
+            <h2 className="font-display text-display-sm text-ink dark:text-on-dark">{title}</h2>
+            <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
               Update catalogue details to keep the inventory accurate.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="rounded px-2 py-1 text-slate-600 hover:bg-slate-100"
+            className="rounded-btn px-2 py-1 text-muted dark:text-on-dark-soft hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong hover:text-ink dark:hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             aria-label="Close"
           >
             ✕
@@ -63,15 +63,9 @@ export default function ManageBookModal({
         </div>
 
         {/* Body (scrollable inside the modal; follows touch scroll) */}
-        <div className="max-h-[70vh] overflow-y-auto px-5 py-4">
+        <div className="max-h-[70vh] overflow-y-auto px-6 py-4">
           {children}
         </div>
-
-        {/* Footer slot (optional, keep your buttons in children if you prefer) */}
-        {/* <div className="flex justify-end gap-2 border-t px-5 py-4">
-          <button className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm hover:bg-slate-50" onClick={onClose}>Cancel</button>
-          <button className="rounded-xl bg-swin-charcoal px-4 py-2 text-sm text-swin-ivory hover:opacity-95">Save changes</button>
-        </div> */}
       </div>
     </div>,
     document.body

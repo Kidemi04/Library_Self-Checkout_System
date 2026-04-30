@@ -121,7 +121,7 @@ export default async function BookItemsPage({
         primaryAction={
           <Link
             href="/dashboard/book/checkout"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-swin-red px-3.5 py-2.5 text-[12px] font-semibold text-white transition hover:bg-swin-red/90"
+            className="inline-flex items-center gap-1.5 rounded-btn bg-primary hover:bg-primary-active px-3.5 py-2.5 font-sans text-button text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
           >
             <QrCodeIcon className="h-4 w-4" />
             Scan
@@ -143,7 +143,7 @@ export default async function BookItemsPage({
 
           {/* Result count — only show when there's a search query */}
           {q && (
-            <p className="font-mono text-[11px] text-swin-charcoal/55 dark:text-white/55">
+            <p className="font-mono text-code text-muted-soft dark:text-on-dark-soft">
               {books.length === 0
                 ? `No books match "${q}"`
                 : `${books.length} ${books.length === 1 ? 'result' : 'results'} for "${q}"`}

@@ -173,7 +173,7 @@ function highlightMatch(text: string | null | undefined, query: string | undefin
       re.test(part) ? (
         <mark
           key={i}
-          className="rounded bg-swin-red/15 px-0.5 text-swin-red dark:bg-swin-red/25 dark:text-red-200"
+          className="rounded bg-primary/15 px-0.5 text-primary dark:bg-dark-primary/20 dark:text-dark-primary"
         >
           {part}
         </mark>
@@ -210,28 +210,28 @@ function AvailabilityChip({
   const tot = total ?? 0;
   if (tot === 0) {
     return (
-      <span className="inline-flex rounded-full bg-slate-200 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-white/10 dark:text-white/60">
+      <span className="inline-flex rounded-pill bg-surface-cream-strong dark:bg-dark-surface-strong px-2.5 py-0.5 text-[11px] font-semibold text-muted dark:text-on-dark-soft">
         No copies
       </span>
     );
   }
   if (avail > 0) {
     return (
-      <span className="inline-flex rounded-full bg-green-100 px-2.5 py-0.5 text-[11px] font-semibold text-green-700 dark:bg-green-900/40 dark:text-green-300">
+      <span className="inline-flex rounded-pill bg-success/15 px-2.5 py-0.5 text-[11px] font-semibold text-success">
         {avail} avail.
       </span>
     );
   }
-  // No copies free — show On loan (red) per design
+  // No copies free — show On loan (primary) per design
   if (status === 'on_hold') {
     return (
-      <span className="inline-flex rounded-full bg-violet-100 px-2.5 py-0.5 text-[11px] font-semibold text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
+      <span className="inline-flex rounded-pill bg-accent-amber/15 px-2.5 py-0.5 text-[11px] font-semibold text-accent-amber">
         On hold
       </span>
     );
   }
   return (
-    <span className="inline-flex rounded-full bg-swin-red/10 px-2.5 py-0.5 text-[11px] font-semibold text-swin-red dark:bg-swin-red/20">
+    <span className="inline-flex rounded-pill bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary dark:bg-dark-primary/15 dark:text-dark-primary">
       On loan
     </span>
   );
@@ -321,10 +321,10 @@ export default function BookList({
                   </Link>
 
                   <div className="min-w-0">
-                    <h3 className="line-clamp-2 font-display text-[15px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
+                    <h3 className="line-clamp-2 font-display text-[15px] font-semibold leading-tight tracking-tight text-ink dark:text-on-dark">
                       {highlightMatch(b.title, searchQuery)}
                     </h3>
-                    <p className="mt-0.5 truncate font-display text-[12px] italic text-swin-charcoal/55 dark:text-white/55">
+                    <p className="mt-0.5 truncate font-display text-[12px] italic text-muted-soft dark:text-on-dark-soft">
                       {b.author ? highlightMatch(b.author, searchQuery) : 'Unknown author'}
                     </p>
                     <div className="mt-2 flex items-center gap-2">
@@ -341,7 +341,7 @@ export default function BookList({
                           type="button"
                           onClick={() => setManagingBookId(b.id)}
                           title="Manage copies"
-                          className="rounded-full border border-swin-charcoal/10 px-2.5 py-0.5 text-[10px] font-semibold text-swin-charcoal/60 transition hover:border-swin-charcoal/25 hover:text-swin-charcoal dark:border-white/10 dark:text-white/60 dark:hover:text-white"
+                          className="rounded-pill border border-hairline dark:border-dark-hairline px-2.5 py-0.5 text-[10px] font-semibold text-muted dark:text-on-dark-soft transition hover:border-primary/30 hover:text-ink dark:hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                         >
                           Copies
                         </button>
@@ -380,8 +380,8 @@ export default function BookList({
   // List variant
   return (
     <>
-      <div className="overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface">
-        <ul className="divide-y divide-swin-charcoal/8 dark:divide-white/8">
+      <div className="overflow-hidden rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card">
+        <ul className="divide-y divide-hairline-soft dark:divide-dark-hairline">
           {paginatedBooks.map((b, idx) => {
             const status = (b.status ?? 'available') as ItemStatus;
             const meta = STATUS_META[status] ?? STATUS_META.available;
@@ -393,7 +393,7 @@ export default function BookList({
                 <li
                   className={clsx(
                     'flex items-center gap-4 px-4 py-3 transition',
-                    idx % 2 === 1 && 'bg-slate-50/40 dark:bg-white/[0.02]',
+                    idx % 2 === 1 && 'bg-surface-cream-strong/40 dark:bg-dark-surface-strong/40',
                   )}
                 >
                   <Link
@@ -406,18 +406,18 @@ export default function BookList({
                       <img
                         src={b.cover}
                         alt=""
-                        className="h-16 w-12 flex-shrink-0 rounded object-cover ring-1 ring-swin-charcoal/10 dark:ring-white/10"
+                        className="h-16 w-12 flex-shrink-0 rounded object-cover ring-1 ring-hairline dark:ring-dark-hairline"
                       />
                     ) : (
                       <BookCover gradient={getBookGradient(b.id)} w={48} h={64} radius={3} />
                     )}
                     <div className="min-w-0 flex-1">
-                      <h3 className="truncate font-display text-[15px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
+                      <h3 className="truncate font-display text-[15px] font-semibold tracking-tight text-ink dark:text-on-dark">
                         {highlightMatch(b.title, searchQuery)}
                       </h3>
-                      <p className="truncate font-display text-[12px] italic text-swin-charcoal/55 dark:text-white/55">
+                      <p className="truncate font-display text-[12px] italic text-muted-soft dark:text-on-dark-soft">
                         {b.author ? highlightMatch(b.author, searchQuery) : 'Unknown author'}
-                        {b.year ? <span className="ml-2 font-mono not-italic text-swin-charcoal/40 dark:text-white/40">· {b.year}</span> : null}
+                        {b.year ? <span className="ml-2 font-mono not-italic text-muted-soft dark:text-on-dark-soft">· {b.year}</span> : null}
                       </p>
                     </div>
                   </Link>
@@ -433,7 +433,7 @@ export default function BookList({
                     {canBorrow && (
                       <Link
                         href={`/dashboard/book/checkout?bookId=${b.id}`}
-                        className="rounded-full bg-swin-charcoal px-3 py-1 text-[11px] font-semibold text-white transition hover:bg-swin-red dark:bg-white dark:text-swin-charcoal dark:hover:bg-swin-red dark:hover:text-white"
+                        className="rounded-pill bg-primary hover:bg-primary-active px-3 py-1 text-[11px] font-semibold text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                       >
                         Borrow
                       </Link>
@@ -442,7 +442,7 @@ export default function BookList({
                       <button
                         type="button"
                         onClick={() => setManagingBookId(b.id)}
-                        className="rounded-full border border-swin-charcoal/10 px-3 py-1 text-[11px] font-semibold text-swin-charcoal/65 transition hover:border-swin-charcoal/25 hover:text-swin-charcoal dark:border-white/10 dark:text-white/60 dark:hover:text-white"
+                        className="rounded-pill border border-hairline dark:border-dark-hairline px-3 py-1 text-[11px] font-semibold text-muted dark:text-on-dark-soft transition hover:border-primary/30 hover:text-ink dark:hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                       >
                         Copies
                       </button>
@@ -480,7 +480,7 @@ export default function BookList({
 
 function EmptyState() {
   return (
-    <div className="rounded-2xl border border-dashed border-swin-charcoal/15 bg-white p-10 text-center text-[13px] text-swin-charcoal/60 dark:border-white/10 dark:bg-swin-dark-surface dark:text-white/60">
+    <div className="rounded-card border border-dashed border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-10 text-center font-sans text-body-sm text-muted dark:text-on-dark-soft">
       No books match your search. Try a different keyword or clear filters.
     </div>
   );

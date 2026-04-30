@@ -262,3 +262,35 @@ Backdrop uses `bg-black/60 dark:bg-black/70` (always-dark overlay) — none of t
 Chat 10 scope (per Batch 2 plan Tasks 9–14b) only covered `book/page.tsx`, `book/list/page.tsx`, `book/history/page.tsx`, plus 5 `app/ui/dashboard/book*.tsx` components. The 6 sub-workflow pages were missed by the spec §7 author and the Batch 2 plan author; the audit grep at Task 30 Step 3 globs the whole subtree and so the literal acceptance criterion fails on these unrelated files.
 
 **Implication:** Per user-aligned option B, deferred all 6 to Batch 3 (mirrors the Chat 9 carry-over pattern for `staffDashboard.tsx` and `mobileNav.tsx`). Several of these (`items`, `reservation`, `holds`, `[id]`) are clearly student-facing and arguably belong in Batch 2 by intent, but the spec/plan never listed them. Narrowed the actual Chat 12 audit to in-scope files only (the 7 learning files + the discovered `linkedin/page.tsx` redirect target — all 8 clean, 0 residue). Batch 3 plan must include these 6 files in its scope. Until then, `/dashboard/book/items`, `/dashboard/book/holds`, `/dashboard/book/checkout`, `/dashboard/book/checkin`, `/dashboard/book/reservation`, and any `/dashboard/book/[id]` route will render with legacy `swin-*` / slate / amber palette in production — visual review can confirm these are jarring against the migrated `/dashboard/book/list` and `/dashboard/book/history`.
+
+---
+
+## 2026-05-01 — Chat 14 — `bookList.tsx` + `bookItemsFilter.tsx` discovered as unlisted dependencies of `book/items/page.tsx` (mirrors Chat 12 redirect-target pattern)
+
+**What was expected:** Plan Task 12 says `book/items/page.tsx` "reuse migrated `BookCatalogTable` + `BookListMobile` (Chat 10 migrated)" — implying the page composes already-migrated components.
+
+**What was found:** `book/items/page.tsx` actually consumes `BookList` (`app/ui/dashboard/bookList.tsx`, 487 lines, 16 legacy hits) and `BookItemsFilter` (`app/ui/dashboard/bookItemsFilter.tsx`, 160 lines, 9 hits) — neither is `BookCatalogTable` (which is `app/ui/dashboard/bookCatalogTable.tsx`, the admin/staff catalogue table, migrated in Chat 10). The plan's reuse claim was incorrect; without migrating these two consumed components, the entire `/dashboard/book/items` student landing surface would render with legacy slate/swin-charcoal/swin-red even after the page itself was clean.
+
+**Implication:** Migrated both as part of Chat 14 scope (mirrors Chat 12 finding for `linkedin/page.tsx` redirect target — follow the rendering chain before declaring "no UI to migrate"). `bookList.tsx` migration covers: `highlightMatch` mark element (raw red → primary), `AvailabilityChip` STATUS_STYLE (raw green/violet/red → success/accent-amber/primary semantic remap, similar to `manageCopiesModal` STATUS_STYLE pattern), grid/list card recipes, list wrapper card recipe, alt-row tint (slate-50/40 → surface-cream-strong/40), Borrow link (bg-swin-charcoal → primary CTA recipe), Copies cream-secondary pill, EmptyState card recipe. `bookItemsFilter.tsx` covers: search input form recipe, category pill active/inactive recipe (active = `bg-ink text-on-dark` neutral contrast — same pattern as `studentChat.tsx` AI provider toggle from Chat 12), grid/list view-toggle recipe.
+
+Pattern to remember for Chats 15/16: when a page in scope uses delegated child components, grep the children for legacy tokens BEFORE assuming "no UI to migrate" — the plan's per-file file lists may underspecify the actual rendered surface.
+
+---
+
+## 2026-05-01 — Chat 14 — `manageCopiesModal` STATUS_STYLE remapped from raw 6-color palette to semantic 6-token mapping (extends Chat 12 STAGE_STYLES precedent)
+
+**What was expected:** No specific recipe in the plan for the per-copy-status chip palette in `manageCopiesModal.tsx` (lines 13-20). Status keys: `available | on_loan | lost | damaged | processing | hold_shelf`.
+
+**What was found:** Existing palette used 6 distinct raw Tailwind hues: green (available), amber (on_loan), red (lost), orange (damaged), blue (processing), violet (hold_shelf). Same auto-generated content-tint pattern as Chat 12's STAGE_STYLES (Beginner/Intermediate/Advanced); not user-controlled domain colors.
+
+**Implication:** Remapped to semantic tokens following the same discipline as Chat 12 STAGE_STYLES: available → `success`, on_loan → `warning`, lost → `primary` (full alert), damaged → `primary/10` (lower alert tint to differentiate from lost), processing → `accent-teal` (in-flight neutral), hold_shelf → `accent-amber` (transitional). Shrinks the available distinct hues from 6 to 5 (lost vs. damaged share primary at different alpha) but stays inside the design token system. If visual review reveals the consolidated palette doesn't carry enough discriminability, future work can extend the token system with more semantic hues rather than re-introducing raw colors.
+
+---
+
+## 2026-05-01 — Chat 14 — `bookList.tsx` `AvailabilityChip` "On hold" remapped from violet to `accent-amber` (no `accent-violet` token)
+
+**What was expected:** Direct token replacement per the migration table — but `bg-violet-100/text-violet-700` has no entry.
+
+**What was found:** The "On hold" status chip uses violet specifically to differentiate from the red "On loan" alert state (when no copies are free) and the green "Available" success state. The design token system has no `accent-violet`; closest semantic match is `accent-amber` (transitional/queued state — same as `manageCopiesModal` `hold_shelf` decision).
+
+**Implication:** Mapped to `bg-accent-amber/15 text-accent-amber`. Consistent with `manageCopiesModal` `hold_shelf` migration. Both surfaces now signal "in queue / awaiting pickup" with amber, contrasting clearly with success-green (available) and primary-red (on loan).

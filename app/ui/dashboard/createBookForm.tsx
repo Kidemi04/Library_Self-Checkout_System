@@ -6,6 +6,7 @@ import { createBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/actionState';
 import type { ActionState } from '@/app/dashboard/actionState';
 import { ArrowDownCircleIcon, ArrowUpCircleIcon } from "@heroicons/react/24/outline";
+import { Button } from '@/app/ui/button';
 
 export default function CreateBookForm() {
   const [state, formAction] = useActionState(createBookAction, initialActionState);
@@ -20,19 +21,19 @@ export default function CreateBookForm() {
 
   return (
     <section
-      className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100 dark:shadow-black/20">
-      <div 
+      className="rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6">
+      <div
         onClick={(e) => setExpanded(!expanded)}
         className="mb-6 flex items-start justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-slate-100">Add Book Item</h2>
-          <p className="text-sm text-swin-charcoal/60 dark:text-slate-200">
+          <h2 className="font-display text-display-sm text-ink dark:text-on-dark">Add Book Item</h2>
+          <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
             Register a new library resource and assign individual copy barcodes for circulation tracking.
           </p>
         </div>
 
         {/* Arrow Icon */}
-        <div className="text-swin-charcoal dark:text-slate-200">
+        <div className="text-ink dark:text-on-dark">
           {expanded ? (
             <ArrowUpCircleIcon className="h-10 w-10" />
           ) : (
@@ -45,7 +46,7 @@ export default function CreateBookForm() {
       {expanded && (
         <form ref={formRef} action={formAction} className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-100" htmlFor="title">
+            <label className="block font-sans text-body-sm font-medium text-ink dark:text-on-dark" htmlFor="title">
               Title
             </label>
             <input
@@ -54,12 +55,12 @@ export default function CreateBookForm() {
               type="text"
               required
               placeholder="Book title"
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400"
+              className="mt-2 w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-100" htmlFor="author">
+            <label className="block font-sans text-body-sm font-medium text-ink dark:text-on-dark" htmlFor="author">
               Author / Creator
             </label>
             <input
@@ -67,12 +68,12 @@ export default function CreateBookForm() {
               name="author"
               type="text"
               placeholder="Author name"
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400"
+              className="mt-2 w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-100" htmlFor="classification">
+            <label className="block font-sans text-body-sm font-medium text-ink dark:text-on-dark" htmlFor="classification">
               Classification
             </label>
             <input
@@ -80,12 +81,12 @@ export default function CreateBookForm() {
               name="classification"
               type="text"
               placeholder="e.g. QA76.76.C672"
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400"
+              className="mt-2 w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-100" htmlFor="isbn">
+            <label className="block font-sans text-body-sm font-medium text-ink dark:text-on-dark" htmlFor="isbn">
               ISBN
             </label>
             <input
@@ -93,12 +94,12 @@ export default function CreateBookForm() {
               name="isbn"
               type="text"
               placeholder="978-0-00-0000"
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400"
+              className="mt-2 w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             />
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-100" htmlFor="copyBarcodes">
+            <label className="block font-sans text-body-sm font-medium text-ink dark:text-on-dark" htmlFor="copyBarcodes">
               Copy barcodes
             </label>
             <textarea
@@ -107,15 +108,15 @@ export default function CreateBookForm() {
               rows={3}
               required
               placeholder="Scan or type one barcode per line"
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400"
+              className="mt-2 w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 py-2 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             />
-            <p className="mt-1 text-xs text-swin-charcoal/60 dark:text-slate-200">
+            <p className="mt-1 font-sans text-caption text-muted dark:text-on-dark-soft">
               Provide at least one barcode. Separate multiple barcodes with new lines or commas.
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-100" htmlFor="publisher">
+            <label className="block font-sans text-body-sm font-medium text-ink dark:text-on-dark" htmlFor="publisher">
               Publisher
             </label>
             <input
@@ -123,12 +124,12 @@ export default function CreateBookForm() {
               name="publisher"
               type="text"
               placeholder="Publisher name"
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400"
+              className="mt-2 w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-100" htmlFor="publicationYear">
+            <label className="block font-sans text-body-sm font-medium text-ink dark:text-on-dark" htmlFor="publicationYear">
               Publication year
             </label>
             <input
@@ -136,12 +137,12 @@ export default function CreateBookForm() {
               name="publicationYear"
               type="text"
               placeholder="e.g. 2024"
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400"
+              className="mt-2 w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-100" htmlFor="coverImageUrl">
+            <label className="block font-sans text-body-sm font-medium text-ink dark:text-on-dark" htmlFor="coverImageUrl">
               Cover image URL
             </label>
             <input
@@ -149,7 +150,7 @@ export default function CreateBookForm() {
               name="coverImageUrl"
               type="url"
               placeholder="https://example.com/cover.jpg"
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400"
+              className="mt-2 w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             />
           </div>
 
@@ -167,21 +168,17 @@ export default function CreateBookForm() {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="inline-flex items-center justify-center rounded-lg bg-swin-red px-5 py-2 text-sm font-semibold text-swin-ivory shadow-sm shadow-swin-red/30 transition hover:bg-swin-red/90 disabled:cursor-not-allowed disabled:bg-swin-charcoal/20"
-    >
+    <Button type="submit" disabled={pending} aria-disabled={pending}>
       {pending ? 'Saving...' : 'Add book'}
-    </button>
+    </Button>
   );
 }
 
 function ActionMessage({ status, message }: { status: ActionState['status']; message: string }) {
   if (!message) return null;
   const tone =
-    status === 'success' ? 'text-emerald-600' :
-    status === 'error'   ? 'text-swin-red'    :
-                           'text-swin-charcoal';
-  return <p className={`text-sm font-medium ${tone}`}>{message}</p>;
+    status === 'success' ? 'text-success' :
+    status === 'error'   ? 'text-primary dark:text-dark-primary' :
+                           'text-body dark:text-on-dark/80';
+  return <p className={`font-sans text-body-sm font-medium ${tone}`}>{message}</p>;
 }
