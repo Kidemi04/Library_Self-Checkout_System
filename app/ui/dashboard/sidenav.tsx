@@ -118,14 +118,16 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
     <aside className="fixed left-0 top-0 flex h-screen w-64 flex-col border-r border-hairline bg-canvas py-7 px-[18px] text-ink dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark">
       {/* Logo */}
       <div className="mb-5 px-2.5 pb-5 border-b border-hairline dark:border-dark-hairline">
-        <Image
-          src="/swinburne-logo.png"
-          alt="Swinburne University of Technology Sarawak Campus"
-          width={220}
-          height={103}
-          className="w-full rounded-sm"
-          priority
-        />
+        <Link href="/dashboard" className="block">
+          <Image
+            src="/swinburne-logo.png"
+            alt="Swinburne University of Technology Sarawak Campus"
+            width={220}
+            height={103}
+            className="w-full rounded-sm"
+            priority
+          />
+        </Link>
         <p className="mt-2 font-display text-[11px] italic text-muted-soft dark:text-on-dark-soft">
           Library · est. 1908
         </p>
