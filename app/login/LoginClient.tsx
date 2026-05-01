@@ -23,7 +23,7 @@ export default function LoginClient({ callbackUrl }: LoginClientProps) {
   };
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-swin-ivory p-6 dark:bg-slate-950">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-canvas p-6 dark:bg-dark-canvas">
       <title>Login</title>
 
       {/* Background Image */}
@@ -44,7 +44,7 @@ export default function LoginClient({ callbackUrl }: LoginClientProps) {
       <BlurFade delay={0.2} yOffset={20}>
         <GlassCard
           intensity="high"
-          className="relative w-full max-w-md border-white/20 bg-white/80 p-10 shadow-2xl dark:bg-slate-900/80"
+          className="relative w-full max-w-md border-on-dark/20 bg-canvas/80 p-10 shadow-2xl dark:bg-dark-surface-card/80"
         >
           {/* Logo */}
           <BlurFade delay={0.3} yOffset={10}>
@@ -59,7 +59,7 @@ export default function LoginClient({ callbackUrl }: LoginClientProps) {
 
           {/* Title */}
           <BlurFade delay={0.4} yOffset={10}>
-            <h1 className="mt-8 text-center text-3xl font-bold text-swin-charcoal dark:text-white">
+            <h1 className="mt-8 text-center font-display text-display-xl tracking-tight text-ink dark:text-on-dark">
               Swinburne Sarawak Library
             </h1>
           </BlurFade>
@@ -71,15 +71,12 @@ export default function LoginClient({ callbackUrl }: LoginClientProps) {
                 type="button"
                 onClick={handleSignIn}
                 disabled={pending}
-                className="group relative flex w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-swin-red to-swin-red/90 px-6 py-4 text-sm font-semibold text-swin-ivory shadow-xl shadow-swin-red/30 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-swin-red/40 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100"
+                className="flex w-full items-center justify-center gap-3 rounded-btn bg-primary px-6 py-4 font-sans text-button text-on-primary transition-colors hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-primary-disabled disabled:text-muted dark:bg-dark-primary dark:hover:bg-primary-active dark:focus-visible:ring-offset-dark-canvas"
               >
-                {/* Shimmer effect on hover */}
-                <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  className="relative h-5 w-5 transition-transform duration-300 group-hover:scale-110"
+                  className="h-5 w-5"
                   aria-hidden="true"
                 >
                   <path fill="#f25022" d="M11 11H3V3h8z" />
@@ -87,7 +84,7 @@ export default function LoginClient({ callbackUrl }: LoginClientProps) {
                   <path fill="#7fba00" d="M11 21H3v-8h8z" />
                   <path fill="#ffb900" d="M21 21h-8v-8h8z" />
                 </svg>
-                <span className="relative">{pending ? 'Signing in...' : 'Sign in with Microsoft'}</span>
+                <span>{pending ? 'Signing in...' : 'Sign in with Microsoft'}</span>
               </button>
             </div>
           </BlurFade>

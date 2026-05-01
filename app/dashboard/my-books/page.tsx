@@ -1,15 +1,34 @@
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import {
   fetchActiveLoans,
   fetchActiveHoldsForPatron,
   fetchLoanHistory,
   fetchHoldsForBook,
+  cancelHoldForPatron,
 } from '@/app/lib/supabase/queries';
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
 import MyBooksTabs from '@/app/ui/dashboard/student/myBooksTabs';
 
 type Tab = 'current' | 'history' | 'reservations';
+
+async function cancelMyHold(formData: FormData) {
+  'use server';
+  const holdId = formData.get('holdId');
+  if (typeof holdId !== 'string') return;
+
+  const { user } = await getDashboardSession();
+  if (!user) return;
+
+  try {
+    await cancelHoldForPatron(holdId, user.id);
+  } catch (error) {
+    console.error('Failed to cancel hold', error);
+  }
+
+  revalidatePath('/dashboard/my-books');
+}
 
 export default async function MyBooksPage({
   searchParams,
@@ -67,6 +86,7 @@ export default async function MyBooksPage({
         holds={holds}
         defaultTab={defaultTab}
         holdCounts={holdCounts}
+        cancelHoldAction={cancelMyHold}
       />
     </main>
   );

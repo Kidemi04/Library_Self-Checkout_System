@@ -9,7 +9,7 @@ import type { LinkedInLearningLevel, LinkedInLearningTopicDefinition } from '@/a
 import LinkedInLearningSearchForm from '@/app/ui/dashboard/learning/searchForm';
 import SearchResultsPanel from '@/app/ui/dashboard/learning/searchResultsPanel';
 import CollectionsPanel from '@/app/ui/dashboard/learning/collectionsPanel';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import AdminShell from '@/app/ui/dashboard/adminShell';
 
 // LinkedIn Learning — professional & tech skills focus
 const linkedInTopics: LinkedInLearningTopicDefinition[] = [
@@ -106,26 +106,25 @@ export default async function LinkedInLearningPage({
     : 'Explore free courses across computer science, mathematics, science, humanities, and economics — curated from Khan Academy for Swinburne students.';
 
   return (
-    <main className="space-y-8">
-      <DashboardTitleBar
-        subtitle="Online learning resources"
-        title={providerLabel}
-        description={titleDescription}
-      />
-
+    <AdminShell
+      titleSubtitle="Online learning resources"
+      title={providerLabel}
+      description={titleDescription}
+    >
+      <div className="space-y-8">
       <LinkedInLearningSearchForm
         defaults={{ query: trimmedQuery, difficulty }}
         providerLabel={providerLabel}
       />
 
       <section className="space-y-3">
-        <p className="text-xs uppercase tracking-[0.3em] text-swin-charcoal/50 dark:text-white/60">Quick topics</p>
+        <p className="font-sans text-caption-uppercase tracking-[0.3em] text-muted dark:text-on-dark-soft">Quick topics</p>
         <div className="flex flex-wrap gap-2">
           {quickFilters.map((filter) => (
             <Link
               key={filter.label}
               href={buildSearchHref(filter.query, difficulty)}
-              className="rounded-full border border-swin-charcoal/10 px-4 py-2 text-sm font-medium text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-white/20 dark:text-white"
+              className="rounded-pill border border-hairline bg-surface-card px-4 py-2 font-sans text-body-sm font-medium text-ink transition hover:border-primary/20 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:border-dark-primary/30 dark:hover:text-dark-primary"
             >
               {filter.label}
             </Link>
@@ -137,24 +136,24 @@ export default async function LinkedInLearningPage({
         <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs uppercase tracking-wide text-swin-charcoal/60 dark:text-slate-400">
+              <p className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
                 Search results
               </p>
-              <h2 className="text-xl font-semibold text-swin-charcoal dark:text-white">
+              <h2 className="font-display text-display-sm text-ink dark:text-on-dark">
                 {searchResult?.items.length ?? 0} course{(searchResult?.items.length ?? 0) === 1 ? '' : 's'} for &ldquo;
                 {trimmedQuery}&rdquo;
               </h2>
             </div>
-            <div className="rounded-full border border-swin-charcoal/10 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-swin-charcoal/70 dark:border-white/10 dark:text-white/70">
+            <div className="rounded-pill border border-hairline bg-surface-card px-4 py-1 font-sans text-caption-uppercase text-muted dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft">
               {providerLabel}
             </div>
           </div>
-          <p className="text-sm text-swin-charcoal/60 dark:text-slate-300/80">
+          <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
             Difficulty filter:{' '}
-            <span className="font-semibold text-swin-charcoal dark:text-white">{difficultyLabel(difficulty)}</span>
+            <span className="font-semibold text-ink dark:text-on-dark">{difficultyLabel(difficulty)}</span>
           </p>
           {searchResult?.error ? (
-            <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-100">
+            <div className="rounded-card border border-warning/30 bg-warning/10 px-4 py-3 font-sans text-body-sm text-warning">
               {searchResult.error}
             </div>
           ) : null}
@@ -162,14 +161,14 @@ export default async function LinkedInLearningPage({
         </section>
       ) : (
         <section className="space-y-8">
-          <div className="flex items-center gap-3 text-swin-charcoal dark:text-white">
-            <SparklesIcon className="h-6 w-6 text-swin-red" />
+          <div className="flex items-center gap-3 text-ink dark:text-on-dark">
+            <SparklesIcon className="h-6 w-6 text-primary" />
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-swin-charcoal/60 dark:text-slate-400">
+              <p className="font-sans text-caption-uppercase tracking-[0.3em] text-muted dark:text-on-dark-soft">
                 Curated collections
               </p>
-              <h2 className="text-xl font-semibold">Highlighted topics for you</h2>
-              <p className="text-sm text-swin-charcoal/70 dark:text-slate-300/80">
+              <h2 className="font-display text-display-sm">Highlighted topics for you</h2>
+              <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
                 Browse spotlight playlists. Select a card to open the course on {providerLabel}.
               </p>
             </div>
@@ -180,6 +179,7 @@ export default async function LinkedInLearningPage({
           />
         </section>
       )}
-    </main>
+      </div>
+    </AdminShell>
   );
 }

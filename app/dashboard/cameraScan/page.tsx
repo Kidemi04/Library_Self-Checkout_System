@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 import { scanBlob } from '@/lib/barcodeScanner';
+import { Button } from '@/app/ui/button';
 
 type ScanState = 'idle' | 'scanning' | 'paused';
 
@@ -176,16 +177,16 @@ export default function QrScanPage() {
     <main className="space-y-8">
       <title>Camera Scanner | Dashboard</title>
 
-      <header className="rounded-2xl border border-slate-200 bg-white p-8 text-swin-charcoal shadow-lg shadow-slate-200 transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white dark:shadow-black/40">
-        <h1 className="text-2xl font-semibold">Camera Scanner</h1>
-        <p className="mt-2 max-w-2xl text-sm text-swin-charcoal/70 dark:text-slate-300">
+      <header className="rounded-card border border-hairline bg-surface-card p-8 text-ink dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark">
+        <h1 className="font-display text-display-lg text-ink tracking-tight dark:text-on-dark">Camera Scanner</h1>
+        <p className="mt-2 max-w-2xl font-sans text-body-md text-body dark:text-on-dark/80">
           Use your camera or upload an image to scan QR codes or barcodes. Links will open automatically.
         </p>
       </header>
 
       <section className="mx-auto grid max-w-5xl gap-6 md:grid-cols-[minmax(0,1fr)_300px]">
         {/* Preview */}
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-black shadow-sm dark:border-white/10 dark:bg-slate-950">
+        <div className="relative overflow-hidden rounded-card border border-hairline bg-black dark:border-dark-hairline dark:bg-dark-canvas">
           <div className="aspect-[4/3] w-full">
             <video
               ref={videoRef}
@@ -198,37 +199,35 @@ export default function QrScanPage() {
 
           {/* crosshair */}
           <div className="pointer-events-none absolute inset-0 grid place-items-center">
-            <div className="h-40 w-40 rounded-2xl border-2 border-white/70 ring-2 ring-swin-red/60" />
+            <div className="h-40 w-40 rounded-card border-2 border-on-dark/70 ring-2 ring-accent-teal/60" />
           </div>
 
           {/* status */}
-          <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-4 py-2 text-xs text-white">
+          <div className="absolute bottom-0 left-0 right-0 bg-ink/60 px-4 py-2 font-sans text-caption text-on-dark">
+            {scanState === 'scanning' && (
+              <span className="mr-1.5 inline-block h-2 w-2 animate-pulse rounded-full bg-accent-teal align-middle" />
+            )}
             {message || (scanState === 'scanning' ? 'Scanning...' : 'Camera idle')}
           </div>
         </div>
 
         {/* Controls */}
-        <aside className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 text-swin-charcoal shadow-sm transition-colors dark:border-white/10 dark:bg-slate-900 dark:text-white">
-          <h2 className="text-sm font-semibold">Controls</h2>
+        <aside className="space-y-4 rounded-card border border-hairline bg-surface-card p-6 text-ink dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark">
+          <h2 className="font-sans text-title-sm text-ink dark:text-on-dark">Controls</h2>
 
           <div className="flex flex-wrap gap-2">
             {scanState !== 'scanning' ? (
-              <button
-                onClick={startCamera}
-                className="rounded-xl bg-swin-charcoal px-4 py-2 text-sm font-medium text-swin-ivory shadow transition hover:opacity-95 focus:outline-none focus:ring-2 focus:ring-swin-red/50 dark:bg-white dark:text-slate-900"
-              >
-                Start camera
-              </button>
+              <Button onClick={startCamera}>Start camera</Button>
             ) : (
               <button
                 onClick={stopCamera}
-                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:border-white/20 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
+                className="flex h-10 items-center rounded-btn border border-hairline bg-surface-card px-5 font-sans text-button text-ink transition-colors hover:bg-surface-cream-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas"
               >
                 Stop camera
               </button>
             )}
 
-            <label className="inline-flex cursor-pointer items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition hover:bg-slate-50 focus-within:ring-2 focus-within:ring-slate-300 dark:border-white/20 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800">
+            <label className="inline-flex h-10 cursor-pointer items-center rounded-btn border border-hairline bg-surface-card px-5 font-sans text-button text-ink transition-colors hover:bg-surface-cream-strong focus-within:ring-2 focus-within:ring-primary/40 focus-within:ring-offset-2 focus-within:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-within:ring-offset-dark-canvas">
               <input
                 type="file"
                 accept="image/*"
@@ -242,17 +241,17 @@ export default function QrScanPage() {
             </label>
           </div>
 
-          <div className="rounded-lg bg-slate-50 p-3 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-            <p className="mb-1 font-semibold">Decoded text</p>
-            <p className="break-all">{decoded ?? '...'}</p>
+          <div className="rounded-btn border border-hairline bg-canvas p-3 font-sans text-body-sm text-body dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark/80">
+            <p className="mb-1 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">Decoded text</p>
+            <p className="break-all font-mono text-code text-ink dark:text-on-dark">{decoded ?? '...'}</p>
             {decoded && !isUrl(decoded) && (
-              <p className="mt-2 text-slate-500 dark:text-slate-400">
+              <p className="mt-2 text-muted dark:text-on-dark-soft">
                 This code is not a URL. Copy the text or try another code.
               </p>
             )}
           </div>
 
-          <ul className="text-xs text-slate-500 dark:text-slate-400">
+          <ul className="font-sans text-caption text-muted dark:text-on-dark-soft">
             <li>- Works on HTTPS or on localhost.</li>
             <li>- Allow camera permission when prompted.</li>
             <li>- You can also upload a photo or screenshot of a QR code or barcode.</li>
@@ -262,13 +261,13 @@ export default function QrScanPage() {
 
       {/* Debug Log Panel */}
       <section className="mx-auto max-w-5xl">
-        <details open className="rounded-2xl border border-yellow-500/30 bg-yellow-50 p-4 dark:bg-yellow-500/5">
-          <summary className="cursor-pointer text-sm font-semibold text-yellow-700 dark:text-yellow-400">
+        <details open className="rounded-card border border-warning/40 bg-warning/5 p-4">
+          <summary className="cursor-pointer font-sans text-button text-warning">
             Debug Log ({debugLog.length})
           </summary>
-          <div className="mt-2 max-h-64 overflow-y-auto rounded-lg bg-slate-900 p-3 font-mono text-[11px] leading-relaxed text-green-400">
+          <div className="mt-2 max-h-64 overflow-y-auto rounded-btn bg-ink p-3 font-mono text-code leading-relaxed text-success dark:bg-dark-canvas">
             {debugLog.length === 0 ? (
-              <p className="text-white/30">Click &quot;Start camera&quot; or &quot;Upload image&quot; to see logs...</p>
+              <p className="text-on-dark/30">Click &quot;Start camera&quot; or &quot;Upload image&quot; to see logs...</p>
             ) : (
               debugLog.map((line, i) => (
                 <p key={i} className="break-all">{line}</p>

@@ -53,7 +53,7 @@ describe('Login Page', () => {
 		fireEvent.click(loginButton);
 
 		await waitFor(() => {
-      expect(mockSignIn).toHaveBeenCalledWith('azure-ad', expect.any(Object));
+      expect(mockSignIn).toHaveBeenCalledWith('azure-ad', expect.any(Object), expect.any(Object));
     });
 	})
 })

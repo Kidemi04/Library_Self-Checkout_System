@@ -6,8 +6,11 @@ import { supabaseBrowserClient } from '@/app/lib/supabase/client';
 import { addUserAction } from '@/app/actions/addUser';
 import { updateUserAction } from '@/app/actions/updateUser';
 import { deleteUserAction } from '@/app/actions/deleteUser';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import AdminShell from '@/app/ui/dashboard/adminShell';
 import ConfirmModal from '@/app/ui/dashboard/confirmModal';
+import RoleBadge from '@/app/ui/dashboard/primitives/RoleBadge';
+import UserAvatar from '@/app/ui/dashboard/primitives/UserAvatar';
+import { Button } from '@/app/ui/button';
 
 type ManagedRole = 'user' | 'staff' | 'admin';
 
@@ -363,7 +366,23 @@ export default function UserManagementPage() {
 
   const handleAddUser = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!newUser.email.trim()) return;
+    setStatusMessage(null);
+    setErrorMessage(null);
+
+    const trimmedEmail = newUser.email.trim().toLowerCase();
+    if (!trimmedEmail) return;
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(trimmedEmail)) {
+      setErrorMessage('Enter a valid email address.');
+      return;
+    }
+
+    if (!trimmedEmail.endsWith('@swinburne.edu.my')) {
+      setErrorMessage('Staff and admin accounts must use a @swinburne.edu.my Outlook email address.');
+      return;
+    }
+
     setShowAddConfirm(true);
   };
 
@@ -427,6 +446,12 @@ export default function UserManagementPage() {
 
     if (!emailPattern.test(trimmedEmail)) {
       setErrorMessage('Enter a valid email address.');
+      setStatusMessage(null);
+      return;
+    }
+
+    if ((user.role === 'staff' || user.role === 'admin') && !trimmedEmail.endsWith('@swinburne.edu.my')) {
+      setErrorMessage('Staff and admin accounts must use a @swinburne.edu.my Outlook email address.');
       setStatusMessage(null);
       return;
     }
@@ -508,17 +533,18 @@ export default function UserManagementPage() {
   };
 
   return (
-    <main className="space-y-8 text-slate-900 dark:text-slate-100">
+    <>
       <title>Manage Users | Admin</title>
-      
-      <DashboardTitleBar
-        subtitle="Admin Control Center"
+
+      <AdminShell
+        titleSubtitle="Admin Control Center"
         title="User Management"
         description="Invite staff or administrators and maintain their roles for the library checkout system."
-      />
+      >
+        <div className="space-y-8 text-ink dark:text-on-dark">
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/30">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Add staff member</h2>
+      <section className="rounded-card border border-hairline bg-surface-card p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
+        <h2 className="font-display text-display-sm text-ink dark:text-on-dark">Add staff member</h2>
         <form onSubmit={handleAddUser} className="mt-4 grid gap-4 md:grid-cols-[2fr_2fr_1fr_auto]">
             <input
               type="email"
@@ -526,17 +552,17 @@ export default function UserManagementPage() {
               placeholder="person@swinburne.edu.my"
               value={newUser.email}
               onChange={(event) => setNewUser((prev) => ({ ...prev, email: event.target.value }))}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+              className="h-10 rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
             />
             <input
               type="text"
               placeholder="Full name"
               value={newUser.fullName}
               onChange={(event) => setNewUser((prev) => ({ ...prev, fullName: event.target.value }))}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+              className="h-10 rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
             />
             <select
-              className="min-w-[7rem] rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+              className="h-10 min-w-[7rem] rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
               value={newUser.role}
               onChange={(event) => setNewUser((prev) => ({ ...prev, role: event.target.value as ManagedRole }))}
             >
@@ -546,20 +572,11 @@ export default function UserManagementPage() {
               </option>
             ))}
           </select>
-          <button
-            type="submit"
-            disabled={isPending}
-            className={clsx(
-              'inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold shadow transition disabled:cursor-not-allowed disabled:opacity-70',
-              isPending
-                ? 'bg-slate-400 text-white'
-                : 'bg-swin-red text-white hover:bg-swin-red/90 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500',
-            )}
-          >
+          <Button type="submit" disabled={isPending} aria-disabled={isPending}>
             {isPending ? 'Adding…' : 'Add User'}
-          </button>
+          </Button>
         </form>
-        <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-2 font-sans text-caption text-muted dark:text-on-dark-soft">
           Staff and admin must use their Swinburne Outlook email addresses.
         </p>
       </section>
@@ -567,27 +584,27 @@ export default function UserManagementPage() {
       {(errorMessage || statusMessage) && (
         <div
           className={clsx(
-            'rounded-lg border px-4 py-3 text-sm',
+            'rounded-card border px-4 py-3 font-sans text-body-sm',
             errorMessage
-              ? 'border-rose-300 bg-rose-50 text-rose-600 dark:border-rose-500 dark:bg-rose-500/10 dark:text-rose-100'
-              : 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400 dark:bg-emerald-400/10 dark:text-emerald-100',
+              ? 'border-primary/30 bg-primary/10 text-primary dark:text-dark-primary'
+              : 'border-success/30 bg-success/10 text-success',
           )}
         >
           {errorMessage ?? statusMessage}
         </div>
       )}
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/50 transition-colors dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:shadow-black/30">
-        <header className="flex flex-col gap-4 border-b border-slate-100 px-6 py-4 md:flex-row md:items-center md:justify-between dark:border-slate-800">
+      <section className="overflow-hidden rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card">
+        <header className="flex flex-col gap-4 border-b border-hairline-soft px-6 py-5 md:flex-row md:items-center md:justify-between dark:border-dark-hairline">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Current users</h2>
-            <span className="text-sm text-slate-500 dark:text-slate-400">
+            <h2 className="font-display text-display-md text-ink dark:text-on-dark">Current users</h2>
+            <p className="mt-0.5 font-mono text-[11px] text-muted dark:text-on-dark-soft">
               {loading
                 ? 'Loading…'
                 : searchActive
                 ? `${filteredUsers.length} match${filteredUsers.length === 1 ? '' : 'es'} of ${users.length} account${users.length === 1 ? '' : 's'}`
                 : `${filteredUsers.length} account${filteredUsers.length === 1 ? '' : 's'}`}
-            </span>
+            </p>
           </div>
           <div className="w-full md:w-72">
             <label className="sr-only" htmlFor="manage-users-search">
@@ -602,14 +619,14 @@ export default function UserManagementPage() {
                 setSearchTerm(event.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+              className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
             />
           </div>
         </header>
 
         <div className="overflow-x-auto">
-          <table className="hidden md:table min-w-full divide-y divide-slate-100 dark:divide-slate-800">
-            <thead className="bg-white text-xs font-semibold uppercase tracking-wide text-slate-500 dark:bg-slate-900 dark:text-slate-200">
+          <table className="hidden min-w-full divide-y divide-hairline-soft md:table dark:divide-dark-hairline">
+            <thead className="bg-surface-cream-strong font-sans text-caption-uppercase text-ink dark:bg-dark-surface-strong dark:text-on-dark">
               <tr>
                 <th className="px-6 py-3 text-left">Email</th>
                 <th className="px-6 py-3 text-left">Full name</th>
@@ -618,16 +635,16 @@ export default function UserManagementPage() {
                 <th className="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white text-sm dark:divide-slate-800 dark:bg-slate-950 dark:text-slate-100">
+            <tbody className="divide-y divide-hairline-soft font-sans text-body-sm text-ink dark:divide-dark-hairline dark:text-on-dark">
               {loading ? (
                 <tr>
-                  <td className="px-6 py-4 text-slate-500 dark:text-slate-400" colSpan={5}>
+                  <td className="px-6 py-4 text-muted dark:text-on-dark-soft" colSpan={5}>
                     Loading users…
                   </td>
                 </tr>
               ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <td className="px-6 py-4 text-slate-500 dark:text-slate-400" colSpan={5}>
+                  <td className="px-6 py-4 text-muted dark:text-on-dark-soft" colSpan={5}>
                     {searchActive ? 'No users match your search.' : 'No users found.'}
                   </td>
                 </tr>
@@ -636,15 +653,22 @@ export default function UserManagementPage() {
                   <Fragment key={user.id}>
                     <tr key={`${user.id}-row`}>
                     <td className="px-6 py-4">
-                      <input
-                        type="email"
-                        value={user.email}
-                        onChange={(event) => updateLocalUser(user.id, { email: event.target.value })}
-                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
-                        maxLength={254}
-                        autoComplete="off"
-                        inputMode="email"
-                      />
+                      <div className="flex items-center gap-3">
+                        <UserAvatar
+                          name={user.fullName || user.accountDisplayName || user.email}
+                          size="md"
+                          tone={user.role === 'admin' ? 'red' : user.role === 'staff' ? 'gold' : 'charcoal'}
+                        />
+                        <input
+                          type="email"
+                          value={user.email}
+                          onChange={(event) => updateLocalUser(user.id, { email: event.target.value })}
+                          className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
+                          maxLength={254}
+                          autoComplete="off"
+                          inputMode="email"
+                        />
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <input
@@ -656,7 +680,7 @@ export default function UserManagementPage() {
                             profile: { display_name: event.target.value },
                           })
                         }
-                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+                        className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
                         maxLength={120}
                         autoComplete="name"
                       />
@@ -668,31 +692,35 @@ export default function UserManagementPage() {
                         onChange={(event) =>
                           updateLocalUser(user.id, { profile: { student_id: event.target.value } })
                         }
-                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+                        className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
                         maxLength={60}
                       />
                     </td>
                     <td className="px-6 py-4">
-                      <select
-                        value={user.role}
-                        onChange={(event) =>
-                          updateLocalUser(user.id, { role: event.target.value as ManagedRole })
-                        }
-                        className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 min-w-[7rem] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
-                      >
-                        {roleOptions.map((role) => (
-                          <option key={role} value={role}>
-                            {role.charAt(0).toUpperCase() + role.slice(1)}
-                          </option>
-                        ))}
-                      </select>
+                      <div className="flex items-center gap-2">
+                        <RoleBadge role={user.role} />
+                        <select
+                          value={user.role}
+                          onChange={(event) =>
+                            updateLocalUser(user.id, { role: event.target.value as ManagedRole })
+                          }
+                          className="rounded-btn border border-hairline bg-canvas px-2.5 py-1.5 font-sans text-caption text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
+                          aria-label="Change role"
+                        >
+                          {roleOptions.map((role) => (
+                            <option key={role} value={role}>
+                              {role.charAt(0).toUpperCase() + role.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="inline-flex items-center gap-2">
                         <button
                           type="button"
                           onClick={() => setExpandedUserId((prev) => (prev === user.id ? null : user.id))}
-                          className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10"
+                          className="rounded-btn border border-hairline bg-canvas px-3 py-1 font-sans text-caption font-semibold uppercase tracking-wide text-ink transition hover:border-primary/20 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:hover:border-dark-primary/30 dark:hover:text-dark-primary"
                         >
                           {expandedUserId === user.id ? 'Hide details' : 'Details'}
                         </button>
@@ -700,7 +728,7 @@ export default function UserManagementPage() {
                           type="button"
                           onClick={() => setSaveTarget(user)}
                           disabled={isPending}
-                          className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="rounded-btn border border-hairline bg-canvas px-3 py-1 font-sans text-caption font-semibold uppercase tracking-wide text-ink transition hover:border-primary/20 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:hover:border-dark-primary/30 dark:hover:text-dark-primary"
                         >
                           Save
                         </button>
@@ -708,7 +736,7 @@ export default function UserManagementPage() {
                           type="button"
                           onClick={() => handleDelete(user.id)}
                           disabled={isPending}
-                          className="rounded-md border border-rose-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-500 dark:text-rose-200 dark:hover:bg-rose-500/10"
+                          className="rounded-btn border border-primary/30 px-3 py-1 font-sans text-caption font-semibold uppercase tracking-wide text-primary transition hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-primary/30 dark:text-dark-primary dark:hover:bg-dark-primary/10"
                         >
                           Delete
                         </button>
@@ -716,7 +744,7 @@ export default function UserManagementPage() {
                     </td>
                     </tr>
                     {expandedUserId === user.id && (
-                      <tr key={`${user.id}-details`} className="bg-slate-50/60 dark:bg-slate-900/60">
+                      <tr key={`${user.id}-details`} className="bg-surface-cream-strong/50 dark:bg-dark-surface-strong/40">
                         <td className="px-6 py-4" colSpan={5}>
                           <UserDetailEditor user={user} onChange={updateLocalUser} isPending={isPending} />
                         </td>
@@ -729,37 +757,55 @@ export default function UserManagementPage() {
           </table>
 
           {/* Mobile View: Card-based layout */}
-          <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-950">
+          <div className="divide-y divide-hairline-soft bg-surface-card dark:divide-dark-hairline dark:bg-dark-surface-card md:hidden">
             {loading ? (
-              <div className="p-4 text-center text-slate-500">Loading users…</div>
+              <div className="p-4 text-center font-sans text-body-sm text-muted dark:text-on-dark-soft">Loading users…</div>
             ) : (
               paginatedUsers.map((user) => (
-                <div key={user.id} className="p-4 space-y-4">
-                  
+                <div key={user.id} className="space-y-4 p-4">
+
+                  {/* Identity row */}
+                  <div className="flex items-center gap-3">
+                    <UserAvatar
+                      name={user.fullName || user.accountDisplayName || user.email}
+                      size="lg"
+                      tone={user.role === 'admin' ? 'red' : user.role === 'staff' ? 'gold' : 'charcoal'}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-display text-title-md text-ink dark:text-on-dark">
+                        {user.fullName || user.accountDisplayName || 'Unnamed user'}
+                      </p>
+                      <p className="truncate font-mono text-[11px] text-muted dark:text-on-dark-soft">
+                        {user.email}
+                      </p>
+                    </div>
+                    <RoleBadge role={user.role} />
+                  </div>
+
                   {/* Header Grid: Aligns Name and Role on the same horizontal line */}
-                  <div className="grid grid-cols-12 gap-3 items-end">
+                  <div className="grid grid-cols-12 items-end gap-3">
                     <div className="col-span-8">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                      <label className="mb-1 block font-sans text-[10px] font-bold uppercase tracking-wider text-muted-soft dark:text-on-dark-soft">
                         Full Name
                       </label>
                       <input
                         type="text"
                         value={user.fullName}
-                        onChange={(e) => updateLocalUser(user.id, { 
-                          fullName: e.target.value, 
-                          profile: { display_name: e.target.value } 
+                        onChange={(e) => updateLocalUser(user.id, {
+                          fullName: e.target.value,
+                          profile: { display_name: e.target.value },
                         })}
-                        className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                        className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
                       />
                     </div>
                     <div className="col-span-4">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1 text-right">
+                      <label className="mb-1 block text-right font-sans text-[10px] font-bold uppercase tracking-wider text-muted-soft dark:text-on-dark-soft">
                         Role
                       </label>
                       <select
                         value={user.role}
                         onChange={(e) => updateLocalUser(user.id, { role: e.target.value as ManagedRole })}
-                        className="w-full rounded-md border border-slate-200 px-2 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                        className="h-10 w-full rounded-btn border border-hairline bg-canvas px-2 font-sans text-body-md text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
                       >
                         {roleOptions.map((role) => (
                           <option key={role} value={role}>
@@ -772,36 +818,36 @@ export default function UserManagementPage() {
 
                   {/* Email Section: Full width below Name/Role */}
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                    <label className="mb-1 block font-sans text-[10px] font-bold uppercase tracking-wider text-muted-soft dark:text-on-dark-soft">
                       Email Address
                     </label>
                     <input
                       type="email"
                       value={user.email}
                       onChange={(e) => updateLocalUser(user.id, { email: e.target.value })}
-                      className="w-full rounded-md border border-slate-200 px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+                      className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
                     />
                   </div>
 
                   {/* Action Buttons: Uniform heights and spacing */}
-                  <div className="flex gap-2 pt-2 border-t border-slate-50 dark:border-slate-800">
+                  <div className="flex gap-2 border-t border-hairline-soft pt-2 dark:border-dark-hairline">
                     <button
                       onClick={() => setExpandedUserId((prev) => (prev === user.id ? null : user.id))}
-                      className="flex-1 rounded-md border border-slate-300 py-2 text-xs font-semibold uppercase dark:border-white/20 dark:text-slate-200"
+                      className="flex-1 rounded-btn border border-hairline bg-canvas py-2 font-sans text-caption font-semibold uppercase text-ink hover:border-primary/20 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:hover:border-dark-primary/30 dark:hover:text-dark-primary"
                     >
                       {expandedUserId === user.id ? 'Hide' : 'Details'}
                     </button>
                     <button
                       onClick={() => handleSave(user)}
                       disabled={isPending}
-                      className="flex-1 rounded-md bg-slate-900 py-2 text-xs font-semibold uppercase text-white dark:bg-emerald-600 dark:hover:bg-emerald-500 disabled:opacity-50"
+                      className="flex-1 rounded-btn bg-primary py-2 font-sans text-caption font-semibold uppercase text-on-primary transition hover:bg-primary-active disabled:opacity-50 dark:bg-dark-primary"
                     >
                       Save
                     </button>
                     <button
                       onClick={() => handleDelete(user.id)}
                       disabled={isPending}
-                      className="px-3 rounded-md border border-rose-200 py-2 text-xs font-semibold uppercase text-rose-600 dark:border-rose-500/30 dark:text-rose-400"
+                      className="rounded-btn border border-primary/30 px-3 py-2 font-sans text-caption font-semibold uppercase text-primary hover:bg-primary/5 dark:border-dark-primary/30 dark:text-dark-primary dark:hover:bg-dark-primary/10"
                     >
                       Delete
                     </button>
@@ -809,7 +855,7 @@ export default function UserManagementPage() {
 
                   {/* Expandable Detail Panel */}
                   {expandedUserId === user.id && (
-                    <div className="mt-2 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800">
+                    <div className="mt-2 rounded-card border border-hairline-soft bg-surface-cream-strong/50 p-3 dark:border-dark-hairline dark:bg-dark-surface-strong/40">
                       <UserDetailEditor user={user} onChange={updateLocalUser} isPending={isPending} />
                     </div>
                   )}
@@ -820,7 +866,7 @@ export default function UserManagementPage() {
         </div>
 
         {!loading && filteredUsers.length > 0 && (
-          <footer className="flex flex-col gap-3 border-t border-slate-100 px-6 py-4 text-sm text-slate-500 md:flex-row md:items-center md:justify-between dark:border-slate-800 dark:text-slate-400">
+          <footer className="flex flex-col gap-3 border-t border-hairline-soft px-6 py-4 font-sans text-body-sm text-muted md:flex-row md:items-center md:justify-between dark:border-dark-hairline dark:text-on-dark-soft">
             <span>
               Showing {visibleStart}-{visibleEnd} of {filteredUsers.length}{' '}
               {searchActive
@@ -832,18 +878,18 @@ export default function UserManagementPage() {
                 type="button"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-btn border border-hairline bg-canvas px-3 py-1 font-sans text-caption font-semibold uppercase tracking-wide text-ink transition hover:border-primary/20 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:hover:border-dark-primary/30 dark:hover:text-dark-primary"
               >
                 Previous
               </button>
-              <span className="text-xs font-medium text-slate-600">
+              <span className="font-sans text-caption font-medium text-muted dark:text-on-dark-soft">
                 Page {currentPage} of {totalPages}
               </span>
               <button
                 type="button"
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="rounded-md border border-slate-300 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-700 transition hover:bg-slate-100 dark:border-white/20 dark:text-white dark:hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-btn border border-hairline bg-canvas px-3 py-1 font-sans text-caption font-semibold uppercase tracking-wide text-ink transition hover:border-primary/20 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:hover:border-dark-primary/30 dark:hover:text-dark-primary"
               >
                 Next
               </button>
@@ -883,21 +929,21 @@ export default function UserManagementPage() {
 
       {/* Delete confirmation modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 backdrop-blur-sm dark:bg-dark-canvas/70">
+          <div className="w-full max-w-sm rounded-card border border-hairline bg-surface-card p-6 shadow-[0_4px_16px_rgba(20,20,19,0.08)] dark:border-dark-hairline dark:bg-dark-surface-card">
             {/* Icon */}
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-500/10">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-rose-600 dark:text-rose-400">
+            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 dark:bg-dark-primary/15">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-primary dark:text-dark-primary">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
               </svg>
             </div>
 
-            <h3 className="text-left text-base font-semibold text-slate-900 dark:text-slate-100">
+            <h3 className="text-left font-sans text-title-md font-semibold text-ink dark:text-on-dark">
               Delete user account?
             </h3>
-            <p className="mt-2 text-left text-sm text-slate-600 dark:text-slate-400">
+            <p className="mt-2 text-left font-sans text-body-sm text-muted dark:text-on-dark-soft">
               You are about to permanently delete{' '}
-              <span className="font-medium text-slate-900 dark:text-slate-100">
+              <span className="font-medium text-ink dark:text-on-dark">
                 {deleteTarget.label}
               </span>
               . This cannot be undone.
@@ -907,7 +953,7 @@ export default function UserManagementPage() {
               <button
                 type="button"
                 onClick={() => setDeleteTarget(null)}
-                className="flex-1 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                className="flex-1 rounded-btn border border-hairline bg-canvas px-4 py-2.5 font-sans text-button text-ink transition hover:border-primary/20 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:hover:border-dark-primary/30 dark:hover:text-dark-primary"
               >
                 Cancel
               </button>
@@ -915,7 +961,7 @@ export default function UserManagementPage() {
                 type="button"
                 onClick={confirmDelete}
                 disabled={isPending}
-                className="flex-1 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex-1 rounded-btn bg-primary px-4 py-2.5 font-sans text-button text-on-primary transition hover:bg-primary-active disabled:cursor-not-allowed disabled:opacity-60 dark:bg-dark-primary"
               >
                 Yes, delete
               </button>
@@ -923,7 +969,9 @@ export default function UserManagementPage() {
           </div>
         </div>
       )}
-    </main>
+        </div>
+      </AdminShell>
+    </>
   );
 }
 
@@ -960,13 +1008,20 @@ function UserDetailEditor({
     return date.toLocaleString();
   };
 
+  const inputClass =
+    'h-10 rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas';
+  const textareaClass =
+    'w-full rounded-btn border border-hairline bg-canvas px-3.5 py-2 font-sans text-body-md text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas';
+  const labelClass =
+    'font-sans text-caption-uppercase text-muted dark:text-on-dark-soft';
+
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-slate-900 dark:shadow-black/30">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-200">Account details</h3>
+      <div className="rounded-card border border-hairline bg-surface-card p-4 dark:border-dark-hairline dark:bg-dark-surface-card">
+        <h3 className="font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft">Account details</h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300" htmlFor={`${user.id}-account-display-name`}>
+            <label className={labelClass} htmlFor={`${user.id}-account-display-name`}>
               Account display name
             </label>
             <input
@@ -976,23 +1031,23 @@ function UserDetailEditor({
               onChange={(event) =>
                 onChange(user.id, { accountDisplayName: event.target.value })
               }
-              className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+              className={inputClass}
               maxLength={120}
             />
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">Created at</p>
-            <p className="text-sm text-slate-600 dark:text-slate-300">{formatDate(user.createdAt)}</p>
+            <p className={labelClass}>Created at</p>
+            <p className="font-sans text-body-sm text-body dark:text-on-dark-soft">{formatDate(user.createdAt)}</p>
           </div>
           <div>
-            <p className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300">Last updated</p>
-            <p className="text-sm text-slate-600 dark:text-slate-300">{formatDate(user.updatedAt)}</p>
+            <p className={labelClass}>Last updated</p>
+            <p className="font-sans text-body-sm text-body dark:text-on-dark-soft">{formatDate(user.updatedAt)}</p>
           </div>
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-slate-900 dark:shadow-black/30">
-        <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-200">Profile fields</h3>
+      <div className="rounded-card border border-hairline bg-surface-card p-4 dark:border-dark-hairline dark:bg-dark-surface-card">
+        <h3 className="font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft">Profile fields</h3>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           {profileKeys.map((key) => {
             const config = PROFILE_FIELD_CONFIG[key];
@@ -1003,7 +1058,7 @@ function UserDetailEditor({
             if (type === 'json' || type === 'textarea') {
               return (
                 <div key={key} className="md:col-span-2">
-                  <label className="mb-1 block text-xs font-semibold uppercase text-slate-500 dark:text-slate-300" htmlFor={`${user.id}-${key}`}>
+                  <label className={`mb-1 block ${labelClass}`} htmlFor={`${user.id}-${key}`}>
                     {label}
                   </label>
                   <textarea
@@ -1011,12 +1066,12 @@ function UserDetailEditor({
                     value={value}
                     onChange={(event) => handleProfileChange(key, event.target.value)}
                     rows={config?.rows ?? 4}
-                    className="w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+                    className={textareaClass}
                     placeholder={config?.placeholder}
                     disabled={isPending}
                   />
                   {config?.description && (
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{config.description}</p>
+                    <p className="mt-1 font-sans text-caption text-muted dark:text-on-dark-soft">{config.description}</p>
                   )}
                 </div>
               );
@@ -1025,14 +1080,14 @@ function UserDetailEditor({
             if (type === 'select') {
               return (
                 <div key={key} className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300" htmlFor={`${user.id}-${key}`}>
+                  <label className={labelClass} htmlFor={`${user.id}-${key}`}>
                     {label}
                   </label>
                   <select
                     id={`${user.id}-${key}`}
                     value={value}
                     onChange={(event) => handleProfileChange(key, event.target.value)}
-                    className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+                    className={inputClass}
                     disabled={isPending}
                   >
                     <option value="">Not set</option>
@@ -1043,7 +1098,7 @@ function UserDetailEditor({
                     ))}
                   </select>
                   {config?.description && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{config.description}</p>
+                    <p className="font-sans text-caption text-muted dark:text-on-dark-soft">{config.description}</p>
                   )}
                 </div>
               );
@@ -1052,14 +1107,14 @@ function UserDetailEditor({
             if (type === 'boolean') {
               return (
                 <div key={key} className="flex flex-col gap-1">
-                  <label className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300" htmlFor={`${user.id}-${key}`}>
+                  <label className={labelClass} htmlFor={`${user.id}-${key}`}>
                     {label}
                   </label>
                   <select
                     id={`${user.id}-${key}`}
                     value={value}
                     onChange={(event) => handleProfileChange(key, event.target.value)}
-                    className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+                    className={inputClass}
                     disabled={isPending}
                   >
                     <option value="">Not set</option>
@@ -1072,7 +1127,7 @@ function UserDetailEditor({
 
             return (
               <div key={key} className="flex flex-col gap-1">
-                <label className="text-xs font-semibold uppercase text-slate-500 dark:text-slate-300" htmlFor={`${user.id}-${key}`}>
+                <label className={labelClass} htmlFor={`${user.id}-${key}`}>
                   {label}
                 </label>
                 <input
@@ -1080,13 +1135,13 @@ function UserDetailEditor({
                   type={type === 'number' ? 'number' : 'text'}
                   value={value}
                   onChange={(event) => handleProfileChange(key, event.target.value)}
-                  className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:border-white/10 dark:bg-slate-950 dark:text-white dark:focus:border-emerald-300 dark:focus:ring-emerald-300/30"
+                  className={inputClass}
                   placeholder={config?.placeholder}
                   maxLength={config?.maxLength}
                   disabled={isPending}
                 />
                 {config?.description && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{config.description}</p>
+                  <p className="font-sans text-caption text-muted dark:text-on-dark-soft">{config.description}</p>
                 )}
               </div>
             );

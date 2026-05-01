@@ -104,3 +104,87 @@ export interface Course {
   updatedAt: string | null;
 }
 
+
+// ─── v3.0.3 — Overdue page ─────────────────────────────────────
+export type OverdueBucket = 'all' | '1-7' | '8-30' | '30+';
+
+export type OverdueLoan = {
+  id: string;
+  borrowedAt: string;
+  dueAt: string;
+  daysOverdue: number;
+  lastRemindedAt: string | null;
+  lastRemindedByName: string | null;
+  copy: { id: string; barcode: string | null } | null;
+  book: {
+    id: string;
+    title: string;
+    author: string | null;
+    isbn: string | null;
+    coverImageUrl: string | null;
+  } | null;
+  borrower: {
+    id: string;
+    displayName: string | null;
+    studentId: string | null;
+    email: string | null;
+  } | null;
+};
+
+export type OverdueFilters = {
+  bucket?: OverdueBucket;
+  search?: string;
+};
+
+// ─── v3.0.3 — Loan history page ────────────────────────────────
+// Reuses the existing LoanStatus ('borrowed' | 'returned' | 'overdue') from above.
+// UI layer renames 'borrowed' → "Active" for admin display.
+export type HistoryStatusFilter = 'all' | LoanStatus;
+export type HistoryRange = 'all' | '30d' | '6m' | 'semester' | 'custom';
+
+export type HistoryFilters = {
+  status?: HistoryStatusFilter;
+  range?: HistoryRange;
+  rangeStart?: string;
+  rangeEnd?: string;
+  borrowerQ?: string;
+  bookQ?: string;
+  handlerQ?: string;
+};
+
+export type HistoryLoan = {
+  id: string;
+  borrowedAt: string;
+  dueAt: string;
+  returnedAt: string | null;
+  durationDays: number;
+  status: LoanStatus;
+  copy: { id: string; barcode: string | null } | null;
+  book: {
+    id: string;
+    title: string;
+    author: string | null;
+    isbn: string | null;
+    coverImageUrl: string | null;
+  } | null;
+  borrower: {
+    id: string;
+    displayName: string | null;
+    studentId: string | null;
+  } | null;
+  handler: {
+    id: string;
+    displayName: string | null;
+    isSelfCheckout: boolean;
+  } | null;
+};
+
+export type HistoryPage = {
+  rows: HistoryLoan[];
+  total: number;
+  active: number;
+  returned: number;
+  overdue: number;
+  page: number;
+  pageSize: number;
+};

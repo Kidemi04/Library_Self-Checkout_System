@@ -405,6 +405,45 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
   const supabase = getSupabaseServerClient();
   const sanitized = sanitizeSearchTerm(searchTerm);
 
+  // For typo-tolerant search we call the search_books RPC (pg_trgm trigram +
+  // ILIKE fallback). The RPC returns book ids ranked by similarity; we then
+  // refetch the full Book rows with joins so the rest of the page can keep
+  // using the existing shape.
+  let allowedIds: string[] | null = null;
+  if (sanitized) {
+    const { data: idRows, error: rpcError } = await supabase.rpc('search_books', {
+      q: sanitized,
+    });
+
+    if (rpcError) {
+      // If the RPC isn't deployed yet, fall back to ILIKE so search still works.
+      console.warn('[search_books] RPC unavailable, falling back to ILIKE', rpcError);
+      const pattern = `%${escapeForIlike(sanitized)}%`;
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('Books')
+        .select('id')
+        .or(
+          [
+            `title.ilike.${pattern}`,
+            `author.ilike.${pattern}`,
+            `isbn.ilike.${pattern}`,
+            `classification.ilike.${pattern}`,
+            `publisher.ilike.${pattern}`,
+          ].join(','),
+        )
+        .limit(200);
+      if (fallbackError) throw fallbackError;
+      allowedIds = ((fallbackData ?? []) as Array<{ id: string }>).map((r) => r.id);
+    } else {
+      const rows = ((idRows ?? []) as unknown) as Array<{ id: string }>;
+      allowedIds = rows.map((r) => r.id);
+    }
+
+    if (allowedIds === null || allowedIds.length === 0) {
+      return [];
+    }
+  }
+
   let query = supabase
     .from('Books')
     .select(
@@ -442,17 +481,8 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
     .order('title')
     .limit(200);
 
-  if (sanitized) {
-    const pattern = `%${escapeForIlike(sanitized)}%`;
-    query = query.or(
-      [
-        `title.ilike.${pattern}`,
-        `author.ilike.${pattern}`,
-        `isbn.ilike.${pattern}`,
-        `classification.ilike.${pattern}`,
-        `publisher.ilike.${pattern}`,
-      ].join(','),
-    );
+  if (allowedIds) {
+    query = query.in('id', allowedIds);
   }
 
   const { data, error } = await query;
@@ -460,29 +490,66 @@ export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
 
   const mapped = (((data ?? []) as unknown) as RawBookRow[]).map(mapBookRow);
 
-  if (!sanitized) {
-    return mapped;
+  // Preserve RPC similarity ranking when we have it.
+  if (allowedIds) {
+    const orderIndex = new Map(allowedIds.map((id, i) => [id, i]));
+    mapped.sort(
+      (a, b) =>
+        (orderIndex.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+        (orderIndex.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+    );
   }
 
-  const lowered = sanitized.toLowerCase();
-
-  return mapped.filter((book) => {
-    const matchesBook =
-      (book.title?.toLowerCase().includes(lowered) ?? false) ||
-      (book.author?.toLowerCase().includes(lowered) ?? false) ||
-      (book.isbn?.toLowerCase().includes(lowered) ?? false) ||
-      (book.classification?.toLowerCase().includes(lowered) ?? false) ||
-      (book.publisher?.toLowerCase().includes(lowered) ?? false);
-
-    if (matchesBook) return true;
-
-    return book.copies.some((copy) => copy.barcode.toLowerCase().includes(lowered));
-  });
+  return mapped;
 }
 
 export async function fetchAvailableBooks(searchTerm?: string): Promise<Book[]> {
   const books = await fetchBooks(searchTerm);
   return books.filter((book) => book.availableCopies > 0);
+}
+
+export async function fetchBookById(id: string): Promise<Book | null> {
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('Books')
+    .select(
+      `
+        id,
+        title,
+        author,
+        isbn,
+        classification,
+        publisher,
+        publication_year,
+        cover_image_url,
+        category,
+        created_at,
+        updated_at,
+         copies:Copies(
+          id,
+          book_id,
+          barcode,
+          status,
+          created_at,
+          updated_at,
+          loans:Loans(
+            id,
+            returned_at
+          )
+        ),
+        book_tag_links:BookTagsLinks(
+          tag:BookTags(
+            name
+          )
+        )
+      `,
+    )
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) return null;
+  return mapBookRow((data as unknown) as RawBookRow);
 }
 
 
@@ -863,4 +930,959 @@ export async function cancelHoldForPatron(holdId: string, patronId: string): Pro
   if (error) throw error;
 
   return Array.isArray(data) && data.length > 0;
+}
+
+/**
+ * Returns borrowed-per-day counts for the last `days` days (ending today, inclusive).
+ * The returned array is ordered oldest -> newest and always has exactly `days` entries.
+ */
+export async function fetchDailyLoanCounts(days = 14): Promise<number[]> {
+  if (days <= 0) return [];
+
+  const supabase = getSupabaseServerClient();
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const windowStart = new Date(startOfToday.getTime() - (days - 1) * 86_400_000);
+
+  const { data, error } = await supabase
+    .from('Loans')
+    .select('borrowed_at')
+    .gte('borrowed_at', windowStart.toISOString());
+
+  if (error) throw error;
+
+  const buckets = new Array<number>(days).fill(0);
+  for (const row of (data ?? []) as Array<{ borrowed_at: string | null }>) {
+    if (!row.borrowed_at) continue;
+    const borrowed = new Date(row.borrowed_at);
+    if (Number.isNaN(borrowed.valueOf())) continue;
+    const borrowedDay = new Date(borrowed.getFullYear(), borrowed.getMonth(), borrowed.getDate());
+    const dayIndex = Math.floor((borrowedDay.getTime() - windowStart.getTime()) / 86_400_000);
+    if (dayIndex >= 0 && dayIndex < days) buckets[dayIndex] += 1;
+  }
+
+  return buckets;
+}
+
+export type TopBorrowedBook = {
+  bookId: string;
+  title: string;
+  author: string | null;
+  count: number;
+};
+
+/**
+ * Returns the most-borrowed books within the last `days` days, ordered by loan count desc.
+ */
+export async function fetchTopBorrowedBooks(days = 30, limit = 5): Promise<TopBorrowedBook[]> {
+  const supabase = getSupabaseServerClient();
+
+  const windowStart = new Date(Date.now() - days * 86_400_000);
+
+  const { data, error } = await supabase
+    .from('Loans')
+    .select(
+      `
+        id,
+        borrowed_at,
+        copy:Copies(
+          book:Books(
+            id,
+            title,
+            author
+          )
+        )
+      `,
+    )
+    .gte('borrowed_at', windowStart.toISOString());
+
+  if (error) throw error;
+
+  type Row = {
+    copy: { book: { id: string; title: string; author: string | null } | null } | null;
+  };
+
+  const counts = new Map<string, TopBorrowedBook>();
+  for (const row of (data ?? []) as unknown as Row[]) {
+    const book = row.copy?.book;
+    if (!book?.id) continue;
+    const existing = counts.get(book.id);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      counts.set(book.id, {
+        bookId: book.id,
+        title: book.title ?? 'Untitled',
+        author: book.author ?? null,
+        count: 1,
+      });
+    }
+  }
+
+  return Array.from(counts.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
+
+// ==================================================
+// Borrow / Return pre-flight helpers (v3.0.1)
+// ==================================================
+
+export type PatronSearchResult = {
+  id: string;
+  displayName: string | null;
+  email: string | null;
+  studentId: string | null;
+  username: string | null;
+  activeLoans: number;
+  hasOverdue: boolean;
+};
+
+/**
+ * Debounced-by-caller patron search. Matches against email, display_name, username,
+ * or student_id (case-insensitive, prefix). Returns up to `limit` rows annotated
+ * with their active-loan count and whether any are overdue.
+ */
+export async function searchPatrons(query: string, limit = 8): Promise<PatronSearchResult[]> {
+  const q = sanitizeSearchTerm(query);
+  if (!q || q.length < 2) return [];
+
+  const supabase = getSupabaseServerClient();
+  const pattern = `%${escapeForIlike(q)}%`;
+
+  const { data: profileMatches, error: profileError } = await supabase
+    .from('UserProfile')
+    .select('user_id, display_name, username, student_id')
+    .or(
+      [
+        `display_name.ilike.${pattern}`,
+        `username.ilike.${pattern}`,
+        `student_id.ilike.${pattern}`,
+      ].join(','),
+    )
+    .limit(limit * 2);
+
+  if (profileError) throw profileError;
+
+  const userIdsFromProfiles = new Set<string>(
+    (profileMatches ?? []).map((row: { user_id: string }) => row.user_id).filter(Boolean),
+  );
+
+  const { data: emailMatches, error: emailError } = await supabase
+    .from('Users')
+    .select('id')
+    .ilike('email', pattern)
+    .limit(limit * 2);
+
+  if (emailError) throw emailError;
+
+  for (const row of (emailMatches ?? []) as Array<{ id: string }>) {
+    if (row.id) userIdsFromProfiles.add(row.id);
+  }
+
+  const userIds = Array.from(userIdsFromProfiles).slice(0, limit);
+  if (userIds.length === 0) return [];
+
+  const { data: users, error: usersError } = await supabase
+    .from('Users')
+    .select(
+      `
+        id,
+        email,
+        profile:UserProfile(
+          display_name,
+          username,
+          student_id
+        )
+      `,
+    )
+    .in('id', userIds);
+
+  if (usersError) throw usersError;
+
+  const nowIso = new Date().toISOString();
+  const results: PatronSearchResult[] = [];
+  type RawUserRow = {
+    id: string;
+    email: string | null;
+    profile:
+      | { display_name: string | null; username: string | null; student_id: string | null }
+      | { display_name: string | null; username: string | null; student_id: string | null }[]
+      | null;
+  };
+  const userRows = (users ?? []) as unknown as RawUserRow[];
+  for (const rawUser of userRows) {
+    const profile = Array.isArray(rawUser.profile)
+      ? rawUser.profile[0] ?? null
+      : rawUser.profile;
+    const user = { id: rawUser.id, email: rawUser.email, profile };
+    const [{ count: activeCount }, { count: overdueCount }] = await Promise.all([
+      supabase
+        .from('Loans')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .is('returned_at', null),
+      supabase
+        .from('Loans')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .is('returned_at', null)
+        .lt('due_at', nowIso),
+    ]);
+
+    results.push({
+      id: user.id,
+      displayName: user.profile?.display_name ?? null,
+      email: user.email,
+      studentId: user.profile?.student_id ?? null,
+      username: user.profile?.username ?? null,
+      activeLoans: activeCount ?? 0,
+      hasOverdue: (overdueCount ?? 0) > 0,
+    });
+  }
+
+  return results.sort((a, b) => {
+    const aName = (a.displayName ?? a.email ?? '').toLowerCase();
+    const bName = (b.displayName ?? b.email ?? '').toLowerCase();
+    return aName.localeCompare(bName);
+  });
+}
+
+export async function countActiveLoansForPatron(patronId: string): Promise<number> {
+  if (!patronId) return 0;
+  const supabase = getSupabaseServerClient();
+  const { count, error } = await supabase
+    .from('Loans')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', patronId)
+    .is('returned_at', null);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export async function countOverdueLoansForPatron(patronId: string): Promise<number> {
+  if (!patronId) return 0;
+  const supabase = getSupabaseServerClient();
+  const { count, error } = await supabase
+    .from('Loans')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', patronId)
+    .is('returned_at', null)
+    .lt('due_at', new Date().toISOString());
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export type HoldPromotionResult = {
+  promotedHoldId: string;
+  patronId: string;
+  expiresAt: string;
+} | null;
+
+/**
+ * When a copy of `bookId` has just been returned as available, flip the oldest
+ * queued hold on that book to 'ready' with a 3-day pickup window. Returns the
+ * promoted hold so callers can fire a notification.
+ *
+ * Returns null if no queued hold exists.
+ */
+export async function promoteNextHoldForBook(bookId: string): Promise<HoldPromotionResult> {
+  if (!bookId) return null;
+  const supabase = getSupabaseServerClient();
+
+  const { data: nextHold, error: selectError } = await supabase
+    .from('Holds')
+    .select('id, patron_id')
+    .eq('book_id', bookId)
+    .eq('status', 'queued')
+    .order('placed_at', { ascending: true })
+    .limit(1)
+    .maybeSingle<{ id: string; patron_id: string }>();
+
+  if (selectError) throw selectError;
+  if (!nextHold) return null;
+
+  const readyAt = new Date();
+  const expiresAt = new Date(readyAt.getTime() + 3 * 86_400_000);
+
+  const { error: updateError } = await supabase
+    .from('Holds')
+    .update({
+      status: 'ready',
+      ready_at: readyAt.toISOString(),
+      expires_at: expiresAt.toISOString(),
+    })
+    .eq('id', nextHold.id)
+    .eq('status', 'queued');
+
+  if (updateError) throw updateError;
+
+  return {
+    promotedHoldId: nextHold.id,
+    patronId: nextHold.patron_id,
+    expiresAt: expiresAt.toISOString(),
+  };
+}
+
+export type DamageSeverity = 'damaged' | 'lost' | 'needs_inspection';
+
+export async function insertDamageReport(params: {
+  loanId: string;
+  copyId: string;
+  reportedBy: string | null;
+  severity: DamageSeverity;
+  notes: string | null;
+  photoUrls: string[];
+}): Promise<void> {
+  const supabase = getSupabaseServerClient();
+  const { error } = await supabase.from('DamageReports').insert({
+    loan_id: params.loanId,
+    copy_id: params.copyId,
+    reported_by: params.reportedBy,
+    severity: params.severity,
+    notes: params.notes,
+    photo_urls: params.photoUrls,
+  });
+  if (error) throw error;
+}
+
+export type DamageReportRow = {
+  id: string;
+  severity: DamageSeverity;
+  notes: string | null;
+  photoPaths: string[];
+  createdAt: string;
+  loan: {
+    id: string;
+    dueAt: string | null;
+    returnedAt: string | null;
+  } | null;
+  copy: {
+    id: string;
+    barcode: string | null;
+    book: {
+      id: string;
+      title: string;
+      author: string | null;
+    } | null;
+  } | null;
+  borrower: {
+    id: string;
+    email: string;
+    displayName: string | null;
+  } | null;
+  reportedBy: {
+    id: string;
+    email: string;
+    displayName: string | null;
+  } | null;
+};
+
+type RawDamageReportRow = {
+  id: string;
+  severity: string;
+  notes: string | null;
+  photo_urls: string[] | null;
+  created_at: string;
+  loan: {
+    id: string;
+    due_at: string | null;
+    returned_at: string | null;
+    user_id: string | null;
+    borrower: {
+      id: string;
+      email: string;
+      profile: { display_name: string | null } | null;
+    } | null;
+  } | null;
+  copy: {
+    id: string;
+    barcode: string | null;
+    book: {
+      id: string;
+      title: string;
+      author: string | null;
+    } | null;
+  } | null;
+  reporter: {
+    id: string;
+    email: string;
+    profile: { display_name: string | null } | null;
+  } | null;
+};
+
+const normalizeDamageSeverity = (value: unknown): DamageSeverity => {
+  if (typeof value !== 'string') return 'damaged';
+  const v = value.trim().toLowerCase();
+  if (v === 'lost' || v === 'needs_inspection') return v;
+  return 'damaged';
+};
+
+const mapDamageReportRow = (row: RawDamageReportRow): DamageReportRow => ({
+  id: row.id,
+  severity: normalizeDamageSeverity(row.severity),
+  notes: row.notes,
+  photoPaths: Array.isArray(row.photo_urls) ? row.photo_urls : [],
+  createdAt: row.created_at,
+  loan: row.loan
+    ? {
+        id: row.loan.id,
+        dueAt: row.loan.due_at,
+        returnedAt: row.loan.returned_at,
+      }
+    : null,
+  copy: row.copy
+    ? {
+        id: row.copy.id,
+        barcode: row.copy.barcode,
+        book: row.copy.book
+          ? { id: row.copy.book.id, title: row.copy.book.title, author: row.copy.book.author }
+          : null,
+      }
+    : null,
+  borrower: row.loan?.borrower
+    ? {
+        id: row.loan.borrower.id,
+        email: row.loan.borrower.email,
+        displayName: row.loan.borrower.profile?.display_name ?? null,
+      }
+    : null,
+  reportedBy: row.reporter
+    ? {
+        id: row.reporter.id,
+        email: row.reporter.email,
+        displayName: row.reporter.profile?.display_name ?? null,
+      }
+    : null,
+});
+
+export async function fetchDamageReports(opts?: {
+  severity?: DamageSeverity[];
+  search?: string;
+  daysBack?: number;
+  limit?: number;
+}): Promise<DamageReportRow[]> {
+  const supabase = getSupabaseServerClient();
+
+  let query = supabase
+    .from('DamageReports')
+    .select(
+      `
+        id,
+        severity,
+        notes,
+        photo_urls,
+        created_at,
+        loan:Loans(
+          id,
+          due_at,
+          returned_at,
+          user_id,
+          borrower:Users!Loans_user_id_fkey(
+            id,
+            email,
+            profile:UserProfile(display_name)
+          )
+        ),
+        copy:Copies(
+          id,
+          barcode,
+          book:Books(id, title, author)
+        ),
+        reporter:Users!DamageReports_reported_by_fkey(
+          id,
+          email,
+          profile:UserProfile(display_name)
+        )
+      `,
+    )
+    .order('created_at', { ascending: false })
+    .limit(opts?.limit ?? 100);
+
+  if (opts?.severity && opts.severity.length > 0) {
+    query = query.in('severity', opts.severity);
+  }
+
+  if (typeof opts?.daysBack === 'number' && opts.daysBack > 0) {
+    const cutoff = new Date(Date.now() - opts.daysBack * 24 * 60 * 60 * 1000);
+    query = query.gte('created_at', cutoff.toISOString());
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const rows = ((data ?? []) as unknown) as RawDamageReportRow[];
+  let mapped = rows.map(mapDamageReportRow);
+
+  // Search filter happens client-side because PostgREST 'or' across joins
+  // is awkward; volume of damage reports is low.
+  if (opts?.search) {
+    const needle = opts.search.trim().toLowerCase();
+    if (needle) {
+      mapped = mapped.filter((row) => {
+        const fields = [
+          row.copy?.book?.title ?? '',
+          row.copy?.book?.author ?? '',
+          row.copy?.barcode ?? '',
+          row.borrower?.displayName ?? '',
+          row.borrower?.email ?? '',
+          row.notes ?? '',
+        ];
+        return fields.some((f) => f.toLowerCase().includes(needle));
+      });
+    }
+  }
+
+  return mapped;
+}
+
+export async function getDamageReportSignedUrls(
+  paths: string[],
+  expiresInSeconds = 60 * 5,
+): Promise<Array<{ path: string; signedUrl: string | null }>> {
+  if (paths.length === 0) return [];
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase.storage
+    .from('damage-reports')
+    .createSignedUrls(paths, expiresInSeconds);
+  if (error) {
+    console.error('Failed to generate signed URLs for damage photos', error);
+    return paths.map((p) => ({ path: p, signedUrl: null }));
+  }
+  return (data ?? []).map((d) => ({ path: d.path ?? '', signedUrl: d.signedUrl ?? null }));
+}
+
+
+// ============================================================
+// v3.0.3 — Overdue page
+// ============================================================
+import type { OverdueLoan, OverdueFilters, OverdueBucket } from '@/app/lib/supabase/types';
+
+const bucketDayRange = (bucket: OverdueBucket | undefined): { min: number; max: number } => {
+  switch (bucket) {
+    case '1-7':  return { min: 1, max: 7 };
+    case '8-30': return { min: 8, max: 30 };
+    case '30+':  return { min: 31, max: 99999 };
+    case 'all':
+    default:     return { min: 1, max: 99999 };
+  }
+};
+
+export async function fetchOverdueLoans(filters: OverdueFilters = {}): Promise<OverdueLoan[]> {
+  const supabase = getSupabaseServerClient();
+  const nowIso = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from('Loans')
+    .select(`
+      id, borrowed_at, due_at, last_reminded_at,
+      copy:Copies(id, barcode, book:Books(id, title, author, isbn, cover_image_url)),
+      borrower:Users!Loans_user_id_fkey(id, email, profile:UserProfile(display_name, student_id)),
+      reminder_user:Users!Loans_last_reminded_by_fkey(id, email, profile:UserProfile(display_name))
+    `)
+    .is('returned_at', null)
+    .lt('due_at', nowIso)
+    .order('due_at', { ascending: true });
+
+  if (error) throw error;
+
+  const range = bucketDayRange(filters.bucket);
+  const search = filters.search?.trim().toLowerCase();
+  const now = Date.now();
+
+  const all = ((data ?? []) as unknown[]).map((row): OverdueLoan => {
+    const r = row as {
+      id: string;
+      borrowed_at: string;
+      due_at: string;
+      last_reminded_at: string | null;
+      copy: unknown;
+      borrower: unknown;
+      reminder_user: unknown;
+    };
+
+    const dueMs = new Date(r.due_at).getTime();
+    const daysOverdue = Math.max(0, Math.floor((now - dueMs) / 86400000));
+
+    const reminderUser = Array.isArray(r.reminder_user) ? r.reminder_user[0] : r.reminder_user;
+    const reminderProfileRaw = (reminderUser as { profile?: unknown })?.profile;
+    const reminderProfile = Array.isArray(reminderProfileRaw) ? reminderProfileRaw[0] : reminderProfileRaw;
+
+    const borrowerRow = r.borrower as { id?: string; email?: string | null; profile?: unknown } | null;
+    const borrowerProfileRaw = borrowerRow?.profile;
+    const borrowerProfile = Array.isArray(borrowerProfileRaw) ? borrowerProfileRaw[0] : borrowerProfileRaw;
+
+    const copyRow = (Array.isArray(r.copy) ? r.copy[0] : r.copy) as
+      | { id: string; barcode: string | null; book?: unknown }
+      | null;
+    const bookRowRaw = copyRow?.book;
+    const bookRow = (Array.isArray(bookRowRaw) ? bookRowRaw[0] : bookRowRaw) as
+      | { id: string; title: string; author: string | null; isbn: string | null; cover_image_url: string | null }
+      | null;
+
+    return {
+      id: r.id,
+      borrowedAt: r.borrowed_at,
+      dueAt: r.due_at,
+      daysOverdue,
+      lastRemindedAt: r.last_reminded_at ?? null,
+      lastRemindedByName:
+        (reminderProfile as { display_name?: string | null } | null)?.display_name ??
+        (reminderUser as { email?: string | null } | null)?.email ??
+        null,
+      copy: copyRow ? { id: copyRow.id, barcode: copyRow.barcode } : null,
+      book: bookRow
+        ? {
+            id: bookRow.id,
+            title: bookRow.title,
+            author: bookRow.author ?? null,
+            isbn: bookRow.isbn ?? null,
+            coverImageUrl: bookRow.cover_image_url ?? null,
+          }
+        : null,
+      borrower: borrowerRow
+        ? {
+            id: borrowerRow.id ?? '',
+            displayName: (borrowerProfile as { display_name?: string | null } | null)?.display_name ?? null,
+            studentId: (borrowerProfile as { student_id?: string | null } | null)?.student_id ?? null,
+            email: borrowerRow.email ?? null,
+          }
+        : null,
+    };
+  });
+
+  return all.filter((loan) => {
+    if (loan.daysOverdue < range.min || loan.daysOverdue > range.max) return false;
+    if (!search) return true;
+    const haystack = [
+      loan.book?.title, loan.book?.author,
+      loan.borrower?.displayName, loan.borrower?.studentId, loan.borrower?.email,
+      loan.copy?.barcode,
+    ].filter(Boolean).join(' ').toLowerCase();
+    return haystack.includes(search);
+  });
+}
+
+// ============================================================
+// v3.0.3 — Loan history page
+// ============================================================
+import type {
+  HistoryFilters,
+  HistoryLoan,
+  HistoryPage,
+} from '@/app/lib/supabase/types';
+
+const HISTORY_PAGE_SIZE = 50;
+
+const historyRangeStart = (
+  range: HistoryFilters['range'],
+  custom?: string,
+): Date | null => {
+  switch (range) {
+    case '30d': {
+      const d = new Date();
+      return new Date(d.getTime() - 30 * 86400000);
+    }
+    case '6m': {
+      const d = new Date();
+      d.setMonth(d.getMonth() - 6);
+      return d;
+    }
+    case 'semester': {
+      const d = new Date();
+      d.setMonth(d.getMonth() - 4);
+      return d;
+    }
+    case 'custom':
+      return custom ? new Date(custom) : null;
+    case 'all':
+    default:
+      return null;
+  }
+};
+
+// Returns LoanStatus value: 'borrowed' (active) | 'returned' | 'overdue'
+const computeHistoryStatus = (
+  returnedAt: string | null,
+  dueAt: string,
+  nowMs: number,
+): 'borrowed' | 'returned' | 'overdue' => {
+  if (returnedAt) return 'returned';
+  if (new Date(dueAt).getTime() < nowMs) return 'overdue';
+  return 'borrowed';
+};
+
+export async function fetchAllLoansHistory(
+  filters: HistoryFilters = {},
+  page = 0,
+): Promise<HistoryPage> {
+  const supabase = getSupabaseServerClient();
+
+  let query = supabase
+    .from('Loans')
+    .select(
+      `
+        id,
+        borrowed_at,
+        due_at,
+        returned_at,
+        handled_by,
+        copy:Copies(
+          id,
+          barcode,
+          book:Books(
+            id,
+            title,
+            author,
+            isbn,
+            cover_image_url
+          )
+        ),
+        borrower:Users!Loans_user_id_fkey(
+          id,
+          email,
+          profile:UserProfile(
+            display_name,
+            student_id
+          )
+        ),
+        handler:Users!Loans_handled_by_fkey(
+          id,
+          email,
+          profile:UserProfile(
+            display_name
+          )
+        )
+      `,
+      { count: 'exact' },
+    )
+    .order('borrowed_at', { ascending: false });
+
+  // Status filter — narrow at DB level when possible.
+  const status = filters.status ?? 'all';
+  const nowIso = new Date().toISOString();
+  if (status === 'returned') {
+    query = query.not('returned_at', 'is', null);
+  } else if (status === 'borrowed') {
+    query = query.is('returned_at', null).gte('due_at', nowIso);
+  } else if (status === 'overdue') {
+    query = query.is('returned_at', null).lt('due_at', nowIso);
+  }
+
+  // Date range filter.
+  const rangeStart = historyRangeStart(filters.range, filters.rangeStart);
+  if (rangeStart) {
+    query = query.gte('borrowed_at', rangeStart.toISOString());
+  }
+  if (filters.range === 'custom' && filters.rangeEnd) {
+    const end = new Date(filters.rangeEnd);
+    if (!Number.isNaN(end.valueOf())) {
+      query = query.lte('borrowed_at', end.toISOString());
+    }
+  }
+
+  const from = page * HISTORY_PAGE_SIZE;
+  const to = from + HISTORY_PAGE_SIZE - 1;
+  query = query.range(from, to);
+
+  const { data, error, count } = await query;
+  if (error) {
+    console.error('[fetchAllLoansHistory]', error);
+    throw error;
+  }
+
+  const nowMs = Date.now();
+
+  type RawHistoryLoanRow = {
+    id: string;
+    borrowed_at: string;
+    due_at: string;
+    returned_at: string | null;
+    handled_by: string | null;
+    copy: unknown;
+    borrower: unknown;
+    handler: unknown;
+  };
+
+  const rawRows = ((data ?? []) as unknown) as RawHistoryLoanRow[];
+
+  const mapped: HistoryLoan[] = rawRows.map((r) => {
+    const copyRow = (Array.isArray(r.copy) ? r.copy[0] : r.copy) as
+      | {
+          id: string;
+          barcode: string | null;
+          book?: unknown;
+        }
+      | null;
+    const bookRowRaw = copyRow?.book;
+    const bookRow = (Array.isArray(bookRowRaw) ? bookRowRaw[0] : bookRowRaw) as
+      | {
+          id: string;
+          title: string;
+          author: string | null;
+          isbn: string | null;
+          cover_image_url: string | null;
+        }
+      | null;
+
+    const borrowerRow = (Array.isArray(r.borrower) ? r.borrower[0] : r.borrower) as
+      | { id?: string; email?: string | null; profile?: unknown }
+      | null;
+    const borrowerProfileRaw = borrowerRow?.profile;
+    const borrowerProfile = (Array.isArray(borrowerProfileRaw)
+      ? borrowerProfileRaw[0]
+      : borrowerProfileRaw) as
+      | { display_name?: string | null; student_id?: string | null }
+      | null;
+
+    const handlerRow = (Array.isArray(r.handler) ? r.handler[0] : r.handler) as
+      | { id?: string; email?: string | null; profile?: unknown }
+      | null;
+    const handlerProfileRaw = handlerRow?.profile;
+    const handlerProfile = (Array.isArray(handlerProfileRaw)
+      ? handlerProfileRaw[0]
+      : handlerProfileRaw) as
+      | { display_name?: string | null }
+      | null;
+
+    const isSelfCheckout = !r.handled_by || r.handled_by === (borrowerRow?.id ?? null);
+    const handlerDisplayName =
+      handlerProfile?.display_name ?? handlerRow?.email ?? null;
+
+    const borrowedMs = new Date(r.borrowed_at).getTime();
+    const endMs = r.returned_at ? new Date(r.returned_at).getTime() : nowMs;
+    const durationDays = Math.max(
+      0,
+      Math.round((endMs - borrowedMs) / 86400000),
+    );
+
+    return {
+      id: r.id,
+      borrowedAt: r.borrowed_at,
+      dueAt: r.due_at,
+      returnedAt: r.returned_at ?? null,
+      durationDays,
+      status: computeHistoryStatus(r.returned_at ?? null, r.due_at, nowMs),
+      copy: copyRow ? { id: copyRow.id, barcode: copyRow.barcode } : null,
+      book: bookRow
+        ? {
+            id: bookRow.id,
+            title: bookRow.title,
+            author: bookRow.author ?? null,
+            isbn: bookRow.isbn ?? null,
+            coverImageUrl: bookRow.cover_image_url ?? null,
+          }
+        : null,
+      borrower: borrowerRow
+        ? {
+            id: borrowerRow.id ?? '',
+            displayName: borrowerProfile?.display_name ?? null,
+            studentId: borrowerProfile?.student_id ?? null,
+          }
+        : null,
+      handler: handlerRow
+        ? {
+            id: handlerRow.id ?? '',
+            displayName: handlerDisplayName,
+            isSelfCheckout,
+          }
+        : { id: '', displayName: null, isSelfCheckout: true },
+    };
+  });
+
+  // Client-side text-search filters (borrower / book / handler).
+  const borrowerQ = filters.borrowerQ?.trim().toLowerCase();
+  const bookQ = filters.bookQ?.trim().toLowerCase();
+  const handlerQ = filters.handlerQ?.trim().toLowerCase();
+
+  const filtered = mapped.filter((row) => {
+    if (borrowerQ) {
+      const hay = [
+        row.borrower?.displayName,
+        row.borrower?.studentId,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      if (!hay.includes(borrowerQ)) return false;
+    }
+    if (bookQ) {
+      const hay = [row.book?.title, row.book?.author, row.book?.isbn]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      if (!hay.includes(bookQ)) return false;
+    }
+    if (handlerQ) {
+      const hay = (row.handler?.displayName ?? '').toLowerCase();
+      if (!hay.includes(handlerQ)) return false;
+    }
+    return true;
+  });
+
+  return {
+    rows: filtered,
+    total: count ?? filtered.length,
+    active: filtered.filter((r) => r.status === 'borrowed').length,
+    returned: filtered.filter((r) => r.status === 'returned').length,
+    overdue: filtered.filter((r) => r.status === 'overdue').length,
+    page,
+    pageSize: HISTORY_PAGE_SIZE,
+  };
+}
+
+// ============================================================
+// v3.0.3 — ISBN lookup + barcode allocation (Add Books page)
+// ============================================================
+
+export async function findBookByIsbn(isbn: string): Promise<{
+  id: string;
+  title: string;
+  author: string | null;
+  copyCount: number;
+} | null> {
+  const supabase = getSupabaseServerClient();
+  const cleaned = isbn.replace(/[^0-9X]/gi, '');
+  if (!cleaned) return null;
+
+  const { data, error } = await supabase
+    .from('Books')
+    .select('id, title, author, copies:Copies(id)')
+    .eq('isbn', cleaned)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[findBookByIsbn]', error);
+    throw error;
+  }
+  if (!data) return null;
+
+  const copiesRaw = (data as { copies?: unknown }).copies;
+  const copies = Array.isArray(copiesRaw) ? copiesRaw : [];
+  return {
+    id: (data as { id: string }).id,
+    title: (data as { title: string }).title,
+    author: (data as { author: string | null }).author ?? null,
+    copyCount: copies.length,
+  };
+}
+
+export async function getNextAvailableBarcodes(count: number): Promise<string[]> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('Copies')
+    .select('barcode')
+    .like('barcode', 'SWI-%')
+    .order('barcode', { ascending: false })
+    .limit(50);
+
+  if (error) throw error;
+  const existing = ((data ?? []) as Array<{ barcode: string | null }>)
+    .map((r) => r.barcode)
+    .filter((b): b is string => Boolean(b));
+
+  const { computeNextBarcodes } = await import('@/app/lib/barcode');
+  return computeNextBarcodes(existing, count);
 }

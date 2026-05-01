@@ -8,6 +8,8 @@ interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
     intensity?: "low" | "medium" | "high";
 }
 
+// Translucent card meant to sit over a dark image background (login + landing).
+// Keeps `on-dark` (cream) translucency in light mode + `dark-canvas` translucency in dark mode.
 export default function GlassCard({
     children,
     className,
@@ -15,15 +17,15 @@ export default function GlassCard({
     ...props
 }: GlassCardProps) {
     const intensityClasses = {
-        low: "bg-white/30 dark:bg-slate-900/60 backdrop-blur-sm border-white/20 dark:border-slate-700",
-        medium: "bg-white/60 dark:bg-slate-900/70 backdrop-blur-md border-white/30 dark:border-slate-700",
-        high: "bg-white/80 dark:bg-slate-900/80 backdrop-blur-lg border-white/40 dark:border-slate-600",
+        low: "bg-on-dark/30 dark:bg-dark-canvas/60 backdrop-blur-sm border-on-dark/20 dark:border-dark-hairline",
+        medium: "bg-on-dark/60 dark:bg-dark-canvas/70 backdrop-blur-md border-on-dark/30 dark:border-dark-hairline",
+        high: "bg-on-dark/80 dark:bg-dark-canvas/80 backdrop-blur-lg border-on-dark/40 dark:border-dark-hairline",
     };
 
     return (
         <div
             className={cn(
-                "rounded-3xl border shadow-xl transition-all duration-300",
+                "rounded-card border shadow-xl transition-all duration-300",
                 intensityClasses[intensity],
                 className
             )}

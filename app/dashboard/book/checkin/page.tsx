@@ -1,12 +1,11 @@
-import clsx from 'clsx';
 import CheckInForm from '@/app/ui/dashboard/checkInForm';
 import ActiveLoansTable from '@/app/ui/dashboard/activeLoansTable';
 import SearchForm from '@/app/ui/dashboard/searchForm';
 import { fetchActiveLoans, fetchDashboardSummary } from '@/app/lib/supabase/queries';
 import CameraScanButton from '@/app/ui/dashboard/cameraScannerButton';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
-import { MapPinIcon } from '@heroicons/react/24/outline';
+import AdminShell from '@/app/ui/dashboard/adminShell';
+import { MapPinIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 export default async function ReturningBooksPage({
   searchParams,
@@ -29,63 +28,152 @@ export default async function ReturningBooksPage({
   const totalBorrowed = summary.activeLoans;
 
   return (
-    <main className="space-y-8">
+    <>
       <title>Returning Books | Dashboard</title>
-      <DashboardTitleBar
-        subtitle="Check In"
-        title="Returning Books"
+
+      <AdminShell
+        titleSubtitle="Check In"
+        title="Return Books"
         description={canProcessReturns
-          ? "Record completed loans and reconcile returned items with the inventory."
-          : "Review which books are currently on loan before speaking with library staff."}
-      />
-
-      <div className="flex flex-wrap items-center gap-3">
-        <SearchForm
-          action="/dashboard/book"
-          placeholder="Search borrowed books by borrower, ID, or title"
-          defaultValue={searchTerm}
-          aria-label="Search borrowed books"
-          className="flex-1 min-w-0"
-          extraParams={{ mode: 'in' }}
-        />
-        {canProcessReturns ? <CameraScanButton className="w-full max-w-full md:w-auto" /> : null}
-      </div>
-
-      {canProcessReturns ? (
-        <CheckInForm activeLoanCount={totalBorrowed} defaultIdentifier={searchTerm} />
-      ) : (
-        <div className="space-y-4">
-          {/* Helpful info panel for students */}
-          <div className="flex gap-4 rounded-2xl border border-swin-charcoal/10 bg-white p-5 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-swin-charcoal/8 text-swin-charcoal dark:bg-white/10 dark:text-white/80">
-              <MapPinIcon className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="text-sm font-semibold text-swin-charcoal dark:text-white">
-                Bring your book to the library counter
-              </p>
-              <p className="mt-1 text-sm text-swin-charcoal/60 dark:text-white/50">
-                Staff will process your return — no form needed. Just hand over the book and you're done.
-              </p>
+          ? 'Record completed loans and reconcile returned items with the inventory.'
+          : 'Review which books are currently on loan before speaking with library staff.'}
+      >
+        <div className="space-y-6">
+          {/* Return hero — solid success per spec §6.4 (drop gradient + boxShadow) */}
+          <div className="relative overflow-hidden rounded-card bg-success p-6 text-on-dark">
+            <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-on-dark/10" />
+            <div className="relative flex items-start gap-5">
+              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[14px] border border-on-dark/25 bg-on-dark/15">
+                <ArrowPathIcon className="h-7 w-7" strokeWidth={1.8} />
+              </div>
+              <div className="flex-1">
+                <p className="font-sans text-caption-uppercase font-bold opacity-80">
+                  Return Desk · Scan to Complete
+                </p>
+                <h2 className="mt-1 font-display text-display-md font-semibold leading-tight tracking-tight">
+                  {canProcessReturns
+                    ? 'Scan the returned copy barcode'
+                    : 'Drop by the library counter to return'}
+                </h2>
+                <p className="mt-1 font-sans text-body-sm opacity-85">
+                  {canProcessReturns
+                    ? 'Once scanned, the loan is closed and the copy is returned to the shelf.'
+                    : 'Staff will confirm the return on the spot — no form needed.'}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">
-            {canProcessReturns ? 'Books currently not available' : 'Your current loans'}
-          </h2>
-          <p className="text-sm text-swin-charcoal/60 dark:text-slate-300">
-            {canProcessReturns
-              ? `Showing ${activeLoans.length} of ${totalBorrowed} borrowed books`
-              : `${activeLoans.length} book${activeLoans.length === 1 ? '' : 's'} on loan`}
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <SearchForm
+              action="/dashboard/book"
+              placeholder="Search borrowed books by borrower, ID, or title"
+              defaultValue={searchTerm}
+              aria-label="Search borrowed books"
+              className="flex-1 min-w-0"
+              extraParams={{ mode: 'in' }}
+            />
+            {canProcessReturns ? <CameraScanButton className="w-full max-w-full md:w-auto" /> : null}
+          </div>
+
+          {canProcessReturns ? (
+            <CheckInForm activeLoanCount={totalBorrowed} defaultIdentifier={searchTerm} />
+          ) : (
+            <>
+              {/* Returning status — loans due within 48h or overdue */}
+              {(() => {
+                const now = Date.now();
+                const soonCutoff = now + 48 * 60 * 60 * 1000;
+                const attention = activeLoans
+                  .filter((loan) => loan.dueAt && new Date(loan.dueAt).getTime() <= soonCutoff)
+                  .map((loan) => {
+                    const dueMs = new Date(loan.dueAt).getTime();
+                    const daysDiff = Math.round((dueMs - now) / 86_400_000);
+                    return {
+                      id: loan.id,
+                      title: loan.book?.title ?? 'Unknown title',
+                      author: loan.book?.author ?? null,
+                      daysDiff,
+                      overdue: dueMs < now,
+                    };
+                  });
+                if (attention.length === 0) return null;
+                return (
+                  <div className="rounded-card border border-warning/40 bg-warning/10 p-5">
+                    <p className="font-sans text-caption-uppercase font-semibold text-warning">
+                      Returning soon
+                    </p>
+                    <h3 className="mt-1 font-display text-display-sm font-semibold tracking-tight text-ink dark:text-on-dark">
+                      You have {attention.length} book{attention.length === 1 ? '' : 's'} to bring back
+                    </h3>
+                    <ul className="mt-3 space-y-2">
+                      {attention.map((entry) => (
+                        <li
+                          key={entry.id}
+                          className="flex items-center justify-between gap-3 rounded-btn border border-warning/30 bg-surface-card dark:bg-dark-surface-card/40 px-3 py-2 font-sans text-body-sm"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate font-display font-semibold text-ink dark:text-on-dark">
+                              {entry.title}
+                            </p>
+                            {entry.author && (
+                              <p className="truncate font-display text-caption italic text-muted dark:text-on-dark-soft">
+                                {entry.author}
+                              </p>
+                            )}
+                          </div>
+                          <span
+                            className={`flex-shrink-0 rounded-pill px-2.5 py-0.5 font-mono text-code font-bold ${
+                              entry.overdue
+                                ? 'bg-primary/15 text-primary dark:bg-dark-primary/20 dark:text-dark-primary'
+                                : 'bg-warning/20 text-warning'
+                            }`}
+                          >
+                            {entry.overdue
+                              ? `${Math.abs(entry.daysDiff)}d overdue`
+                              : entry.daysDiff === 0
+                                ? 'due today'
+                                : `${entry.daysDiff}d left`}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })()}
+
+              <div className="flex gap-4 rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-5">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-surface-cream-strong dark:bg-dark-surface-strong text-ink dark:text-on-dark">
+                  <MapPinIcon className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="font-display text-title-lg font-semibold tracking-tight text-ink dark:text-on-dark">
+                    Bring your book to the library counter
+                  </p>
+                  <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
+                    Staff will process your return — no form needed. Just hand over the book and you&apos;re done.
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+
+          <section className="space-y-3">
+            <div className="flex items-baseline justify-between">
+              <h2 className="font-display text-display-md tracking-tight text-ink dark:text-on-dark">
+                {canProcessReturns ? 'Books currently not available' : 'Your current loans'}
+              </h2>
+              <p className="font-mono text-code text-muted-soft dark:text-on-dark-soft">
+                {canProcessReturns
+                  ? `Showing ${activeLoans.length} of ${totalBorrowed} borrowed books`
+                  : `${activeLoans.length} book${activeLoans.length === 1 ? '' : 's'} on loan`}
+              </p>
+            </div>
+            <ActiveLoansTable loans={activeLoans} showActions={canProcessReturns} />
+          </section>
         </div>
-        <ActiveLoansTable loans={activeLoans} showActions={canProcessReturns} />
-      </section>
-    </main>
+      </AdminShell>
+    </>
   );
 }
 

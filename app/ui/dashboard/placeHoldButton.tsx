@@ -94,17 +94,17 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
       <div className="flex flex-col gap-1">
         <button
           disabled
-          className="rounded-xl bg-emerald-600/90 px-3 py-1.5 text-xs sm:text-sm font-medium text-white"
+          className="rounded-btn bg-success px-3 py-1.5 font-sans text-button text-on-dark"
         >
           {label}
         </button>
         {holdState === 'ready' && (
-          <p className="text-[11px] text-emerald-700">
+          <p className="font-sans text-caption text-success">
             Please visit the library desk before it expires.
           </p>
         )}
         {error && (
-          <p className="text-[11px] text-red-500">
+          <p className="font-sans text-caption text-error">
             {error}
           </p>
         )}
@@ -119,13 +119,13 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
         type="button"
         onClick={handleClick}
         disabled={loading}
-        className="rounded-xl bg-swin-charcoal px-3 py-1.5 text-xs sm:text-sm font-medium text-swin-ivory shadow hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-btn bg-ink px-3 py-1.5 font-sans text-button text-on-dark transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:bg-on-dark/15 dark:text-on-dark dark:hover:bg-on-dark/25 dark:focus-visible:ring-offset-dark-canvas"
       >
         {loading ? 'Placing…' : 'Place Hold'}
       </button>
 
       {error && (
-        <p className="text-[11px] text-red-500">
+        <p className="font-sans text-caption text-error">
           {error}
         </p>
       )}

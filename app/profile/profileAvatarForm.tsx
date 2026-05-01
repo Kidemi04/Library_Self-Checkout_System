@@ -2,7 +2,6 @@
 
 import { useRef, useState, useActionState } from 'react';
 import { ArrowPathIcon, CameraIcon } from '@heroicons/react/24/outline';
-import clsx from 'clsx';
 import { updateProfileAvatar } from './actions';
 import type { ProfileAvatarFormState } from './actions';
 
@@ -19,11 +18,9 @@ const initialState: ProfileAvatarFormState = { status: 'idle', message: '' };
 export default function ProfileAvatarForm({
   avatarUrl,
   displayName,
-  isPrivileged,
 }: {
   avatarUrl: string | null;
   displayName: string | null;
-  isPrivileged: boolean;
 }) {
   const [state, formAction] = useActionState(updateProfileAvatar, initialState);
   const [isUploading, setIsUploading] = useState(false);
@@ -41,35 +38,27 @@ export default function ProfileAvatarForm({
   };
 
   return (
-    <div className="relative flex-none group">
+    <div className="group relative flex-none">
       <div className="relative inline-block">
-        <div className="relative h-24 w-24 sm:h-32 sm:w-32 transition-transform duration-300 group-hover:scale-105">
-          <div className={clsx(
-            "absolute -inset-0.5 rounded-full bg-gradient-to-br opacity-75 blur transition duration-300 group-hover:opacity-100",
-            isPrivileged ? "from-emerald-400 to-cyan-300" : "from-swin-red to-orange-400"
-          )} />
+        <div className="relative h-24 w-24 transition-transform duration-300 group-hover:scale-105 sm:h-32 sm:w-32">
           <img
             src={defaultAvatar}
             alt={`${displayName ?? 'User'} avatar`}
-            className="relative h-full w-full rounded-full object-cover ring-4 ring-white dark:ring-slate-900 shadow-xl"
+            className="relative h-full w-full rounded-full object-cover ring-2 ring-hairline dark:ring-dark-hairline"
           />
         </div>
 
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className={clsx(
-            'absolute bottom-0 right-0 rounded-full p-2.5 shadow-lg ring-4 ring-white dark:ring-slate-900 transition-all duration-300 hover:scale-110 active:scale-95',
-            isPrivileged
-              ? 'bg-emerald-600 text-white hover:bg-emerald-500'
-              : 'bg-swin-red text-white hover:bg-swin-red/90'
-          )}
+          className="absolute bottom-0 right-0 rounded-full bg-primary p-2.5 text-on-primary ring-4 ring-canvas transition-colors hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:bg-dark-primary dark:hover:bg-primary-active dark:ring-dark-canvas dark:focus-visible:ring-offset-dark-canvas"
+          aria-label="Change avatar"
         >
           <CameraIcon className="h-5 w-5" />
         </button>
       </div>
 
-      <form onChange={handleFileChange} className="flex flex-col items-center gap-2 mt-2">
+      <form onChange={handleFileChange} className="mt-2 flex flex-col items-center gap-2">
         <input
           ref={fileInputRef}
           type="file"
@@ -79,12 +68,12 @@ export default function ProfileAvatarForm({
           disabled={isUploading}
         />
         {isUploading && (
-          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm">
-            <ArrowPathIcon className="h-8 w-8 animate-spin text-white" />
+          <div className="absolute inset-0 flex items-center justify-center rounded-full bg-ink/50 backdrop-blur-sm">
+            <ArrowPathIcon className="h-8 w-8 animate-spin text-on-dark" />
           </div>
         )}
         {state.status === 'error' && (
-          <p className="text-xs font-medium text-red-500 mt-1 animate-pulse">
+          <p className="mt-1 font-sans text-caption font-medium text-error">
             {state.message}
           </p>
         )}

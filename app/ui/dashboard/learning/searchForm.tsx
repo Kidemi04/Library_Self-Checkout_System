@@ -3,6 +3,7 @@
 import { useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MagnifyingGlassIcon } from '@heroicons/react/20/solid';
+import { Button } from '@/app/ui/button';
 
 type SearchDefaults = {
   query?: string;
@@ -46,30 +47,30 @@ export default function LinkedInLearningSearchForm({
 
   return (
     <form
-      className="grid gap-4 rounded-3xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/60"
+      className="grid gap-4 rounded-card border border-hairline bg-surface-card p-6 dark:border-dark-hairline dark:bg-dark-surface-card"
       onSubmit={handleSubmit}
     >
-      <label className="text-sm font-medium text-swin-charcoal dark:text-white">
+      <label className="font-sans text-body-sm font-medium text-ink dark:text-on-dark">
         Search {providerLabel}
-        <span className="mt-2 flex items-center gap-3 rounded-2xl border border-swin-charcoal/10 bg-swin-charcoal/5 px-4 py-3 text-base dark:border-white/10 dark:bg-white/5">
-          <MagnifyingGlassIcon className="h-5 w-5 text-swin-charcoal/60 dark:text-slate-300/80" />
+        <span className="mt-2 flex items-center gap-3 rounded-btn border border-hairline bg-canvas px-4 py-3 dark:border-dark-hairline dark:bg-dark-surface-soft focus-within:ring-2 focus-within:ring-primary/40 focus-within:ring-offset-2 focus-within:ring-offset-canvas dark:focus-within:ring-offset-dark-canvas">
+          <MagnifyingGlassIcon className="h-5 w-5 text-muted-soft dark:text-on-dark-soft" />
           <input
             ref={inputRef}
             type="search"
             defaultValue={query}
             placeholder='Try "algorithms" or "calculus"'
-            className="w-full border-none bg-transparent text-base text-swin-charcoal placeholder:text-swin-charcoal/50 focus:outline-none dark:text-white dark:placeholder:text-slate-400"
+            className="w-full border-none bg-transparent font-sans text-body-md text-ink placeholder:text-muted-soft focus:outline-none dark:text-on-dark dark:placeholder:text-on-dark-soft"
           />
         </span>
       </label>
 
       <div className="grid gap-4 md:grid-cols-[minmax(0,220px)_auto] md:items-end">
-        <label className="text-sm font-medium text-swin-charcoal dark:text-white">
+        <label className="font-sans text-body-sm font-medium text-ink dark:text-on-dark">
           Difficulty
           <select
             ref={selectRef}
             defaultValue={difficulty}
-            className="mt-2 w-full rounded-2xl border border-swin-charcoal/10 bg-white px-4 py-3 text-sm text-swin-charcoal shadow-sm focus:border-swin-red focus:outline-none dark:border-white/10 dark:bg-slate-900 dark:text-white"
+            className="mt-2 h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
           >
             <option value="ALL">All levels</option>
             <option value="BEGINNER">Beginner</option>
@@ -78,16 +79,13 @@ export default function LinkedInLearningSearchForm({
           </select>
         </label>
         <div className="flex gap-3">
-          <button
-            type="submit"
-            className="flex-1 rounded-2xl bg-swin-red px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-swin-red/90"
-          >
+          <Button type="submit" className="flex-1 justify-center">
             Search
-          </button>
+          </Button>
           <button
             type="button"
             onClick={handleReset}
-            className="rounded-2xl border border-swin-charcoal/15 px-4 py-3 text-sm font-semibold text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-white/20 dark:text-white dark:hover:text-swin-red"
+            className="flex h-10 items-center rounded-btn border border-hairline bg-canvas px-5 font-sans text-button text-ink transition hover:border-primary/20 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:hover:border-dark-primary/30 dark:hover:text-dark-primary dark:focus-visible:ring-offset-dark-canvas"
           >
             Reset
           </button>

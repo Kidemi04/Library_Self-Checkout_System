@@ -7,72 +7,10 @@ import {
   fetchActiveHoldsForPatron,
   type PatronHold,
 } from '@/app/lib/supabase/queries';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
+import AdminShell from '@/app/ui/dashboard/adminShell';
+import HoldCard from '@/app/ui/dashboard/primitives/HoldCard';
+import KpiCard from '@/app/ui/dashboard/primitives/KpiCard';
 import CancelHoldButton from '@/app/ui/dashboard/cancelHoldButton';
-
-const dateFormatter = new Intl.DateTimeFormat('en-MY', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-});
-
-const dateTimeFormatter = new Intl.DateTimeFormat('en-MY', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-});
-
-const formatDate = (value: string | null) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return '—';
-  return dateFormatter.format(date);
-};
-
-const formatDateTime = (value: string | null) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return '—';
-  return dateTimeFormatter.format(date);
-};
-
-const statusMeta: Record<
-  PatronHold['status'],
-  { label: string; badge: string; accent: string }
-> = {
-  ready: {
-    label: 'Ready for pickup',
-    badge:
-      'bg-emerald-100 text-emerald-800 border border-emerald-200 dark:bg-emerald-900/50 dark:text-emerald-100 dark:border-emerald-700/70',
-    accent: 'text-emerald-700 dark:text-emerald-200',
-  },
-  queued: {
-    label: 'Waiting in queue',
-    badge:
-      'bg-sky-100 text-sky-800 border border-sky-200 dark:bg-sky-900/50 dark:text-sky-100 dark:border-sky-700/70',
-    accent: 'text-sky-700 dark:text-sky-200',
-  },
-  fulfilled: {
-    label: 'Fulfilled',
-    badge:
-      'bg-slate-100 text-slate-800 border border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700',
-    accent: 'text-slate-600 dark:text-slate-300',
-  },
-  expired: {
-    label: 'Expired',
-    badge:
-      'bg-amber-100 text-amber-800 border border-amber-200 dark:bg-amber-900/50 dark:text-amber-100 dark:border-amber-700/70',
-    accent: 'text-amber-700 dark:text-amber-200',
-  },
-  canceled: {
-    label: 'Cancelled',
-    badge:
-      'bg-slate-100 text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700',
-    accent: 'text-slate-600 dark:text-slate-300',
-  },
-};
 
 async function cancelReservation(formData: FormData) {
   'use server';
@@ -92,139 +30,171 @@ async function cancelReservation(formData: FormData) {
   revalidatePath('/dashboard/book/reservation');
 }
 
-const EmptyState = () => (
-  <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:shadow-black/30">
-    <p className="text-base font-semibold text-slate-800 dark:text-slate-100">No active reservations</p>
-    <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-      You haven’t reserved any books yet. Browse the catalogue to place a hold on a book that
-      is currently unavailable.
-    </p>
-    <Link
-      href="/dashboard/book/items"
-      className="mt-6 inline-flex items-center justify-center rounded-full bg-swin-charcoal px-4 py-2 text-sm font-semibold text-white shadow hover:bg-swin-charcoal/90 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
-    >
-      Browse catalogue
-    </Link>
-  </div>
-);
-
-const ReservationCard = ({ hold }: { hold: PatronHold }) => {
-  const meta = statusMeta[hold.status] ?? statusMeta.queued;
-  const readyMessage =
-    hold.status === 'ready'
-      ? hold.expiresAt
-        ? `Collect by ${formatDateTime(hold.expiresAt)} to keep your spot.`
-        : 'Collect the book from the service desk.'
-      : 'We will notify you once the copy is ready to be picked up.';
-
-  const cancellationAllowed = hold.status === 'queued' || hold.status === 'ready';
-
-  return (
-    <li className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/50 dark:border-white/10 dark:bg-slate-900 dark:shadow-black/40">
-      <div className="flex flex-wrap gap-4">
-        <div className="h-20 w-16 overflow-hidden rounded-xl bg-slate-100 ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
-          {hold.coverImage ? (
-            <img
-              src={hold.coverImage}
-              alt=""
-              className="h-full w-full object-cover"
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-xs text-slate-400 dark:text-slate-500">
-              No cover
-            </div>
-          )}
-        </div>
-        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-base font-semibold text-slate-900 dark:text-slate-100">{hold.title}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{hold.author ?? 'Unknown author'}</p>
-            {hold.isbn ? (
-              <p className="text-xs text-slate-400 dark:text-slate-500">ISBN {hold.isbn}</p>
-            ) : null}
-          </div>
-          <span className={`inline-flex h-fit items-center rounded-full px-3 py-1 text-xs font-semibold ${meta.badge}`}>
-            {meta.label}
-          </span>
-        </div>
-      </div>
-
-      <dl className="grid gap-4 text-sm sm:grid-cols-3">
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Placed on</dt>
-          <dd className="font-medium text-slate-800 dark:text-slate-100">{formatDate(hold.placedAt)}</dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Ready since</dt>
-          <dd className="font-medium text-slate-800 dark:text-slate-100">
-            {hold.readyAt ? formatDateTime(hold.readyAt) : 'Not yet ready'}
-          </dd>
-        </div>
-        <div>
-          <dt className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Expires</dt>
-          <dd className="font-medium text-slate-800 dark:text-slate-100">
-            {hold.expiresAt ? formatDateTime(hold.expiresAt) : '—'}
-          </dd>
-        </div>
-      </dl>
-
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4 text-sm dark:border-slate-800">
-        <p className={`text-sm ${meta.accent}`}>{readyMessage}</p>
-        {cancellationAllowed ? (
-          <CancelHoldButton
-            holdId={hold.id}
-            bookTitle={hold.title}
-            cancelAction={cancelReservation}
-          />
-        ) : null}
-      </div>
-    </li>
+function sortReadyFirst(holds: PatronHold[]): PatronHold[] {
+  return [...holds].sort(
+    (a, b) => (a.status === 'ready' ? -1 : 1) - (b.status === 'ready' ? -1 : 1),
   );
+}
+
+const dateFormatter = new Intl.DateTimeFormat('en-MY', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+});
+const dateTimeFormatter = new Intl.DateTimeFormat('en-MY', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+const formatDate = (value: string | null) => {
+  if (!value) return '—';
+  const d = new Date(value);
+  return Number.isNaN(d.valueOf()) ? '—' : dateFormatter.format(d);
+};
+const formatDateTime = (value: string | null) => {
+  if (!value) return '—';
+  const d = new Date(value);
+  return Number.isNaN(d.valueOf()) ? '—' : dateTimeFormatter.format(d);
+};
+const getReadyMessage = (hold: PatronHold): string => {
+  if (hold.status === 'ready') {
+    return hold.expiresAt
+      ? `Collect by ${formatDateTime(hold.expiresAt)} to keep your spot.`
+      : 'Collect the book from the service desk.';
+  }
+  return 'We will notify you once the copy is ready to be picked up.';
 };
 
 export default async function MyReservationsPage() {
   const { user } = await getDashboardSession();
 
-  if (!user) {
-    redirect('/login');
-  }
-
-  if (user.role !== 'user') {
-    redirect('/dashboard');
-  }
+  if (!user) redirect('/login');
+  if (user.role !== 'user') redirect('/dashboard');
 
   const holds = await fetchActiveHoldsForPatron(user.id);
+  const ready = holds.filter((h) => h.status === 'ready');
+  const queued = holds.filter((h) => h.status === 'queued');
+  const sorted = sortReadyFirst(holds);
 
   return (
-    <main className="space-y-8 text-slate-900 dark:text-slate-100">
+    <>
       <title>My Reservations | Dashboard</title>
 
-      <DashboardTitleBar
-        subtitle="Reservations"
-        title="My reserved books"
-        description="Track items that are waiting for you or currently in the reservation queue. We'll
-        notify you by email when it's your turn to collect them."
-      />
-
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Active reservations</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            {holds.length} reservation{holds.length === 1 ? '' : 's'}
-          </p>
+      <AdminShell
+        titleSubtitle="Reservations"
+        title="Your Reservations"
+        description="Track your position in the queue. We will notify you when your hold is ready for pickup."
+      >
+        {/* Summary strip */}
+        <div className="mb-7 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <KpiCard label="Total holds" value={holds.length} />
+          <KpiCard
+            label="Ready for pickup"
+            value={ready.length}
+            danger={ready.length > 0}
+            delta={ready.length > 0 ? `${ready.length} ready` : undefined}
+            footer="collect at desk"
+            className={ready.length > 0 ? 'border-primary/40 dark:border-dark-primary/40' : undefined}
+          />
+          <KpiCard label="In queue" value={queued.length} />
         </div>
 
         {holds.length === 0 ? (
-          <EmptyState />
+          <div className="rounded-card border border-dashed border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-10 text-center">
+            <p className="font-display text-display-sm tracking-tight text-ink dark:text-on-dark">
+              No active reservations
+            </p>
+            <p className="mt-2 font-sans text-body-sm text-muted-soft dark:text-on-dark-soft">
+              You have not reserved any books yet. Browse the catalogue to place a hold.
+            </p>
+            <Link
+              href="/dashboard/book/items"
+              className="mt-5 inline-flex rounded-pill bg-primary hover:bg-primary-active px-5 py-2 font-sans text-button text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+            >
+              Browse catalogue
+            </Link>
+          </div>
         ) : (
-          <ul className="grid gap-6">
-            {holds.map((hold) => (
-              <ReservationCard key={hold.id} hold={hold} />
-            ))}
-          </ul>
+          <>
+            <h2 className="mb-3 font-display text-display-md tracking-tight text-ink dark:text-on-dark">
+              Active reservations
+            </h2>
+            <ul className="space-y-4">
+              {sorted.map((hold) => {
+                const canCancel = hold.status === 'queued' || hold.status === 'ready';
+                return (
+                  <li
+                    key={hold.id}
+                    className="overflow-hidden rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card"
+                  >
+                    <div className="p-1">
+                      <HoldCard hold={hold} />
+                    </div>
+
+                    {/* Details row */}
+                    <dl className="grid grid-cols-1 gap-3 border-t border-hairline-soft dark:border-dark-hairline px-4 py-3 font-sans text-body-sm sm:grid-cols-3">
+                      <div>
+                        <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+                          Placed on
+                        </dt>
+                        <dd className="mt-0.5 font-medium text-ink dark:text-on-dark">
+                          {formatDate(hold.placedAt)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+                          Ready since
+                        </dt>
+                        <dd className="mt-0.5 font-medium text-ink dark:text-on-dark">
+                          {hold.readyAt ? formatDateTime(hold.readyAt) : 'Not yet ready'}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+                          Expires
+                        </dt>
+                        <dd className="mt-0.5 font-medium text-ink dark:text-on-dark">
+                          {hold.expiresAt ? formatDateTime(hold.expiresAt) : '—'}
+                        </dd>
+                      </div>
+                      {hold.isbn && (
+                        <div className="sm:col-span-3">
+                          <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+                            ISBN
+                          </dt>
+                          <dd className="mt-0.5 font-mono text-code text-ink/80 dark:text-on-dark/80">
+                            {hold.isbn}
+                          </dd>
+                        </div>
+                      )}
+                    </dl>
+
+                    {/* Footer with action + message */}
+                    <div
+                      className={`flex flex-wrap items-center justify-between gap-3 border-t border-hairline-soft dark:border-dark-hairline px-4 py-3 font-sans text-body-sm ${
+                        hold.status === 'ready'
+                          ? 'text-primary dark:text-dark-primary'
+                          : 'text-muted dark:text-on-dark-soft'
+                      }`}
+                    >
+                      <p>{getReadyMessage(hold)}</p>
+                      {canCancel && (
+                        <CancelHoldButton
+                          holdId={hold.id}
+                          bookTitle={hold.title}
+                          cancelAction={cancelReservation}
+                        />
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
-      </section>
-    </main>
+      </AdminShell>
+    </>
   );
 }

@@ -14,24 +14,21 @@ const actions = [
     description: 'Scan or search to start a new loan',
     href: '/dashboard/book/checkout',
     icon: BookOpenIcon,
-    color:
-      'from-swin-red to-swin-red/80 shadow-swin-red/30 dark:from-rose-500 dark:to-rose-600 dark:shadow-rose-500/20',
+    iconBg: 'bg-primary/10 text-primary dark:bg-dark-primary/15 dark:text-dark-primary',
   },
   {
     label: 'Return a Book',
     description: 'Bring your book to the library counter',
     href: '/dashboard/book/checkin',
     icon: ArrowDownTrayIcon,
-    color:
-      'from-swin-charcoal to-swin-charcoal/80 shadow-swin-charcoal/30 dark:from-slate-500 dark:to-slate-600 dark:shadow-slate-500/20',
+    iconBg: 'bg-surface-cream-strong text-body dark:bg-dark-surface-strong dark:text-on-dark/80',
   },
   {
     label: 'Browse Catalogue',
     description: 'Explore available books',
     href: '/dashboard/book/items',
     icon: MagnifyingGlassIcon,
-    color:
-      'from-emerald-600 to-emerald-500 shadow-emerald-500/30 dark:from-emerald-500 dark:to-emerald-600 dark:shadow-emerald-500/20',
+    iconBg: 'bg-accent-teal/15 text-accent-teal dark:bg-accent-teal/20 dark:text-accent-teal',
   },
 ] as const;
 
@@ -42,18 +39,18 @@ export default function QuickActions() {
         <BlurFade key={action.href} delay={0.2 + index * 0.08} yOffset={10}>
           <Link
             href={action.href}
-            className="group flex items-center gap-4 rounded-2xl border border-swin-charcoal/10 bg-white p-5 shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-lg dark:border-slate-700/60 dark:bg-slate-900/70"
+            className="group flex items-center gap-4 rounded-card border border-hairline bg-surface-card p-5 transition-colors hover:border-primary/20 dark:border-dark-hairline dark:bg-dark-surface-card dark:hover:border-dark-primary/30"
           >
             <span
-              className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${action.color} shadow-md text-white transition-transform duration-300 group-hover:scale-110`}
+              className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-card ${action.iconBg}`}
             >
               <action.icon className="h-5 w-5" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-swin-charcoal dark:text-white">
+              <p className="font-sans text-title-sm text-ink dark:text-on-dark">
                 {action.label}
               </p>
-              <p className="text-xs text-swin-charcoal/60 dark:text-slate-400">
+              <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
                 {action.description}
               </p>
             </div>

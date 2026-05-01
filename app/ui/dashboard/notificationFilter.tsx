@@ -2,14 +2,13 @@
 
 import React from 'react';
 import clsx from 'clsx';
-// Using Heroicons (via heroicons package or similar svg imports)
-import { 
-  MagnifyingGlassIcon, 
-  FunnelIcon, 
-  ArrowsUpDownIcon, 
+import {
+  MagnifyingGlassIcon,
+  FunnelIcon,
+  ArrowsUpDownIcon,
   BarsArrowDownIcon,
   ArrowPathIcon,
-  CheckIcon
+  CheckIcon,
 } from '@heroicons/react/24/outline';
 
 export type NotificationFilterType = 'all' | 'read' | 'unread' | 'flag';
@@ -37,60 +36,52 @@ export default function NotificationsFilter({ action, defaults, className }: Pro
     e.currentTarget.form?.submit();
   };
 
-  const titleClassName = "hidden md:block text-xs font-semibold text-slate-900 dark:text-slate-200";
-  
-  const inputBaseClassName = `
-    mt-1 w-full rounded-xl border px-3 py-2 text-sm
-    bg-white border-slate-300 text-slate-900 
-    dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 
-    focus:outline-none focus:ring-2 focus:ring-swin-red/50
-  `;
+  const titleClassName =
+    'hidden md:block font-sans text-caption-uppercase text-muted dark:text-on-dark-soft';
 
-  // Style for mobile icon buttons
-  const mobileActionBtn = `
-    flex md:hidden relative items-center justify-center 
-    w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 
-    text-slate-600 dark:text-slate-400 active:scale-95 transition-transform
-  `;
+  const inputBaseClassName =
+    'mt-1 w-full rounded-btn border border-hairline bg-canvas px-3 py-2 font-sans text-body-sm text-ink placeholder:text-muted-soft focus:border-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark dark:placeholder:text-on-dark-soft';
+
+  // Mobile-only icon button — cream secondary
+  const mobileActionBtn =
+    'flex md:hidden relative items-center justify-center w-10 h-10 rounded-full bg-surface-cream-strong text-muted active:scale-95 transition dark:bg-dark-surface-strong dark:text-on-dark-soft';
 
   return (
-    <form 
-      action={action} 
+    <form
+      action={action}
       method="get"
       className={clsx(
-        "flex flex-row md:flex-row items-end gap-2 md:gap-3 p-3 md:p-5 rounded-2xl border-2",
-        "bg-swin-ivory border-slate-200 dark:bg-slate-900/50 dark:border-slate-800",
-        className
+        'flex flex-row items-end gap-2 rounded-card border border-hairline bg-surface-cream-strong/60 p-3 md:gap-3 md:p-5 dark:border-dark-hairline dark:bg-dark-surface-strong/60',
+        className,
       )}
     >
-      {/* 1. Search Box - Collapses to icon padding on mobile */}
+      {/* 1. Search */}
       <div className="flex-1 min-w-0">
         <label htmlFor="q" className={titleClassName}>Search</label>
         <div className="relative mt-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none md:hidden">
-            <MagnifyingGlassIcon className="h-4 w-4 text-slate-400" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 md:hidden">
+            <MagnifyingGlassIcon className="h-4 w-4 text-muted-soft" />
           </div>
           <input
             id="q"
             name="q"
             defaultValue={q}
             placeholder="Search..."
-            className={clsx(inputBaseClassName, "pl-9 md:pl-3 mt-0")}
+            className={clsx(inputBaseClassName, 'mt-0 pl-9 md:pl-3')}
           />
         </div>
       </div>
 
-      {/* 2. Filter Status - Icon on mobile, Select on Desktop */}
+      {/* 2. Filter */}
       <div className="relative">
         <label htmlFor="filter" className={titleClassName}>Filter</label>
         <div className={mobileActionBtn}>
           <FunnelIcon className="h-5 w-5" />
-          {/* Invisible select overlays the icon to trigger native UI */}
-          <select 
-            name="filter" 
+          <select
+            name="filter"
             defaultValue={filter}
             onChange={handleSelectChange}
-            className="absolute inset-0 opacity-0 cursor-pointer"
+            className="absolute inset-0 cursor-pointer opacity-0"
           >
             <option value="all">All Notifications</option>
             <option value="seen">Read</option>
@@ -98,11 +89,11 @@ export default function NotificationsFilter({ action, defaults, className }: Pro
             <option value="flag">Flagged</option>
           </select>
         </div>
-        <select 
-          id="filter" 
-          name="filter" 
-          defaultValue={filter} 
-          className={clsx(inputBaseClassName, "hidden md:block w-32")}
+        <select
+          id="filter"
+          name="filter"
+          defaultValue={filter}
+          className={clsx(inputBaseClassName, 'hidden w-32 md:block')}
         >
           <option value="all">All</option>
           <option value="seen">Seen</option>
@@ -111,27 +102,27 @@ export default function NotificationsFilter({ action, defaults, className }: Pro
         </select>
       </div>
 
-      {/* 3. Sort Field - Icon on mobile, Select on Desktop */}
+      {/* 3. Sort field */}
       <div className="relative">
         <label htmlFor="sort" className={titleClassName}>Sort</label>
         <div className={mobileActionBtn}>
           <ArrowsUpDownIcon className="h-5 w-5" />
-          <select 
-            name="sort" 
+          <select
+            name="sort"
             defaultValue={sort}
             onChange={handleSelectChange}
-            className="absolute inset-0 opacity-0 cursor-pointer"
+            className="absolute inset-0 cursor-pointer opacity-0"
           >
             <option value="date">Date</option>
             <option value="title">Title</option>
             <option value="author">Author</option>
           </select>
         </div>
-        <select 
-          id="sort" 
-          name="sort" 
-          defaultValue={sort} 
-          className={clsx(inputBaseClassName, "hidden md:block w-32")}
+        <select
+          id="sort"
+          name="sort"
+          defaultValue={sort}
+          className={clsx(inputBaseClassName, 'hidden w-32 md:block')}
         >
           <option value="date">Date</option>
           <option value="title">Title</option>
@@ -139,58 +130,50 @@ export default function NotificationsFilter({ action, defaults, className }: Pro
         </select>
       </div>
 
-      {/* 4. Sort Order - Icon on mobile, Select on Desktop */}
+      {/* 4. Order */}
       <div className="relative">
         <label htmlFor="order" className={titleClassName}>Order</label>
         <div className={mobileActionBtn}>
           <BarsArrowDownIcon className="h-5 w-5" />
-          <select 
-            name="order" 
+          <select
+            name="order"
             defaultValue={order}
             onChange={handleSelectChange}
-            className="absolute inset-0 opacity-0 cursor-pointer"
+            className="absolute inset-0 cursor-pointer opacity-0"
           >
             <option value="asc">Ascending</option>
             <option value="desc">Descending</option>
           </select>
         </div>
-        <select 
-          id="order" 
-          name="order" 
-          defaultValue={order} 
-          className={clsx(inputBaseClassName, "hidden md:block w-32")}
+        <select
+          id="order"
+          name="order"
+          defaultValue={order}
+          className={clsx(inputBaseClassName, 'hidden w-32 md:block')}
         >
           <option value="asc">Ascending</option>
           <option value="desc">Descending</option>
         </select>
       </div>
 
-      {/* 5. Actions: Apply & Reset */}
+      {/* 5. Actions */}
       <div className="flex items-center gap-2">
         <button
           type="submit"
-          className={clsx(
-            "flex items-center justify-center rounded-xl md:rounded-xl transition-colors",
-            "bg-zinc-200 dark:bg-slate-700 md:px-4 h-10 w-10 md:w-auto",
-            "text-slate-900 dark:text-slate-100"
-          )}
+          className="flex h-10 w-10 items-center justify-center rounded-btn bg-primary text-on-primary transition hover:bg-primary/90 md:w-auto md:px-4"
           title="Apply"
         >
           <CheckIcon className="h-5 w-5 md:hidden" />
-          <span className="hidden md:inline text-sm font-medium">Apply</span>
+          <span className="hidden font-sans text-button md:inline">Apply</span>
         </button>
-        
+
         <a
           href={action}
-          className={clsx(
-            "flex items-center justify-center rounded-xl border border-slate-300 dark:border-slate-700",
-            "h-10 w-10 md:w-auto md:px-4 bg-white dark:bg-slate-900 text-slate-500",
-            "transition-colors hover:bg-slate-50"
-          )}
+          className="flex h-10 w-10 items-center justify-center rounded-btn border border-hairline bg-surface-card text-muted transition hover:bg-surface-cream-strong md:w-auto md:px-4 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:bg-dark-surface-strong"
           title="Reset"
         >
           <ArrowPathIcon className="h-5 w-5 md:hidden" />
-          <span className="hidden md:inline text-sm font-medium">Reset</span>
+          <span className="hidden font-sans text-button md:inline">Reset</span>
         </a>
       </div>
     </form>

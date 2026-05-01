@@ -3,18 +3,9 @@ import '@testing-library/jest-dom';
 import SignOutButton from '@/app/ui/dashboard/signOutButton';
 
 const mockSignOut = jest.fn(() => Promise.resolve());
-const mockPush = jest.fn();
-const mockRefresh = jest.fn();
 
 jest.mock('next-auth/react', () => ({
   signOut: (...args) => mockSignOut(...args),
-}));
-
-jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: mockPush,
-    refresh: mockRefresh,
-  }),
 }));
 
 describe('SignOutButton', () => {
@@ -48,11 +39,11 @@ describe('SignOutButton', () => {
     });
   });
 
-  it('redirects to /login after signing out', async () => {
+  it('calls signOut before navigating away', async () => {
     render(<SignOutButton />);
     fireEvent.click(screen.getByRole('button'));
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/login');
+      expect(mockSignOut).toHaveBeenCalledWith({ redirect: false });
     });
   });
 

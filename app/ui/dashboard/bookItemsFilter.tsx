@@ -1,16 +1,14 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useMemo, useRef, useTransition } from 'react';
 import clsx from 'clsx';
-import { 
-  MagnifyingGlassIcon, 
-  FunnelIcon, 
-  ArrowsUpDownIcon, 
-  Bars3BottomLeftIcon, 
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import {
+  MagnifyingGlassIcon,
   Squares2X2Icon,
   ListBulletIcon,
-  ArrowPathIcon
 } from '@heroicons/react/24/outline';
+import { CATEGORY_OPTIONS, type CategoryKey } from '@/app/ui/dashboard/bookCategories';
 
 type SortField = 'title' | 'author' | 'year' | 'created_at';
 type SortOrder = 'asc' | 'desc';
@@ -31,174 +29,132 @@ type Props = {
     sort?: SortField;
     order?: SortOrder;
     view?: ViewMode;
+    category?: CategoryKey;
   };
   className?: string;
 };
 
 export default function BookItemsFilter({ action, defaults, className }: Props) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
   const q = defaults?.q ?? '';
-  const status = defaults?.status ?? '';
-  const sort = (defaults?.sort ?? 'title') as SortField;
-  const order = (defaults?.order ?? 'asc') as SortOrder;
   const view = (defaults?.view ?? 'grid') as ViewMode;
+  const activeCategory = (defaults?.category ?? 'all') as CategoryKey;
 
-  /** Triggers form submission via requestSubmit to respect HTML5 validation */
-  const handleAutoSubmit = () => {
-    if (formRef.current) {
-      formRef.current.requestSubmit();
+  const baseParams = useMemo(() => {
+    const p = new URLSearchParams(searchParams?.toString() ?? '');
+    return p;
+  }, [searchParams]);
+
+  const updateParams = (updates: Record<string, string | null>) => {
+    const next = new URLSearchParams(baseParams.toString());
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === null || value === '') {
+        next.delete(key);
+      } else {
+        next.set(key, value);
+      }
     }
+    startTransition(() => {
+      router.push(`${pathname}?${next.toString()}`);
+    });
   };
 
-  const desktopLabel = "hidden sm:block text-xs font-semibold text-slate-900 dark:text-slate-200";
-
-  /** * Unified Select Style:
-   * Mobile: Transparent overlay on top of an icon.
-   * Desktop: Standard visible dropdown.
-   */
-  const unifiedSelectClass = `
-    cursor-pointer focus:outline-none focus:ring-2 focus:ring-swin-red/50
-    /* Mobile: Circular transparent touch target */
-    absolute inset-0 opacity-0 sm:relative sm:opacity-100 
-    /* Desktop: Standard rounded box */
-    sm:mt-1 sm:block sm:rounded-xl sm:border sm:border-slate-300 sm:bg-white sm:px-3 sm:py-2 sm:text-sm
-    dark:sm:border-slate-700 dark:sm:bg-slate-900 dark:sm:text-slate-100
-  `;
-
-  /** Wrapper for mobile icons to ensure they don't block clicks to the select */
-  const mobileIconStyle = `
-    flex items-center justify-center w-10 h-10 rounded-full 
-    bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 
-    sm:hidden pointer-events-none
-  `;
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const searchValue = (form.elements.namedItem('q') as HTMLInputElement | null)?.value ?? '';
+    updateParams({ q: searchValue.trim() || null });
+  };
 
   return (
     <form
       ref={formRef}
       action={action}
       method="get"
+      onSubmit={handleSubmit}
       className={clsx(
-        'rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition-all',
-        'dark:border-slate-700 dark:bg-slate-900/80',
-        'flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end',
-        className
+        'flex flex-col gap-3 lg:flex-row lg:items-center',
+        className,
       )}
     >
-      {/* 1. Search Box */}
-      <div className="flex-1 min-w-0 sm:min-w-[220px]">
-        <label htmlFor="q" className={desktopLabel}>Search</label>
-        <div className="relative mt-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none sm:hidden">
-            <MagnifyingGlassIcon className="h-4 w-4 text-slate-400" />
-          </div>
-          <input
-            id="q"
-            name="q"
-            defaultValue={q}
-            placeholder="Search books..."
-            onKeyDown={(e) => e.key === 'Enter' && handleAutoSubmit()}
-            className="w-full rounded-xl border border-slate-300 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-swin-red/50 sm:pl-3 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-          />
-        </div>
+      {/* Search box */}
+      <div className="relative flex-1 min-w-0 lg:max-w-sm">
+        <MagnifyingGlassIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-soft dark:text-on-dark-soft" />
+        <input
+          id="q"
+          name="q"
+          defaultValue={q}
+          placeholder="Search title, author, ISBN…"
+          className="w-full rounded-pill border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft py-2.5 pl-11 pr-4 font-sans text-body-sm text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+        />
       </div>
 
-      {/* Action Row - Mobile: icons in one row / Desktop: horizontal selects */}
-      <div className="flex flex-row items-center justify-between gap-2 sm:contents">
-        
-        {/* Status Filter */}
-        <div className="relative flex flex-col items-center sm:items-start">
-          <label htmlFor="status" className={desktopLabel}>Status</label>
-          <div className="relative">
-            <div className={mobileIconStyle}><FunnelIcon className="h-5 w-5" /></div>
-            <select 
-              id="status"
-              name="status" 
-              defaultValue={status} 
-              onChange={handleAutoSubmit}
-              className={clsx(unifiedSelectClass, "sm:w-[150px]")}
+      {/* Category pills */}
+      <div className="flex flex-1 flex-wrap items-center gap-1.5 lg:justify-center">
+        {CATEGORY_OPTIONS.map((cat) => {
+          const active = cat.key === activeCategory;
+          return (
+            <button
+              key={cat.key}
+              type="button"
+              onClick={() =>
+                updateParams({ category: cat.key === 'all' ? null : cat.key })
+              }
+              disabled={isPending}
+              aria-pressed={active}
+              className={clsx(
+                'rounded-pill px-3.5 py-1.5 font-sans text-body-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
+                active
+                  ? 'bg-ink text-on-dark dark:bg-on-dark dark:text-ink'
+                  : 'border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card text-body dark:text-on-dark/70 hover:border-primary/30 hover:text-ink dark:hover:text-on-dark',
+              )}
             >
-              <option value="">Any Status</option>
-              <option value="available">Available</option>
-              <option value="checked_out">Checked out</option>
-              <option value="on_hold">On hold</option>
-              <option value="reserved">Reserved</option>
-              <option value="maintenance">Maintenance</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Sort Field */}
-        <div className="relative flex flex-col items-center sm:items-start">
-          <label htmlFor="sort" className={desktopLabel}>Sort</label>
-          <div className="relative">
-            <div className={mobileIconStyle}><Bars3BottomLeftIcon className="h-5 w-5" /></div>
-            <select 
-              id="sort" 
-              name="sort" 
-              defaultValue={sort} 
-              onChange={handleAutoSubmit}
-              className={clsx(unifiedSelectClass, "sm:w-[130px]")}
-            >
-              <option value="title">Title</option>
-              <option value="author">Author</option>
-              <option value="year">Year</option>
-              <option value="created_at">Created time</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Order */}
-        <div className="relative flex flex-col items-center sm:items-start">
-          <label htmlFor="order" className={desktopLabel}>Order</label>
-          <div className="relative">
-            <div className={mobileIconStyle}><ArrowsUpDownIcon className="h-5 w-5" /></div>
-            <select 
-              id="order" 
-              name="order" 
-              defaultValue={order} 
-              onChange={handleAutoSubmit}
-              className={clsx(unifiedSelectClass, "sm:w-[130px]")}
-            >
-              <option value="asc">A → Z</option>
-              <option value="desc">Z → A</option>
-            </select>
-          </div>
-        </div>
-
-        {/* View Mode */}
-        <div className="relative flex flex-col items-center sm:items-start">
-          <label htmlFor="view" className={desktopLabel}>View</label>
-          <div className="relative">
-            <div className={mobileIconStyle}>
-              {view === 'grid' ? <Squares2X2Icon className="h-5 w-5" /> : <ListBulletIcon className="h-5 w-5" />}
-            </div>
-            <select 
-              id="view" 
-              name="view" 
-              defaultValue={view} 
-              onChange={handleAutoSubmit}
-              className={clsx(unifiedSelectClass, "sm:w-[110px]")}
-            >
-              <option value="grid">Grid View</option>
-              <option value="list">List View</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Reset Link */}
-        <div className="flex items-center sm:ml-auto">
-          <a
-            href={action}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-600 sm:h-auto sm:w-auto sm:rounded-xl sm:px-4 sm:py-2 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800"
-            title="Reset Filters"
-          >
-            <ArrowPathIcon className="h-5 w-5 sm:hidden" />
-            <span className="hidden sm:inline text-sm font-semibold">Reset</span>
-          </a>
-        </div>
-
+              {cat.label}
+            </button>
+          );
+        })}
       </div>
+
+      {/* Grid/List toggle */}
+      <div className="inline-flex items-center rounded-pill border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-1">
+        <button
+          type="button"
+          onClick={() => updateParams({ view: 'grid' })}
+          aria-pressed={view === 'grid'}
+          aria-label="Grid view"
+          className={clsx(
+            'flex h-8 w-8 items-center justify-center rounded-pill transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
+            view === 'grid'
+              ? 'bg-ink text-on-dark dark:bg-on-dark dark:text-ink'
+              : 'text-muted-soft hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark',
+          )}
+        >
+          <Squares2X2Icon className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => updateParams({ view: 'list' })}
+          aria-pressed={view === 'list'}
+          aria-label="List view"
+          className={clsx(
+            'flex h-8 w-8 items-center justify-center rounded-pill transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
+            view === 'list'
+              ? 'bg-ink text-on-dark dark:bg-on-dark dark:text-ink'
+              : 'text-muted-soft hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark',
+          )}
+        >
+          <ListBulletIcon className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Hidden fields so the default URL submit works if JS is off */}
+      <input type="hidden" name="view" value={view} />
+      <input type="hidden" name="category" value={activeCategory} />
     </form>
   );
 }

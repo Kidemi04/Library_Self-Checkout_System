@@ -25,8 +25,7 @@ export default function SearchForm({
     <form
       action={action}
       className={clsx(
-        'flex flex-col gap-2 rounded-xl border border-swin-charcoal/10 bg-white p-3 shadow-sm shadow-swin-charcoal/5 md:flex-row md:items-center',
-        'dark:border-slate-800 dark:bg-slate-950/60 dark:shadow-black/20',
+        'flex flex-col gap-2 rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-3 md:flex-row md:items-center',
         className,
       )}
     >
@@ -38,7 +37,7 @@ export default function SearchForm({
         name={name}
         defaultValue={defaultValue}
         placeholder={placeholder}
-        className="flex-1 rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+        className="flex-1 rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
       />
 
       {/* Preserve extra query params */}
@@ -51,7 +50,7 @@ export default function SearchForm({
 
       <button
         type="submit"
-        className="inline-flex items-center justify-center rounded-lg border border-swin-charcoal/20 bg-swin-charcoal px-4 py-2 text-sm font-semibold text-swin-ivory transition hover:border-swin-red hover:bg-swin-red dark:border-slate-700 dark:bg-slate-800"
+        className="inline-flex items-center justify-center rounded-btn bg-primary hover:bg-primary-active px-5 h-10 font-sans text-button text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
       >
         Search
       </button>

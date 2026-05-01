@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom';
 import clsx from 'clsx';
 import { updateProfileAction, type ProfileUpdateFormState } from '@/app/profile/actions';
 import { CheckIcon } from '@heroicons/react/24/outline';
+import { Button } from '@/app/ui/button';
 
 type ProfileEditFormProps = {
   username: string | null;
@@ -13,47 +14,20 @@ type ProfileEditFormProps = {
   faculty: string | null;
   department: string | null;
   bio: string | null;
-  isPrivileged: boolean;
 };
 
-const fieldClass = (isPrivileged: boolean) =>
-  clsx(
-    'w-full rounded-md border px-3 py-2 text-sm shadow-sm transition focus:outline-none focus:ring-2',
-    'border-slate-300 bg-white text-slate-900 focus:ring-slate-400 focus:ring-offset-1 focus:ring-offset-white',
-    'dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:ring-slate-300 dark:focus:ring-offset-slate-900',
-    isPrivileged && 'focus:ring-slate-500 dark:focus:ring-slate-300',
-  );
+const inputClass =
+  'block w-full rounded-btn border border-hairline bg-canvas px-3.5 h-10 font-sans text-body-md text-ink placeholder:text-muted-soft transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas disabled:bg-surface-soft disabled:cursor-not-allowed dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas';
 
-const labelClass = (isPrivileged: boolean) =>
-  clsx(
-    'block text-xs uppercase mb-1',
-    isPrivileged ? 'text-slate-600 dark:text-slate-400' : 'text-slate-500',
-  );
+const textareaClass = clsx(inputClass, 'h-auto py-2.5 resize-none');
 
-const messageClass = (state: ProfileUpdateFormState, isPrivileged: boolean) => {
-  if (state.status === 'success') {
-    return 'text-sm font-medium text-emerald-500';
-  }
-  if (state.status === 'error') {
-    return 'text-sm font-medium text-rose-500';
-  }
-  return clsx('text-sm', isPrivileged ? 'text-slate-300' : 'text-slate-500');
-};
+const labelClass = 'block mb-1.5 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft';
 
-function SubmitButton({ isPrivileged }: { isPrivileged: boolean }) {
+function SubmitButton() {
   const { pending } = useFormStatus();
 
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className={clsx(
-        'inline-flex items-center justify-center rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed',
-        isPrivileged
-          ? 'bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 focus:ring-emerald-500'
-          : 'bg-gradient-to-r from-swin-red to-orange-600 hover:from-red-600 hover:to-orange-500 focus:ring-swin-red'
-      )}
-    >
+    <Button type="submit" aria-disabled={pending} disabled={pending}>
       {pending ? (
         <span className="flex items-center gap-2">
           <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
@@ -68,7 +42,7 @@ function SubmitButton({ isPrivileged }: { isPrivileged: boolean }) {
           Save Changes
         </span>
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -79,25 +53,11 @@ export default function ProfileEditForm({
   faculty,
   department,
   bio,
-  isPrivileged,
 }: ProfileEditFormProps) {
   const [state, formAction] = useActionState(updateProfileAction, {
     status: 'idle',
     message: undefined,
   } satisfies ProfileUpdateFormState);
-
-  const inputClass = clsx(
-    'block w-full rounded-xl border-0 py-2.5 px-4 text-slate-900 ring-1 ring-inset placeholder:text-slate-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-300',
-    'bg-white/50 backdrop-blur-sm dark:bg-white/5 dark:text-white',
-    isPrivileged
-      ? 'ring-emerald-200 focus:ring-emerald-500 dark:ring-emerald-500/30'
-      : 'ring-slate-200 focus:ring-swin-red dark:ring-white/10 dark:focus:ring-swin-red'
-  );
-
-  const labelClass = clsx(
-    'block text-xs font-semibold uppercase tracking-wide mb-1.5',
-    isPrivileged ? 'text-slate-500 dark:text-slate-400' : 'text-slate-500'
-  );
 
   return (
     <form action={formAction} className="space-y-8">
@@ -133,7 +93,7 @@ export default function ProfileEditForm({
             maxLength={20}
             pattern="[0-9\s+-]+"
           />
-          <p className="mt-1.5 text-xs text-slate-400">
+          <p className="mt-1.5 font-sans text-caption text-muted-soft dark:text-on-dark-soft">
             Format: 012 3456 7890
           </p>
         </div>
@@ -198,19 +158,21 @@ export default function ProfileEditForm({
           rows={4}
           defaultValue={bio ?? ''}
           placeholder="Write a short bio about yourself..."
-          className={clsx(inputClass, 'resize-none')}
+          className={textareaClass}
           maxLength={500}
         />
       </div>
 
       {/* Submit and Status */}
-      <div className="flex flex-col sm:flex-row-reverse gap-4 items-center justify-between pt-2 border-t border-slate-200/50 dark:border-white/10">
-        <SubmitButton isPrivileged={isPrivileged} />
+      <div className="flex flex-col items-center justify-between gap-4 border-t border-hairline pt-4 sm:flex-row-reverse dark:border-dark-hairline">
+        <SubmitButton />
         {state.status !== 'idle' && (
-          <p className={clsx(
-            'text-sm font-medium animate-pulse',
-            state.status === 'success' ? 'text-emerald-500' : 'text-rose-500'
-          )}>
+          <p
+            className={clsx(
+              'font-sans text-body-sm font-medium',
+              state.status === 'success' ? 'text-success' : 'text-error',
+            )}
+          >
             {state.message}
           </p>
         )}

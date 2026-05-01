@@ -1,116 +1,110 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import clsx from 'clsx';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { InboxIcon, MagnifyingGlassIcon, ArrowsUpDownIcon } from '@heroicons/react/24/outline';
 import type { Notification } from '@/app/lib/supabase/notifications';
 import type { NotificationFilterType } from '@/app/ui/dashboard/notificationFilter';
+import NotificationItem from '@/app/ui/dashboard/primitives/NotificationItem';
+import FilterPills from '@/app/ui/dashboard/primitives/FilterPills';
 
-function timeAgo(iso: string): string {
-  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+function shortTime(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  const diff = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (diff < 60) return 'now';
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
-function formatDate(iso: string | undefined): string {
+function formatDateTime(iso: string | undefined): string {
   if (!iso) return '—';
   const d = new Date(iso);
   if (isNaN(d.getTime())) return iso;
-  return d.toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleString('en-MY', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
-const typeConfig = {
-  checkout: {
-    label: 'Borrowed',
-    badge: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
-    dot: 'bg-blue-500',
-  },
-  checkin: {
-    label: 'Returned',
-    badge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-    dot: 'bg-emerald-500',
-  },
-  loan_confirmed: {
-    label: 'Loan confirmed',
-    badge: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-    dot: 'bg-emerald-500',
-  },
-  due_soon: {
-    label: 'Due soon',
-    badge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-    dot: 'bg-amber-500',
-  },
-  hold_ready: {
-    label: 'Hold ready',
-    badge: 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
-    dot: 'bg-violet-500',
-  },
-  hold_placed: {
-    label: 'Hold placed',
-    badge: 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
-    dot: 'bg-sky-500',
-  },
-} as const;
+/** Returns a day-group bucket label: Today / Yesterday / DD MMM. */
+function dayBucket(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return 'Earlier';
+  const today = new Date();
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  if (isSameDay(d, today)) return 'Today';
+  const y = new Date();
+  y.setDate(y.getDate() - 1);
+  if (isSameDay(d, y)) return 'Yesterday';
+  return d.toLocaleDateString('en-MY', { day: 'numeric', month: 'short' });
+}
 
-/** Renders the metadata detail rows for a given notification type */
 function NotificationDetails({ n }: { n: Notification }) {
   const m = n.metadata ?? {};
-
   const rows: { label: string; value: string }[] = [];
-
-  if (m.bookTitle)         rows.push({ label: 'Book', value: m.bookTitle });
-  if (m.bookAuthor)        rows.push({ label: 'Author', value: m.bookAuthor });
-  if (m.barcode)           rows.push({ label: 'Barcode', value: m.barcode });
-  if (m.patronName)        rows.push({ label: 'Borrower', value: m.patronName });
-  if (m.patronIdentifier)  rows.push({ label: 'Borrower ID', value: m.patronIdentifier });
-  if (m.dueAt)             rows.push({ label: 'Due date', value: formatDate(m.dueAt) });
-  if (m.expiresAt)         rows.push({ label: 'Pickup expires', value: formatDate(m.expiresAt) });
-  if (m.loanId)            rows.push({ label: 'Loan ID', value: m.loanId });
-  if (m.holdId)            rows.push({ label: 'Hold ID', value: m.holdId });
-
-  // Fallback: always show the notification timestamp
-  rows.push({ label: 'Received', value: formatDate(n.created_at) });
-
-  if (rows.length === 0) return null;
+  if (m.bookTitle) rows.push({ label: 'Book', value: m.bookTitle });
+  if (m.bookAuthor) rows.push({ label: 'Author', value: m.bookAuthor });
+  if (m.barcode) rows.push({ label: 'Barcode', value: m.barcode });
+  if (m.patronName) rows.push({ label: 'Borrower', value: m.patronName });
+  if (m.patronIdentifier) rows.push({ label: 'Borrower ID', value: m.patronIdentifier });
+  if (m.dueAt) rows.push({ label: 'Due date', value: formatDateTime(m.dueAt) });
+  if (m.expiresAt) rows.push({ label: 'Pickup expires', value: formatDateTime(m.expiresAt) });
+  if (m.loanId) rows.push({ label: 'Loan ID', value: m.loanId });
+  if (m.holdId) rows.push({ label: 'Hold ID', value: m.holdId });
+  rows.push({ label: 'Received', value: formatDateTime(n.created_at) });
 
   return (
-    <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2 rounded-xl border border-swin-charcoal/10 bg-swin-ivory px-4 py-3 text-xs dark:border-slate-700 dark:bg-slate-800/60 sm:grid-cols-3">
+    <dl className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-3">
       {rows.map(({ label, value }) => (
         <div key={label}>
-          <dt className="font-medium text-swin-charcoal/50 dark:text-slate-500">{label}</dt>
-          <dd className="mt-0.5 break-all font-mono text-swin-charcoal dark:text-slate-200">{value}</dd>
+          <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+            {label}
+          </dt>
+          <dd className="mt-0.5 break-all font-mono text-code text-ink dark:text-on-dark">{value}</dd>
         </div>
       ))}
     </dl>
   );
 }
 
+type InboxFilter = 'all' | 'unread';
+type SortField = 'date' | 'title';
+type SortOrder = 'desc' | 'asc';
+
 interface Props {
   filter?: NotificationFilterType;
   searchQuery?: string;
 }
 
-export default function NotificationList({ filter = 'all', searchQuery = '' }: Props) {
+export default function NotificationList({ filter: initialFilter = 'all', searchQuery: initialSearch = '' }: Props) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [marking, setMarking] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const apiFilter = filter === 'read' ? 'read' : filter === 'unread' ? 'unread' : 'all';
+  const [filter, setFilter] = useState<InboxFilter>(
+    initialFilter === 'unread' ? 'unread' : 'all',
+  );
+  const [search, setSearch] = useState<string>(initialSearch);
+  const [sortField, setSortField] = useState<SortField>('date');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch(`/api/notifications?filter=${apiFilter}&limit=100`);
+      const res = await fetch(`/api/notifications?filter=all&limit=200`);
       if (!res.ok) return;
       const { notifications: data } = (await res.json()) as { notifications: Notification[] };
       setNotifications(data ?? []);
     } catch {
-      // silently ignore
+      /* ignore */
     } finally {
       setLoading(false);
     }
-  }, [apiFilter]);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -139,27 +133,50 @@ export default function NotificationList({ filter = 'all', searchQuery = '' }: P
     setMarking(null);
   };
 
-  const toggleExpand = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id));
-  };
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    const matches = notifications.filter((n) => {
+      if (filter === 'unread' && n.is_read) return false;
+      if (!q) return true;
+      return (
+        n.title.toLowerCase().includes(q) ||
+        n.message.toLowerCase().includes(q) ||
+        (n.metadata?.bookTitle ?? '').toLowerCase().includes(q) ||
+        (n.metadata?.bookAuthor ?? '').toLowerCase().includes(q)
+      );
+    });
 
-  const filtered = notifications.filter((n) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      n.title.toLowerCase().includes(q) ||
-      n.message.toLowerCase().includes(q) ||
-      (n.metadata?.bookTitle ?? '').toLowerCase().includes(q) ||
-      (n.metadata?.bookAuthor ?? '').toLowerCase().includes(q)
-    );
-  });
+    const direction = sortOrder === 'asc' ? 1 : -1;
+    return [...matches].sort((a, b) => {
+      if (sortField === 'title') {
+        return a.title.localeCompare(b.title) * direction;
+      }
+      return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * direction;
+    });
+  }, [notifications, filter, search, sortField, sortOrder]);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  // Group filtered notifications by day bucket, preserving server order (newest first).
+  const groups = useMemo(() => {
+    const map = new Map<string, Notification[]>();
+    for (const n of filtered) {
+      const key = dayBucket(n.created_at);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(n);
+    }
+    return [...map.entries()];
+  }, [filtered]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <svg className="h-6 w-6 animate-spin text-swin-charcoal/30 dark:text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <svg
+          className="h-6 w-6 animate-spin text-muted-soft dark:text-on-dark-soft"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
         </svg>
@@ -169,131 +186,127 @@ export default function NotificationList({ filter = 'all', searchQuery = '' }: P
 
   return (
     <div className="space-y-4">
-      {/* Bulk action bar */}
-      {unreadCount > 0 && filter !== 'read' && (
-        <div className="flex items-center justify-between rounded-xl border border-swin-charcoal/10 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900/80">
-          <span className="text-sm text-swin-charcoal/70 dark:text-slate-400">
-            {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
-          </span>
+      {/* Search + sort bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-[200px] flex-1">
+          <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-soft dark:text-on-dark-soft" />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search title, message, book…"
+            className="w-full rounded-btn border border-hairline bg-canvas py-2 pl-9 pr-3 font-sans text-body-sm text-ink placeholder:text-muted-soft focus:border-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark dark:placeholder:text-on-dark-soft"
+          />
+        </div>
+        <div className="flex items-center gap-1 rounded-btn border border-hairline bg-surface-card px-1 py-1 font-sans text-body-sm dark:border-dark-hairline dark:bg-dark-surface-card">
+          <ArrowsUpDownIcon className="mx-1 h-4 w-4 text-muted-soft dark:text-on-dark-soft" />
+          <select
+            value={sortField}
+            onChange={(e) => setSortField(e.target.value as SortField)}
+            className="cursor-pointer border-0 bg-transparent pl-2 pr-7 text-ink outline-none focus:ring-0 dark:text-on-dark"
+            aria-label="Sort field"
+          >
+            <option value="date">Date</option>
+            <option value="title">Title</option>
+          </select>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+            className="cursor-pointer border-0 bg-transparent pl-2 pr-7 text-ink outline-none focus:ring-0 dark:text-on-dark"
+            aria-label="Sort order"
+          >
+            <option value="desc">Newest</option>
+            <option value="asc">Oldest</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Filter pills + Mark all read */}
+      <div className="flex items-center justify-between gap-3">
+        <FilterPills<InboxFilter>
+          options={[
+            { value: 'all', label: 'All', count: notifications.length },
+            { value: 'unread', label: 'Unread', count: unreadCount },
+          ]}
+          value={filter}
+          onChange={setFilter}
+        />
+        {unreadCount > 0 && (
           <button
             onClick={markAllRead}
             disabled={marking === 'all'}
-            className="text-sm font-medium text-swin-red hover:underline disabled:opacity-50"
+            className="inline-flex h-9 items-center gap-1.5 rounded-pill border border-hairline bg-surface-card px-3 font-sans text-caption-uppercase text-ink transition hover:text-primary disabled:opacity-50 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:text-dark-primary"
           >
-            {marking === 'all' ? 'Marking…' : 'Mark all as read'}
+            {marking === 'all' ? 'Marking…' : 'Mark all read'}
           </button>
-        </div>
-      )}
-
-      {/* List */}
-      <div
-        className={clsx(
-          'overflow-hidden rounded-2xl border border-swin-charcoal/10 bg-white shadow-sm shadow-swin-charcoal/5',
-          'dark:border-slate-700 dark:bg-slate-900/80 dark:shadow-black/20',
         )}
-      >
-        {filtered.length === 0 ? (
-          <div className="p-10 text-center">
-            <p className="text-sm text-swin-charcoal/60 dark:text-slate-400">
-              {searchQuery ? 'No notifications match your search.' : 'No notifications here yet.'}
-            </p>
+      </div>
+
+      {/* Grouped list */}
+      <div className="overflow-hidden rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card">
+        {groups.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+            <InboxIcon className="h-9 w-9 text-muted-soft dark:text-on-dark-soft" />
+            <div>
+              <p className="font-display text-display-sm text-ink dark:text-on-dark">
+                All caught up
+              </p>
+              <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
+                {search.trim()
+                  ? 'No notifications match your search.'
+                  : filter === 'unread'
+                  ? 'No unread notifications'
+                  : 'No notifications yet'}
+              </p>
+            </div>
           </div>
         ) : (
-          <ul className="divide-y divide-swin-charcoal/10 dark:divide-slate-800">
-            {filtered.map((n) => {
-              const cfg = typeConfig[n.type] ?? typeConfig.checkout;
-              const isExpanded = expandedId === n.id;
-
-              return (
-                <li
-                  key={n.id}
-                  className={clsx(
-                    'transition-colors',
-                    !n.is_read && 'bg-blue-50/40 dark:bg-slate-800/40',
-                  )}
-                >
-                  {/* Clickable row */}
-                  <button
-                    type="button"
-                    onClick={() => toggleExpand(n.id)}
-                    className="flex w-full items-start gap-4 px-6 py-4 text-left hover:bg-swin-ivory dark:hover:bg-slate-800/60"
-                  >
-                    {/* Unread dot */}
-                    <div className="mt-2 flex-shrink-0">
-                      <span
-                        className={clsx(
-                          'block h-2.5 w-2.5 rounded-full transition-opacity',
-                          n.is_read ? 'opacity-0' : cfg.dot,
-                        )}
-                      />
-                    </div>
-
-                    {/* Body */}
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span
-                          className={clsx(
-                            'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
-                            cfg.badge,
+          groups.map(([dayLabel, items], gi) => (
+            <div key={dayLabel}>
+              <div
+                className={`border-b border-hairline-soft bg-surface-cream-strong/60 px-5 py-2 font-sans text-caption-uppercase text-muted dark:border-dark-hairline dark:bg-dark-surface-strong/60 dark:text-on-dark-soft ${
+                  gi > 0 ? 'border-t' : ''
+                }`}
+              >
+                {dayLabel}
+              </div>
+              <ul className="divide-y divide-hairline-soft dark:divide-dark-hairline">
+                {items.map((n) => (
+                  <li key={n.id}>
+                    <NotificationItem
+                      type={n.type}
+                      title={n.title}
+                      body={n.message}
+                      timeLabel={shortTime(n.created_at)}
+                      read={n.is_read}
+                      onClick={() => {
+                        setExpandedId((prev) => (prev === n.id ? null : n.id));
+                        if (!n.is_read) markRead(n.id);
+                      }}
+                      expanded={expandedId === n.id}
+                      details={
+                        <div className="space-y-3">
+                          <NotificationDetails n={n} />
+                          {!n.is_read && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                markRead(n.id);
+                              }}
+                              disabled={marking === n.id}
+                              className="rounded-btn bg-surface-cream-strong px-3 py-1.5 font-sans text-caption-uppercase text-ink transition hover:bg-primary/10 hover:text-primary disabled:opacity-50 dark:bg-dark-surface-strong dark:text-on-dark dark:hover:bg-primary/15"
+                            >
+                              {marking === n.id ? '…' : 'Mark as read'}
+                            </button>
                           )}
-                        >
-                          {cfg.label}
-                        </span>
-                        <span className="text-sm font-semibold text-swin-charcoal dark:text-slate-100">
-                          {n.title}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-sm text-swin-charcoal/70 dark:text-slate-400">
-                        {n.message}
-                      </p>
-                    </div>
-
-                    {/* Time + chevron */}
-                    <div className="flex flex-shrink-0 flex-col items-end gap-2">
-                      <span className="text-xs text-swin-charcoal/40 dark:text-slate-500">
-                        {timeAgo(n.created_at)}
-                      </span>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className={clsx(
-                          'h-4 w-4 text-swin-charcoal/30 transition-transform dark:text-slate-600',
-                          isExpanded && 'rotate-180',
-                        )}
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-                      </svg>
-                    </div>
-                  </button>
-
-                  {/* Expanded details */}
-                  {isExpanded && (
-                    <div className="border-t border-swin-charcoal/5 px-6 pb-4 pt-3 dark:border-slate-800">
-                      <NotificationDetails n={n} />
-
-                      {!n.is_read && (
-                        <button
-                          onClick={() => markRead(n.id)}
-                          disabled={marking === n.id}
-                          className={clsx(
-                            'mt-3 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
-                            'bg-swin-charcoal/5 text-swin-charcoal/60 hover:bg-swin-red/10 hover:text-swin-red',
-                            'dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-swin-red/10 dark:hover:text-swin-red',
-                            marking === n.id && 'opacity-50',
-                          )}
-                        >
-                          {marking === n.id ? '…' : 'Mark as read'}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+                        </div>
+                      }
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
         )}
       </div>
     </div>

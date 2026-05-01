@@ -16,63 +16,63 @@ interface Toast {
 const typeConfig = {
   checkout: {
     label: 'Borrowed',
-    colors: 'border-blue-400/60 bg-blue-50 dark:bg-slate-800 dark:border-blue-500/40',
+    iconColor: 'text-accent-amber',
+    badge: 'bg-accent-amber/12 text-accent-amber',
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-blue-500">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
       </svg>
     ),
-    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
   },
   checkin: {
     label: 'Returned',
-    colors: 'border-emerald-400/60 bg-emerald-50 dark:bg-slate-800 dark:border-emerald-500/40',
+    iconColor: 'text-success',
+    badge: 'bg-success/10 text-success',
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-emerald-500">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
         <path strokeLinecap="round" strokeLinejoin="round" d="m9 15 3 3m0 0 3-3m-3 3V8.25M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
       </svg>
     ),
-    badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
   },
   loan_confirmed: {
     label: 'Loan confirmed',
-    colors: 'border-emerald-400/60 bg-emerald-50 dark:bg-slate-800 dark:border-emerald-500/40',
+    iconColor: 'text-success',
+    badge: 'bg-success/10 text-success',
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-emerald-500">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
       </svg>
     ),
-    badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
   },
   due_soon: {
     label: 'Due soon',
-    colors: 'border-amber-400/60 bg-amber-50 dark:bg-slate-800 dark:border-amber-500/40',
+    iconColor: 'text-warning',
+    badge: 'bg-warning/10 text-warning',
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-amber-500">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
       </svg>
     ),
-    badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
   },
   hold_ready: {
     label: 'Hold ready',
-    colors: 'border-violet-400/60 bg-violet-50 dark:bg-slate-800 dark:border-violet-500/40',
+    iconColor: 'text-primary dark:text-dark-primary',
+    badge: 'bg-primary/10 text-primary dark:bg-dark-primary/15 dark:text-dark-primary',
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-violet-500">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
       </svg>
     ),
-    badge: 'bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
   },
   hold_placed: {
     label: 'Hold placed',
-    colors: 'border-sky-400/60 bg-sky-50 dark:bg-slate-800 dark:border-sky-500/40',
+    iconColor: 'text-accent-teal',
+    badge: 'bg-accent-teal/10 text-accent-teal',
     icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-sky-500">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
       </svg>
     ),
-    badge: 'bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300',
   },
 } as const;
 
@@ -146,8 +146,7 @@ export default function NotificationToast() {
           <div
             key={toast.id}
             className={clsx(
-              'pointer-events-auto flex w-80 items-start gap-3 rounded-2xl border p-4 shadow-xl transition-all duration-300',
-              cfg.colors,
+              'pointer-events-auto flex w-80 items-start gap-3 rounded-card border border-hairline bg-surface-card p-4 shadow-[0_4px_16px_rgba(20,20,19,0.08)] transition-all duration-300 dark:border-dark-hairline dark:bg-dark-surface-card',
               toast.dismissing
                 ? 'translate-x-4 opacity-0'
                 : 'translate-x-0 opacity-100',
@@ -155,24 +154,24 @@ export default function NotificationToast() {
             style={{ transition: 'opacity 350ms ease, transform 350ms ease' }}
           >
             {/* Icon */}
-            <div className="mt-0.5 flex-shrink-0">{cfg.icon}</div>
+            <div className={clsx('mt-0.5 flex-shrink-0', cfg.iconColor)}>{cfg.icon}</div>
 
             {/* Content */}
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <span
                   className={clsx(
-                    'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold',
+                    'inline-flex items-center rounded-pill px-2 py-0.5 font-sans text-caption-uppercase',
                     cfg.badge,
                   )}
                 >
                   {cfg.label}
                 </span>
               </div>
-              <p className="mt-1 text-sm font-semibold text-slate-800 dark:text-slate-100">
+              <p className="mt-1 font-sans text-title-sm text-ink dark:text-on-dark">
                 {toast.notification.title}
               </p>
-              <p className="mt-0.5 text-xs leading-snug text-slate-600 dark:text-slate-400">
+              <p className="mt-0.5 font-sans text-body-sm leading-snug text-body dark:text-on-dark/80">
                 {toast.notification.message}
               </p>
             </div>
@@ -180,7 +179,7 @@ export default function NotificationToast() {
             {/* Close */}
             <button
               onClick={() => dismissToast(toast.id)}
-              className="ml-1 flex-shrink-0 rounded-full p-1 text-slate-400 transition-colors hover:bg-black/10 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-slate-200"
+              className="ml-1 flex-shrink-0 rounded-full p-1 text-muted-soft transition-colors hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:text-on-dark-soft dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
               aria-label="Dismiss"
             >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">

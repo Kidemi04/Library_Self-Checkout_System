@@ -2,32 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Apple system font stack — SF Pro on Apple, Segoe UI on Windows */
-html, body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
-}
-
+/* Hide native number-input spinners across browsers */
 input[type='number'] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
 
-input[type='number']::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
+input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-/* Hide custom scrollbars while keeping scroll functionality for supported browsers */
+/* Utility: hide custom scrollbars while keeping scroll functionality */
 .scrollbar-none {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .scrollbar-none::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
+  display: none;
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

@@ -1,193 +1,80 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import clsx from 'clsx';
-import { ArrowUpTrayIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
-import CheckOutForm from '@/app/ui/dashboard/checkOutForm';
-import CheckInForm from '@/app/ui/dashboard/checkInForm';
-import ActiveLoansTable from '@/app/ui/dashboard/activeLoansTable';
-import SummaryCards from '@/app/ui/dashboard/summaryCards';
-import RecentLoans from '@/app/ui/dashboard/recentLoans';
-import BlurFade from '@/app/ui/magicUi/blurFade';
 import {
   fetchActiveLoans,
-  fetchAvailableBooks,
   fetchDashboardSummary,
-  fetchRecentLoans,
   fetchActiveHoldsForPatron,
+  fetchAvailableBooks,
+  fetchRecentLoans,
+  fetchHoldsForStaff,
 } from '@/app/lib/supabase/queries';
 import { getDashboardSession } from '@/app/lib/auth/session';
-import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
-import DashboardUserCard from '@/app/ui/dashboard/dashboardUserCard';
-import StudentDashboard from '@/app/ui/dashboard/student/studentDashboard';
-
-const roleLabel = (role: string): string => {
-  if (role === 'admin') return 'Admin';
-  if (role === 'staff') return 'Staff';
-  return 'User';
-};
-
-const defaultLoanDurationDays = 14;
-
-const buildDefaultDueDate = () => {
-  const now = new Date();
-  now.setDate(now.getDate() + defaultLoanDurationDays);
-  const iso = now.toISOString();
-  return iso.split('T')[0] ?? iso;
-};
+import StudentDashboard, { type BookPick } from '@/app/ui/dashboard/student/studentDashboard';
+import StaffDashboard from '@/app/ui/dashboard/staff/staffDashboard';
 
 export default async function UserDashboardPage() {
-  const { user, isBypassed } = await getDashboardSession();
+  const { user } = await getDashboardSession();
 
-  if (!user) {
-    redirect('/login');
-  }
+  if (!user) redirect('/login');
+  if (user.role === 'admin') redirect('/dashboard/admin');
 
-  if (user.role === 'admin') {
-    redirect('/dashboard/admin');
-  }
-
-  const isUser = user.role === 'user';
-
-  // Student gets a dedicated redesigned dashboard
-  if (isUser) {
-    const [activeLoans, holds] = await Promise.all([
+  // Student dashboard
+  if (user.role === 'user') {
+    const [activeLoans, holds, availableBooks] = await Promise.all([
       fetchActiveLoans(undefined, user.id),
       fetchActiveHoldsForPatron(user.id),
+      fetchAvailableBooks(),
     ]);
+
+    const picks: BookPick[] = availableBooks
+      .slice(0, 8)
+      .map((b) => ({
+        id: b.id,
+        title: b.title,
+        author: b.author ?? 'Unknown author',
+        category: b.category ?? null,
+        coverImageUrl: b.coverImageUrl ?? null,
+      }));
+
     return (
       <>
         <title>Dashboard | Swinburne Library</title>
-        <StudentDashboard userName={user.name} activeLoans={activeLoans} holds={holds} />
+        <StudentDashboard
+          userName={user.name}
+          activeLoans={activeLoans}
+          holds={holds}
+          picks={picks}
+        />
       </>
     );
   }
 
-  const [books, activeLoans, summary, recentLoans] = await Promise.all([
-    fetchAvailableBooks(),
-    fetchActiveLoans(),
+  // Staff dashboard
+  const [summary, recentLoans, allStaffHolds] = await Promise.all([
     fetchDashboardSummary(),
     fetchRecentLoans(6),
+    fetchHoldsForStaff(),
   ]);
 
-  const defaultDueDate = buildDefaultDueDate();
+  const readyHolds = allStaffHolds
+    .filter((h) => h.status === 'ready')
+    .slice(0, 5)
+    .map((h) => ({
+      id: h.id,
+      patron: h.patron_name,
+      bookTitle: h.book_title,
+      expiresAt: h.expires_at,
+    }));
 
   return (
-    <main className="space-y-8">
-      <title>Dashboard | Quick Actions</title>
-
-      <DashboardTitleBar
-        subtitle="Self-Service Desk"
-        title={`Welcome back, ${user.name || 'Library Member'}!`}
-        description="Quickly process borrowing and returning directly from this dashboard. Use the controls below to assist patrons without leaving the page."
-        rightSlot={
-          <DashboardUserCard
-            email={user.email}
-            role={user.role}
-          />
-        }
+    <>
+      <title>Dashboard | Swinburne Library</title>
+      <StaffDashboard
+        userName={user.name}
+        summary={summary}
+        recentLoans={recentLoans}
+        readyHolds={readyHolds}
+        readyHoldsCount={allStaffHolds.filter((h) => h.status === 'ready').length}
       />
-
-
-      {/* Mobile quick actions - Only visible on mobile */}
-      <section className="grid gap-3 md:hidden">
-        <BlurFade delay={0.3} yOffset={10}>
-          <Link
-            href="/dashboard/book/checkout"
-            className={clsx(
-              'flex items-center justify-between rounded-2xl border border-swin-charcoal/10 bg-white px-5 py-4 text-swin-charcoal shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-swin-red/60 hover:shadow-xl hover:shadow-swin-red/20',
-              'dark:border-white/10 dark:bg-slate-900/70 dark:text-white dark:hover:border-emerald-300/40 dark:hover:shadow-emerald-400/20',
-            )}
-          >
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-swin-charcoal dark:text-white">Borrow books</span>
-              <span className="text-xs text-swin-charcoal/60 dark:text-slate-300/80">Scan or search to start a new loan</span>
-            </div>
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-swin-charcoal to-swin-charcoal/90 text-swin-ivory shadow-md shadow-swin-charcoal/40 transition-transform duration-300 group-hover:scale-110 dark:bg-gradient-to-br dark:from-emerald-400/20 dark:to-emerald-500/20 dark:text-emerald-200 dark:shadow-emerald-500/10">
-              <ArrowUpTrayIcon className="h-5 w-5" />
-            </span>
-          </Link>
-        </BlurFade>
-
-        <BlurFade delay={0.4} yOffset={10}>
-          <Link
-            href="/dashboard/book/checkin"
-            className={clsx(
-              'flex items-center justify-between rounded-2xl border border-swin-charcoal/10 bg-white px-5 py-4 text-swin-charcoal shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-swin-red/60 hover:shadow-xl hover:shadow-swin-red/20',
-              'dark:border-white/10 dark:bg-slate-900/70 dark:text-white dark:hover:border-emerald-300/40 dark:hover:shadow-emerald-400/20',
-            )}
-          >
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-swin-charcoal dark:text-white">Return books</span>
-              <span className="text-xs text-swin-charcoal/60 dark:text-slate-300/80">Record a check-in by scan or ID</span>
-            </div>
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-swin-charcoal to-swin-charcoal/90 text-swin-ivory shadow-md shadow-swin-charcoal/40 transition-transform duration-300 group-hover:scale-110 dark:bg-gradient-to-br dark:from-emerald-400/20 dark:to-emerald-500/20 dark:text-emerald-200 dark:shadow-emerald-500/10">
-              <ArrowDownTrayIcon className="h-5 w-5" />
-            </span>
-          </Link>
-        </BlurFade>
-
-        {/* Learning Link - Mobile Only */}
-        <BlurFade delay={0.5} yOffset={10}>
-          <Link
-            href="/dashboard/learning"
-            className={clsx(
-              'flex items-center justify-between rounded-2xl border border-swin-charcoal/10 bg-white px-5 py-4 text-swin-charcoal shadow-sm backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] hover:border-swin-red/60 hover:shadow-lg hover:shadow-swin-red/20',
-              'dark:border-white/10 dark:bg-slate-900/70 dark:text-white dark:hover:border-emerald-300/40 dark:hover:shadow-emerald-400/20',
-            )}
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.57 50.57 0 0 0-2.658-.813A59.905 59.905 0 0 1 12 3.493a59.902 59.902 0 0 1 10.499 5.516 50.552 50.552 0 0 0-2.658.813m-15.482 0A50.55 50.55 0 0 1 12 13.489a50.55 50.55 0 0 1 6.74-3.342" />
-                </svg>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-semibold">Learning</span>
-                <span className="text-xs text-swin-charcoal/60 dark:text-slate-300/80">Browse learning resources</span>
-              </div>
-            </div>
-          </Link>
-        </BlurFade>
-      </section>
-
-      {/* Desktop view - Hidden on mobile */}
-      <div className="hidden md:block">
-        <SummaryCards summary={summary} />
-      </div>
-
-      {/* Mobile view - Forms */}
-      <div className="grid gap-6 md:hidden xl:grid-cols-2">
-        <CheckOutForm books={books} defaultDueDate={defaultDueDate} />
-        <CheckInForm activeLoanCount={summary.activeLoans} />
-      </div>
-
-      {/* Desktop view - Recent Activity */}
-      <BlurFade delay={0.8} yOffset={20}>
-        <section className="hidden space-y-4 md:block">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">Recent activity</h2>
-            <p className="text-sm text-swin-charcoal/60 dark:text-slate-300/80">Latest borrowing and return activity</p>
-          </div>
-          <RecentLoans loans={recentLoans} />
-        </section>
-      </BlurFade>
-
-      {/* Active Loans Section - Visible on all views */}
-      <BlurFade delay={0.9} yOffset={20}>
-        <section className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold text-swin-charcoal dark:text-white">
-              {isUser ? 'My borrowed books' : 'Active loans'}
-            </h2>
-            <p className="text-sm text-swin-charcoal/60 dark:text-slate-300/80">
-              {isUser
-                ? `${activeLoans.length} book${activeLoans.length === 1 ? '' : 's'} currently borrowed`
-                : `${activeLoans.length} items currently outside the library`}
-            </p>
-          </div>
-          <ActiveLoansTable loans={activeLoans} showActions={!isUser} />
-        </section>
-      </BlurFade>
-    </main>
+    </>
   );
 }

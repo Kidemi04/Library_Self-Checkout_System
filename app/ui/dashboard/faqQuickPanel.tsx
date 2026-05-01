@@ -13,7 +13,6 @@ import {
 import clsx from 'clsx';
 import { studentFaqSections } from '@/app/ui/dashboard/studentFaqData';
 import type { DashboardRole } from '@/app/lib/auth/types';
-import { useTheme } from '@/app/ui/theme/themeProvider';
 
 type ChatMessage = {
   id: string;
@@ -55,8 +54,6 @@ export default function FaqQuickPanel({ role }: FaqQuickPanelProps) {
   const [isFabOpen, setIsFabOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(() => buildInitialMessages());
   const messagesRef = useRef<HTMLDivElement | null>(null);
-  const { theme } = useTheme();
-  const isDark = theme === 'dark';
 
   const quickFaqs = useMemo<QuickFaq[]>(() => {
     return studentFaqSections
@@ -138,15 +135,11 @@ export default function FaqQuickPanel({ role }: FaqQuickPanelProps) {
             {quickActions.map((action) => {
               const Icon = action.icon;
 
-              const labelClasses = clsx(
-                'inline-flex h-8 items-center justify-center rounded-full px-3 text-sm font-semibold shadow-lg backdrop-blur-sm',
-                isDark ? 'bg-white/10 text-slate-100' : 'bg-slate-900/80 text-white',
-              );
+              const labelClasses =
+                'inline-flex h-8 items-center justify-center rounded-pill bg-ink px-3 font-sans text-caption-uppercase text-on-dark shadow-md backdrop-blur-sm dark:bg-on-dark/15 dark:text-on-dark';
 
-              const iconButtonClasses = clsx(
-                'grid h-11 w-11 place-items-center rounded-full shadow-xl ring-1 transition hover:-translate-y-0.5 hover:shadow-2xl',
-                isDark ? 'bg-slate-900 text-swin-red ring-swin-red/25' : 'bg-white text-swin-red ring-swin-red/15',
-              );
+              const iconButtonClasses =
+                'grid h-11 w-11 place-items-center rounded-full bg-surface-card text-primary ring-1 ring-primary/20 shadow-md transition hover:-translate-y-0.5 hover:shadow-lg dark:bg-dark-surface-card dark:text-dark-primary dark:ring-dark-primary/30';
 
               if (action.href) {
                 return (
@@ -183,11 +176,7 @@ export default function FaqQuickPanel({ role }: FaqQuickPanelProps) {
           <button
             type="button"
             onClick={toggleFab}
-            className={clsx(
-              'grid h-14 w-14 place-items-center rounded-full text-white shadow-2xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/50',
-              'bg-gradient-to-tr from-swin-red to-swin-red/90 hover:from-swin-red/90 hover:to-swin-red/80',
-              isDark ? 'shadow-swin-red/60' : 'shadow-swin-red/40',
-            )}
+            className="grid h-14 w-14 place-items-center rounded-full bg-primary text-on-primary shadow-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 hover:bg-primary/90"
             aria-expanded={isFabOpen}
             aria-label="Open quick actions"
           >
@@ -204,11 +193,7 @@ export default function FaqQuickPanel({ role }: FaqQuickPanelProps) {
       <button
         type="button"
         onClick={togglePanel}
-        className={clsx(
-          'fixed right-12 bottom-10 z-40 hidden items-center justify-center rounded-full text-white shadow-lg transition focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red md:flex',
-          'bg-swin-red hover:bg-swin-red/90 shadow-swin-red/40',
-          'gap-2 px-6 py-3 text-sm',
-        )}
+        className="fixed right-12 bottom-10 z-40 hidden items-center justify-center gap-2 rounded-pill bg-primary px-6 py-3 font-sans text-button text-on-primary shadow-md transition focus:outline-none focus-visible:ring-2 focus-visible:ring-primary hover:bg-primary/90 md:flex"
         aria-expanded={isPanelOpen}
         aria-controls="faq-quick-panel"
         aria-label="Open Student FAQ panel"
@@ -223,11 +208,8 @@ export default function FaqQuickPanel({ role }: FaqQuickPanelProps) {
         aria-hidden={!isPanelOpen}
         id="faq-quick-panel"
         className={clsx(
-          'fixed bottom-[180px] right-4 z-40 w-[min(80vw,280px)] rounded-3xl p-2 transition-all duration-200 ease-out md:bottom-20 md:right-12',
-          'overflow-auto md:min-w-[320px] md:min-h-[360px] md:w-[360px] md:max-w-[90vw] md:max-h-[80vh] md:resize',
-          isDark
-            ? 'border border-swin-red/60 bg-slate-900 text-slate-100 shadow-2xl shadow-black/40'
-            : 'border border-swin-red/50 bg-white text-swin-charcoal shadow-2xl shadow-swin-red/20',
+          'fixed bottom-[180px] right-4 z-40 w-[min(80vw,280px)] rounded-card border border-primary/30 bg-surface-card p-2 text-ink shadow-[0_4px_16px_rgba(20,20,19,0.08)] transition-all duration-200 ease-out md:bottom-20 md:right-12 md:min-w-[320px] md:min-h-[360px] md:w-[360px] md:max-w-[90vw] md:max-h-[80vh] md:resize',
+          'overflow-auto dark:border-primary/40 dark:bg-dark-surface-card dark:text-on-dark',
           isPanelOpen
             ? 'pointer-events-auto opacity-100 translate-y-0 scale-100'
             : 'pointer-events-none opacity-0 translate-y-4 scale-95',
@@ -236,123 +218,84 @@ export default function FaqQuickPanel({ role }: FaqQuickPanelProps) {
       >
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p
-              className={clsx(
-                'text-xs font-semibold uppercase tracking-[0.35em]',
-                isDark ? 'text-slate-200/70' : 'text-swin-charcoal/60',
-              )}
-            >
+            <p className="font-sans text-caption-uppercase tracking-[0.35em] text-muted dark:text-on-dark-soft">
               Need help?
             </p>
-            <h2 className={clsx('text-lg font-semibold', isDark ? 'text-slate-100' : 'text-swin-charcoal')}>
+            <h2 className="font-display text-display-sm text-ink dark:text-on-dark">
               Student FAQ
             </h2>
-            <p className={clsx('text-sm', isDark ? 'text-slate-200/80' : 'text-swin-charcoal/70')}>
+            <p className="font-sans text-body-sm text-body dark:text-on-dark/80">
               Quick answers for borrowing and returns.
             </p>
           </div>
           <button
             type="button"
             onClick={togglePanel}
-            className={clsx(
-              'rounded-full border p-1 transition',
-              isDark
-                ? 'border-slate-700 text-slate-200 hover:bg-slate-800'
-                : 'border-swin-charcoal/10 text-swin-charcoal/70 hover:bg-swin-ivory',
-            )}
+            className="rounded-full border border-hairline p-1 text-muted transition hover:bg-surface-cream-strong hover:text-ink dark:border-dark-hairline dark:text-on-dark-soft dark:hover:bg-dark-surface-strong dark:hover:text-on-dark"
             aria-label="Close FAQ panel"
           >
             <XMarkIcon className="h-5 w-5" />
           </button>
-          </div>
+        </div>
 
-          <div
-            className={clsx(
-              'mt-2 flex h-44 flex-col rounded-2xl p-3 text-sm shadow-inner md:h-60',
-              isDark
-                ? 'border border-slate-700 bg-slate-900/60 text-slate-100 shadow-black/20'
-                : 'border border-swin-charcoal/10 bg-swin-ivory/50 text-swin-charcoal shadow-swin-charcoal/5',
-            )}
-          >
-            <div ref={messagesRef} className="flex-1 space-y-3 overflow-y-auto pr-1">
-              {messages.map((message) => (
+        <div className="mt-2 flex h-44 flex-col rounded-card border border-hairline bg-surface-cream-strong/50 p-3 font-sans text-body-sm text-ink shadow-inner md:h-60 dark:border-dark-hairline dark:bg-dark-surface-strong/60 dark:text-on-dark">
+          <div ref={messagesRef} className="flex-1 space-y-3 overflow-y-auto pr-1">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={clsx(
+                  'flex flex-col gap-1',
+                  message.sender === 'student' ? 'items-end' : 'items-start',
+                )}
+              >
+                <span className="font-sans text-[10px] font-semibold uppercase tracking-wide text-muted dark:text-on-dark-soft">
+                  {message.sender === 'student' ? 'You' : 'Library Assistant'}
+                </span>
                 <div
-                  key={message.id}
                   className={clsx(
-                    'flex flex-col gap-1',
-                    message.sender === 'student' ? 'items-end' : 'items-start',
+                    'rounded-card px-3 py-2',
+                    message.sender === 'student'
+                      ? 'rounded-br-md bg-primary text-on-primary'
+                      : 'rounded-bl-md border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card',
                   )}
                 >
-                  <span
-                    className={clsx(
-                      'text-[10px] font-semibold uppercase tracking-wide',
-                      isDark ? 'text-slate-200/60' : 'text-swin-charcoal/50',
-                    )}
-                  >
-                    {message.sender === 'student' ? 'You' : 'Library Assistant'}
-                  </span>
-                  <div
-                    className={clsx(
-                      'rounded-2xl px-3 py-2 shadow-sm',
-                      message.sender === 'student'
-                        ? 'rounded-br-md bg-swin-red text-white shadow-swin-red/30'
-                        : isDark
-                          ? 'rounded-bl-md border border-slate-700 bg-slate-800 text-slate-100 shadow-black/20'
-                          : 'rounded-bl-md border border-swin-charcoal/10 bg-white shadow-swin-charcoal/10',
-                    )}
-                  >
-                    {message.text}
-                  </div>
+                  {message.text}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
+        </div>
 
-          <div className="mt-3">
-            <p
-              className={clsx(
-                'text-[11px] font-semibold uppercase tracking-wide',
-                isDark ? 'text-slate-200/70' : 'text-swin-charcoal/60',
-              )}
-            >
-              Quick questions
-            </p>
-            <div className="mt-2 flex gap-2 overflow-x-auto pb-2">
-              {quickFaqs.map((faq) => (
-                <button
-                  key={faq.id}
-                  type="button"
-                  onClick={() => handleQuickFaqSelect(faq)}
-                  className={clsx(
-                    'shrink-0 rounded-full px-3 py-1 text-xs font-semibold shadow-sm transition',
-                    isDark
-                      ? 'border border-slate-700 bg-slate-900 text-white hover:border-swin-red/50 hover:text-swin-red'
-                      : 'border border-swin-charcoal/15 bg-white text-swin-charcoal hover:border-swin-red/50 hover:text-swin-red',
-                  )}
-                >
-                  {faq.question}
-                </button>
-              ))}
-            </div>
+        <div className="mt-3">
+          <p className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+            Quick questions
+          </p>
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-2">
+            {quickFaqs.map((faq) => (
+              <button
+                key={faq.id}
+                type="button"
+                onClick={() => handleQuickFaqSelect(faq)}
+                className="shrink-0 rounded-pill border border-hairline bg-surface-card px-3 py-1 font-sans text-caption text-ink transition hover:border-primary/40 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:text-dark-primary"
+              >
+                {faq.question}
+              </button>
+            ))}
           </div>
+        </div>
 
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
-            <p className={clsx('text-xs', isDark ? 'text-slate-200/80' : 'text-swin-charcoal/70')}>
-              Want more answers?
-            </p>
-            <Link
-              href="/dashboard/faq"
-              className={clsx(
-                'inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition',
-                isDark
-                  ? 'border border-swin-red/40 text-swin-red hover:bg-swin-red hover:text-white'
-                  : 'border border-swin-red/30 text-swin-red hover:bg-swin-red hover:text-white',
-              )}
-            >
-              Open full FAQ
-              <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-            </Link>
-          </div>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="font-sans text-caption text-muted dark:text-on-dark-soft">
+            Want more answers?
+          </p>
+          <Link
+            href="/dashboard/faq"
+            className="inline-flex items-center gap-1 rounded-pill border border-primary/40 px-3 py-1 font-sans text-caption font-semibold text-primary transition hover:bg-primary hover:text-on-primary"
+          >
+            Open full FAQ
+            <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+          </Link>
+        </div>
       </div>
     </>
   );

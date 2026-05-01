@@ -3,226 +3,369 @@
 import { useActionState, useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { useFormStatus } from 'react-dom';
+import { CheckCircleIcon } from '@heroicons/react/24/outline';
 import { checkinBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/actionState';
 import type { ActionState } from '@/app/dashboard/actionState';
-
-const CONFIRM_WORD = 'return';
+import PatronCombobox, { type PatronOption } from '@/app/ui/dashboard/patronCombobox';
+import DamageReportModal, { type DamageSubmitPayload } from '@/app/ui/dashboard/damageReportModal';
 
 type CheckInFormProps = {
   activeLoanCount: number;
   defaultIdentifier?: string;
 };
 
+type Mode = 'scan' | 'patron';
+
+type BulkEntry = { when: number; label: string; tone: 'success' | 'damaged' };
+
+const SEVERITY_LABEL: Record<string, string> = {
+  damaged: 'Damaged',
+  lost: 'Lost',
+  needs_inspection: 'Needs inspection',
+};
+
 export default function CheckInForm({ activeLoanCount, defaultIdentifier }: CheckInFormProps) {
   const [state, formAction] = useActionState(checkinBookAction, initialActionState);
   const formRef = useRef<HTMLFormElement | null>(null);
-  const identifierInputRef = useRef<HTMLInputElement | null>(null);
-  const confirmInputRef = useRef<HTMLInputElement | null>(null);
-  const [mobileExpanded, setMobileExpanded] = useState(false);
+  const identifierRef = useRef<HTMLInputElement | null>(null);
+  const patronLoanRef = useRef<HTMLSelectElement | null>(null);
+
+  const [mode, setMode] = useState<Mode>('scan');
+  const [identifier, setIdentifier] = useState<string>(defaultIdentifier ?? '');
+  const [patronLoanId, setPatronLoanId] = useState<string>('');
+  const [patronLoans, setPatronLoans] = useState<PatronLoanEntry[]>([]);
+  const [patronLoadingFor, setPatronLoadingFor] = useState<string | null>(null);
+
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmText, setConfirmText] = useState('');
-  const contentId = 'return-form-panel';
-  const mobileToggleLabel = mobileExpanded ? 'Hide form' : 'Record a return';
+  const confirmButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  const handleMobileToggle = () => setMobileExpanded((prev) => !prev);
+  const [damageOpen, setDamageOpen] = useState(false);
+  const [damage, setDamage] = useState<DamageSubmitPayload | null>(null);
 
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkFeed, setBulkFeed] = useState<BulkEntry[]>([]);
+
+  // On success: optionally preserve scan input refocus for bulk, or show receipt
   useEffect(() => {
     if (state.status === 'success') {
+      const label = state.message ?? 'Return processed';
+      const tone: BulkEntry['tone'] = damage ? 'damaged' : 'success';
+      setBulkFeed((prev) => [{ when: Date.now(), label, tone }, ...prev].slice(0, 3));
       formRef.current?.reset();
+      setIdentifier('');
+      setPatronLoanId('');
+      setPatronLoans([]);
+      setDamage(null);
+      if (bulkMode) {
+        // refocus for the next scan
+        setTimeout(() => identifierRef.current?.focus(), 50);
+      }
     }
-  }, [state.status]);
+  }, [state.status, state.message, damage, bulkMode]);
 
+  // If parent passes a pre-filled identifier (e.g. from staff dashboard scan), use it
   useEffect(() => {
-    if (identifierInputRef.current) {
-      identifierInputRef.current.value = defaultIdentifier ?? '';
+    if (defaultIdentifier) {
+      setIdentifier(defaultIdentifier);
+      setMode('scan');
     }
   }, [defaultIdentifier]);
 
-  useEffect(() => {
-    if (defaultIdentifier) setMobileExpanded(true);
-  }, [defaultIdentifier]);
-
-  useEffect(() => {
-    if (state.status === 'error') setMobileExpanded(true);
-  }, [state.status]);
-
-  // Open the confirmation dialog instead of directly submitting
-  const handleReturnClick = () => {
-    setConfirmText('');
-    setConfirmOpen(true);
-    setTimeout(() => confirmInputRef.current?.focus(), 60);
+  const handlePatronSelect = async (patron: PatronOption | null) => {
+    setPatronLoans([]);
+    setPatronLoanId('');
+    if (!patron) return;
+    setPatronLoadingFor(patron.id);
+    try {
+      const res = await fetch(`/api/loans/active?userId=${encodeURIComponent(patron.id)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.loans)) {
+          setPatronLoans(data.loans);
+          if (data.loans.length === 1) {
+            setPatronLoanId(data.loans[0].id);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load patron loans', err);
+    } finally {
+      setPatronLoadingFor(null);
+    }
   };
 
-  // User confirmed — actually submit the form
-  const handleConfirm = () => {
-    if (confirmText.toLowerCase() !== CONFIRM_WORD) return;
+  const openConfirm = () => {
+    setConfirmOpen(true);
+    setTimeout(() => confirmButtonRef.current?.focus(), 50);
+  };
+
+  const doSubmit = () => {
     setConfirmOpen(false);
-    setConfirmText('');
     formRef.current?.requestSubmit();
   };
 
-  const handleCancel = () => {
-    setConfirmOpen(false);
-    setConfirmText('');
+  const handleDamageSubmit = (payload: DamageSubmitPayload) => {
+    setDamage(payload);
+    setDamageOpen(false);
+    // Submit the outer form with the new hidden fields now populated.
+    setTimeout(() => formRef.current?.requestSubmit(), 20);
   };
+
+  const canSubmit =
+    (mode === 'scan' ? identifier.trim().length > 0 : patronLoanId.length > 0);
+
+  const singleReceipt = !bulkMode && bulkFeed[0] && state.status === 'success';
 
   return (
     <>
-      <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm shadow-swin-charcoal/5 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-100 dark:shadow-black/20">
-        <div className="mb-3 flex flex-col gap-3 md:mb-6 md:flex-row md:items-center md:justify-between">
+      {/* Bulk mode receipt strip */}
+      {bulkMode && bulkFeed.length > 0 && (
+        <ul className="mb-3 space-y-1.5">
+          {bulkFeed.map((entry) => (
+            <li
+              key={entry.when}
+              className={clsx(
+                'flex items-center gap-2 rounded-btn border px-3 py-2 font-sans text-body-sm',
+                entry.tone === 'damaged'
+                  ? 'border-warning/40 bg-warning/10 text-warning'
+                  : 'border-success/40 bg-success/10 text-success',
+              )}
+            >
+              <CheckCircleIcon className="h-4 w-4" />
+              {entry.label}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <section className="rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6">
+        <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-1">
-            <h2 className="text-lg font-semibold text-swin-charcoal dark:text-slate-100">Returning Item Details</h2>
-            <p className="hidden text-sm text-swin-charcoal/60 dark:text-slate-400 md:block">
-              Use the search above or enter the loan reference to reconcile items being returned.
-            </p>
-            <p className="text-xs text-swin-charcoal/60 dark:text-slate-400 md:hidden">
-              Scan a barcode or enter a loan ID to finish the return.
+            <h2 className="font-display text-display-sm text-ink dark:text-on-dark">
+              Record a return
+            </h2>
+            <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
+              {activeLoanCount} book{activeLoanCount === 1 ? '' : 's'} currently on loan.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleMobileToggle}
-            className="inline-flex h-[44px] w-full items-center justify-center rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-4 text-sm font-semibold text-swin-charcoal shadow-sm transition hover:border-swin-red hover:bg-swin-red hover:text-swin-ivory focus:outline-none focus-visible:ring-2 focus-visible:ring-swin-red focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 md:hidden"
-            aria-expanded={mobileExpanded}
-            aria-controls={contentId}
-          >
-            {mobileToggleLabel}
-          </button>
+          <label className="flex items-center gap-2 font-sans text-body-sm font-medium text-muted dark:text-on-dark-soft">
+            <input
+              type="checkbox"
+              checked={bulkMode}
+              onChange={(e) => {
+                setBulkMode(e.target.checked);
+                if (!e.target.checked) setBulkFeed([]);
+              }}
+            />
+            Continue scanning (bulk mode)
+          </label>
         </div>
 
-        {/* The form action is set so requestSubmit() triggers the server action */}
-        <form
-          ref={formRef}
-          id={contentId}
-          action={formAction}
-          className={clsx(
-            'mt-4 gap-4 md:mt-0 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-start md:gap-6',
-            mobileExpanded ? 'grid' : 'hidden',
+        {/* Mode tabs */}
+        <div role="tablist" aria-label="Lookup mode" className="mb-4 flex gap-1 rounded-btn border border-hairline dark:border-dark-hairline bg-surface-cream-strong dark:bg-dark-surface-strong p-1">
+          {(['scan', 'patron'] as Mode[]).map((m) => {
+            const active = mode === m;
+            return (
+              <button
+                key={m}
+                role="tab"
+                type="button"
+                aria-selected={active}
+                onClick={() => setMode(m)}
+                className={clsx(
+                  'flex-1 rounded-btn px-3 py-2 font-sans text-button transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                  active
+                    ? 'bg-surface-card dark:bg-dark-surface-card text-ink dark:text-on-dark'
+                    : 'text-muted dark:text-on-dark-soft hover:text-ink dark:hover:text-on-dark',
+                )}
+              >
+                {m === 'scan' ? 'Scan copy' : 'Find by borrower'}
+              </button>
+            );
+          })}
+        </div>
+
+        <form ref={formRef} action={formAction} className="space-y-4">
+          {/* Hidden damage-report payload (populated by the modal) */}
+          <input type="hidden" name="copyStatus" value={damage ? damage.severity : 'available'} />
+          <input type="hidden" name="conditionNotes" value={damage?.notes ?? ''} />
+          <input
+            type="hidden"
+            name="damagePhotoUrls"
+            value={damage ? JSON.stringify(damage.photoUrls) : '[]'}
+          />
+
+          {mode === 'scan' ? (
+            <div>
+              <label
+                htmlFor="identifier"
+                className="mb-1.5 block font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft"
+              >
+                Copy barcode or loan ID
+              </label>
+              <input
+                id="identifier"
+                name="identifier"
+                type="text"
+                ref={identifierRef}
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                required
+                placeholder="Scan SWI-xxxxx or paste loan ID"
+                autoComplete="off"
+                className="w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+              />
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <PatronCombobox name="_patronSearch" nameOfName="_patronName" required={false} onSelect={handlePatronSelect} />
+              <div>
+                <label
+                  htmlFor="patron-loan"
+                  className="mb-1.5 block font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft"
+                >
+                  Loan to return
+                </label>
+                <select
+                  id="patron-loan"
+                  ref={patronLoanRef}
+                  value={patronLoanId}
+                  onChange={(e) => setPatronLoanId(e.target.value)}
+                  disabled={patronLoans.length === 0}
+                  className="w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+                >
+                  <option value="">
+                    {patronLoadingFor
+                      ? 'Loading\u2026'
+                      : patronLoans.length === 0
+                        ? 'Pick a patron above to see their loans'
+                        : 'Select a loan'}
+                  </option>
+                  {patronLoans.map((loan) => (
+                    <option key={loan.id} value={loan.id}>
+                      {loan.title}
+                      {loan.barcode ? ` (${loan.barcode})` : ''}
+                      {loan.overdue ? ' \u2014 overdue' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {/* Hidden input the server action actually reads */}
+              <input type="hidden" name="loanId" value={patronLoanId} />
+            </div>
           )}
-        >
-          <div className="flex flex-col">
-            <label className="block text-sm font-medium text-swin-charcoal dark:text-slate-100" htmlFor="identifier">
-              Scan barcode or enter loan ID
-            </label>
-            <input
-              id="identifier"
-              name="identifier"
-              type="text"
-              required
-              placeholder="Loan ID, borrower ID, barcode, or ISBN"
-              ref={identifierInputRef}
-              className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
-            />
-            <p className="mt-2 text-xs text-swin-charcoal/60 dark:text-slate-400">{activeLoanCount} books are currently on loan.</p>
-          </div>
 
-          <div className="flex items-stretch justify-end md:self-end">
-            {/* Intercept submit — open confirmation dialog instead */}
-            <SubmitButton onReturnClick={handleReturnClick} />
-          </div>
+          {/* Damage chip */}
+          {damage ? (
+            <div className="flex items-center justify-between gap-3 rounded-btn border border-warning/40 bg-warning/10 px-3 py-2 font-sans text-body-sm text-warning">
+              <span>
+                Flagged as {SEVERITY_LABEL[damage.severity]}
+                {damage.photoUrls.length > 0 && ` \u00b7 ${damage.photoUrls.length} photo${damage.photoUrls.length === 1 ? '' : 's'}`}
+                {damage.notes && ` \u00b7 "${damage.notes.length > 40 ? damage.notes.slice(0, 40) + '\u2026' : damage.notes}"`}
+              </span>
+              <button
+                type="button"
+                onClick={() => setDamage(null)}
+                className="rounded-pill border border-warning/50 px-2 py-0.5 font-sans text-caption-uppercase font-semibold hover:bg-warning/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+              >
+                Clear
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setDamageOpen(true)}
+              disabled={!canSubmit}
+              className="font-sans text-body-sm font-semibold text-muted dark:text-on-dark-soft underline underline-offset-2 transition hover:text-primary dark:hover:text-dark-primary disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+            >
+              Report damage or missing
+            </button>
+          )}
 
-          <ActionMessage status={state.status} message={state.message} />
+          {state.status === 'error' && state.message && (
+            <p className="font-sans text-body-sm font-semibold text-primary dark:text-dark-primary">{state.message}</p>
+          )}
+          {singleReceipt && (
+            <p className="rounded-btn border border-success/40 bg-success/10 px-3 py-2 font-sans text-body-sm text-success">
+              {bulkFeed[0]!.label}
+            </p>
+          )}
+
+          <div className="flex justify-end">
+            <SubmitButton disabled={!canSubmit} onClick={openConfirm} />
+          </div>
         </form>
       </section>
 
-      {/* ── Confirmation dialog ── */}
+      {/* Confirmation dialog */}
       {confirmOpen && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="confirm-title"
+          aria-labelledby="confirm-return-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
         >
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={handleCancel}
-          />
-
-          {/* Panel */}
-          <div className="relative w-full max-w-md rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
-            {/* Warning icon */}
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-swin-red/10">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6 text-swin-red">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
-              </svg>
-            </div>
-
-            <h2 id="confirm-title" className="text-lg font-semibold text-swin-charcoal dark:text-slate-100">
+          <div className="absolute inset-0 bg-ink/50 dark:bg-dark-canvas/70 backdrop-blur-sm" onClick={() => setConfirmOpen(false)} />
+          <div className="relative w-full max-w-md rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6 shadow-[0_4px_16px_rgba(20,20,19,0.08)]">
+            <h2 id="confirm-return-title" className="font-display text-display-sm text-ink dark:text-on-dark">
               Confirm book return
             </h2>
-            <p className="mt-1 text-sm text-swin-charcoal/70 dark:text-slate-400">
-              This action will mark the loan as returned and update the copy status. This cannot be undone without manual intervention.
+            <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
+              This will mark the loan as returned and update the copy status
+              {damage ? ` to ${SEVERITY_LABEL[damage.severity]}` : ''}.
             </p>
-
-            <div className="mt-5">
-              <label htmlFor="confirm-input" className="block text-sm font-medium text-swin-charcoal dark:text-slate-200">
-                Type{' '}
-                <span className="rounded bg-swin-charcoal/10 px-1.5 py-0.5 font-mono font-semibold text-swin-red dark:bg-slate-800 dark:text-swin-red">
-                  {CONFIRM_WORD}
-                </span>{' '}
-                to confirm
-              </label>
-              <input
-                id="confirm-input"
-                ref={confirmInputRef}
-                type="text"
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleConfirm()}
-                placeholder={CONFIRM_WORD}
-                autoComplete="off"
-                className="mt-2 w-full rounded-lg border border-swin-charcoal/20 bg-swin-ivory px-3 py-2 text-sm text-swin-charcoal focus:border-swin-red focus:outline-none focus:ring-1 focus:ring-swin-red dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
-              />
-            </div>
-
-            <div className="mt-6 flex gap-3">
+            <div className="mt-5 flex gap-2">
               <button
                 type="button"
-                onClick={handleCancel}
-                className="flex-1 rounded-xl border border-swin-charcoal/20 bg-swin-ivory px-4 py-2.5 text-sm font-semibold text-swin-charcoal transition hover:bg-swin-charcoal/10 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                onClick={() => setConfirmOpen(false)}
+                className="flex-1 rounded-btn border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card px-4 h-10 font-sans text-button text-ink dark:text-on-dark transition hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
               >
                 Cancel
               </button>
               <button
+                ref={confirmButtonRef}
                 type="button"
-                onClick={handleConfirm}
-                disabled={confirmText.toLowerCase() !== CONFIRM_WORD}
-                className={clsx(
-                  'flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition',
-                  confirmText.toLowerCase() === CONFIRM_WORD
-                    ? 'bg-swin-red hover:bg-swin-red/90 shadow-sm shadow-swin-red/30'
-                    : 'cursor-not-allowed bg-swin-red/30',
-                )}
+                onClick={doSubmit}
+                className="flex-1 rounded-btn bg-primary hover:bg-primary-active px-4 h-10 font-sans text-button text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
               >
-                Yes, return book
+                Yes, mark returned
               </button>
             </div>
           </div>
         </div>
       )}
+
+      <DamageReportModal
+        open={damageOpen}
+        loanId={mode === 'patron' ? patronLoanId || null : null}
+        onClose={() => setDamageOpen(false)}
+        onSubmit={handleDamageSubmit}
+      />
     </>
   );
 }
 
-function SubmitButton({ onReturnClick }: { onReturnClick: () => void }) {
+function SubmitButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
   const { pending } = useFormStatus();
-
+  const isDisabled = disabled || pending;
   return (
     <button
       type="button"
-      disabled={pending}
-      onClick={onReturnClick}
-      className="inline-flex h-[56px] min-w-[140px] items-center justify-center rounded-lg bg-swin-charcoal px-6 text-sm font-semibold uppercase tracking-wide text-swin-ivory shadow-sm shadow-swin-charcoal/30 transition hover:bg-swin-charcoal/90 disabled:cursor-not-allowed disabled:bg-swin-charcoal/40"
+      onClick={onClick}
+      disabled={isDisabled}
+      aria-disabled={isDisabled}
+      className="inline-flex items-center justify-center rounded-btn bg-primary hover:bg-primary-active px-5 h-10 font-sans text-button text-on-primary transition disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
     >
-      {pending ? 'Processing...' : 'Return book'}
+      {pending ? 'Processing\u2026' : 'Mark returned'}
     </button>
   );
 }
 
-function ActionMessage({ status, message }: { status: ActionState['status']; message: string }) {
-  if (!message) return null;
-  const tone = status === 'success' ? 'text-emerald-600' : status === 'error' ? 'text-swin-red' : 'text-swin-charcoal';
-  return <p className={`md:col-span-2 text-sm font-medium ${tone}`}>{message}</p>;
-}
+type PatronLoanEntry = {
+  id: string;
+  title: string;
+  barcode: string | null;
+  dueAt: string | null;
+  overdue: boolean;
+};

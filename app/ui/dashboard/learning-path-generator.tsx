@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { SparklesIcon, BookOpenIcon } from '@heroicons/react/24/outline';
+import { Button } from '@/app/ui/button';
 
 type StageBook = {
   id: string;
@@ -36,19 +37,19 @@ const PRESET_TOPICS = [
 
 const STAGE_STYLES: Record<Stage['level'], { bg: string; badge: string; number: string }> = {
   Beginner: {
-    bg: 'bg-emerald-50/60 border-emerald-200 dark:bg-emerald-900/10 dark:border-emerald-800/40',
-    badge: 'text-emerald-700 dark:text-emerald-300',
-    number: 'bg-swin-red',
+    bg: 'bg-success/10 border-success/30 dark:bg-success/15 dark:border-success/40',
+    badge: 'text-success',
+    number: 'bg-primary',
   },
   Intermediate: {
-    bg: 'bg-amber-50/60 border-amber-200 dark:bg-amber-900/10 dark:border-amber-800/40',
-    badge: 'text-amber-600 dark:text-amber-300',
-    number: 'bg-swin-red',
+    bg: 'bg-warning/10 border-warning/30 dark:bg-warning/15 dark:border-warning/40',
+    badge: 'text-warning',
+    number: 'bg-primary',
   },
   Advanced: {
-    bg: 'bg-rose-50/60 border-rose-200 dark:bg-rose-900/10 dark:border-rose-800/40',
-    badge: 'text-rose-700 dark:text-rose-300',
-    number: 'bg-swin-red',
+    bg: 'bg-primary/10 border-primary/30 dark:bg-dark-primary/15 dark:border-dark-primary/40',
+    badge: 'text-primary dark:text-dark-primary',
+    number: 'bg-primary',
   },
 };
 
@@ -87,12 +88,12 @@ export default function LearningPathGenerator() {
   return (
     <div className="space-y-6">
       {/* Generator card */}
-      <div className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/60">
-        <div className="flex items-center gap-2 text-swin-charcoal dark:text-white">
-          <SparklesIcon className="h-5 w-5 text-swin-red" />
-          <p className="font-semibold">AI learning path generator</p>
+      <div className="rounded-card border border-hairline bg-surface-card p-8 dark:border-dark-hairline dark:bg-dark-surface-card">
+        <div className="flex items-center gap-2 text-ink dark:text-on-dark">
+          <SparklesIcon className="h-5 w-5 text-primary" />
+          <p className="font-sans text-title-md font-semibold">AI learning path generator</p>
         </div>
-        <p className="mt-1 text-sm text-swin-charcoal/60 dark:text-slate-400">
+        <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
           Enter a topic and the AI will suggest books from the library catalog arranged from beginner to advanced level.
         </p>
 
@@ -103,15 +104,15 @@ export default function LearningPathGenerator() {
             onChange={(e) => setTopic(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && generate(topic)}
             placeholder="e.g. Machine Learning, Cybersecurity, Business..."
-            className="flex-1 rounded-xl border border-swin-charcoal/20 bg-swin-ivory px-4 py-2 text-sm text-swin-charcoal placeholder-swin-charcoal/40 focus:border-swin-red focus:outline-none dark:border-white/20 dark:bg-slate-800 dark:text-white dark:placeholder-white/30"
+            className="h-10 flex-1 rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
           />
-          <button
+          <Button
             onClick={() => generate(topic)}
             disabled={loading || !topic.trim()}
-            className="rounded-xl bg-swin-red px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-disabled={loading || !topic.trim()}
           >
-            {loading ? 'Generating...' : 'Generate'}
-          </button>
+            {loading ? 'Generating…' : 'Generate'}
+          </Button>
         </div>
 
         {/* Preset chips */}
@@ -124,7 +125,7 @@ export default function LearningPathGenerator() {
                 generate(preset);
               }}
               disabled={loading}
-              className="rounded-full border border-swin-charcoal/15 px-3 py-1 text-xs font-medium text-swin-charcoal/70 transition hover:border-swin-red hover:text-swin-red disabled:opacity-40 dark:border-white/20 dark:text-white/60"
+              className="rounded-pill border border-hairline bg-canvas px-3 py-1 font-sans text-caption font-medium text-muted transition hover:border-primary/20 hover:text-primary disabled:opacity-40 dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark-soft dark:hover:border-dark-primary/30 dark:hover:text-dark-primary"
             >
               {preset}
             </button>
@@ -134,7 +135,7 @@ export default function LearningPathGenerator() {
 
       {/* Error */}
       {error && (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+        <div className="rounded-card border border-warning/30 bg-warning/10 px-4 py-3 font-sans text-body-sm text-warning">
           {error}
         </div>
       )}
@@ -142,9 +143,9 @@ export default function LearningPathGenerator() {
       {/* Results */}
       {result?.stages && (
         <div className="space-y-4">
-          <p className="text-sm text-swin-charcoal/60 dark:text-slate-400">
+          <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
             Learning path for{' '}
-            <span className="font-semibold text-swin-charcoal dark:text-white">
+            <span className="font-semibold text-ink dark:text-on-dark">
               &ldquo;{result.topic}&rdquo;
             </span>
           </p>
@@ -154,15 +155,15 @@ export default function LearningPathGenerator() {
             return (
               <div
                 key={stage.level}
-                className={`rounded-2xl border p-5 ${styles.bg}`}
+                className={`rounded-card border p-5 ${styles.bg}`}
               >
                 <div className="flex items-start gap-3">
-                  <span className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${styles.number}`}>
+                  <span className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-sans text-body-sm font-bold text-on-primary ${styles.number}`}>
                     {stageIndex + 1}
                   </span>
                   <div>
-                    <p className={`text-sm font-semibold ${styles.badge}`}>{stage.level}</p>
-                    <p className="text-xs text-swin-charcoal/60 dark:text-slate-400">{stage.description}</p>
+                    <p className={`font-sans text-body-sm font-semibold ${styles.badge}`}>{stage.level}</p>
+                    <p className="font-sans text-caption text-muted dark:text-on-dark-soft">{stage.description}</p>
                   </div>
                 </div>
 
@@ -170,23 +171,23 @@ export default function LearningPathGenerator() {
                   {stage.books.map((book) => (
                     <div
                       key={book.id}
-                      className="flex items-start justify-between gap-4 rounded-xl border border-swin-charcoal/10 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-slate-900/50"
+                      className="flex items-start justify-between gap-4 rounded-card border border-hairline bg-surface-card px-4 py-3 dark:border-dark-hairline dark:bg-dark-surface-card"
                     >
                       <div className="flex items-start gap-3">
-                        <BookOpenIcon className="mt-0.5 h-4 w-4 shrink-0 text-swin-red" />
+                        <BookOpenIcon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                         <div>
-                          <p className="text-sm font-medium text-swin-charcoal dark:text-white">{book.title}</p>
+                          <p className="font-sans text-body-sm font-medium text-ink dark:text-on-dark">{book.title}</p>
                           {book.author && (
-                            <p className="text-xs text-swin-charcoal/60 dark:text-slate-400">by {book.author}</p>
+                            <p className="font-sans text-caption text-muted dark:text-on-dark-soft">by {book.author}</p>
                           )}
-                          <p className="mt-0.5 text-xs text-swin-charcoal/50 dark:text-slate-500">{book.reason}</p>
+                          <p className="mt-0.5 font-sans text-caption text-muted-soft dark:text-on-dark-soft">{book.reason}</p>
                         </div>
                       </div>
                       <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        className={`shrink-0 rounded-pill px-2 py-0.5 font-sans text-[10px] font-semibold ${
                           book.availableCopies > 0
-                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                            ? 'bg-success/15 text-success dark:bg-success/20'
+                            : 'bg-surface-cream-strong text-muted dark:bg-dark-surface-strong dark:text-on-dark-soft'
                         }`}
                       >
                         {book.availableCopies > 0 ? `${book.availableCopies} available` : 'On loan'}

@@ -1,13 +1,12 @@
 import Link from 'next/link';
-import clsx from 'clsx';
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import ProfileNameForm from '@/app/profile/profileNameForm';
 import ProfileAvatarForm from '@/app/profile/profileAvatarForm';
 import ProfileEditForm from '@/app/profile/profileEditForm';
-import GlassCard from '@/app/ui/magicUi/glassCard';
 import BlurFade from '@/app/ui/magicUi/blurFade';
+import RoleBadge from '@/app/ui/dashboard/primitives/RoleBadge';
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
 
 type ProfileRow = {
@@ -86,11 +85,11 @@ const formatMemberSince = (value?: string | null) => {
   return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(date);
 };
 
-const ProfileValue = ({ value }: { value?: string | null; isPrivileged: boolean }) => {
+const ProfileValue = ({ value }: { value?: string | null }) => {
   if (value && value.trim().length > 0) {
-    return <span className="text-slate-900 dark:text-slate-100">{value}</span>;
+    return <span className="font-medium text-ink dark:text-on-dark">{value}</span>;
   }
-  return <span className="text-sm text-slate-500 dark:text-slate-400">Not provided</span>;
+  return <span className="font-sans text-caption text-muted-soft dark:text-on-dark-soft">Not provided</span>;
 };
 
 export default async function ProfilePage() {
@@ -131,169 +130,198 @@ export default async function ProfilePage() {
         .maybeSingle<{ created_at: string | null }>(),
     ]);
 
-  if (profileError) {
-    console.error('Failed to load profile for current user', profileError);
-  }
-
-  if (userError) {
-    console.error('Failed to load metadata for current user', userError);
-  }
+  if (profileError) console.error('Failed to load profile', profileError);
+  if (userError) console.error('Failed to load user metadata', userError);
 
   const profile = profileRow ?? {};
   const isPrivileged = user.role === 'staff' || user.role === 'admin';
-  const roleLabel = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User';
   const memberSince = formatMemberSince(userRow?.created_at ?? null);
   const visibilityLabel = formatVisibility(profile.visibility);
   const links = normalizeLinks(profile.links);
   const preferredName = profile.display_name ?? user.name ?? null;
 
-  const pageBgClass = clsx(
-    'min-h-screen py-8 transition-colors sm:py-12',
-    'bg-swin-ivory text-swin-charcoal dark:bg-[#050b1a] dark:text-slate-100',
-  );
-  const wrapperClass = 'mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8 space-y-8';
-
-  const labelClass = 'text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5';
-  const sectionTitleClass = 'text-lg font-semibold text-slate-900 dark:text-white mb-4 px-1';
-
   return (
-    <main className={pageBgClass}>
+    <main className="min-h-screen bg-canvas py-10 text-ink transition-colors sm:py-14 dark:bg-dark-canvas dark:text-on-dark">
       <title>My Profile</title>
 
-      <div className={wrapperClass}>
-
-        {/* 1. Hero Section */}
-        <BlurFade delay={0.1} yOffset={20}>
-          <div className="flex flex-col items-center text-center">
-            <div className="relative mb-6">
-              <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-swin-red/20 to-transparent blur-xl dark:from-swin-red/10" />
-              <ProfileAvatarForm
-                avatarUrl={profile.avatar_url ?? null}
-                displayName={preferredName}
-                isPrivileged={isPrivileged}
-              />
-            </div>
-
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-              {preferredName ?? user.email ?? 'My Profile'}
-            </h1>
-            <p className="mt-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-              {user.email ?? 'Email unavailable'}
+      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+        {/* Page header */}
+        <BlurFade delay={0.05} yOffset={12}>
+          <header className="mb-8 border-b border-hairline pb-6 dark:border-dark-hairline">
+            <p className="mb-1.5 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+              Account
             </p>
-
-            <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <span className={clsx(
-                'inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset',
-                isPrivileged
-                  ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-400/10 dark:text-emerald-400 dark:ring-emerald-400/20'
-                  : 'bg-slate-50 text-slate-700 ring-slate-600/20 dark:bg-slate-400/10 dark:text-slate-400 dark:ring-slate-400/20'
-              )}>
-                {roleLabel}
-              </span>
-              <span className="inline-flex items-center rounded-full bg-slate-50 px-3 py-1 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-600/20 dark:bg-slate-400/10 dark:text-slate-400 dark:ring-slate-400/20">
-                {visibilityLabel}
-              </span>
-            </div>
-          </div>
+            <h1 className="font-display text-display-lg text-ink tracking-tight dark:text-on-dark">
+              My Profile
+            </h1>
+            <p className="mt-2 font-sans text-body-md text-body dark:text-on-dark/80">
+              Keep your identity and contact details up to date so other patrons and staff can reach you.
+            </p>
+          </header>
         </BlurFade>
 
-        {/* 2. Identity Section */}
-        <BlurFade delay={0.3} yOffset={20}>
-          <section>
-            <h2 className={sectionTitleClass}>Identity</h2>
-            <GlassCard intensity="medium" className="divide-y divide-slate-200/50 dark:divide-white/10">
-              <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <span className={labelClass}>Display Name</span>
-                <div className="sm:text-right">
-                  <ProfileNameForm
-                    displayName={profile.display_name ?? user.name ?? null}
-                    username={profile.username ?? null}
-                    isPrivileged={isPrivileged}
-                  />
-                </div>
-              </div>
-              <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <span className={labelClass}>Username</span>
-                <div className="sm:text-right text-sm font-medium text-slate-900 dark:text-white">
-                  <ProfileValue value={profile.username ?? null} isPrivileged={isPrivileged} />
-                </div>
-              </div>
-              <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <span className={labelClass}>Student ID</span>
-                <div className="sm:text-right text-sm font-medium text-slate-900 dark:text-white">
-                  <ProfileValue value={profile.student_id ?? null} isPrivileged={isPrivileged} />
-                  {!isPrivileged && (
-                    <p className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
-                      Managed by admin
+        <div className="grid gap-7 lg:grid-cols-[320px_1fr]">
+          {/* ── LEFT COLUMN — identity card + summary ───────────────────── */}
+          <aside className="space-y-5">
+            <BlurFade delay={0.1} yOffset={12}>
+              <section className="rounded-card border border-hairline bg-surface-card p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
+                <div className="flex flex-col items-center text-center">
+                  <div className="relative mb-4">
+                    <ProfileAvatarForm
+                      avatarUrl={profile.avatar_url ?? null}
+                      displayName={preferredName}
+                    />
+                  </div>
+                  <p className="font-display text-display-sm text-ink tracking-tight dark:text-on-dark">
+                    {preferredName ?? user.email ?? 'My Profile'}
+                  </p>
+                  {profile.username && (
+                    <p className="mt-0.5 font-mono text-code text-muted-soft dark:text-on-dark-soft">
+                      @{profile.username}
                     </p>
                   )}
+                  <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
+                    {user.email ?? 'Email unavailable'}
+                  </p>
+                  <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                    <RoleBadge role={user.role ?? 'user'} />
+                    <span className="inline-flex items-center rounded-pill border border-hairline bg-surface-cream-strong px-2 py-0.5 font-sans text-caption-uppercase text-muted dark:border-dark-hairline dark:bg-dark-surface-strong dark:text-on-dark-soft">
+                      {visibilityLabel.toUpperCase()}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </GlassCard>
-          </section>
-        </BlurFade>
+              </section>
+            </BlurFade>
 
-        {/* 4. Contact & Details Section */}
-        <BlurFade delay={0.4} yOffset={20}>
-          <section>
-            <h2 className={sectionTitleClass}>Contact & Details</h2>
-            <GlassCard intensity="medium" className="p-4 sm:p-6">
-              <ProfileEditForm
-                username={profile.username ?? null}
-                phone={profile.phone ?? null}
-                preferredLanguage={profile.preferred_language ?? null}
-                faculty={profile.faculty ?? null}
-                department={profile.department ?? null}
-                bio={profile.bio ?? null}
-                isPrivileged={isPrivileged}
-              />
-            </GlassCard>
-          </section>
-        </BlurFade>
+            <BlurFade delay={0.18} yOffset={12}>
+              <section className="rounded-card border border-hairline bg-surface-card p-5 dark:border-dark-hairline dark:bg-dark-surface-card">
+                <p className="mb-3 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+                  Activity summary
+                </p>
+                <dl className="space-y-3 font-sans text-body-sm">
+                  <div className="flex items-baseline justify-between">
+                    <dt className="text-muted dark:text-on-dark-soft">Faculty</dt>
+                    <dd className="font-medium text-ink dark:text-on-dark">
+                      {profile.faculty ?? '—'}
+                    </dd>
+                  </div>
+                  <div className="flex items-baseline justify-between">
+                    <dt className="text-muted dark:text-on-dark-soft">Department</dt>
+                    <dd className="font-medium text-ink dark:text-on-dark">
+                      {profile.department ?? '—'}
+                    </dd>
+                  </div>
+                  <div className="flex items-baseline justify-between">
+                    <dt className="text-muted dark:text-on-dark-soft">Intake year</dt>
+                    <dd className="font-mono text-code text-ink dark:text-on-dark">
+                      {profile.intake_year ?? '—'}
+                    </dd>
+                  </div>
+                  {memberSince && (
+                    <div className="flex items-baseline justify-between border-t border-hairline pt-3 dark:border-dark-hairline">
+                      <dt className="text-muted dark:text-on-dark-soft">Member since</dt>
+                      <dd className="font-mono text-code text-ink dark:text-on-dark">
+                        {memberSince}
+                      </dd>
+                    </div>
+                  )}
+                </dl>
+              </section>
+            </BlurFade>
+          </aside>
 
-        {/* 5. Links Section */}
-        <BlurFade delay={0.5} yOffset={20}>
-          <section>
-            <h2 className={sectionTitleClass}>Links</h2>
-            <GlassCard intensity="medium" className="overflow-hidden">
-              {links.length > 0 ? (
-                <ul className="divide-y divide-slate-200/50 dark:divide-white/10">
-                  {links.map((link) => (
-                    <li key={`${link.label}-${link.url}`}>
-                      <Link
-                        href={link.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-between p-4 sm:p-5 transition-colors hover:bg-slate-50/50 dark:hover:bg-white/5 group"
-                      >
-                        <span className="text-sm font-medium text-swin-red dark:text-emerald-400 group-hover:underline">
-                          {link.label}
-                        </span>
-                        <ChevronRightIcon className="h-4 w-4 text-slate-400 group-hover:text-slate-600 dark:text-slate-600 dark:group-hover:text-slate-400" />
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="p-8 text-center">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">No links added yet.</p>
+          {/* ── RIGHT COLUMN — identity + contact + links ───────────────── */}
+          <div className="space-y-5">
+            <BlurFade delay={0.22} yOffset={12}>
+              <section className="rounded-card border border-hairline bg-surface-card p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
+                <h2 className="mb-4 font-display text-display-sm text-ink tracking-tight dark:text-on-dark">
+                  Identity
+                </h2>
+                <div className="divide-y divide-hairline dark:divide-dark-hairline">
+                  <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+                      Display name
+                    </span>
+                    <div className="sm:text-right">
+                      <ProfileNameForm
+                        displayName={profile.display_name ?? user.name ?? null}
+                        username={profile.username ?? null}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+                      Username
+                    </span>
+                    <div className="font-sans text-body-sm sm:text-right">
+                      <ProfileValue value={profile.username ?? null} />
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+                      Student ID
+                    </span>
+                    <div className="font-sans text-body-sm sm:text-right">
+                      <ProfileValue value={profile.student_id ?? null} />
+                      {!isPrivileged && (
+                        <p className="mt-0.5 font-sans text-caption text-muted-soft dark:text-on-dark-soft">
+                          Managed by admin
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
-            </GlassCard>
-          </section>
-        </BlurFade>
+              </section>
+            </BlurFade>
 
-        {/* Member Since Footer */}
-        <BlurFade delay={0.6} yOffset={20}>
-          <div className="text-center">
-            {memberSince && (
-              <p className="text-xs font-medium text-slate-400 dark:text-slate-600 uppercase tracking-widest">
-                Member since {memberSince}
-              </p>
-            )}
+            <BlurFade delay={0.28} yOffset={12}>
+              <section className="rounded-card border border-hairline bg-surface-card p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
+                <h2 className="mb-4 font-display text-display-sm text-ink tracking-tight dark:text-on-dark">
+                  Contact & details
+                </h2>
+                <ProfileEditForm
+                  username={profile.username ?? null}
+                  phone={profile.phone ?? null}
+                  preferredLanguage={profile.preferred_language ?? null}
+                  faculty={profile.faculty ?? null}
+                  department={profile.department ?? null}
+                  bio={profile.bio ?? null}
+                />
+              </section>
+            </BlurFade>
+
+            <BlurFade delay={0.34} yOffset={12}>
+              <section className="rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card">
+                <h2 className="px-6 pt-5 font-display text-display-sm text-ink tracking-tight dark:text-on-dark">
+                  Links
+                </h2>
+                {links.length > 0 ? (
+                  <ul className="mt-3 divide-y divide-hairline dark:divide-dark-hairline">
+                    {links.map((link) => (
+                      <li key={`${link.label}-${link.url}`}>
+                        <Link
+                          href={link.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex items-center justify-between px-6 py-4 transition hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong"
+                        >
+                          <span className="font-sans text-body-sm font-semibold text-primary dark:text-dark-primary">
+                            {link.label}
+                          </span>
+                          <ChevronRightIcon className="h-4 w-4 text-muted-soft dark:text-on-dark-soft" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="px-6 pb-6 pt-3 font-sans text-body-sm text-muted dark:text-on-dark-soft">
+                    No links added yet.
+                  </p>
+                )}
+              </section>
+            </BlurFade>
           </div>
-        </BlurFade>
-
+        </div>
       </div>
     </main>
   );

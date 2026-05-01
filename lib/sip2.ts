@@ -1,5 +1,6 @@
 const BASE = process.env.SIP2_BASE_URL;
 const TOKEN = process.env.SIP2_API_KEY;
+const SIP2_TIMEOUT_MS = Number(process.env.SIP2_TIMEOUT_MS ?? 5000);
 
 if (!BASE || !TOKEN) {
   console.warn('[SIP2] Configuration missing.');
@@ -12,6 +13,12 @@ async function request<T>(endpoint: SipEndpoint, payload: unknown): Promise<T> {
     throw new Error('SIP2 service unavailable.');
   }
 
+  // Cap each request — SIP2 is auxiliary; Supabase is source of truth. Without
+  // a cap, an unresponsive emulator blocks the server action until system TCP
+  // timeout, freezing the UI on "Processing…" for 30+ seconds.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), SIP2_TIMEOUT_MS);
+
   let response: Response;
 
   try {
@@ -23,14 +30,19 @@ async function request<T>(endpoint: SipEndpoint, payload: unknown): Promise<T> {
       },
       body: JSON.stringify(payload),
       cache: 'no-store',
+      signal: controller.signal,
     });
   } catch (err) {
+    const aborted = err instanceof Error && err.name === 'AbortError';
     console.error('[SIP2] Network error', {
       endpoint,
+      reason: aborted ? `timeout after ${SIP2_TIMEOUT_MS}ms` : 'network',
       time: new Date().toISOString(),
     });
 
-    throw new Error('SIP2 service unreachable.');
+    throw new Error(aborted ? 'SIP2 request timed out.' : 'SIP2 service unreachable.');
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   if (!response.ok) {

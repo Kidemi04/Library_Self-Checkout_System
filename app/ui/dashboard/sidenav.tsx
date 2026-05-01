@@ -1,14 +1,85 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import Image from 'next/image';
+import {
+  HomeIcon,
+  BookOpenIcon,
+  UserGroupIcon,
+  UserCircleIcon,
+  AcademicCapIcon,
+  SparklesIcon,
+  BellIcon,
+  BookmarkIcon,
+  ArrowPathIcon,
+  QrCodeIcon,
+  ClockIcon,
+  Cog6ToothIcon,
+  MagnifyingGlassIcon,
+  QuestionMarkCircleIcon,
+  SunIcon,
+  MoonIcon,
+  ExclamationTriangleIcon,
+  ChatBubbleLeftRightIcon,
+} from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import NavLinks from '@/app/ui/dashboard/navLinks';
-import AcmeLogo from '@/app/ui/acmeLogo';
-import SignOutButton from '@/app/ui/dashboard/signOutButton';
-import ThemeToggle from '@/app/ui/theme/themeToggle';
-import BlurFade from '@/app/ui/magicUi/blurFade';
 import { useTheme } from '@/app/ui/theme/themeProvider';
+import SignOutButton from '@/app/ui/dashboard/signOutButton';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
+import type { DashboardRole } from '@/app/lib/auth/types';
+import { useEffect, useState } from 'react';
+
+type NavItem = { icon: React.ElementType; label: string; href: string; badge?: number };
+
+const ADMIN_NAV: NavItem[] = [
+  { icon: HomeIcon,                  label: 'Overview',        href: '/dashboard/admin' },
+  { icon: BookOpenIcon,              label: 'Catalogue',       href: '/dashboard/book/items' },
+  { icon: UserGroupIcon,             label: 'Users',           href: '/dashboard/admin/users' },
+  { icon: BookmarkIcon,              label: 'Holds',           href: '/dashboard/book/holds' },
+  { icon: QrCodeIcon,                label: 'Borrow Books',    href: '/dashboard/book/checkout' },
+  { icon: ArrowPathIcon,             label: 'Return Books',    href: '/dashboard/book/checkin' },
+  { icon: ExclamationTriangleIcon,   label: 'Damage Reports',  href: '/dashboard/staff/damage-reports' },
+  { icon: ClockIcon,                 label: 'Borrow History',  href: '/dashboard/book/history' },
+  { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
+  { icon: Cog6ToothIcon,             label: 'Settings',        href: '/dashboard/profile' },
+];
+
+const STAFF_NAV: NavItem[] = [
+  { icon: HomeIcon,                  label: 'Desk',            href: '/dashboard' },
+  { icon: QrCodeIcon,                label: 'Borrow Books',    href: '/dashboard/book/checkout' },
+  { icon: ArrowPathIcon,             label: 'Return Books',    href: '/dashboard/book/checkin' },
+  { icon: BookmarkIcon,              label: 'Holds',           href: '/dashboard/book/holds' },
+  { icon: BookOpenIcon,              label: 'Catalogue',       href: '/dashboard/book/items' },
+  { icon: ExclamationTriangleIcon,   label: 'Damage Reports',  href: '/dashboard/staff/damage-reports' },
+  { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
+  { icon: UserCircleIcon,            label: 'Profile',         href: '/dashboard/profile' },
+];
+
+const USER_NAV: NavItem[] = [
+  { icon: HomeIcon,                  label: 'Dashboard',       href: '/dashboard' },
+  { icon: MagnifyingGlassIcon,       label: 'Catalogue',       href: '/dashboard/book/items' },
+  { icon: QrCodeIcon,                label: 'Borrow',          href: '/dashboard/book/checkout' },
+  { icon: ArrowPathIcon,             label: 'Return',          href: '/dashboard/book/checkin' },
+  { icon: BookOpenIcon,              label: 'My Books',        href: '/dashboard/my-books' },
+  { icon: AcademicCapIcon,           label: 'Learning hub',    href: '/dashboard/learning' },
+  { icon: SparklesIcon,              label: 'Recommendations', href: '/dashboard/recommendations' },
+  { icon: ChatBubbleLeftRightIcon,   label: 'Chat Assistant',  href: '/dashboard/chat' },
+  { icon: QuestionMarkCircleIcon,    label: 'Help Centre',     href: '/dashboard/faq' },
+  { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
+  { icon: UserCircleIcon,            label: 'Profile',         href: '/dashboard/profile' },
+];
+
+function getNav(role: DashboardRole): NavItem[] {
+  if (role === 'admin') return ADMIN_NAV;
+  if (role === 'staff') return STAFF_NAV;
+  return USER_NAV;
+}
+
+function getInitials(name: string | null | undefined): string {
+  if (!name) return '?';
+  return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+}
 
 type SideNavProps = {
   user: DashboardUserProfile;
@@ -16,97 +87,144 @@ type SideNavProps = {
 };
 
 export default function SideNav({ user, isBypassed }: SideNavProps) {
-  const isPrivileged = user.role === 'staff' || user.role === 'admin';
-  const roleLabel = user.role === 'admin' ? 'Admin' : user.role === 'staff' ? 'Staff' : 'User';
-  const { theme } = useTheme();
+  const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
+  const [hasUnread, setHasUnread] = useState(false);
+
+  useEffect(() => {
+    const check = async () => {
+      try {
+        const res = await fetch('/api/notifications?filter=unread&limit=1');
+        if (!res.ok) return;
+        const { notifications } = await res.json();
+        setHasUnread(Array.isArray(notifications) && notifications.length > 0);
+      } catch { /* ignore */ }
+    };
+    check();
+    const timer = setInterval(check, 90_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (pathname === '/dashboard/notifications') setHasUnread(false);
+  }, [pathname]);
+
+  const nav = getNav(user.role);
+  const roleBadge = user.role === 'admin' ? 'ADMIN' : user.role === 'staff' ? 'STAFF' : 'STUDENT';
+  const initials = getInitials(user.name);
 
   return (
-    <aside
-      /* Container remains fixed and does not scroll as a whole */
-      className={clsx(
-        'fixed left-0 top-0 flex h-screen w-64 flex-col px-3 py-5 shadow-2xl backdrop-blur-2xl transition-all duration-300 md:px-4',
-        isDark
-          ? 'bg-slate-950/70 text-slate-100 ring-1 ring-white/20 shadow-white/5'
-          : 'bg-swin-charcoal/85 text-swin-ivory ring-1 ring-white/10 shadow-black/30',
-      )}
-      style={{
-        backdropFilter: 'blur(40px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-      }}
-    >
-      {/* 1. FIXED TOP: Logo */}
-      <div className="flex-none pb-4">
-        <BlurFade delay={0.1} yOffset={-10}>
-          <Link
-            className="group relative flex items-center gap-3 overflow-hidden rounded-2xl bg-gradient-to-r from-swin-red to-swin-red/90 px-4 py-3 text-swin-ivory shadow-2xl shadow-swin-red/40 ring-1 ring-white/20 transition-all duration-300 hover:scale-[1.02] hover:shadow-swin-red/50 hover:ring-white/30 active:scale-95"
-            href="/"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-            <div className="relative text-swin-ivory">
-              <AcmeLogo />
-            </div>
-            <span className="relative hidden text-sm font-semibold uppercase tracking-wide md:block">
-              Library Self-Checkout
-            </span>
-          </Link>
-        </BlurFade>
+    <aside className="fixed left-0 top-0 flex h-screen w-64 flex-col border-r border-hairline bg-canvas py-7 px-[18px] text-ink dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark">
+      {/* Logo */}
+      <div className="mb-5 px-2.5 pb-5 border-b border-hairline dark:border-dark-hairline">
+        <Image
+          src="/swinburne-logo.png"
+          alt="Swinburne University of Technology Sarawak Campus"
+          width={220}
+          height={103}
+          className="w-full rounded-sm"
+          priority
+        />
+        <p className="mt-2 font-display text-[11px] italic text-muted-soft dark:text-on-dark-soft">
+          Library · est. 1908
+        </p>
       </div>
 
-      {/* 2. FIXED TOP: User Card (Optional) */}
-      {isPrivileged && (
-        <div className="flex-none">
-          <BlurFade delay={0.2} yOffset={-10}>
-            <div
+      {/* Role badge */}
+      <div className={clsx(
+        'mx-2.5 mb-5 rounded-btn border p-2.5',
+        user.role === 'admin'
+          ? 'border-primary/30 bg-primary/8 dark:border-dark-primary/40 dark:bg-dark-primary/15'
+          : user.role === 'staff'
+          ? 'border-accent-amber/30 bg-accent-amber/10 dark:border-accent-amber/40 dark:bg-accent-amber/15'
+          : 'border-hairline bg-transparent dark:border-dark-hairline',
+      )}>
+        <p className={clsx(
+          'font-mono text-[9px] font-bold uppercase tracking-[2px]',
+          user.role === 'admin' ? 'text-primary dark:text-dark-primary'
+            : user.role === 'staff' ? 'text-accent-amber'
+            : 'text-muted-soft dark:text-on-dark-soft',
+        )}>{roleBadge}</p>
+        <p className="mt-0.5 font-sans text-[13px] font-semibold text-ink dark:text-on-dark">
+          {user.name ?? user.email ?? 'Library Member'}
+        </p>
+        {isBypassed && (
+          <p className="mt-0.5 font-mono text-[9px] text-primary/70 dark:text-dark-primary/70">Dev bypass active</p>
+        )}
+      </div>
+
+      <p className="mb-2 px-3 font-mono text-[9px] font-semibold uppercase tracking-[1.8px] text-muted-soft dark:text-on-dark-soft">
+        Workspace
+      </p>
+
+      {/* Nav items */}
+      <nav className="flex-1 overflow-y-auto scrollbar-none space-y-0.5">
+        {nav.map((item) => {
+          const isActive = item.href === '/dashboard'
+            ? pathname === '/dashboard'
+            : item.href === '/dashboard/admin'
+            ? pathname === '/dashboard/admin'
+            : pathname.startsWith(item.href.split('?')[0]);
+          const Icon = item.icon;
+          const showDot = item.label === 'Notifications' && hasUnread;
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
               className={clsx(
-                'relative overflow-hidden rounded-2xl border p-4 mb-2 text-sm backdrop-blur-xl transition-all duration-300 hover:shadow-xl',
-                isDark
-                  ? 'border-white/20 bg-white/10 text-slate-100 shadow-black/30 ring-1 ring-white/10'
-                  : 'border-swin-ivory/20 bg-black/30 text-swin-ivory shadow-black/40 ring-1 ring-white/5',
+                'flex items-center gap-3 rounded-btn px-3 py-2.5 font-sans text-nav-link transition-colors',
+                isActive
+                  ? 'bg-primary/10 text-primary dark:bg-dark-primary/15 dark:text-dark-primary'
+                  : 'text-body hover:bg-surface-cream-strong hover:text-ink dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark',
               )}
             >
-              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
-              <p className={clsx('relative z-10 text-[11px] uppercase tracking-wide', isDark ? 'text-white/60' : 'text-swin-ivory/80')}>
-                {`${roleLabel} access`}
-              </p>
-              <p className="relative z-10 mt-1 truncate text-sm font-semibold">{user.name ?? user.email ?? 'Librarian'}</p>
-              <p className={clsx('relative z-10 mt-2 text-[11px] font-medium uppercase tracking-wide', isDark ? 'text-emerald-300/80' : 'text-swin-red/90')}>
-                {isBypassed ? 'Dev bypass active' : `Role: ${roleLabel}`}
-              </p>
-            </div>
-          </BlurFade>
-        </div>
-      )}
-
-      {/* 3. SCROLLABLE MIDDLE: NavLinks */}
-      <nav className="flex-grow overflow-y-auto overflow-x-hidden scrollbar-none px-1 mt-4">
-        {/* Add a small padding-top here inside the scroll area.
-            This ensures the first button's hover/scale effect 
-            has space to expand without being clipped by the container.
-        */}
-        <div className="pt-4"> 
-          <NavLinks role={user.role} />
-        </div>
+              <span className="relative flex-shrink-0">
+                <Icon className="h-[18px] w-[18px]" />
+                {showDot && (
+                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary ring-2 ring-canvas dark:ring-dark-canvas" />
+                )}
+              </span>
+              <span className="flex-1">{item.label}</span>
+              {item.badge != null && (
+                <span className={clsx(
+                  'rounded-pill px-1.5 py-0.5 font-mono text-[10px] font-bold',
+                  isActive ? 'bg-primary text-on-primary' : 'bg-surface-cream-strong text-muted dark:bg-dark-surface-strong dark:text-on-dark-soft',
+                )}>{item.badge}</span>
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* 4. FIXED BOTTOM: Controls */}
-      {/* Added 'mt-auto' and 'pt-4' to ensure it stays at the bottom with enough spacing.
-      */}
-      <div className="mt-auto flex-none pt-4">
-        <BlurFade delay={0.3} yOffset={10}>
-          <div className="flex flex-col gap-3">
-            <ThemeToggle context="sidebar" />
-            <SignOutButton
-              className={clsx(
-                'flex h-[44px] w-full items-center justify-center gap-2 rounded-xl border text-sm font-medium transition-all duration-300 md:justify-start md:px-3 active:scale-95',
-                isDark
-                  ? 'border-white/20 text-slate-200 hover:scale-[1.02] hover:bg-white/10 hover:text-white'
-                  : 'border-swin-ivory/30 bg-transparent text-swin-ivory hover:scale-[1.02] hover:bg-white/10 hover:text-swin-ivory',
-              )}
-              labelClassName="hidden md:block"
-            />
+      {/* Bottom controls */}
+      <div className="mt-4 space-y-2">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="flex w-full items-center justify-center gap-2 rounded-btn border border-hairline bg-surface-card px-3 py-2 font-sans text-caption text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
+        >
+          {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
+          {isDark ? 'Light mode' : 'Dark mode'}
+        </button>
+
+        {/* User footer */}
+        <div className="flex items-center gap-2.5 rounded-btn border border-hairline p-2.5 dark:border-dark-hairline">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-on-primary">
+            {initials}
           </div>
-        </BlurFade>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-sans text-[13px] font-semibold text-ink dark:text-on-dark">
+              {user.name ?? 'Library Member'}
+            </p>
+            <p className="truncate font-mono text-[11px] text-muted-soft dark:text-on-dark-soft">
+              {user.email ?? ''}
+            </p>
+          </div>
+          <SignOutButton labelClassName="hidden" />
+        </div>
       </div>
     </aside>
   );
