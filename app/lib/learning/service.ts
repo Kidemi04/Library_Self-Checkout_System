@@ -3,7 +3,6 @@ import {
   searchLinkedInLearningCourses,
   getLinkedInLearningCollections,
 } from '@/app/lib/linkedin/service';
-import { searchKhanAcademyCourses, getKhanAcademyCollections } from '@/app/lib/khan/service';
 import type {
   LinkedInLearningSearchOptions,
   LinkedInLearningSearchResult,
@@ -11,7 +10,7 @@ import type {
   LinkedInLearningTopicDefinition,
 } from '@/app/lib/linkedin/types';
 
-export type LearningProvider = 'linkedin' | 'khan';
+export type LearningProvider = 'linkedin';
 
 export type LearningStatus = {
   provider: LearningProvider;
@@ -21,11 +20,11 @@ export type LearningStatus = {
 
 export const getLearningStatus = async (): Promise<LearningStatus> => {
   const status = await getLinkedInLearningStatus();
-  const isLinkedIn = status.enabled && status.isConfigured && !status.usingStub;
+  const isLive = status.enabled && status.isConfigured && !status.usingStub;
   return {
-    provider: isLinkedIn ? 'linkedin' : 'khan',
-    label: isLinkedIn ? 'LinkedIn Learning' : 'Khan Academy',
-    isLive: isLinkedIn,
+    provider: 'linkedin',
+    label: 'LinkedIn Learning',
+    isLive,
   };
 };
 
@@ -33,9 +32,7 @@ export const searchLearningCourses = async (
   options: LinkedInLearningSearchOptions = {},
 ): Promise<LinkedInLearningSearchResult & { provider: LearningProvider; label: string }> => {
   const status = await getLearningStatus();
-  const result = status.isLive
-    ? await searchLinkedInLearningCourses(options)
-    : await searchKhanAcademyCourses(options);
+  const result = await searchLinkedInLearningCourses(options);
   return { ...result, provider: status.provider, label: status.label };
 };
 
@@ -46,8 +43,6 @@ export const getLearningCollections = async (
   } = {},
 ): Promise<Array<LinkedInLearningTopicCollection & { provider: LearningProvider; label: string }>> => {
   const status = await getLearningStatus();
-  const collections = status.isLive
-    ? await getLinkedInLearningCollections(definitions, options)
-    : await getKhanAcademyCollections(definitions, options);
+  const collections = await getLinkedInLearningCollections(definitions, options);
   return collections.map((c) => ({ ...c, provider: status.provider, label: status.label }));
 };
