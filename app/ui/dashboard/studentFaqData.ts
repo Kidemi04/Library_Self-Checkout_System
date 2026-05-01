@@ -128,6 +128,57 @@ export const studentFaqSections: StudentFaqSection[] = [
     ],
   },
   {
+    id: 'holds',
+    title: 'Holds & Reservations',
+    description: 'How to reserve a book that is currently on loan and manage your reservation queue.',
+    items: [
+      {
+        question: 'What is a hold and how do I place one?',
+        answer: [
+          'A hold (reservation) lets you queue for a book that is currently borrowed by another student.',
+          'When all copies of a title are on loan, you can place a hold from the Borrow Books page.',
+          'You will be notified when a copy becomes available and is ready for pickup.',
+        ],
+        tags: ['Hold', 'Reservation', 'Queue'],
+        contactLink: {
+          label: 'Browse books',
+          href: '/dashboard/book/items',
+        },
+      },
+      {
+        question: 'How long do I have to pick up a book when my hold is ready?',
+        answer: [
+          'When your hold is promoted to "ready", you have 3 days to collect the book from the library service desk on Level 1.',
+          'You will receive a notification with the exact pickup deadline.',
+          'If you do not collect the book within the 3-day window, the hold expires automatically and the copy is made available to the next person in the queue.',
+        ],
+        tags: ['Hold', 'Pickup', '3 days'],
+      },
+      {
+        question: 'How do I check or cancel my reservations?',
+        answer: [
+          'Go to My Books and open the Reservations tab.',
+          'You will see all active holds with their current status — "queued" (waiting) or "ready" (pickup available).',
+          'To cancel a hold, tap the cancel option next to the reservation. Cancelling removes you from the queue permanently.',
+        ],
+        tags: ['Hold', 'Cancel', 'My Books'],
+        contactLink: {
+          label: 'View My Books',
+          href: '/dashboard/my-books',
+        },
+      },
+      {
+        question: 'Can I still renew a book if someone has placed a hold on it?',
+        answer: [
+          'No. If another student has placed a hold on the same title, the renewal option will be blocked.',
+          'This ensures the book can be returned on time so the hold can be fulfilled for the next student.',
+          'You can still see the reason for the block on your loan card in My Books → Current Loans.',
+        ],
+        tags: ['Renewal', 'Hold', 'Block'],
+      },
+    ],
+  },
+  {
     id: 'scanner',
     title: 'Using the Barcode Scanner',
     description: 'Tips for scanning book barcodes reliably using the camera on your device.',
