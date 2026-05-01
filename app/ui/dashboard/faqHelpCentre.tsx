@@ -12,6 +12,7 @@ import {
   BellIcon,
   UserIcon,
 } from '@heroicons/react/24/outline';
+import ZendeskChatButton from '@/app/ui/dashboard/zendeskChatButton';
 
 type FaqIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -194,12 +195,15 @@ export default function FaqHelpCentre() {
           <p className="mb-2.5 font-sans text-[12px] leading-[1.5] text-body dark:text-on-dark/85">
             Chat with a librarian during staffed hours or email us.
           </p>
-          <a
-            href="mailto:library@swinburne.edu.my"
-            className="font-mono text-[11px] font-bold text-primary hover:underline dark:text-dark-primary"
-          >
-            library@swinburne.edu.my
-          </a>
+          <div className="flex flex-col gap-1.5">
+            <ZendeskChatButton label="Open live chat" />
+            <a
+              href="mailto:library@swinburne.edu.my"
+              className="font-mono text-[11px] font-bold text-primary hover:underline dark:text-dark-primary"
+            >
+              library@swinburne.edu.my
+            </a>
+          </div>
         </div>
       </aside>
     </div>
