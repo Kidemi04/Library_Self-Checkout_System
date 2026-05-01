@@ -54,3 +54,5 @@ pnpm-debug.log*
 
 # Claude Code internals
 .claude/
+
+certificates
