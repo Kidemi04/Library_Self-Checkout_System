@@ -43,9 +43,10 @@ export const studentFaqSections: StudentFaqSection[] = [
         answer: [
           'Tap "Borrow" to confirm. The loan is recorded instantly and will appear under your Active Loans on the dashboard.',
           'No library staff or physical stamp is needed — the self-checkout handles everything.',
+          'Important: ensure all books are checked out before removing them from the bookshelves area. The library\'s RFID security system will trigger an alarm if a book has not been properly checked out — this applies to all use, including in-house reading.',
           'You will receive a notification reminder as your due date approaches.',
         ],
-        tags: ['Checkout', 'Active loans'],
+        tags: ['Checkout', 'Active loans', 'RFID'],
       },
     ],
   },
@@ -78,10 +79,10 @@ export const studentFaqSections: StudentFaqSection[] = [
         question: 'Can I renew my loan before it is due?',
         answer: [
           'Yes. Open your Active Loans from the dashboard and select the book you want to renew.',
-          'If the renewal option is available, tap "Renew" to extend the loan by another 14 days.',
-          'Renewal may not be available if another student has placed a hold on the same title.',
+          'Each renewal extends the due date by 14 days. You can renew a loan up to 2 times.',
+          'Renewal is blocked if: another student has placed a hold on the title, you have any overdue loans, you have unpaid fines, or your library membership has expired. The reason will be shown on your loan card.',
         ],
-        tags: ['Renewal', 'Extension'],
+        tags: ['Renewal', 'Extension', 'Holds'],
       },
       {
         question: 'What happens if I return the book late?',
@@ -194,6 +195,53 @@ export const studentFaqSections: StudentFaqSection[] = [
           'Contact the service desk with your student ID to have the record corrected.',
         ],
         tags: ['Notifications', 'Overdue'],
+        contactLink: {
+          label: 'Email library@swinburne.edu.my',
+          href: 'mailto:library@swinburne.edu.my',
+        },
+      },
+      {
+        question: 'Can I let someone else borrow using my account?',
+        answer: [
+          'No. You must never lend your student ID or share your account with anyone, or borrow items on someone else\'s behalf.',
+          'All items checked out on your account are entirely your responsibility, including any fines or replacement costs that arise.',
+          'If you lose your student ID card, report it to the library immediately so your account can be protected.',
+        ],
+        tags: ['ID card', 'Account', 'Responsibility'],
+        contactLink: {
+          label: 'Email library@swinburne.edu.my',
+          href: 'mailto:library@swinburne.edu.my',
+        },
+      },
+    ],
+  },
+  {
+    id: 'fines-lost',
+    title: 'Fines & Lost Items',
+    description: 'What to do if you have outstanding fines or have lost or damaged a borrowed item.',
+    items: [
+      {
+        question: 'How do I pay library fines?',
+        answer: [
+          'You can pay fines at the library counter using an e-wallet by scanning the QR code available at the desk.',
+          'If you are unable to visit in person, email library@swinburne.edu.my and the library will provide a payment QR code.',
+          'Borrowing is suspended while fines remain unpaid, so settle them as soon as possible.',
+        ],
+        tags: ['Fines', 'Payment', 'E-wallet'],
+        contactLink: {
+          label: 'Email library@swinburne.edu.my',
+          href: 'mailto:library@swinburne.edu.my',
+        },
+      },
+      {
+        question: 'What happens if I lose or damage a borrowed book?',
+        answer: [
+          'You are required to pay the replacement cost of the item plus an administration fee of RM 50.00.',
+          'The replacement cost is based on the current retail price, or the average price for that subject area if the title is no longer in print.',
+          'You may also replace the item with a new copy or the latest edition of the same book.',
+          'Borrowing and renewal will remain suspended until the outstanding charges are settled or the item is replaced.',
+        ],
+        tags: ['Lost', 'Damaged', 'Replacement', 'Fee'],
         contactLink: {
           label: 'Email library@swinburne.edu.my',
           href: 'mailto:library@swinburne.edu.my',
