@@ -21,6 +21,7 @@ import {
   SunIcon,
   MoonIcon,
   ExclamationTriangleIcon,
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/themeProvider';
@@ -62,9 +63,10 @@ const USER_NAV: NavItem[] = [
   { icon: ArrowPathIcon,             label: 'Return',          href: '/dashboard/book/checkin' },
   { icon: BookOpenIcon,              label: 'My Books',        href: '/dashboard/my-books' },
   { icon: AcademicCapIcon,           label: 'Learning hub',    href: '/dashboard/learning' },
-  { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
   { icon: SparklesIcon,              label: 'Recommendations', href: '/dashboard/recommendations' },
-  { icon: QuestionMarkCircleIcon,    label: 'FAQ',             href: '/dashboard/faq' },
+  { icon: ChatBubbleLeftRightIcon,   label: 'Chat Assistant',  href: '/dashboard/chat' },
+  { icon: QuestionMarkCircleIcon,    label: 'Help Centre',     href: '/dashboard/faq' },
+  { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
   { icon: UserCircleIcon,            label: 'Profile',         href: '/dashboard/profile' },
 ];
 

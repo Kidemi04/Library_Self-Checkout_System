@@ -4,7 +4,7 @@ export const revalidate = 0;
 import { getDashboardSession } from '@/app/lib/auth/session';
 
 import AdminShell from '@/app/ui/dashboard/adminShell';
-import StudentChat from '@/app/ui/dashboard/studentChat';
+import BookRecommendations from '@/app/ui/dashboard/bookRecommendations';
 
 export default async function RecommendationsPage() {
   const { user } = await getDashboardSession();
@@ -12,14 +12,14 @@ export default async function RecommendationsPage() {
 
   return (
     <>
-      <title>Recommendations | Dashboard</title>
+      <title>Book Recommendations | Dashboard</title>
 
       <AdminShell
         titleSubtitle="Reading assistant"
-        title="AI Book Recommendations"
-        description="Share what you want to read, and we will recommend books from the Sarawak Campus catalogue."
+        title="Book Recommendations"
+        description="Personalised picks based on your borrowing history and interests."
       >
-        <StudentChat studentName={displayName} />
+        <BookRecommendations studentName={displayName} />
       </AdminShell>
     </>
   );

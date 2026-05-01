@@ -15,6 +15,8 @@ import {
   ExclamationTriangleIcon,
   QrCodeIcon,
   ArrowPathIcon,
+  ChatBubbleLeftRightIcon,
+  QuestionMarkCircleIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import BlurFade from '@/app/ui/magicUi/blurFade';
@@ -51,6 +53,8 @@ const userLinks: NavItem[] = [
   { name: 'Return', href: '/dashboard/book/checkin', icon: ArrowPathIcon },
   { name: 'My Books', href: '/dashboard/my-books', icon: BookmarkIcon },
   { name: 'Recommendations', href: '/dashboard/recommendations', icon: SparklesIcon },
+  { name: 'Chat Assistant', href: '/dashboard/chat', icon: ChatBubbleLeftRightIcon },
+  { name: 'Help Centre', href: '/dashboard/faq', icon: QuestionMarkCircleIcon },
   { name: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
   { name: 'My Profile', href: '/dashboard/profile', icon: UserCircleIcon },
 ];
