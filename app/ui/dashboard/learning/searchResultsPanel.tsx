@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import type { LinkedInLearningAsset } from '@/app/lib/linkedin/types';
-import LinkedInLearningCourseCard from './courseCard';
+import type { YouTubeAsset } from '@/app/lib/youtube/types';
+import YouTubeCourseCard from './courseCard';
 
 const container = {
   hidden: {},
@@ -24,7 +24,7 @@ const cardVariant = {
 };
 
 type Props = {
-  items: LinkedInLearningAsset[];
+  items: YouTubeAsset[];
   query: string;
 };
 
@@ -47,7 +47,7 @@ export default function SearchResultsPanel({ items, query }: Props) {
         transition={{ duration: 0.3 }}
         className="rounded-3xl border border-dashed border-swin-charcoal/20 bg-white p-8 text-center text-sm text-swin-charcoal/70 dark:border-white/20 dark:bg-slate-900/40 dark:text-slate-300/80"
       >
-        No courses found for &ldquo;{query}&rdquo;. Try a different keyword.
+        No videos found for &ldquo;{query}&rdquo;. Try a different keyword.
       </motion.div>
     );
   }
@@ -62,7 +62,7 @@ export default function SearchResultsPanel({ items, query }: Props) {
     >
       {items.map((course) => (
         <motion.div key={course.urn} variants={cardVariant}>
-          <LinkedInLearningCourseCard course={course} />
+          <YouTubeCourseCard course={course} />
         </motion.div>
       ))}
     </motion.div>

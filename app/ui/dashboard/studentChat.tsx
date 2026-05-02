@@ -15,9 +15,10 @@ type RecommendationItem = {
   reason: string;
 };
 
-type LinkedInSuggestion = {
+type YouTubeSuggestion = {
   title: string;
   query: string;
+  url?: string | null;
 };
 
 type RecommendationResponse = {
@@ -32,7 +33,7 @@ type RecommendationResponse = {
     | 'rate_limited';
   reply?: string;
   recommendations?: RecommendationItem[];
-  linkedInSuggestions?: LinkedInSuggestion[];
+  youtubeSuggestions?: YouTubeSuggestion[];
   interests?: string[];
   summary?: string | null;
   followUpQuestion?: string | null;
@@ -179,7 +180,7 @@ export default function StudentChat({
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [sendNotice, setSendNotice] = useState<string | null>(null);
   const [stickToBottom, setStickToBottom] = useState(true);
-  const [linkedInSuggestions, setLinkedInSuggestions] = useState<LinkedInSuggestion[]>([]);
+  const [youtubeSuggestions, setYoutubeSuggestions] = useState<YouTubeSuggestion[]>([]);
   const [learningPath, setLearningPath] = useState<LearningPathResponse | null>(null);
   const [learningPathLoading, setLearningPathLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -246,7 +247,7 @@ export default function StudentChat({
 
   const resetChat = () => {
     setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
-    setLinkedInSuggestions([]);
+    setYoutubeSuggestions([]);
     setSendNotice(null);
     setShowQuickPrompts(true);
     setStickToBottom(true);
@@ -363,7 +364,7 @@ export default function StudentChat({
         },
       ]);
 
-      setLinkedInSuggestions(data?.linkedInSuggestions ?? []);
+      setYoutubeSuggestions(data?.youtubeSuggestions ?? []);
 
       // Auto-generate learning path from top interest when recommendations arrive
       const interests = data?.interests ?? [];
@@ -399,7 +400,7 @@ export default function StudentChat({
           timestamp: Date.now(),
         },
       ]);
-      setLinkedInSuggestions([]);
+      setYoutubeSuggestions([]);
       setLearningPath(null);
       setSendNotice('Unable to send right now. Please try again.');
     } finally {
@@ -819,22 +820,22 @@ export default function StudentChat({
         </div>
       </form>}
 
-      {!isFullscreen && onboardingComplete && linkedInSuggestions.length > 0 && (
+      {!isFullscreen && onboardingComplete && youtubeSuggestions.length > 0 && (
         <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
           <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
             Go deeper
           </p>
           <h3 className="mt-0.5 text-base font-semibold text-slate-900 dark:text-slate-100">
-            Courses on LinkedIn Learning
+            Videos on YouTube
           </h3>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-            Suggested based on your interests. Opens LinkedIn Learning.
+            Suggested based on your interests. Opens YouTube.
           </p>
           <div className="mt-3 flex flex-col gap-2">
-            {linkedInSuggestions.map((suggestion) => {
+            {youtubeSuggestions.map((suggestion) => {
               const href = suggestion.url
                 ? suggestion.url
-                : `https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(suggestion.query)}`;
+                : `https://www.youtube.com/results?search_query=${encodeURIComponent(suggestion.query)}`;
 
               return (
                 <a
@@ -842,11 +843,11 @@ export default function StudentChat({
                   href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-sm transition hover:border-[#0A66C2] hover:text-[#0A66C2] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-[#0A66C2] dark:hover:text-[#70B5F9]"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-sm transition hover:border-red-500 hover:text-red-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-red-500 dark:hover:text-red-400"
                 >
                   <span>{suggestion.title}</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 shrink-0 opacity-50">
-                    <path fillRule="evenodd" d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h4a.75.75 0 010 1.5h-4zm6.5-1a.75.75 0 010-1.5h4.5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0V5.56l-3.72 3.72a.75.75 0 11-1.06-1.06l3.72-3.72H10.75z" clipRule="evenodd" />
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 shrink-0 opacity-50">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                   </svg>
                 </a>
               );

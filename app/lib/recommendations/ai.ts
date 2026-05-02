@@ -1,4 +1,4 @@
-import { searchLinkedInLearningCourses } from '@/app/lib/linkedin/service';
+import { searchYouTubeCourses } from '@/app/lib/youtube/service';
 import type { UserContext } from '@/app/lib/recommendations/user-context';
 import { tokenizeInterests } from '@/app/lib/recommendations/recommender';
 
@@ -13,7 +13,7 @@ export type AiResult = {
   followUpQuestion: string;
 };
 
-export type LinkedInCourseSuggestion = {
+export type YouTubeCourseSuggestion = {
   title: string;
   query: string;
   url?: string | null;
@@ -146,10 +146,10 @@ Rules:
 Prioritize book search terms that match the student's faculty and department when relevant.`;
 };
 
-const LINKEDIN_SYSTEM_PROMPT = `You are a university library assistant. Given a student's reading interests, suggest exactly 3 LinkedIn Learning course titles that complement those topics.
+const YOUTUBE_SYSTEM_PROMPT = `You are a university library assistant. Given a student's reading interests, suggest exactly 3 YouTube educational video titles that complement those topics.
 Return ONLY valid JSON — no markdown, no code fences, no extra text.
 Format: { "courses": [{ "title": "...", "query": "..." }, ...] }
-Keep titles concise and realistic. Use English only.`;
+Keep titles concise and realistic. The query should be a good YouTube search term. Use English only.`;
 
 // ─── LM Studio (OpenAI-compatible) ───────────────────────────────────────────
 
@@ -338,17 +338,17 @@ export async function classifyAndExtract(
   }
 }
 
-// ─── LinkedIn course suggestions ──────────────────────────────────────────────
+// ─── YouTube course suggestions ──────────────────────────────────────────────
 
-export async function suggestLinkedInCourses(
+export async function suggestYouTubeCourses(
   interests: string[],
   providerOverride?: 'lmstudio' | 'gemini',
-): Promise<LinkedInCourseSuggestion[]> {
+): Promise<YouTubeCourseSuggestion[]> {
   if (!interests.length) return [];
 
   try {
     const raw = await callAI(
-      LINKEDIN_SYSTEM_PROMPT,
+      YOUTUBE_SYSTEM_PROMPT,
       `Student interests: ${interests.join(', ')}`,
       { temperature: 0.4, maxTokens: 256 },
       providerOverride,
@@ -376,7 +376,7 @@ export async function suggestLinkedInCourses(
     const enriched = await Promise.all(
       baseSuggestions.map(async (suggestion) => {
         try {
-          const result = await searchLinkedInLearningCourses({
+          const result = await searchYouTubeCourses({
             query: suggestion.query,
             limit: 1,
           });

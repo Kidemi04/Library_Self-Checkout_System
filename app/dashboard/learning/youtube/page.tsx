@@ -5,22 +5,22 @@ import {
   getLearningCollections,
   searchLearningCourses,
 } from '@/app/lib/learning/service';
-import type { LinkedInLearningLevel, LinkedInLearningTopicDefinition } from '@/app/lib/linkedin/types';
-import LinkedInLearningSearchForm from '@/app/ui/dashboard/learning/searchForm';
+import type { YouTubeLevel, YouTubeTopicDefinition } from '@/app/lib/youtube/types';
+import YouTubeSearchForm from '@/app/ui/dashboard/learning/searchForm';
 import SearchResultsPanel from '@/app/ui/dashboard/learning/searchResultsPanel';
 import CollectionsPanel from '@/app/ui/dashboard/learning/collectionsPanel';
 import AdminShell from '@/app/ui/dashboard/adminShell';
 
-const topics: LinkedInLearningTopicDefinition[] = [
-  { key: 'software-dev',  title: 'Software Development',  query: 'programming software web development',        description: 'Web development, APIs, mobile apps, and software engineering fundamentals.' },
-  { key: 'data-ai',       title: 'Data Science & AI',      query: 'machine learning data science artificial intelligence', description: 'Python, ML, data analysis, and AI foundations.' },
-  { key: 'cloud-devops',  title: 'Cloud & DevOps',         query: 'cloud AWS Azure DevOps kubernetes',           description: 'Cloud platforms, containers, CI/CD pipelines, and infrastructure.' },
-  { key: 'business',      title: 'Business & Leadership',  query: 'leadership management project business',      description: 'Project management, leadership, communication, and business strategy.' },
-  { key: 'design',        title: 'Design & Creative',      query: 'UX UI design creative Figma',                 description: 'UI/UX, graphic design, Figma, and creative production tools.' },
+const topics: YouTubeTopicDefinition[] = [
+  { key: 'software-dev',  title: 'Software Development',  query: 'programming software web development tutorial',        description: 'Web development, APIs, mobile apps, and software engineering fundamentals.' },
+  { key: 'data-ai',       title: 'Data Science & AI',      query: 'machine learning data science artificial intelligence tutorial', description: 'Python, ML, data analysis, and AI foundations.' },
+  { key: 'cloud-devops',  title: 'Cloud & DevOps',         query: 'cloud AWS Azure DevOps kubernetes tutorial',           description: 'Cloud platforms, containers, CI/CD pipelines, and infrastructure.' },
+  { key: 'business',      title: 'Business & Leadership',  query: 'leadership management project business course',        description: 'Project management, leadership, communication, and business strategy.' },
+  { key: 'design',        title: 'Design & Creative',      query: 'UX UI design creative Figma tutorial',                 description: 'UI/UX, graphic design, Figma, and creative production tools.' },
 ];
 
 const quickFilters = [
-  { label: 'Python',            query: 'python' },
+  { label: 'Python',            query: 'python tutorial' },
   { label: 'Machine Learning',  query: 'machine learning' },
   { label: 'Cloud',             query: 'cloud computing AWS' },
   { label: 'Project Management',query: 'project management' },
@@ -28,21 +28,21 @@ const quickFilters = [
   { label: 'JavaScript',        query: 'javascript react' },
 ];
 
-const parseDifficulty = (value: string | undefined): LinkedInLearningLevel | 'ALL' => {
+const parseDifficulty = (value: string | undefined): YouTubeLevel | 'ALL' => {
   if (!value) return 'ALL';
   const n = value.trim().toUpperCase();
-  if (n === 'BEGINNER' || n === 'INTERMEDIATE' || n === 'ADVANCED') return n as LinkedInLearningLevel;
+  if (n === 'BEGINNER' || n === 'INTERMEDIATE' || n === 'ADVANCED') return n as YouTubeLevel;
   return 'ALL';
 };
 
-const buildSearchHref = (query: string, difficulty: LinkedInLearningLevel | 'ALL') => {
+const buildSearchHref = (query: string, difficulty: YouTubeLevel | 'ALL') => {
   const params = new URLSearchParams();
   params.set('q', query);
   if (difficulty && difficulty !== 'ALL') params.set('difficulty', difficulty);
-  return `/dashboard/learning/linkedin?${params.toString()}`;
+  return `/dashboard/learning/youtube?${params.toString()}`;
 };
 
-const difficultyLabel = (value: LinkedInLearningLevel | 'ALL') => {
+const difficultyLabel = (value: YouTubeLevel | 'ALL') => {
   if (!value || value === 'ALL') return 'All levels';
   if (value === 'BEGINNER') return 'Beginner';
   if (value === 'INTERMEDIATE') return 'Intermediate';
@@ -50,7 +50,7 @@ const difficultyLabel = (value: LinkedInLearningLevel | 'ALL') => {
   return value;
 };
 
-export default async function LinkedInLearningPage({
+export default async function YouTubeLearningPage({
   searchParams,
 }: {
   searchParams?: Promise<Record<string, string | string[]>>;
@@ -69,8 +69,8 @@ export default async function LinkedInLearningPage({
   return (
     <AdminShell
       titleSubtitle="Online learning resources"
-      title="LinkedIn Learning"
-      description="Access professional courses in technology, business, creative skills, and more — curated for Swinburne students."
+      title="YouTube Learning"
+      description="Access educational videos in technology, business, creative skills, and more — curated for Swinburne students."
     >
       <div className="space-y-8">
 
@@ -79,16 +79,14 @@ export default async function LinkedInLearningPage({
           <div className="flex items-start gap-3 rounded-2xl border border-amber-400/30 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
             <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
             <p>
-              <span className="font-semibold">Demo mode —</span> showing sample course data. To connect to the live LinkedIn Learning API, add{' '}
-              <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/40">LINKEDIN_LEARNING_CLIENT_ID</code>,{' '}
-              <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/40">LINKEDIN_LEARNING_CLIENT_SECRET</code>, and{' '}
-              <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/40">LINKEDIN_LEARNING_ORGANIZATION_URN</code>{' '}
+              <span className="font-semibold">Demo mode —</span> showing sample video data. To connect to the live YouTube Data API, add{' '}
+              <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/40">YOUTUBE_API_KEY</code>{' '}
               to <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/40">.env.local</code>.
             </p>
           </div>
         )}
 
-        <LinkedInLearningSearchForm
+        <YouTubeSearchForm
           defaults={{ query: trimmedQuery, difficulty }}
         />
 
@@ -115,12 +113,12 @@ export default async function LinkedInLearningPage({
                   Search results
                 </p>
                 <h2 className="text-xl font-semibold text-swin-charcoal dark:text-white">
-                  {searchResult?.items.length ?? 0} course{(searchResult?.items.length ?? 0) === 1 ? '' : 's'} for &ldquo;
+                  {searchResult?.items.length ?? 0} video{(searchResult?.items.length ?? 0) === 1 ? '' : 's'} for &ldquo;
                   {trimmedQuery}&rdquo;
                 </h2>
               </div>
               <div className="rounded-full border border-swin-charcoal/10 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-swin-charcoal/70 dark:border-white/10 dark:text-white/70">
-                LinkedIn Learning
+                YouTube
               </div>
             </div>
             <p className="text-sm text-swin-charcoal/60 dark:text-slate-300/80">
@@ -144,7 +142,7 @@ export default async function LinkedInLearningPage({
                 </p>
                 <h2 className="text-xl font-semibold">Highlighted topics for you</h2>
                 <p className="text-sm text-swin-charcoal/70 dark:text-slate-300/80">
-                  Browse spotlight playlists. Select a card to open the course on LinkedIn Learning.
+                  Browse spotlight playlists. Select a card to open the video on YouTube.
                 </p>
               </div>
             </div>

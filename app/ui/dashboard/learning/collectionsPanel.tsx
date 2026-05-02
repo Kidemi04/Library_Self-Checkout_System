@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
-import type { LinkedInLearningTopicCollection } from '@/app/lib/linkedin/types';
-import LinkedInLearningCourseCard from './courseCard';
+import type { YouTubeTopicCollection } from '@/app/lib/youtube/types';
+import YouTubeCourseCard from './courseCard';
 
 const cardVariant = {
   hidden: { opacity: 0, y: 60, scale: 0.88, filter: 'blur(6px)' },
@@ -23,8 +23,8 @@ function CollectionSection({
   browseHref,
   index,
 }: {
-  definition: LinkedInLearningTopicCollection['definition'];
-  result: LinkedInLearningTopicCollection['result'];
+  definition: YouTubeTopicCollection['definition'];
+  result: YouTubeTopicCollection['result'];
   browseHref: string;
   index: number;
 }) {
@@ -68,13 +68,13 @@ function CollectionSection({
         >
           {result.items.map((course) => (
             <motion.div key={course.urn} variants={cardVariant}>
-              <LinkedInLearningCourseCard course={course} />
+              <YouTubeCourseCard course={course} />
             </motion.div>
           ))}
         </motion.div>
       ) : (
         <div className="rounded-2xl border border-dashed border-swin-charcoal/20 bg-white/40 p-6 text-sm text-swin-charcoal/70 dark:border-white/15 dark:bg-slate-900/30 dark:text-slate-300/80">
-          No courses found for this topic. Try the search form above.
+          No videos found for this topic. Try the search form above.
         </div>
       )}
     </motion.div>
@@ -82,7 +82,7 @@ function CollectionSection({
 }
 
 type Props = {
-  collections: Array<LinkedInLearningTopicCollection>;
+  collections: Array<YouTubeTopicCollection>;
   difficulty: string;
 };
 
@@ -90,14 +90,14 @@ const buildBrowseHref = (query: string, difficulty: string) => {
   const params = new URLSearchParams();
   params.set('q', query);
   if (difficulty && difficulty !== 'ALL') params.set('difficulty', difficulty);
-  return `/dashboard/learning/linkedin?${params.toString()}`;
+  return `/dashboard/learning/youtube?${params.toString()}`;
 };
 
 export default function CollectionsPanel({ collections, difficulty }: Props) {
   if (!collections.length) {
     return (
       <div className="rounded-3xl border border-dashed border-swin-charcoal/20 bg-white p-6 text-center text-sm text-swin-charcoal/70 dark:border-white/20 dark:bg-slate-900/40 dark:text-slate-300/80">
-        No courses found. Try the search form above.
+        No videos found. Try the search form above.
       </div>
     );
   }

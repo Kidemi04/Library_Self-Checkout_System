@@ -13,11 +13,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'media.licdn.com',
+        hostname: 'i.ytimg.com',
       },
       {
         protocol: 'https',
-        hostname: 'static.licdn.com',
+        hostname: 'img.youtube.com',
       },
       {
         protocol: 'https',

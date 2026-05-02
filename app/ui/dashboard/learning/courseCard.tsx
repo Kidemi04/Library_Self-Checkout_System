@@ -9,11 +9,12 @@ import {
   ArrowTopRightOnSquareIcon,
   ClockIcon,
   PlayCircleIcon,
+  EyeIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
-import type { LinkedInLearningAsset } from '@/app/lib/linkedin/types';
+import type { YouTubeAsset } from '@/app/lib/youtube/types';
 
-const levelLabel = (value: LinkedInLearningAsset['skillLevel']) => {
+const levelLabel = (value: YouTubeAsset['skillLevel']) => {
   if (!value || value === 'ALL') return 'All levels';
   if (value === 'BEGINNER') return 'Beginner';
   if (value === 'INTERMEDIATE') return 'Intermediate';
@@ -21,17 +22,28 @@ const levelLabel = (value: LinkedInLearningAsset['skillLevel']) => {
   return value;
 };
 
-type Props = {
-  course: LinkedInLearningAsset;
+const formatViewCount = (count: string | null | undefined): string | null => {
+  if (!count) return null;
+  const num = Number(count);
+  if (!Number.isFinite(num)) return null;
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)}M views`;
+  if (num >= 1_000) return `${(num / 1_000).toFixed(0)}K views`;
+  return `${num} views`;
 };
 
-export default function LinkedInLearningCourseCard({ course }: Props) {
+type Props = {
+  course: YouTubeAsset;
+};
+
+export default function YouTubeCourseCard({ course }: Props) {
   const showImage = typeof course.imageUrl === 'string' && course.imageUrl.trim().length > 0;
-  const authorLabel =
+  const channelLabel = course.channelTitle ?? (
     course.authors && course.authors.length > 0
       ? course.authors.map((author) => author.name).filter(Boolean).join(', ')
-      : null;
+      : null
+  );
   const tagList = Array.isArray(course.topics) ? course.topics.slice(0, 3) : [];
+  const viewLabel = formatViewCount(course.viewCount);
 
   const CardWrapper = course.url
     ? ({ children }: { children: React.ReactNode }) => (
@@ -73,12 +85,18 @@ export default function LinkedInLearningCourseCard({ course }: Props) {
           </div>
         )}
         <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-swin-charcoal shadow">
-          {course.contentType === 'VIDEO'
-            ? 'Video'
-            : course.contentType === 'LEARNING_PATH'
-            ? 'Learning Path'
-            : 'Course'}
+          {course.contentType === 'PLAYLIST'
+            ? 'Playlist'
+            : course.contentType === 'CHANNEL'
+            ? 'Channel'
+            : 'Video'}
         </span>
+        {/* YouTube play button overlay */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity hover:opacity-100">
+          <div className="rounded-full bg-red-600/90 p-3">
+            <PlayCircleIcon className="h-8 w-8 text-white" />
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col gap-4 p-5">
@@ -98,10 +116,18 @@ export default function LinkedInLearningCourseCard({ course }: Props) {
               {course.durationFormatted}
             </span>
           ) : null}
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-200">
-            <AcademicCapIcon className="h-4 w-4" />
-            {levelLabel(course.skillLevel)}
-          </span>
+          {course.skillLevel ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-3 py-1 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-200">
+              <AcademicCapIcon className="h-4 w-4" />
+              {levelLabel(course.skillLevel)}
+            </span>
+          ) : null}
+          {viewLabel ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-3 py-1 text-blue-600 dark:bg-blue-400/10 dark:text-blue-200">
+              <EyeIcon className="h-4 w-4" />
+              {viewLabel}
+            </span>
+          ) : null}
         </div>
 
         {tagList.length > 0 ? (
@@ -119,15 +145,15 @@ export default function LinkedInLearningCourseCard({ course }: Props) {
         ) : null}
 
         <div className="mt-auto flex items-center justify-between pt-2 text-sm">
-          {authorLabel ? (
+          {channelLabel ? (
             <p className="text-swin-charcoal/60 dark:text-slate-300/80">
-              By <span className="font-medium text-swin-charcoal dark:text-white">{authorLabel}</span>
+              <span className="font-medium text-swin-charcoal dark:text-white">{channelLabel}</span>
             </p>
           ) : (
-            <span className="text-swin-charcoal/50 dark:text-slate-400">Online course</span>
+            <span className="text-swin-charcoal/50 dark:text-slate-400">YouTube video</span>
           )}
-          <span className="inline-flex items-center gap-1 rounded-full bg-swin-red px-4 py-1.5 text-xs font-semibold text-white">
-            View course
+          <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-4 py-1.5 text-xs font-semibold text-white">
+            Watch
             <ArrowTopRightOnSquareIcon className="h-4 w-4" />
           </span>
         </div>

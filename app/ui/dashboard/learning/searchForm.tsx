@@ -9,7 +9,7 @@ type SearchDefaults = {
   difficulty?: string;
 };
 
-export default function LinkedInLearningSearchForm({
+export default function YouTubeSearchForm({
   defaults,
 }: {
   defaults: SearchDefaults;
@@ -33,13 +33,13 @@ export default function LinkedInLearningSearchForm({
     if (q) params.set('q', q);
     if (diff && diff !== 'ALL') params.set('difficulty', diff);
     const qs = params.toString();
-    router.push(`/dashboard/learning/linkedin${qs ? `?${qs}` : ''}`);
+    router.push(`/dashboard/learning/youtube${qs ? `?${qs}` : ''}`);
   };
 
   const handleReset = () => {
     if (inputRef.current) inputRef.current.value = '';
     if (selectRef.current) selectRef.current.value = 'ALL';
-    router.push('/dashboard/learning/linkedin');
+    router.push('/dashboard/learning/youtube');
   };
 
   return (
@@ -48,7 +48,7 @@ export default function LinkedInLearningSearchForm({
       onSubmit={handleSubmit}
     >
       <label className="text-sm font-medium text-swin-charcoal dark:text-white">
-        Search LinkedIn Learning
+        Search YouTube tutorials
         <span className="mt-2 flex items-center gap-3 rounded-2xl border border-swin-charcoal/10 bg-swin-charcoal/5 px-4 py-3 text-base dark:border-white/10 dark:bg-white/5">
           <MagnifyingGlassIcon className="h-5 w-5 text-swin-charcoal/60 dark:text-slate-300/80" />
           <input
