@@ -341,7 +341,18 @@ const callGemini = async (
   options?: { temperature?: number; maxOutputTokens?: number },
 ): Promise<string | null> => {
   const { geminiBaseUrl, geminiApiKey, geminiModel } = getEnv();
-  if (!geminiApiKey || !geminiModel || geminiDisabled) return null;
+  if (!geminiApiKey) {
+    console.error('[Gemini] GEMINI_API_KEY is empty — env var not loaded. Check .env.local and restart pnpm dev.');
+    return null;
+  }
+  if (!geminiModel) {
+    console.error('[Gemini] geminiModel is empty.');
+    return null;
+  }
+  if (geminiDisabled) {
+    console.error('[Gemini] geminiDisabled flag is set (a previous request got 403). Restart pnpm dev to reset.');
+    return null;
+  }
 
   const url = `${geminiBaseUrl.replace(/\/+$/, '')}/models/${encodeURIComponent(
     geminiModel,
@@ -382,9 +393,12 @@ const callGemini = async (
       candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
     };
 
-    return (
-      data?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('').trim() ?? null
-    );
+    const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('').trim() ?? null;
+    if (!text) {
+      console.error('[Gemini] returned 200 but empty content. Full response:', JSON.stringify(data).slice(0, 400));
+      return null;
+    }
+    return text;
   } catch (err) {
     console.error('[Gemini] fetch error', err);
     return null;
@@ -454,7 +468,7 @@ export async function checkAiAvailable(
   const raw = await callAI(
     'Respond with only the single word: ok',
     'ping',
-    { temperature: 0, maxTokens: 4 },
+    { temperature: 0, maxTokens: 64 },
     providerOverride,
   );
   const healthy = Boolean(raw && raw.trim().length);

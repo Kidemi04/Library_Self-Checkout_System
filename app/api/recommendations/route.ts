@@ -174,7 +174,10 @@ const findBooks = async (
 
   const finalList = diversify(filtered, requestedLimit);
   const items = finalList.map(toRecommendationItem);
-  const linkedIn = await suggestLinkedInCourses(searchTerms);
+  // LinkedIn course suggestions disabled to conserve Gemini quota (free tier = 20 req/day on 2.5-flash).
+  // Re-enable by uncommenting the line below if you have higher quota or switch to gemini-2.0-flash.
+  // const linkedIn = await suggestLinkedInCourses(searchTerms);
+  const linkedIn: Awaited<ReturnType<typeof suggestLinkedInCourses>> = [];
 
   return { items, linkedIn };
 };
@@ -232,21 +235,9 @@ export async function POST(request: Request) {
     });
   }
 
-  // Step 4: AI health check — gate all recommendation paths on AI availability.
-  // If neither Gemini nor LM Studio responds, surface a clear error to the user
-  // instead of falling back to any deterministic/partial result.
-  const aiHealthy = await checkAiAvailable(provider);
-  if (!aiHealthy) {
-    return NextResponse.json(
-      {
-        ok: false,
-        kind: 'ai_unavailable',
-        reply:
-          'Sorry, the AI recommendation service is currently unavailable. Please try again in a few minutes.',
-      },
-      { status: 503 },
-    );
-  }
+  // Step 4 removed: the previous health-check "ping" call doubled Gemini usage.
+  // We now let the real classifyAndExtract call below surface any provider failure
+  // (caught by the existing try/catch around it).
 
   // Step 4.1: Fetch user context
   let userContext: UserContext = { historyTags: [], recentBorrowedBooks: [], savedInterests: [], faculty: null, department: null, intakeYear: null };

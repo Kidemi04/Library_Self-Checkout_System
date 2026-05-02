@@ -152,7 +152,7 @@ export default function StudentChat({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(!needsOnboarding);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
-  const [aiProvider, setAiProvider] = useState<'lmstudio' | 'gemini'>('lmstudio');
+  const [aiProvider, setAiProvider] = useState<'lmstudio' | 'gemini'>('gemini');
   const [isSavingInterests, setIsSavingInterests] = useState(false);
   const [showQuickPrompts, setShowQuickPrompts] = useState(true);
   const messagesRef = useRef<HTMLDivElement | null>(null);
@@ -336,6 +336,7 @@ export default function StudentChat({
 
       setLinkedInSuggestions(data?.linkedInSuggestions ?? []);
 
+      console.log('[chat] interests=', interests, '| topInterest=', topInterest, '| recs=', recs.length, '| shouldFetchPath=', shouldFetchPath, '| onInterestDetected=', typeof onInterestDetected);
       if (shouldFetchPath && topInterest) {
         onInterestDetected?.(topInterest);
       }

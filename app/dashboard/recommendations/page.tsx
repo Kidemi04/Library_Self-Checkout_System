@@ -4,7 +4,7 @@ export const revalidate = 0;
 import { getDashboardSession } from '@/app/lib/auth/session';
 
 import DashboardTitleBar from '@/app/ui/dashboard/dashboardTitleBar';
-import StudentChat from '@/app/ui/dashboard/studentChat';
+import ChatWithLearningPath from '@/app/ui/dashboard/chatWithLearningPath';
 
 export default async function RecommendationsPage() {
   const { user } = await getDashboardSession();
@@ -20,7 +20,7 @@ export default async function RecommendationsPage() {
         description="Share what you want to read, and I will recommend books from the catalog"
       />
 
-      <StudentChat studentName={displayName} />
+      <ChatWithLearningPath studentName={displayName} userId={user?.id} />
     </main>
   );
 }
