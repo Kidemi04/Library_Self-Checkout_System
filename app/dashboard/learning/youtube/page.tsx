@@ -11,6 +11,7 @@ import SearchResultsPanel from '@/app/ui/dashboard/learning/searchResultsPanel';
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import ScrollUnlock from '@/app/ui/dashboard/learning/scrollUnlock';
 import DevToGrid from '@/app/ui/dashboard/learning/devToGrid';
+import NewsGrid, { type NewsItem } from '@/app/ui/dashboard/learning/newsGrid';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -65,15 +66,71 @@ async function fetchDevToArticles(tag: string) {
     const url = tag
       ? `https://dev.to/api/articles?top=30&per_page=18&tag=${encodeURIComponent(tag)}`
       : `https://dev.to/api/articles?top=30&per_page=18`;
-    const res = await fetch(url, {
-      next: { revalidate: 3600 },
-      headers: { Accept: 'application/json' },
-    });
+    const res = await fetch(url, { next: { revalidate: 3600 }, headers: { Accept: 'application/json' } });
     if (!res.ok) return [];
     return await res.json();
-  } catch {
-    return [];
+  } catch { return []; }
+}
+
+async function fetchNewsFromRSS(): Promise<NewsItem[]> {
+  const feeds = [
+    { name: 'BBC Technology',  url: 'https://feeds.bbci.co.uk/news/technology/rss.xml' },
+    { name: 'TechCrunch',      url: 'https://techcrunch.com/feed/' },
+    { name: 'The Verge',       url: 'https://www.theverge.com/rss/index.xml' },
+    { name: 'Ars Technica',    url: 'https://feeds.arstechnica.com/arstechnica/technology-lab' },
+    { name: 'Engadget',        url: 'https://www.engadget.com/rss.xml' },
+  ];
+
+  function extractImage(xml: string): string | null {
+    // media:content or media:thumbnail
+    let m = xml.match(/<media:(?:content|thumbnail)[^>]+url="([^"]+)"/);
+    if (m) return m[1];
+    // enclosure image
+    m = xml.match(/<enclosure[^>]+type="image[^"]*"[^>]+url="([^"]+)"/);
+    if (!m) m = xml.match(/<enclosure[^>]+url="([^"]+)"[^>]+type="image[^"]*"/);
+    if (m) return m[1];
+    // img inside description/content
+    m = xml.match(/<img[^>]+src="([^"]+)"/);
+    if (m && !m[1].includes('pixel') && !m[1].includes('spacer')) return m[1];
+    return null;
   }
+
+  function extractText(tag: string, xml: string): string {
+    const m = xml.match(new RegExp(`<${tag}(?:[^>]*)><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\/${tag}>|<${tag}(?:[^>]*)>([\\s\\S]*?)<\/${tag}>`));
+    const raw = m ? (m[1] ?? m[2] ?? '') : '';
+    return raw.replace(/<[^>]+>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").trim();
+  }
+
+  const results = await Promise.allSettled(
+    feeds.map(async (feed) => {
+      const res = await fetch(feed.url, {
+        next: { revalidate: 1800 },
+        headers: { 'User-Agent': 'Mozilla/5.0 SwinburneLibrary/1.0', Accept: 'application/rss+xml, application/xml, text/xml' },
+      });
+      if (!res.ok) return [];
+      const xml = await res.text();
+      const items: NewsItem[] = [];
+      const itemRx = /<item[\s\S]*?<\/item>/g;
+      let match;
+      while ((match = itemRx.exec(xml)) !== null && items.length < 6) {
+        const itemXml = match[0];
+        const title   = extractText('title', itemXml);
+        const url     = extractText('link', itemXml) || (itemXml.match(/<link>([^<]+)<\/link>/) ?? [])[1] || '';
+        const desc    = extractText('description', itemXml).slice(0, 200);
+        const pubDate = extractText('pubDate', itemXml) || extractText('published', itemXml);
+        const image   = extractImage(itemXml);
+        if (title && url) items.push({ id: `${feed.name}-${url}`, title, description: desc, url, imageUrl: image, source: feed.name, pubDate });
+      }
+      return items;
+    })
+  );
+
+  const all: NewsItem[] = [];
+  for (const r of results) {
+    if (r.status === 'fulfilled') all.push(...r.value);
+  }
+  // Shuffle to interleave sources
+  return all.sort(() => Math.random() - 0.5).slice(0, 20);
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -85,9 +142,10 @@ export default async function LearningHubPage({
 }) {
   const params = searchParams ? await searchParams : {};
 
-  // Shared
-  const view = typeof params?.view === 'string' ? params.view : 'youtube';
-  const isYouTube = view !== 'community';
+  const view        = typeof params?.view === 'string' ? params.view : 'youtube';
+  const isYouTube   = view === 'youtube';
+  const isCommunity = view === 'community';
+  const isNews      = view === 'news';
 
   // YouTube params
   const queryParam   = typeof params?.q === 'string' ? params.q : '';
@@ -98,7 +156,7 @@ export default async function LearningHubPage({
   const activeTag = typeof params?.tag === 'string' ? params.tag : '';
   const tagMeta   = DEVTO_TAGS.find((t) => t.value === activeTag) ?? DEVTO_TAGS[0];
 
-  // Fetch only what's needed for the active tab
+  // Fetch only what the active tab needs
   const learningStatus = isYouTube ? await getLearningStatus() : null;
 
   const [searchResult, trendingResult] = isYouTube && trimmedQuery
@@ -107,51 +165,49 @@ export default async function LearningHubPage({
     ? [null, await getLearningTrending({ limit: 12, difficulty })]
     : [null, null];
 
-  const devToArticles = !isYouTube ? await fetchDevToArticles(activeTag) : [];
+  const devToArticles = isCommunity ? await fetchDevToArticles(activeTag) : [];
+  const hnStories = isNews ? await fetchNewsFromRSS() : [];
 
-  // Tab link builder
-  const ytTab  = `/dashboard/learning/youtube?view=youtube`;
-  const comTab = `/dashboard/learning/youtube?view=community`;
+  const tabBase = '/dashboard/learning/youtube';
 
   return (
     <AdminShell
       titleSubtitle="Online learning resources"
       title="Learning Hub"
-      description="Search YouTube tutorials or browse trending dev articles — all in one place."
+      description="Watch tutorials, browse dev articles, and read top tech news — all in one place."
     >
       <ScrollUnlock />
       <div className="space-y-8">
 
-        {/* ── Tab switcher ── */}
-        <div className="flex w-full max-w-sm overflow-hidden rounded-full border border-swin-charcoal/10 bg-swin-charcoal/5 p-1 dark:border-white/10 dark:bg-white/5">
-          <Link
-            href={ytTab}
-            className={`flex-1 rounded-full py-2 text-center text-sm font-semibold transition-all ${
-              isYouTube
-                ? 'bg-swin-red text-white shadow-sm'
-                : 'text-swin-charcoal/60 hover:text-swin-charcoal dark:text-white/50 dark:hover:text-white'
-            }`}
-          >
-            🎬 YouTube
-          </Link>
-          <Link
-            href={comTab}
-            className={`flex-1 rounded-full py-2 text-center text-sm font-semibold transition-all ${
-              !isYouTube
-                ? 'bg-swin-red text-white shadow-sm'
-                : 'text-swin-charcoal/60 hover:text-swin-charcoal dark:text-white/50 dark:hover:text-white'
-            }`}
-          >
-            📖 Community
-          </Link>
+        {/* ── 3-tab switcher ── */}
+        <div className="flex w-full max-w-md overflow-hidden rounded-full border border-swin-charcoal/10 bg-swin-charcoal/5 p-1 dark:border-white/10 dark:bg-white/5">
+          {[
+            { label: '🎬 YouTube',   value: 'youtube',   href: `${tabBase}?view=youtube`   },
+            { label: '📖 Community', value: 'community', href: `${tabBase}?view=community` },
+            { label: '📰 News',      value: 'news',      href: `${tabBase}?view=news`      },
+          ].map((tab) => {
+            const active = view === tab.value;
+            return (
+              <Link
+                key={tab.value}
+                href={tab.href}
+                className={`flex-1 rounded-full py-2 text-center text-xs sm:text-sm font-semibold transition-all ${
+                  active
+                    ? 'bg-swin-red text-white shadow-sm'
+                    : 'text-swin-charcoal/60 hover:text-swin-charcoal dark:text-white/50 dark:hover:text-white'
+                }`}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
         </div>
 
-        {/* ════════════════════════════════════════════════
+        {/* ══════════════════════════════════════════════
             YOUTUBE TAB
-        ════════════════════════════════════════════════ */}
+        ══════════════════════════════════════════════ */}
         {isYouTube && (
           <>
-            {/* Demo mode notice */}
             {learningStatus?.usingStub && (
               <div className="flex items-start gap-3 rounded-2xl border border-amber-400/30 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
                 <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
@@ -165,23 +221,18 @@ export default async function LearningHubPage({
 
             <YouTubeSearchForm defaults={{ query: trimmedQuery, difficulty }} />
 
-            {/* Quick topics */}
             <section className="space-y-3">
               <p className="text-xs uppercase tracking-[0.3em] text-swin-charcoal/50 dark:text-white/60">Quick topics</p>
               <div className="flex flex-wrap gap-2">
                 {YT_QUICK_FILTERS.map((f) => (
-                  <Link
-                    key={f.label}
-                    href={buildYtHref(f.query, difficulty)}
-                    className="rounded-full border border-swin-charcoal/10 px-4 py-2 text-sm font-medium text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-white/20 dark:text-white"
-                  >
+                  <Link key={f.label} href={buildYtHref(f.query, difficulty)}
+                    className="rounded-full border border-swin-charcoal/10 px-4 py-2 text-sm font-medium text-swin-charcoal transition hover:border-swin-red hover:text-swin-red dark:border-white/20 dark:text-white">
                     {f.label}
                   </Link>
                 ))}
               </div>
             </section>
 
-            {/* Results / trending */}
             {trimmedQuery ? (
               <section className="space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -225,18 +276,16 @@ export default async function LearningHubPage({
           </>
         )}
 
-        {/* ════════════════════════════════════════════════
-            COMMUNITY BITES TAB
-        ════════════════════════════════════════════════ */}
-        {!isYouTube && (
+        {/* ══════════════════════════════════════════════
+            COMMUNITY TAB
+        ══════════════════════════════════════════════ */}
+        {isCommunity && (
           <>
-            {/* Tag filters */}
             <div className="flex flex-wrap items-center gap-2">
               <HashtagIcon className="h-4 w-4 flex-shrink-0 text-swin-charcoal/40 dark:text-white/40" />
               {DEVTO_TAGS.map((tag) => (
-                <Link
-                  key={tag.value}
-                  href={`/dashboard/learning/youtube?view=community&tag=${tag.value}`}
+                <Link key={tag.value}
+                  href={`${tabBase}?view=community&tag=${tag.value}`}
                   className={`rounded-full px-3 py-1.5 text-xs font-semibold transition ${
                     activeTag === tag.value
                       ? 'bg-swin-red text-white shadow-sm shadow-swin-red/30'
@@ -248,7 +297,6 @@ export default async function LearningHubPage({
               ))}
             </div>
 
-            {/* Post count divider */}
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-swin-charcoal/10 dark:bg-white/10" />
               <span className="text-xs font-semibold uppercase tracking-widest text-swin-charcoal/40 dark:text-white/40">
@@ -257,7 +305,6 @@ export default async function LearningHubPage({
               <div className="h-px flex-1 bg-swin-charcoal/10 dark:bg-white/10" />
             </div>
 
-            {/* Masonry grid with pop-up panel */}
             {devToArticles.length > 0 ? (
               <DevToGrid articles={devToArticles} />
             ) : (
@@ -272,6 +319,27 @@ export default async function LearningHubPage({
               <a href="https://dev.to" target="_blank" rel="noopener noreferrer" className="underline hover:text-swin-red">
                 DEV Community
               </a>
+            </p>
+          </>
+        )}
+
+        {/* ══════════════════════════════════════════════
+            NEWS TAB
+        ══════════════════════════════════════════════ */}
+        {isNews && (
+          <>
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-swin-charcoal/10 dark:bg-white/10" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-swin-charcoal/40 dark:text-white/40">
+                📰 {hnStories.length} top stories today
+              </span>
+              <div className="h-px flex-1 bg-swin-charcoal/10 dark:bg-white/10" />
+            </div>
+
+            <NewsGrid stories={hnStories} />
+
+            <p className="text-center text-[11px] text-swin-charcoal/30 dark:text-white/25">
+              Sources: BBC Technology · TechCrunch · The Verge · Ars Technica · Engadget
             </p>
           </>
         )}
