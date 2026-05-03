@@ -1,18 +1,17 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   AcademicCapIcon,
-  ArrowTopRightOnSquareIcon,
   ClockIcon,
   PlayCircleIcon,
   EyeIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import type { YouTubeAsset } from '@/app/lib/youtube/types';
+import YouTubePlayerModal from './youtubePlayerModal';
 
 const levelLabel = (value: YouTubeAsset['skillLevel']) => {
   if (!value || value === 'ALL') return 'All levels';
@@ -35,7 +34,47 @@ type Props = {
   course: YouTubeAsset;
 };
 
+const toEmbedSrc = (course: YouTubeAsset): string | null => {
+  if (course.embeddable === false) return null;
+  const url = course.url?.trim();
+  if (!url) return null;
+
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+
+    if (course.contentType === 'PLAYLIST') {
+      const list = parsed.searchParams.get('list');
+      return list
+        ? `https://www.youtube-nocookie.com/embed/videoseries?list=${encodeURIComponent(list)}&rel=0&modestbranding=1`
+        : null;
+    }
+
+    if (course.contentType !== 'VIDEO') return null;
+
+    let videoId: string | null = null;
+    if (host === 'youtu.be') {
+      videoId = parsed.pathname.split('/').filter(Boolean)[0] ?? null;
+    } else {
+      if (parsed.pathname === '/watch') videoId = parsed.searchParams.get('v');
+      if (!videoId && parsed.pathname.startsWith('/shorts/')) {
+        videoId = parsed.pathname.split('/').filter(Boolean)[1] ?? null;
+      }
+      if (!videoId && parsed.pathname.startsWith('/embed/')) {
+        videoId = parsed.pathname.split('/').filter(Boolean)[1] ?? null;
+      }
+    }
+
+    return videoId
+      ? `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}?rel=0&modestbranding=1`
+      : null;
+  } catch {
+    return null;
+  }
+};
+
 export default function YouTubeCourseCard({ course }: Props) {
+  const [open, setOpen] = useState(false);
   const showImage = typeof course.imageUrl === 'string' && course.imageUrl.trim().length > 0;
   const channelLabel = course.channelTitle ?? (
     course.authors && course.authors.length > 0
@@ -44,26 +83,30 @@ export default function YouTubeCourseCard({ course }: Props) {
   );
   const tagList = Array.isArray(course.topics) ? course.topics.slice(0, 3) : [];
   const viewLabel = formatViewCount(course.viewCount);
-
-  const CardWrapper = course.url
-    ? ({ children }: { children: React.ReactNode }) => (
-        <Link href={course.url!} target="_blank" rel="noopener noreferrer" className="flex h-full flex-col">
-          {children}
-        </Link>
-      )
-    : ({ children }: { children: React.ReactNode }) => <div className="flex h-full flex-col">{children}</div>;
+  const embedSrc = useMemo(() => toEmbedSrc(course), [course.url, course.contentType]);
+  const canPlayHere = Boolean(embedSrc);
 
   return (
+    <>
     <motion.article
       whileHover={{ y: -6, scale: 1.02, boxShadow: '0 16px 40px -8px rgba(200,35,51,0.18)' }}
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 300, damping: 22 }}
       className={clsx(
-        'flex h-full flex-col overflow-hidden rounded-3xl border shadow-sm cursor-pointer',
+        'group flex h-full flex-col overflow-hidden rounded-3xl border shadow-sm cursor-pointer',
         'border-swin-charcoal/10 bg-white text-swin-charcoal dark:border-white/5 dark:bg-slate-900/70 dark:text-white',
       )}
+      role={canPlayHere ? 'button' : undefined}
+      tabIndex={canPlayHere ? 0 : undefined}
+      onClick={() => {
+        if (!canPlayHere) return;
+        setOpen(true);
+      }}
+      onKeyDown={(e) => {
+        if (!canPlayHere) return;
+        if (e.key === 'Enter' || e.key === ' ') setOpen(true);
+      }}
     >
-      <CardWrapper>
       <div className="relative h-40 w-full overflow-hidden">
         {showImage ? (
           <Image
@@ -92,11 +135,13 @@ export default function YouTubeCourseCard({ course }: Props) {
             : 'Video'}
         </span>
         {/* YouTube play button overlay */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity hover:opacity-100">
-          <div className="rounded-full bg-red-600/90 p-3">
-            <PlayCircleIcon className="h-8 w-8 text-white" />
+        {canPlayHere ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="rounded-full bg-red-600/85 p-3 opacity-70 transition-opacity md:opacity-0 md:group-hover:opacity-100">
+              <PlayCircleIcon className="h-8 w-8 text-white" />
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col gap-4 p-5">
@@ -152,13 +197,30 @@ export default function YouTubeCourseCard({ course }: Props) {
           ) : (
             <span className="text-swin-charcoal/50 dark:text-slate-400">YouTube video</span>
           )}
-          <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-4 py-1.5 text-xs font-semibold text-white">
-            Watch
-            <ArrowTopRightOnSquareIcon className="h-4 w-4" />
-          </span>
+          {!canPlayHere && course.url ? (
+            <a
+              href={course.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1 rounded-full bg-red-600 px-4 py-1.5 text-xs font-semibold text-white"
+            >
+              {course.embeddable === false ? 'Open on YouTube' : 'YouTube'}
+            </a>
+          ) : null}
         </div>
       </div>
-      </CardWrapper>
     </motion.article>
+
+    {canPlayHere && embedSrc ? (
+      <YouTubePlayerModal
+        open={open}
+        title={course.title}
+        embedSrc={embedSrc}
+        youtubeUrl={course.url}
+        onClose={() => setOpen(false)}
+      />
+    ) : null}
+    </>
   );
 }

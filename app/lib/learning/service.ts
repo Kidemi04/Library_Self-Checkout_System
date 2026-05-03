@@ -2,12 +2,14 @@ import {
   getYouTubeStatus,
   searchYouTubeCourses,
   getYouTubeCollections,
+  getYouTubeTrending,
 } from '@/app/lib/youtube/service';
 import type {
   YouTubeSearchOptions,
   YouTubeSearchResult,
   YouTubeTopicCollection,
   YouTubeTopicDefinition,
+  YouTubeTrendingOptions,
 } from '@/app/lib/youtube/types';
 
 export type LearningStatus = {
@@ -34,4 +36,10 @@ export const getLearningCollections = async (
   } = {},
 ): Promise<YouTubeTopicCollection[]> => {
   return getYouTubeCollections(definitions, options);
+};
+
+export const getLearningTrending = async (
+  options: YouTubeTrendingOptions = {},
+): Promise<YouTubeSearchResult> => {
+  return getYouTubeTrending(options);
 };

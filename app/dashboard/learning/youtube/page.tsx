@@ -2,22 +2,14 @@ import Link from 'next/link';
 import { SparklesIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import {
   getLearningStatus,
-  getLearningCollections,
+  getLearningTrending,
   searchLearningCourses,
 } from '@/app/lib/learning/service';
-import type { YouTubeLevel, YouTubeTopicDefinition } from '@/app/lib/youtube/types';
+import type { YouTubeLevel } from '@/app/lib/youtube/types';
 import YouTubeSearchForm from '@/app/ui/dashboard/learning/searchForm';
 import SearchResultsPanel from '@/app/ui/dashboard/learning/searchResultsPanel';
-import CollectionsPanel from '@/app/ui/dashboard/learning/collectionsPanel';
 import AdminShell from '@/app/ui/dashboard/adminShell';
-
-const topics: YouTubeTopicDefinition[] = [
-  { key: 'software-dev',  title: 'Software Development',  query: 'programming software web development tutorial',        description: 'Web development, APIs, mobile apps, and software engineering fundamentals.' },
-  { key: 'data-ai',       title: 'Data Science & AI',      query: 'machine learning data science artificial intelligence tutorial', description: 'Python, ML, data analysis, and AI foundations.' },
-  { key: 'cloud-devops',  title: 'Cloud & DevOps',         query: 'cloud AWS Azure DevOps kubernetes tutorial',           description: 'Cloud platforms, containers, CI/CD pipelines, and infrastructure.' },
-  { key: 'business',      title: 'Business & Leadership',  query: 'leadership management project business course',        description: 'Project management, leadership, communication, and business strategy.' },
-  { key: 'design',        title: 'Design & Creative',      query: 'UX UI design creative Figma tutorial',                 description: 'UI/UX, graphic design, Figma, and creative production tools.' },
-];
+import ScrollUnlock from '@/app/ui/dashboard/learning/scrollUnlock';
 
 const quickFilters = [
   { label: 'Python',            query: 'python tutorial' },
@@ -62,9 +54,9 @@ export default async function YouTubeLearningPage({
 
   const learningStatus = await getLearningStatus();
 
-  const [searchResult, collections] = trimmedQuery
-    ? [await searchLearningCourses({ query: trimmedQuery, limit: 12, difficulty }), []]
-    : [null, await getLearningCollections(topics, { limitPerTopic: 4, difficulty })];
+  const [searchResult, trendingResult] = trimmedQuery
+    ? [await searchLearningCourses({ query: trimmedQuery, limit: 12, difficulty }), null]
+    : [null, await getLearningTrending({ limit: 12, difficulty })];
 
   return (
     <AdminShell
@@ -72,6 +64,7 @@ export default async function YouTubeLearningPage({
       title="YouTube Learning"
       description="Access educational videos in technology, business, creative skills, and more — curated for Swinburne students."
     >
+      <ScrollUnlock />
       <div className="space-y-8">
 
         {/* Demo mode notice */}
@@ -138,15 +131,20 @@ export default async function YouTubeLearningPage({
               <SparklesIcon className="h-6 w-6 text-swin-red" />
               <div>
                 <p className="text-xs uppercase tracking-[0.3em] text-swin-charcoal/60 dark:text-slate-400">
-                  Curated collections
+                  Trending
                 </p>
-                <h2 className="text-xl font-semibold">Highlighted topics for you</h2>
+                <h2 className="text-xl font-semibold">Trending learning videos</h2>
                 <p className="text-sm text-swin-charcoal/70 dark:text-slate-300/80">
-                  Browse spotlight playlists. Select a card to open the video on YouTube.
+                  Watch directly here â€” no need to open YouTube.
                 </p>
               </div>
             </div>
-            <CollectionsPanel collections={collections} difficulty={difficulty} />
+            {trendingResult?.error ? (
+              <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-100">
+                {trendingResult.error}
+              </div>
+            ) : null}
+            <SearchResultsPanel items={trendingResult?.items ?? []} query="TRENDING" autoScroll={false} />
           </section>
         )}
 

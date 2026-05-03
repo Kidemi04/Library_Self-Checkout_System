@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { SparklesIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon, PlusIcon, AcademicCapIcon } from '@heroicons/react/24/outline';
 
 const guideTopics = [
   {
@@ -46,6 +46,7 @@ const quickActions = [
 
 export default function FaqFloatingHelp() {
   const [open, setOpen] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const isOnFaqPage = pathname === '/dashboard/faq';
@@ -55,25 +56,29 @@ export default function FaqFloatingHelp() {
 
   // Close on outside click
   useEffect(() => {
-    if (!open) return;
+    if (!open && !actionsOpen) return;
     const handler = (e: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setOpen(false);
+        setActionsOpen(false);
       }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
+  }, [open, actionsOpen]);
 
   // Close on Escape
   useEffect(() => {
-    if (!open) return;
+    if (!open && !actionsOpen) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        setOpen(false);
+        setActionsOpen(false);
+      }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [open]);
+  }, [open, actionsOpen]);
 
   return (
     <div ref={panelRef} className="fixed bottom-40 right-4 z-40 flex flex-col items-end gap-3 md:bottom-24 md:right-8">
@@ -178,20 +183,63 @@ export default function FaqFloatingHelp() {
         </div>
       )}
 
-      {/* AI recommendations button — mobile only */}
-      <Link
-        href="/dashboard/recommendations"
-        aria-label="AI recommendations"
-        className="md:hidden flex h-12 w-12 items-center justify-center rounded-full bg-swin-red text-white shadow-lg shadow-swin-red/30 transition-all duration-300 hover:bg-swin-red/80 hover:scale-110 active:scale-95 dark:shadow-swin-red/40"
-      >
-        <SparklesIcon className="h-5 w-5" />
-      </Link>
+      {/* Quick actions (mobile only) */}
+      <div className="md:hidden flex flex-col items-end gap-2">
+        {actionsOpen && (
+          <div
+            className="flex flex-col items-end gap-2"
+            style={{ animation: 'faqPanelIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both' }}
+            role="menu"
+            aria-label="Quick actions"
+          >
+            <Link
+              href="/dashboard/learning"
+              onClick={() => setActionsOpen(false)}
+              aria-label="Learning Hub"
+              title="Learning Hub"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-swin-red text-white shadow-lg shadow-swin-red/30 transition hover:bg-swin-red/80 hover:scale-110 active:scale-95 dark:shadow-swin-red/40"
+              role="menuitem"
+            >
+              <AcademicCapIcon className="h-5 w-5" />
+            </Link>
+            <Link
+              href="/dashboard/recommendations"
+              onClick={() => setActionsOpen(false)}
+              aria-label="AI Recommendations"
+              title="AI Recommendations"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-swin-red text-white shadow-lg shadow-swin-red/30 transition hover:bg-swin-red/80 hover:scale-110 active:scale-95 dark:shadow-swin-red/40"
+              role="menuitem"
+            >
+              <SparklesIcon className="h-5 w-5" />
+            </Link>
+          </div>
+        )}
+
+        <button
+          type="button"
+          aria-label={actionsOpen ? 'Close quick actions' : 'Open quick actions'}
+          aria-haspopup="menu"
+          aria-expanded={actionsOpen}
+          onClick={() => {
+            setOpen(false);
+            setActionsOpen((v) => !v);
+          }}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-swin-red text-white shadow-lg shadow-swin-red/30 transition-all duration-300 hover:bg-swin-red/80 hover:scale-110 active:scale-95 dark:shadow-swin-red/40"
+        >
+          <PlusIcon
+            className={actionsOpen ? 'h-5 w-5 rotate-45 transition-transform' : 'h-5 w-5 transition-transform'}
+          />
+        </button>
+      </div>
 
       {/* FAB trigger */}
       <button
         type="button"
         aria-label={open ? 'Close help panel' : 'Open student guide'}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setActionsOpen(false);
+          setOpen((v) => !v);
+        }}
         className="flex h-12 w-12 items-center justify-center rounded-full bg-swin-charcoal text-white shadow-lg shadow-swin-charcoal/30 transition-all duration-300 hover:bg-swin-red hover:scale-110 active:scale-95 dark:bg-swin-dark-surface dark:shadow-black/40 dark:hover:bg-swin-red"
       >
         {open ? (

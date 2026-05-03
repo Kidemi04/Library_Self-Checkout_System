@@ -26,18 +26,19 @@ const cardVariant = {
 type Props = {
   items: YouTubeAsset[];
   query: string;
+  autoScroll?: boolean;
 };
 
-export default function SearchResultsPanel({ items, query }: Props) {
+export default function SearchResultsPanel({ items, query, autoScroll = true }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!ref.current || items.length === 0) return;
+    if (!autoScroll || !ref.current || items.length === 0) return;
     const timer = setTimeout(() => {
       ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 120);
     return () => clearTimeout(timer);
-  }, [query, items.length]);
+  }, [autoScroll, query, items.length]);
 
   if (items.length === 0) {
     return (

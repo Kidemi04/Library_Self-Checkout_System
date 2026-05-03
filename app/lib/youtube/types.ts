@@ -24,12 +24,20 @@ export interface YouTubeAsset {
   contentType: YouTubeContentType;
   viewCount?: string | null;
   channelTitle?: string | null;
+  embeddable?: boolean | null;
 }
 
 export interface YouTubeSearchOptions {
   query?: string;
   topics?: string[];
   limit?: number;
+  difficulty?: YouTubeLevel | 'ALL';
+}
+
+export interface YouTubeTrendingOptions {
+  limit?: number;
+  regionCode?: string;
+  categoryId?: string;
   difficulty?: YouTubeLevel | 'ALL';
 }
 

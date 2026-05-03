@@ -9,11 +9,14 @@ import type {
   YouTubeStatus,
   YouTubeTopicCollection,
   YouTubeTopicDefinition,
+  YouTubeTrendingOptions,
 } from '@/app/lib/youtube/types';
 
 const env = {
   apiKey: (process.env.YOUTUBE_API_KEY ?? '').trim(),
   apiBase: 'https://www.googleapis.com/youtube/v3',
+  trendingRegionCode: (process.env.YOUTUBE_TRENDING_REGION_CODE ?? 'MY').trim() || 'MY',
+  trendingCategoryId: (process.env.YOUTUBE_TRENDING_CATEGORY_ID ?? '28').trim() || '28',
 };
 
 const hasCredentials = Boolean(env.apiKey);
@@ -87,13 +90,44 @@ type YouTubeVideoDetails = {
   id: string;
   contentDetails?: { duration?: string };
   statistics?: { viewCount?: string };
+  status?: { embeddable?: boolean; privacyStatus?: string };
 };
 
 type YouTubeVideoDetailsResponse = {
   items?: YouTubeVideoDetails[];
 };
 
+type YouTubeVideosListItem = {
+  id: string;
+  snippet: {
+    title: string;
+    description: string;
+    channelTitle: string;
+    publishedAt: string;
+    thumbnails: {
+      high?: { url: string };
+      medium?: { url: string };
+      default?: { url: string };
+    };
+  };
+  contentDetails?: { duration?: string };
+  statistics?: { viewCount?: string };
+  status?: { embeddable?: boolean; privacyStatus?: string };
+};
+
+type YouTubeVideosListResponse = {
+  items?: YouTubeVideosListItem[];
+};
+
 // ─── Convert API response to our asset type ──────────────────────────────────
+
+const decodeHtmlEntities = (value: string): string =>
+  value
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
 
 const toYouTubeAsset = (
   item: YouTubeSearchItem,
@@ -128,19 +162,8 @@ const toYouTubeAsset = (
     ? 'CHANNEL'
     : 'VIDEO';
 
-  const title = item.snippet.title
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
-
-  const description = item.snippet.description
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+  const title = decodeHtmlEntities(item.snippet.title);
+  const description = decodeHtmlEntities(item.snippet.description);
 
   return {
     urn,
@@ -157,10 +180,44 @@ const toYouTubeAsset = (
     contentType,
     viewCount: details?.statistics?.viewCount ?? null,
     channelTitle: item.snippet.channelTitle,
+    embeddable: details?.status?.embeddable ?? null,
   };
 };
 
 // ─── Stub search ─────────────────────────────────────────────────────────────
+
+const toYouTubeAssetFromVideo = (item: YouTubeVideosListItem): YouTubeAsset => {
+  const videoId = item.id;
+  const urn = `yt:video:${videoId}`;
+  const url = `https://www.youtube.com/watch?v=${videoId}`;
+
+  const thumbnails = item.snippet.thumbnails;
+  const imageUrl = thumbnails.high?.url ?? thumbnails.medium?.url ?? thumbnails.default?.url ?? null;
+
+  const durationRaw = item.contentDetails?.duration;
+  const durationInSeconds = durationRaw ? parseIsoDuration(durationRaw) : null;
+
+  const title = decodeHtmlEntities(item.snippet.title);
+  const description = decodeHtmlEntities(item.snippet.description);
+
+  return {
+    urn,
+    title,
+    description: description || null,
+    url,
+    imageUrl,
+    durationInSeconds,
+    durationFormatted: formatDuration(durationInSeconds),
+    skillLevel: inferSkillLevel(title, description),
+    releasedAt: item.snippet.publishedAt ?? null,
+    topics: [],
+    authors: [{ name: item.snippet.channelTitle }],
+    contentType: 'VIDEO',
+    viewCount: item.statistics?.viewCount ?? null,
+    channelTitle: item.snippet.channelTitle,
+    embeddable: item.status?.embeddable ?? null,
+  };
+};
 
 const stubSearch = (
   options: YouTubeSearchOptions,
@@ -210,6 +267,33 @@ const stubSearch = (
 };
 
 // ─── Status ──────────────────────────────────────────────────────────────────
+
+const stubTrending = (
+  options: YouTubeTrendingOptions,
+  limit: number,
+  startedAt: number,
+): YouTubeSearchResult => {
+  const difficulty = options.difficulty ?? 'ALL';
+  let items = sampleYouTubeAssets;
+
+  if (difficulty && difficulty !== 'ALL') {
+    items = items.filter((asset) => (asset.skillLevel ?? 'ALL') === difficulty);
+  }
+
+  const safeLength = Math.max(1, items.length);
+  const daySeed = Math.floor(Date.now() / 86_400_000);
+  const offset = daySeed % safeLength;
+  const rotated = items.slice(offset).concat(items.slice(0, offset));
+  const picked = rotated.slice(0, limit);
+
+  return {
+    source: 'stub',
+    query: 'TRENDING',
+    tookMs: Date.now() - startedAt,
+    total: items.length,
+    items: picked,
+  };
+};
 
 export const getYouTubeStatus = async (): Promise<YouTubeStatus> => {
   if (stubMode) {
@@ -265,7 +349,7 @@ const fetchVideoDetails = async (
   if (!videoIds.length) return new Map();
 
   const params = new URLSearchParams({
-    part: 'contentDetails,statistics',
+    part: 'contentDetails,statistics,status',
     id: videoIds.join(','),
     key: env.apiKey,
   });
@@ -284,6 +368,42 @@ const fetchVideoDetails = async (
     map.set(item.id, item);
   }
   return map;
+};
+
+const fetchYouTubeTrending = async (
+  limit: number,
+  regionCode: string,
+  categoryId: string | null,
+): Promise<YouTubeVideosListResponse> => {
+  const params = new URLSearchParams({
+    part: 'snippet,contentDetails,statistics,status',
+    chart: 'mostPopular',
+    maxResults: `${limit}`,
+    regionCode,
+    key: env.apiKey,
+  });
+
+  if (categoryId) params.set('videoCategoryId', categoryId);
+
+  const response = await fetch(`${env.apiBase}/videos?${params.toString()}`, {
+    method: 'GET',
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+
+    // Some categories do not support `chart=mostPopular` and return 404 NOT_FOUND
+    // (e.g. category 27 "Education"). In that case, retry without a category filter.
+    if (response.status === 404 && categoryId) {
+      return fetchYouTubeTrending(limit, regionCode, null);
+    }
+
+    throw new Error(`YouTube API error (${response.status}): ${text}`);
+  }
+
+  return (await response.json()) as YouTubeVideosListResponse;
 };
 
 // ─── Main search function ────────────────────────────────────────────────────
@@ -356,6 +476,56 @@ export const searchYouTubeCourses = async (
 };
 
 // ─── Topic collections ───────────────────────────────────────────────────────
+
+export const getYouTubeTrending = async (
+  options: YouTubeTrendingOptions = {},
+): Promise<YouTubeSearchResult> => {
+  const started = Date.now();
+  const limit = clamp(options.limit ?? 12, 1, 30);
+  const regionCode = (options.regionCode ?? env.trendingRegionCode).trim() || env.trendingRegionCode;
+  const categoryIdRaw = (options.categoryId ?? env.trendingCategoryId).trim();
+  const categoryId = categoryIdRaw ? categoryIdRaw : null;
+
+  if (!enabled) {
+    return {
+      source: 'disabled',
+      query: 'TRENDING',
+      total: 0,
+      items: [],
+      tookMs: Date.now() - started,
+      error: 'YouTube integration is not configured.',
+    };
+  }
+
+  if (stubMode || !hasCredentials) {
+    return stubTrending(options, limit, started);
+  }
+
+  try {
+    const response = await fetchYouTubeTrending(limit, regionCode, categoryId);
+    const items = (response.items ?? [])
+      .filter((item) => item?.status?.privacyStatus !== 'private')
+      .filter((item) => item?.status?.embeddable !== false);
+
+    const assets = items.map(toYouTubeAssetFromVideo);
+
+    const filtered =
+      options.difficulty && options.difficulty !== 'ALL'
+        ? assets.filter((asset) => asset.skillLevel === options.difficulty)
+        : assets;
+
+    return {
+      source: 'api',
+      query: 'TRENDING',
+      total: filtered.length,
+      items: filtered,
+      tookMs: Date.now() - started,
+    };
+  } catch (error) {
+    console.error('[YouTube] trending failed', error);
+    return stubTrending(options, limit, started);
+  }
+};
 
 export const getYouTubeCollections = async (
   definitions: YouTubeTopicDefinition[],
