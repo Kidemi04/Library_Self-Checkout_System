@@ -1,9 +1,10 @@
 'use client';
 
-import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import PlaceHoldButton from '@/app/ui/dashboard/placeHoldButton';
+import { saveChatMessage, loadChatMessages, clearChatMessages } from '@/app/dashboard/recommendations/action';
 
 type RecommendationItem = {
   id: string;
@@ -170,11 +171,9 @@ export default function StudentChat({
 }: {
   studentName?: string | null;
   needsOnboarding?: boolean;
-  userId?: string;
+  userId: string;
 }) {
-  const [messages, setMessages] = useState<ChatMessage[]>(() =>
-    buildInitialMessages(studentName),
-  );
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [sendNotice, setSendNotice] = useState<string | null>(null);
@@ -193,6 +192,30 @@ export default function StudentChat({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lastSentAtRef = useRef<number>(0);
   const initialNameRef = useRef(studentName);
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const data = await loadChatMessages(userId);
+
+        const formatted: ChatMessage[] = (data || []).map((msg: any) => ({
+          id: msg.message_id,
+          sender: msg.sender,
+          text: msg.text,
+          timestamp: new Date(msg.created_at).getTime(),
+          recommendations: msg.recommendations ?? undefined,
+        }));
+
+        setMessages(formatted);
+      } catch (err) {
+        console.error('Failed to load chat history:', err);
+        setMessages(buildInitialMessages(studentName));
+      }
+    };
+
+    loadHistory();
+  }, [userId]);
 
   useEffect(() => {
     const nextGreeting = buildGreeting(studentName);
@@ -244,15 +267,21 @@ export default function StudentChat({
     }, 0);
   };
 
-  const resetChat = () => {
-    setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
-    setLinkedInSuggestions([]);
-    setSendNotice(null);
-    setShowQuickPrompts(true);
-    setStickToBottom(true);
-    setInputValue('');
-    setIsAssistantTyping(false);
-    lastSentAtRef.current = 0;
+  const resetChat = async () => {
+    try {
+      await clearChatMessages(userId);
+
+      setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
+      setLinkedInSuggestions([]);
+      setSendNotice(null);
+      setShowQuickPrompts(true);
+      setStickToBottom(true);
+      setInputValue('');
+      setIsAssistantTyping(false);
+      lastSentAtRef.current = 0;
+    } catch (err) {
+      console.error('Failed to clear chat:', err);
+    }
   };
 
   const handleSaveInterests = async () => {
@@ -333,6 +362,12 @@ export default function StudentChat({
     setStickToBottom(true);
     scheduleScrollToBottom();
     lastSentAtRef.current = now;
+
+    // Save student message
+    startTransition(() => {
+      saveChatMessage(userId, newMessage.id, newMessage.sender, newMessage.text).catch(console.error);
+    });
+
     await triggerAssistantReply(trimmed);
     return true;
   };
@@ -352,16 +387,19 @@ export default function StudentChat({
         response.ok && data?.reply ? data.reply : data?.reply ?? buildErrorReply();
 
       const recs = data?.recommendations ?? [];
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: createId(),
-          sender: 'assistant',
-          text: replyText,
-          timestamp: Date.now(),
-          recommendations: recs.length ? recs : undefined,
-        },
-      ]);
+      const assistantMessage = {
+        id: createId(),
+        sender: 'assistant' as const,
+        text: replyText,
+        timestamp: Date.now(),
+        recommendations: recs.length ? recs : undefined,
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      // Save assistant message
+      startTransition(() => {
+        saveChatMessage(userId, assistantMessage.id, assistantMessage.sender, assistantMessage.text, assistantMessage.recommendations).catch(console.error);
+      });
 
       setLinkedInSuggestions(data?.linkedInSuggestions ?? []);
 

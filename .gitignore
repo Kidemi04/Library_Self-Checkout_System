@@ -54,3 +54,6 @@ pnpm-debug.log*
 
 # Claude Code internals
 /.claude
+
+# Supabase SQL files
+/supabase/
