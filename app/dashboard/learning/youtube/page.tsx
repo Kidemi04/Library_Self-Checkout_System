@@ -12,12 +12,12 @@ import AdminShell from '@/app/ui/dashboard/adminShell';
 import ScrollUnlock from '@/app/ui/dashboard/learning/scrollUnlock';
 
 const quickFilters = [
-  { label: 'Python',            query: 'python tutorial' },
-  { label: 'Machine Learning',  query: 'machine learning' },
-  { label: 'Cloud',             query: 'cloud computing AWS' },
-  { label: 'Project Management',query: 'project management' },
-  { label: 'UX Design',         query: 'UX design' },
-  { label: 'JavaScript',        query: 'javascript react' },
+  { label: 'Engineering',         query: 'engineering' },
+  { label: 'Computer Science',    query: 'computer science' },
+  { label: 'Cyber Security',      query: 'cyber security' },
+  { label: 'Data Science',        query: 'data science' },
+  { label: 'Business & Finance',  query: 'business finance' },
+  { label: 'Design',              query: 'design' },
 ];
 
 const parseDifficulty = (value: string | undefined): YouTubeLevel | 'ALL' => {
@@ -134,9 +134,6 @@ export default async function YouTubeLearningPage({
                   Trending
                 </p>
                 <h2 className="text-xl font-semibold">Trending learning videos</h2>
-                <p className="text-sm text-swin-charcoal/70 dark:text-slate-300/80">
-                  Watch directly here â€” no need to open YouTube.
-                </p>
               </div>
             </div>
             {trendingResult?.error ? (
