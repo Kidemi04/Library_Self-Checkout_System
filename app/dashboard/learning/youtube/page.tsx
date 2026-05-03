@@ -213,9 +213,14 @@ export default async function LearningHubPage({
               <div className="flex items-start gap-3 rounded-2xl border border-amber-400/30 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
                 <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
                 <p>
-                  <span className="font-semibold">Demo mode —</span> showing sample video data. Add{' '}
-                  <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/40">YOUTUBE_API_KEY</code>{' '}
-                  to <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/40">.env.local</code> for live data.
+                  <span className="font-semibold">Demo mode —</span>{' '}
+                  {learningStatus.reason || (
+                    <>
+                      showing sample video data. Add{' '}
+                      <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/40">YOUTUBE_API_KEY</code>{' '}
+                      to <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/40">.env.local</code> for live data.
+                    </>
+                  )}
                 </p>
               </div>
             )}

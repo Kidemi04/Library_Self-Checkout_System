@@ -1,4 +1,5 @@
-'use server';
+// Removed 'use server' to ensure consistent error handling in Server Components
+
 
 import { sampleYouTubeAssets } from '@/app/lib/youtube/sample-data';
 import type {
@@ -22,6 +23,9 @@ const env = {
 const hasCredentials = Boolean(env.apiKey);
 const stubMode = !hasCredentials;
 const enabled = true; // Always enabled — falls back to stub
+let isQuotaExceeded = false;
+let lastQuotaCheck = 0;
+const QUOTA_COOLDOWN = 1000 * 60 * 15; // 15 minutes cooldown
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -301,7 +305,16 @@ export const getYouTubeStatus = async (): Promise<YouTubeStatus> => {
       enabled: true,
       isConfigured: false,
       usingStub: true,
-      reason: 'Using sample data because YOUTUBE_API_KEY is not configured.',
+      reason: 'Using sample data (YOUTUBE_API_KEY missing).',
+    };
+  }
+
+  if (isQuotaExceeded) {
+    return {
+      enabled: true,
+      isConfigured: true,
+      usingStub: true,
+      reason: 'YouTube API quota exceeded. Falling back to sample data.',
     };
   }
 
@@ -310,6 +323,10 @@ export const getYouTubeStatus = async (): Promise<YouTubeStatus> => {
     isConfigured: true,
     usingStub: false,
   };
+
+
+
+
 };
 
 // ─── YouTube Data API v3 search ──────────────────────────────────────────────
@@ -317,7 +334,7 @@ export const getYouTubeStatus = async (): Promise<YouTubeStatus> => {
 const fetchYouTubeSearch = async (
   query: string,
   limit: number,
-): Promise<YouTubeSearchResponse> => {
+): Promise<YouTubeSearchResponse & { quotaExceeded?: boolean }> => {
   const params = new URLSearchParams({
     part: 'snippet',
     q: `${query} tutorial`,
@@ -337,6 +354,11 @@ const fetchYouTubeSearch = async (
 
   if (!response.ok) {
     const text = await response.text();
+    if (response.status === 403 && text.includes('quotaExceeded')) {
+      isQuotaExceeded = true;
+      lastQuotaCheck = Date.now();
+      return { items: [], quotaExceeded: true };
+    }
     throw new Error(`YouTube API error (${response.status}): ${text}`);
   }
 
@@ -374,7 +396,7 @@ const fetchYouTubeTrending = async (
   limit: number,
   regionCode: string,
   categoryId: string | null,
-): Promise<YouTubeVideosListResponse> => {
+): Promise<YouTubeVideosListResponse & { quotaExceeded?: boolean }> => {
   const params = new URLSearchParams({
     part: 'snippet,contentDetails,statistics,status',
     chart: 'mostPopular',
@@ -398,6 +420,12 @@ const fetchYouTubeTrending = async (
     // (e.g. category 27 "Education"). In that case, retry without a category filter.
     if (response.status === 404 && categoryId) {
       return fetchYouTubeTrending(limit, regionCode, null);
+    }
+
+    if (response.status === 403 && text.includes('quotaExceeded')) {
+      isQuotaExceeded = true;
+      lastQuotaCheck = Date.now();
+      return { items: [], quotaExceeded: true };
     }
 
     throw new Error(`YouTube API error (${response.status}): ${text}`);
@@ -425,7 +453,12 @@ export const searchYouTubeCourses = async (
     };
   }
 
-  if (stubMode || !hasCredentials) {
+  // Reset quota flag after cooldown
+  if (isQuotaExceeded && Date.now() - lastQuotaCheck > QUOTA_COOLDOWN) {
+    isQuotaExceeded = false;
+  }
+
+  if (stubMode || !hasCredentials || isQuotaExceeded) {
     return stubSearch(options, limit, started);
   }
 
@@ -440,6 +473,9 @@ export const searchYouTubeCourses = async (
     }
 
     const searchResponse = await fetchYouTubeSearch(keywords, limit);
+    if (searchResponse.quotaExceeded) {
+      return stubSearch(options, limit, started);
+    }
     const searchItems = searchResponse.items ?? [];
 
     // Fetch video details (duration, view count) for each result
@@ -468,7 +504,9 @@ export const searchYouTubeCourses = async (
       tookMs: Date.now() - started,
     };
   } catch (error) {
-    console.error('[YouTube] search failed', error);
+    if (!(error as any).message?.includes('quotaExceeded')) {
+      console.error('[YouTube] search failed', error);
+    }
 
     // Fall back to stub data on error
     return stubSearch(options, limit, started);
@@ -497,12 +535,20 @@ export const getYouTubeTrending = async (
     };
   }
 
-  if (stubMode || !hasCredentials) {
+  // Reset quota flag after cooldown
+  if (isQuotaExceeded && Date.now() - lastQuotaCheck > QUOTA_COOLDOWN) {
+    isQuotaExceeded = false;
+  }
+
+  if (stubMode || !hasCredentials || isQuotaExceeded) {
     return stubTrending(options, limit, started);
   }
 
   try {
     const response = await fetchYouTubeTrending(limit, regionCode, categoryId);
+    if (response.quotaExceeded) {
+      return stubTrending(options, limit, started);
+    }
     const items = (response.items ?? [])
       .filter((item) => item?.status?.privacyStatus !== 'private')
       .filter((item) => item?.status?.embeddable !== false);
@@ -521,8 +567,10 @@ export const getYouTubeTrending = async (
       items: filtered,
       tookMs: Date.now() - started,
     };
-  } catch (error) {
-    console.error('[YouTube] trending failed', error);
+  } catch (error: any) {
+    if (!error.message?.includes('quotaExceeded')) {
+      console.error('[YouTube] trending failed', error);
+    }
     return stubTrending(options, limit, started);
   }
 };

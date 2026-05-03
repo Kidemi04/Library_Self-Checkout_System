@@ -15,12 +15,13 @@ import type {
 export type LearningStatus = {
   isLive: boolean;
   usingStub: boolean;
+  reason?: string;
 };
 
 export const getLearningStatus = async (): Promise<LearningStatus> => {
   const status = await getYouTubeStatus();
   const isLive = status.enabled && status.isConfigured && !status.usingStub;
-  return { isLive, usingStub: status.usingStub };
+  return { isLive, usingStub: status.usingStub, reason: status.reason };
 };
 
 export const searchLearningCourses = async (

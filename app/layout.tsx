@@ -1,6 +1,6 @@
 import '@/app/ui/global.css';
 import { Providers } from './providers';
-import ScrollToTop from '@/app/ui/scrollToTop';
+
 
 export default function RootLayout({
   children,
@@ -24,7 +24,6 @@ export default function RootLayout({
         {/* GLOBAL PROVIDERS: mount once */}
         <Providers>
           {children}
-          <ScrollToTop />
         </Providers>
       </body>
     </html>
