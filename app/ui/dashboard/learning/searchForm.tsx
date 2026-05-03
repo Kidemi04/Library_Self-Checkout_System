@@ -29,17 +29,16 @@ export default function YouTubeSearchForm({
     e.preventDefault();
     const q = inputRef.current?.value.trim() ?? '';
     const diff = selectRef.current?.value ?? 'ALL';
-    const params = new URLSearchParams();
+    const params = new URLSearchParams({ view: 'youtube' });
     if (q) params.set('q', q);
     if (diff && diff !== 'ALL') params.set('difficulty', diff);
-    const qs = params.toString();
-    router.push(`/dashboard/learning/youtube${qs ? `?${qs}` : ''}`);
+    router.push(`/dashboard/learning/youtube?${params.toString()}`);
   };
 
   const handleReset = () => {
     if (inputRef.current) inputRef.current.value = '';
     if (selectRef.current) selectRef.current.value = 'ALL';
-    router.push('/dashboard/learning/youtube');
+    router.push('/dashboard/learning/youtube?view=youtube');
   };
 
   return (
