@@ -53,4 +53,4 @@ pnpm-debug.log*
 .vscode/
 
 # Claude Code internals
-/claude
+/.claude
