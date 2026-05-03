@@ -233,7 +233,7 @@ export default function DevToGrid({ articles }: { articles: DevToArticle[] }) {
   return (
     <>
       {/* Masonry grid */}
-      <div className="columns-1 gap-4 sm:columns-2 xl:columns-3 2xl:columns-4">
+      <div className="columns-2 gap-2 sm:columns-2 sm:gap-4 xl:columns-3 2xl:columns-4">
         {articles.map((article, i) => {
           const gradient = GRADIENTS[i % GRADIENTS.length];
           const hasCover = Boolean(article.cover_image);
@@ -244,7 +244,7 @@ export default function DevToGrid({ articles }: { articles: DevToArticle[] }) {
               key={article.id}
               type="button"
               onClick={() => setSelected(article)}
-              className="group mb-4 block w-full break-inside-avoid overflow-hidden rounded-3xl border border-swin-charcoal/10 bg-white text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/5 dark:bg-slate-900/70"
+              className="group mb-2 sm:mb-4 block w-full break-inside-avoid overflow-hidden rounded-2xl sm:rounded-3xl border border-swin-charcoal/10 bg-white text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/5 dark:bg-slate-900/70"
             >
               {/* Cover / gradient */}
               <div className="relative overflow-hidden">
@@ -256,52 +256,52 @@ export default function DevToGrid({ articles }: { articles: DevToArticle[] }) {
                     loading="lazy"
                   />
                 ) : (
-                  <div className={`flex h-32 w-full items-center justify-center bg-gradient-to-br ${gradient} p-4 text-center text-white`}>
-                    <p className="line-clamp-2 text-sm font-bold leading-tight">{article.title}</p>
+                  <div className={`flex h-24 sm:h-32 w-full items-center justify-center bg-gradient-to-br ${gradient} p-3 text-center text-white`}>
+                    <p className="line-clamp-2 text-[11px] sm:text-sm font-bold leading-tight">{article.title}</p>
                   </div>
                 )}
-                <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[10px] font-semibold text-white backdrop-blur-sm">
-                  <ClockIcon className="h-3 w-3" />
-                  {article.reading_time_minutes} min
+                <span className="absolute right-2 top-2 sm:right-3 sm:top-3 flex items-center gap-0.5 sm:gap-1 rounded-full bg-black/60 px-2 py-0.5 sm:px-2.5 sm:py-1 text-[9px] sm:text-[10px] font-semibold text-white backdrop-blur-sm">
+                  <ClockIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                  {article.reading_time_minutes}m
                 </span>
               </div>
 
               {/* Body */}
-              <div className="flex flex-col gap-3 p-4">
+              <div className="flex flex-col gap-2 sm:gap-3 p-2.5 sm:p-4">
                 {/* Author row */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   {avatar ? (
-                    <img src={avatar} alt={article.user?.name ?? ''} className="h-7 w-7 rounded-full object-cover ring-2 ring-swin-red/20" loading="lazy" />
+                    <img src={avatar} alt={article.user?.name ?? ''} className="h-5 w-5 sm:h-7 sm:w-7 rounded-full object-cover ring-2 ring-swin-red/20" loading="lazy" />
                   ) : (
-                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-swin-red/10 text-xs font-bold text-swin-red">
+                    <div className="flex h-5 w-5 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-swin-red/10 text-[10px] sm:text-xs font-bold text-swin-red">
                       {(article.user?.name ?? 'A')[0]}
                     </div>
                   )}
-                  <span className="truncate text-xs font-semibold text-swin-charcoal dark:text-white">
+                  <span className="truncate text-[10px] sm:text-xs font-semibold text-swin-charcoal dark:text-white">
                     {article.user?.name ?? 'Unknown'}
                   </span>
-                  <span className="ml-auto flex-shrink-0 text-[10px] text-swin-charcoal/40 dark:text-white/40">
+                  <span className="ml-auto flex-shrink-0 text-[9px] sm:text-[10px] text-swin-charcoal/40 dark:text-white/40 hidden sm:block">
                     {article.readable_publish_date}
                   </span>
                 </div>
 
                 {/* Title */}
-                <h3 className="line-clamp-2 text-sm font-bold leading-snug text-swin-charcoal dark:text-white">
+                <h3 className="line-clamp-2 text-xs sm:text-sm font-bold leading-snug text-swin-charcoal dark:text-white">
                   {article.title}
                 </h3>
 
-                {/* Description */}
+                {/* Description — hidden on mobile for compact Rednote look */}
                 {article.description && (
-                  <p className="line-clamp-2 text-xs text-swin-charcoal/60 dark:text-slate-300/70">
+                  <p className="hidden sm:block line-clamp-2 text-xs text-swin-charcoal/60 dark:text-slate-300/70">
                     {article.description}
                   </p>
                 )}
 
-                {/* Tags */}
+                {/* Tags — show fewer on mobile */}
                 {article.tag_list?.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {article.tag_list.slice(0, 3).map((tag) => (
-                      <span key={tag} className="rounded-full bg-swin-red/8 px-2.5 py-0.5 text-[10px] font-semibold text-swin-red dark:bg-swin-red/15 dark:text-rose-300">
+                  <div className="flex flex-wrap gap-1 sm:gap-1.5">
+                    {article.tag_list.slice(0, 2).map((tag) => (
+                      <span key={tag} className="rounded-full bg-swin-red/8 px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold text-swin-red dark:bg-swin-red/15 dark:text-rose-300">
                         #{tag}
                       </span>
                     ))}
@@ -309,17 +309,17 @@ export default function DevToGrid({ articles }: { articles: DevToArticle[] }) {
                 )}
 
                 {/* Footer stats */}
-                <div className="flex items-center gap-4 border-t border-swin-charcoal/8 pt-3 text-xs text-swin-charcoal/50 dark:border-white/8 dark:text-white/40">
-                  <span className="flex items-center gap-1">
-                    <HeartIcon className="h-3.5 w-3.5 text-swin-red" />
-                    {formatCount(article.public_reactions_count ?? 0)}
+                <div className="flex items-center gap-2 sm:gap-4 border-t border-swin-charcoal/8 pt-2 sm:pt-3 text-xs text-swin-charcoal/50 dark:border-white/8 dark:text-white/40">
+                  <span className="flex items-center gap-0.5 sm:gap-1">
+                    <HeartIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-swin-red" />
+                    <span className="text-[10px] sm:text-xs">{formatCount(article.public_reactions_count ?? 0)}</span>
                   </span>
-                  <span className="flex items-center gap-1">
-                    <ChatBubbleLeftIcon className="h-3.5 w-3.5" />
-                    {formatCount(article.comments_count ?? 0)}
+                  <span className="flex items-center gap-0.5 sm:gap-1">
+                    <ChatBubbleLeftIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                    <span className="text-[10px] sm:text-xs">{formatCount(article.comments_count ?? 0)}</span>
                   </span>
-                  <span className="ml-auto text-[10px] font-medium text-swin-red opacity-0 transition group-hover:opacity-100">
-                    Tap to preview →
+                  <span className="ml-auto text-[9px] sm:text-[10px] font-medium text-swin-red opacity-0 transition group-hover:opacity-100">
+                    Tap →
                   </span>
                 </div>
               </div>
