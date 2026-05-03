@@ -10,8 +10,9 @@ import YouTubeSearchForm from '@/app/ui/dashboard/learning/searchForm';
 import SearchResultsPanel from '@/app/ui/dashboard/learning/searchResultsPanel';
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import ScrollUnlock from '@/app/ui/dashboard/learning/scrollUnlock';
-import DevToGrid from '@/app/ui/dashboard/learning/devToGrid';
-import NewsGrid, { type NewsItem } from '@/app/ui/dashboard/learning/newsGrid';
+import CommunityFeed from '@/app/ui/dashboard/learning/communityFeed';
+import NewsFeed from '@/app/ui/dashboard/learning/newsFeed';
+import { type NewsItem } from '@/app/ui/dashboard/learning/newsGrid';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -305,14 +306,7 @@ export default async function LearningHubPage({
               <div className="h-px flex-1 bg-swin-charcoal/10 dark:bg-white/10" />
             </div>
 
-            {devToArticles.length > 0 ? (
-              <DevToGrid articles={devToArticles} />
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-swin-charcoal/20 bg-white p-12 text-center dark:border-white/20 dark:bg-slate-900/40">
-                <p className="text-swin-charcoal/50 dark:text-white/50">No articles could be loaded right now.</p>
-                <p className="mt-1 text-xs text-swin-charcoal/30 dark:text-white/30">Try switching to a different topic above.</p>
-              </div>
-            )}
+            <CommunityFeed articles={devToArticles} />
 
             <p className="text-center text-[11px] text-swin-charcoal/30 dark:text-white/25">
               Powered by{' '}
@@ -336,7 +330,7 @@ export default async function LearningHubPage({
               <div className="h-px flex-1 bg-swin-charcoal/10 dark:bg-white/10" />
             </div>
 
-            <NewsGrid stories={hnStories} />
+            <NewsFeed stories={hnStories} />
 
             <p className="text-center text-[11px] text-swin-charcoal/30 dark:text-white/25">
               Sources: BBC Technology · TechCrunch · The Verge · Ars Technica · Engadget
