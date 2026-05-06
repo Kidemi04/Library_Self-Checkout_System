@@ -38,6 +38,7 @@ const cache = new Map<string, CacheEntry>();
 
 const getEnv = () => ({
   youtubeApiKey: process.env.YOUTUBE_API_KEY?.trim(),
+  braveApiKey: process.env.BRAVE_SEARCH_API_KEY?.trim(),
 });
 
 const cacheKey = (topic: string) => topic.toLowerCase().trim();
