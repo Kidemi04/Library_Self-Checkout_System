@@ -74,7 +74,7 @@ Jest + Testing Library, jsdom. Tests live in `__tests__/` at the repo root, name
 
 Migrations live in `supabase/migrations/` (timestamped filenames, e.g. `20260428_search_books_rpc.sql`). The base schema is documented in `README.md` (books / copies / users / user_profiles / loans plus enums). Recent migrations add: notifications, damage reports, extended book categories, loan reminder tracking, and a `search_books` RPC.
 
-Important table-name quirks: the auth/profile flow reads from PascalCase tables/views (`Users`, `UserProfile`, `MyProfile`) — match this casing exactly when writing Supabase queries in auth/session code.
+**Naming convention (project-wide, see `README.md`)**: tables use **PascalCase** (`Users`, `Books`, `Copies`, `Loans`, `UserProfile`); columns / enum types / enum values use **snake_case** (`copy_status`, `display_name`, `'on_loan'`). The auth/profile flow specifically reads from views `Users`, `UserProfile`, `MyProfile` — match this casing exactly when writing Supabase queries in auth/session code.
 
 ### Scripts
 
@@ -88,8 +88,13 @@ The app reads these without sensible defaults — the app will throw or refuse t
 - `AZURE_AD_CLIENT_ID`, `AZURE_AD_CLIENT_SECRET`, `AZURE_AD_TENANT_ID`, `NEXTAUTH_SECRET` (auto-set to `'dev-secret'` in development).
 - Optional dev bypass: `DEV_BYPASS_AUTH`, `DEV_BYPASS_ROLE` (`user`|`staff`|`admin`), `DEV_BYPASS_EMAIL`, `DEV_BYPASS_NAME`, `DEV_BYPASS_USER_ID`.
 - SIP2: `SIP2_BASE_URL`, `SIP2_API_KEY`, `SIP2_TIMEOUT_MS` (default 5000), `SIP2_INSTITUTION_ID`, `SIP2_TERMINAL_PASSWORD`, `SIP2_PATRON_PASSWORD`.
+- AI / LLM provider for the recommendations module — set `LLM_PROVIDER=lmstudio` or `gemini`:
+  - LM Studio (local, default): `LMSTUDIO_BASE_URL` (default `http://localhost:1234/v1`), `LMSTUDIO_MODEL` (default `google/gemma-4-e4b`).
+  - Gemini fallback: `GEMINI_API_KEY`, `GEMINI_MODEL` (default `gemini-2.5-flash`), `GEMINI_API_BASE_URL`.
+  - The provider router in `app/lib/recommendations/ai.ts` supports per-call `providerOverride` from the UI. If Gemini fails it silently falls back to LM Studio.
 - LinkedIn Learning (optional, has stub mode): `LINKEDIN_LEARNING_*` — set `LINKEDIN_LEARNING_USE_STUB=true` to use the bundled sample catalogue. See `README.md` for the full list.
 - Optional LinkedIn auth provider: `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` (only enables the provider when both are set).
+- Optional MCP recommendations: `MCP_RECOMMENDATIONS_ENABLED=false` (toggle), `MCP_SERVER_COMMAND`, `MCP_SERVER_ARGS` (defaults to `["mcp/server.mjs"]`).
 
 ## Conventions to follow
 
