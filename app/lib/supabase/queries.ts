@@ -2024,3 +2024,27 @@ export async function getNextAvailableBarcodes(count: number): Promise<string[]>
   const { computeNextBarcodes } = await import('@/app/lib/barcode');
   return computeNextBarcodes(existing, count);
 }
+
+export type ManagedUserRow = {
+  id: string;
+  email: string;
+  role: string | null;
+  display_name?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  profile?: Record<string, unknown> | null;
+};
+
+export async function fetchManagedUsers(): Promise<ManagedUserRow[]> {
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('Users')
+    .select('*, profile:UserProfile(*)')
+    .order('email');
+  if (error) {
+    console.error('[fetchManagedUsers] error', error);
+    return [];
+  }
+  return (data ?? []) as ManagedUserRow[];
+}
+
