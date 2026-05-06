@@ -1,6 +1,14 @@
 import { NextResponse } from 'next/server';
 import { isSensitiveContent } from '@/app/lib/recommendations/guardrails';
-import { classifyAndExtract, suggestLinkedInCourses, facultyToCategory } from '@/app/lib/recommendations/ai';
+import {
+  classifyAndExtract,
+  suggestLinkedInCourses,
+  facultyToCategory,
+  detectPresetIntent,
+  buildPersonalizedSuggestion,
+  AiUnavailableError,
+  checkAiAvailable,
+} from '@/app/lib/recommendations/ai';
 import { retrieveCandidateBooks } from '@/app/lib/recommendations/retrieve';
 import {
   buildAssociationRules,
@@ -38,9 +46,10 @@ const MIN_INTERVAL_MS = 1200;
 const rateLimiter = new Map<string, RateLimitEntry>();
 
 const GREETING_PATTERNS = [
-  /^\s*(hi|hello|hey|yo|hiya|halo|hai|morning|afternoon|evening)\b/i,
-  /^\s*(good\s+(morning|afternoon|evening|night))\b/i,
-  /^\s*(how\s+are\s+you|what'?s\s+up|how'?s\s+it\s+going)\b/i,
+  /^\s*(hi|hello|hey|yo|hiya|halo|hai|morning|afternoon|evening)[!.,?\s]*$/i,
+  /^\s*(hi|hello|hey|yo|hiya|halo|hai)\s+(there|all|everyone|claude|bot|assistant)[!.,?\s]*$/i,
+  /^\s*(good\s+(morning|afternoon|evening|night))[!.,?\s]*$/i,
+  /^\s*(how\s+are\s+you|what'?s\s+up|how'?s\s+it\s+going|sup)[!.,?\s]*$/i,
 ];
 
 const clamp = (value: number, min: number, max: number) =>
@@ -223,7 +232,23 @@ export async function POST(request: Request) {
     });
   }
 
-  // Step 4: Fetch user context
+  // Step 4: AI health check — gate all recommendation paths on AI availability.
+  // If neither Gemini nor LM Studio responds, surface a clear error to the user
+  // instead of falling back to any deterministic/partial result.
+  const aiHealthy = await checkAiAvailable(provider);
+  if (!aiHealthy) {
+    return NextResponse.json(
+      {
+        ok: false,
+        kind: 'ai_unavailable',
+        reply:
+          'Sorry, the AI recommendation service is currently unavailable. Please try again in a few minutes.',
+      },
+      { status: 503 },
+    );
+  }
+
+  // Step 4.1: Fetch user context
   let userContext: UserContext = { historyTags: [], recentBorrowedBooks: [], savedInterests: [], faculty: null, department: null, intakeYear: null };
   try {
     const { user } = await getDashboardSession();
@@ -232,9 +257,78 @@ export async function POST(request: Request) {
     // Non-fatal
   }
 
-  // Step 5: Single AI call — classify intent + extract everything
   const requestedLimit = clamp(Number(body.limit ?? 3), 1, 6);
 
+  // Step 4.5: Preset fast path — deterministic, uses real user context.
+  // Handles the four quick-prompt buttons (faculty/assignment/available/interesting)
+  // plus any natural phrasing that maps to one of those intents.
+  const presetIntent = detectPresetIntent(message);
+  if (presetIntent) {
+    const preset = buildPersonalizedSuggestion(userContext, presetIntent);
+
+    // "Available" without any user context still shows generic available books.
+    // All other presets need at least some context, else ask to clarify.
+    if (!preset.hasContext && preset.kind !== 'available') {
+      return NextResponse.json({
+        ok: true,
+        kind: 'clarify',
+        reply: preset.reply,
+        recommendations: [],
+        interests: [],
+        summary: null,
+        followUpQuestion: null,
+      });
+    }
+
+    const followUpByKind: Record<typeof preset.kind, string> = {
+      personalized: 'Want me to narrow these down by a specific topic?',
+      assignment: 'What specific topic is your assignment on?',
+      available: 'Want me to filter by a specific subject?',
+      interesting: 'Want more like this, or something completely different?',
+    };
+
+    try {
+      const searchTerms = preset.searchTerms.length
+        ? preset.searchTerms
+        : preset.kind === 'available'
+          ? ['library catalog']
+          : [message];
+
+      const { items, linkedIn } = await findBooks(searchTerms, userContext, requestedLimit, message);
+
+      if (!items.length) {
+        return NextResponse.json({
+          ok: true,
+          kind: 'no_matches',
+          reply: `${preset.reply} I could not find direct matches in the catalog yet — try a more specific topic.`,
+          recommendations: [],
+          linkedInSuggestions: linkedIn,
+          interests: preset.searchTerms,
+          summary: null,
+          followUpQuestion: followUpByKind[preset.kind],
+        });
+      }
+
+      return NextResponse.json({
+        ok: true,
+        kind: 'recommendations',
+        reply: preset.reply,
+        recommendations: items,
+        linkedInSuggestions: linkedIn,
+        interests: preset.searchTerms,
+        summary: preset.reply,
+        followUpQuestion: followUpByKind[preset.kind],
+      });
+    } catch (error) {
+      console.error('Preset recommendation failed', error);
+      return NextResponse.json(
+        { ok: false, kind: 'error', reply: 'The recommendation service is temporarily unavailable. Please try again.' },
+        { status: 500 },
+      );
+    }
+  }
+
+  // Step 5: Single AI call — classify intent + extract everything
   try {
     const aiResult = await classifyAndExtract(message, userContext, provider);
 
@@ -313,7 +407,7 @@ export async function POST(request: Request) {
           });
         }
 
-        const introReply = aiResult.intent === 'both' && aiResult.reply
+        const introReply = aiResult.reply
           ? aiResult.reply
           : `Here are some books on ${aiResult.searchTerms.slice(0, 3).join(', ')} from our catalog.`;
 
@@ -342,6 +436,18 @@ export async function POST(request: Request) {
       }
     }
   } catch (error) {
+    if (error instanceof AiUnavailableError) {
+      console.error('AI provider unavailable', error);
+      return NextResponse.json(
+        {
+          ok: false,
+          kind: 'ai_unavailable',
+          reply:
+            'Sorry, the AI recommendation service is currently unavailable. Please try again in a few minutes, or use the quick-prompt buttons above.',
+        },
+        { status: 503 },
+      );
+    }
     console.error('Recommendation service failed', error);
     return NextResponse.json(
       { ok: false, kind: 'error', reply: 'The recommendation service is temporarily unavailable. Please try again.' },
