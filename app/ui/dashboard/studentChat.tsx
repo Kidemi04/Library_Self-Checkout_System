@@ -1,10 +1,10 @@
 'use client';
 
-import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { type FormEvent, type KeyboardEvent, useEffect, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import clsx from 'clsx';
 import PlaceHoldButton from '@/app/ui/dashboard/placeHoldButton';
-import { Button } from '@/app/ui/button';
+import { saveChatMessage, loadChatMessages, clearChatMessages } from '@/app/dashboard/recommendations/action';
 
 type RecommendationItem = {
   id: string;
@@ -71,16 +71,16 @@ type LearningPathResponse = {
 
 const STAGE_STYLES: Record<LearningStage['level'], { bg: string; badge: string }> = {
   Beginner: {
-    bg: 'bg-success/10 border-success/30 dark:bg-success/15 dark:border-success/40',
-    badge: 'text-success',
+    bg: 'bg-emerald-50/60 border-emerald-200 dark:bg-emerald-900/10 dark:border-emerald-800/40',
+    badge: 'text-emerald-700 dark:text-emerald-300',
   },
   Intermediate: {
-    bg: 'bg-warning/10 border-warning/30 dark:bg-warning/15 dark:border-warning/40',
-    badge: 'text-warning',
+    bg: 'bg-amber-50/60 border-amber-200 dark:bg-amber-900/10 dark:border-amber-800/40',
+    badge: 'text-amber-600 dark:text-amber-300',
   },
   Advanced: {
-    bg: 'bg-primary/10 border-primary/30 dark:bg-dark-primary/15 dark:border-dark-primary/40',
-    badge: 'text-primary dark:text-dark-primary',
+    bg: 'bg-rose-50/60 border-rose-200 dark:bg-rose-900/10 dark:border-rose-800/40',
+    badge: 'text-rose-700 dark:text-rose-300',
   },
 };
 
@@ -171,11 +171,9 @@ export default function StudentChat({
 }: {
   studentName?: string | null;
   needsOnboarding?: boolean;
-  userId?: string;
+  userId: string;
 }) {
-  const [messages, setMessages] = useState<ChatMessage[]>(() =>
-    buildInitialMessages(studentName),
-  );
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [sendNotice, setSendNotice] = useState<string | null>(null);
@@ -194,6 +192,30 @@ export default function StudentChat({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const lastSentAtRef = useRef<number>(0);
   const initialNameRef = useRef(studentName);
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const data = await loadChatMessages(userId);
+
+        const formatted: ChatMessage[] = (data || []).map((msg: any) => ({
+          id: msg.message_id,
+          sender: msg.sender,
+          text: msg.text,
+          timestamp: new Date(msg.created_at).getTime(),
+          recommendations: msg.recommendations ?? undefined,
+        }));
+
+        setMessages(formatted);
+      } catch (err) {
+        console.error('Failed to load chat history:', err);
+        setMessages(buildInitialMessages(studentName));
+      }
+    };
+
+    loadHistory();
+  }, [userId]);
 
   useEffect(() => {
     const nextGreeting = buildGreeting(studentName);
@@ -245,15 +267,21 @@ export default function StudentChat({
     }, 0);
   };
 
-  const resetChat = () => {
-    setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
-    setLinkedInSuggestions([]);
-    setSendNotice(null);
-    setShowQuickPrompts(true);
-    setStickToBottom(true);
-    setInputValue('');
-    setIsAssistantTyping(false);
-    lastSentAtRef.current = 0;
+  const resetChat = async () => {
+    try {
+      await clearChatMessages(userId);
+
+      setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
+      setLinkedInSuggestions([]);
+      setSendNotice(null);
+      setShowQuickPrompts(true);
+      setStickToBottom(true);
+      setInputValue('');
+      setIsAssistantTyping(false);
+      lastSentAtRef.current = 0;
+    } catch (err) {
+      console.error('Failed to clear chat:', err);
+    }
   };
 
   const handleSaveInterests = async () => {
@@ -334,6 +362,12 @@ export default function StudentChat({
     setStickToBottom(true);
     scheduleScrollToBottom();
     lastSentAtRef.current = now;
+
+    // Save student message
+    startTransition(() => {
+      saveChatMessage(userId, newMessage.id, newMessage.sender, newMessage.text).catch(console.error);
+    });
+
     await triggerAssistantReply(trimmed);
     return true;
   };
@@ -353,16 +387,19 @@ export default function StudentChat({
         response.ok && data?.reply ? data.reply : data?.reply ?? buildErrorReply();
 
       const recs = data?.recommendations ?? [];
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: createId(),
-          sender: 'assistant',
-          text: replyText,
-          timestamp: Date.now(),
-          recommendations: recs.length ? recs : undefined,
-        },
-      ]);
+      const assistantMessage = {
+        id: createId(),
+        sender: 'assistant' as const,
+        text: replyText,
+        timestamp: Date.now(),
+        recommendations: recs.length ? recs : undefined,
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      // Save assistant message
+      startTransition(() => {
+        saveChatMessage(userId, assistantMessage.id, assistantMessage.sender, assistantMessage.text, assistantMessage.recommendations).catch(console.error);
+      });
 
       setLinkedInSuggestions(data?.linkedInSuggestions ?? []);
 
@@ -450,34 +487,34 @@ export default function StudentChat({
   return (
     <section
       className={clsx(
-        'flex flex-col p-6',
+        'flex flex-col p-5 shadow-sm',
         isFullscreen
-          ? 'fixed inset-0 z-[60] overflow-y-auto rounded-none border-0 bg-canvas dark:bg-dark-canvas'
-          : 'h-full rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card',
+          ? 'fixed inset-0 z-[60] overflow-y-auto rounded-none border-0 bg-white dark:bg-slate-950'
+          : 'h-full rounded-3xl border border-slate-200 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-950/40 dark:shadow-black/20',
       )}
     >
       <div className={clsx('flex flex-wrap items-start gap-3', isFullscreen ? 'justify-end' : 'justify-between')}>
         {!isFullscreen && (
           <div className="flex flex-col gap-1">
-            <p className="font-sans text-caption-uppercase tracking-[0.35em] text-muted dark:text-on-dark-soft">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400/80">
               AI recommendations
             </p>
-            <h2 className="font-display text-display-sm text-ink dark:text-on-dark">Reading assistant</h2>
-            <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Reading assistant</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-300/80">
               Share what you want to read, and I will recommend books from the catalog.
             </p>
           </div>
         )}
         <div className="ml-auto flex items-center gap-2">
-          <div className="flex items-center overflow-hidden rounded-btn border border-hairline bg-canvas dark:border-dark-hairline dark:bg-dark-surface-soft">
+          <div className="flex items-center rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900/70 overflow-hidden">
             <button
               type="button"
               onClick={() => setAiProvider('lmstudio')}
               className={clsx(
-                'px-3 py-2 font-sans text-caption font-semibold transition',
+                'px-3 py-2 text-xs font-semibold transition',
                 aiProvider === 'lmstudio'
-                  ? 'bg-ink text-on-dark dark:bg-on-dark dark:text-ink'
-                  : 'text-muted hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark',
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
               )}
             >
               Local AI
@@ -486,10 +523,10 @@ export default function StudentChat({
               type="button"
               onClick={() => setAiProvider('gemini')}
               className={clsx(
-                'px-3 py-2 font-sans text-caption font-semibold transition',
+                'px-3 py-2 text-xs font-semibold transition',
                 aiProvider === 'gemini'
-                  ? 'bg-ink text-on-dark dark:bg-on-dark dark:text-ink'
-                  : 'text-muted hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark',
+                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
               )}
             >
               Gemini
@@ -499,7 +536,7 @@ export default function StudentChat({
             type="button"
             title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
             onClick={() => setIsFullscreen((v) => !v)}
-            className="inline-flex items-center justify-center rounded-btn border border-hairline bg-canvas p-2 text-ink transition hover:border-primary/20 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:hover:border-dark-primary/30 dark:hover:text-dark-primary"
+            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-slate-700 shadow-sm transition hover:border-red-400 hover:text-red-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-red-500 dark:hover:text-red-400"
           >
             {isFullscreen ? (
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
@@ -514,7 +551,7 @@ export default function StudentChat({
           <button
             type="button"
             onClick={resetChat}
-            className="inline-flex items-center justify-center rounded-btn border border-hairline bg-canvas px-3 py-2 font-sans text-caption font-semibold text-ink transition hover:border-primary/20 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:hover:border-dark-primary/30 dark:hover:text-dark-primary"
+            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-red-400 hover:text-red-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-red-500 dark:hover:text-red-400"
           >
             Clear chat
           </button>
@@ -522,14 +559,14 @@ export default function StudentChat({
       </div>
 
       {!onboardingComplete && (
-        <div className="mt-5 rounded-card border border-hairline bg-canvas p-5 dark:border-dark-hairline dark:bg-dark-surface-soft">
-          <p className="font-sans text-caption-uppercase tracking-[0.35em] text-muted dark:text-on-dark-soft">
+        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400/80">
             Get started
           </p>
-          <h3 className="mt-1 font-sans text-title-md text-ink dark:text-on-dark">
+          <h3 className="mt-1 text-base font-semibold text-slate-900 dark:text-slate-100">
             Pick topics you are interested in
           </h3>
-          <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300/80">
             Choose at least one. We will use these to personalize your recommendations.
           </p>
 
@@ -542,10 +579,10 @@ export default function StudentChat({
                   type="button"
                   onClick={() => toggleTag(tag)}
                   className={clsx(
-                    'rounded-pill border px-3 py-1 font-sans text-caption font-semibold transition',
+                    'rounded-full border px-3 py-1 text-xs font-semibold transition',
                     active
-                      ? 'border-ink bg-ink text-on-dark dark:border-on-dark dark:bg-on-dark dark:text-ink'
-                      : 'border-hairline bg-surface-card text-muted hover:border-primary/20 hover:text-ink dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:border-dark-primary/30 dark:hover:text-on-dark',
+                      ? 'border-slate-900 bg-slate-900 text-white dark:border-slate-200 dark:bg-slate-200 dark:text-slate-900'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white',
                   )}
                 >
                   {tag}
@@ -555,20 +592,20 @@ export default function StudentChat({
           </div>
 
           <div className="mt-4 flex items-center gap-3">
-            <Button
+            <button
               type="button"
               disabled={selectedTags.size === 0 || isSavingInterests}
-              aria-disabled={selectedTags.size === 0 || isSavingInterests}
               onClick={handleSaveInterests}
+              className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
             >
               {isSavingInterests
-                ? 'Saving…'
+                ? 'Saving...'
                 : `Continue with ${selectedTags.size} topic${selectedTags.size !== 1 ? 's' : ''}`}
-            </Button>
+            </button>
             <button
               type="button"
               onClick={() => setOnboardingComplete(true)}
-              className="font-sans text-body-sm text-muted hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark"
+              className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
             >
               Skip for now
             </button>
@@ -581,7 +618,7 @@ export default function StudentChat({
         ref={messagesRef}
         onScroll={handleScroll}
         className={clsx(
-          'mt-4 flex-1 overflow-y-auto rounded-card border border-hairline bg-canvas p-4 dark:border-dark-hairline dark:bg-dark-surface-soft',
+          'mt-4 flex-1 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/60',
           isFullscreen ? 'max-h-[calc(100vh-16rem)]' : 'max-h-[55vh] sm:max-h-[60vh] lg:max-h-[65vh]',
         )}
       >
@@ -594,18 +631,18 @@ export default function StudentChat({
                 message.sender === 'student' ? 'items-end' : 'items-start',
               )}
             >
-              <div className="flex items-center gap-2 font-sans text-[11px] font-semibold uppercase tracking-wide text-muted dark:text-on-dark-soft">
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 <span>{message.sender === 'student' ? 'You' : 'Library Assistant'}</span>
-                <span className="text-muted-soft dark:text-on-dark-soft">
+                <span className="text-slate-400 dark:text-slate-500">
                   {formatTimestamp(message.timestamp)}
                 </span>
               </div>
               <div
                 className={clsx(
-                  'w-full max-w-[85%] rounded-card px-4 py-3 font-sans text-body-md leading-relaxed md:max-w-[70%]',
+                  'w-full max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm md:max-w-[70%]',
                   message.sender === 'student'
-                    ? 'rounded-br-md bg-primary text-on-primary dark:bg-dark-primary'
-                    : 'rounded-bl-md border border-hairline bg-surface-cream-strong text-ink dark:border-dark-hairline dark:bg-dark-surface-strong dark:text-on-dark',
+                    ? 'rounded-br-md bg-slate-900 text-white shadow-slate-900/20 dark:bg-slate-200 dark:text-slate-900 dark:shadow-black/30'
+                    : 'rounded-bl-md border border-slate-200 bg-slate-100 text-slate-900 shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-100 dark:shadow-black/30',
                 )}
               >
                 {message.text.split('\n').map((line, lineIndex) => (
@@ -621,40 +658,40 @@ export default function StudentChat({
                     return (
                       <div
                         key={rec.id}
-                        className="flex gap-3 rounded-card border border-hairline bg-surface-card p-3 dark:border-dark-hairline dark:bg-dark-surface-card"
+                        className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/70"
                       >
                         {/* Cover image */}
-                        <div className="flex h-16 w-12 shrink-0 items-center justify-center overflow-hidden rounded-btn bg-surface-cream-strong dark:bg-dark-surface-strong">
+                        <div className="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                           {rec.coverImageUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={rec.coverImageUrl}
                               alt={rec.title}
-                              className="h-full w-full object-cover"
+                              className="w-full h-full object-cover"
                             />
                           ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-muted-soft dark:text-on-dark-soft">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-slate-400 dark:text-slate-500">
                               <path d="M11.25 4.533A9.707 9.707 0 0 0 6 3a9.735 9.735 0 0 0-3.25.555.75.75 0 0 0-.5.707v14.25a.75.75 0 0 0 1 .707A8.237 8.237 0 0 1 6 18.75c1.995 0 3.823.707 5.25 1.886V4.533ZM12.75 20.636A8.214 8.214 0 0 1 18 18.75c.966 0 1.89.166 2.75.47a.75.75 0 0 0 1-.708V4.262a.75.75 0 0 0-.5-.707A9.735 9.735 0 0 0 18 3a9.707 9.707 0 0 0-5.25 1.533v16.103Z" />
                             </svg>
                           )}
                         </div>
                         {/* Info */}
-                        <div className="min-w-0 flex-1">
+                        <div className="flex-1 min-w-0">
                           <Link
                             href={searchUrl}
-                            className="line-clamp-2 block font-sans text-body-sm font-semibold leading-snug text-ink hover:text-primary dark:text-on-dark dark:hover:text-dark-primary"
+                            className="block text-sm font-semibold text-slate-900 hover:text-red-600 dark:text-slate-100 dark:hover:text-red-400 line-clamp-2 leading-snug"
                           >
                             {rec.title}
                           </Link>
                           {rec.author && (
-                            <p className="mt-0.5 truncate font-sans text-caption text-muted dark:text-on-dark-soft">{rec.author}</p>
+                            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 truncate">{rec.author}</p>
                           )}
-                          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+                          <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
                             <span className={clsx(
-                              'font-sans text-caption font-medium',
+                              'text-xs font-medium',
                               rec.availableCopies > 0
-                                ? 'text-success'
-                                : 'text-primary dark:text-dark-primary',
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-red-500 dark:text-red-400',
                             )}>
                               {rec.availableCopies > 0
                                 ? `${rec.availableCopies} / ${rec.totalCopies} available`
@@ -663,7 +700,7 @@ export default function StudentChat({
                             {rec.availableCopies > 0 ? (
                               <Link
                                 href={searchUrl}
-                                className="shrink-0 rounded-btn bg-primary px-2.5 py-1 font-sans text-caption font-semibold text-on-primary transition hover:bg-primary-active dark:bg-dark-primary"
+                                className="shrink-0 rounded-lg bg-red-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-red-700 transition"
                               >
                                 Borrow
                               </Link>
@@ -676,26 +713,26 @@ export default function StudentChat({
                             )}
                           </div>
                           {/* YouTube + Google search links */}
-                          <div className="mt-2 flex items-center gap-2 border-t border-hairline pt-2 dark:border-dark-hairline">
+                          <div className="mt-2 flex items-center gap-2 border-t border-slate-100 pt-2 dark:border-slate-700">
                             <a
                               href={`https://www.youtube.com/results?search_query=${encodeURIComponent(rec.title)}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               title="Search on YouTube"
-                              className="flex items-center gap-1 font-sans text-[11px] font-medium text-muted-soft transition hover:text-primary dark:text-on-dark-soft dark:hover:text-dark-primary"
+                              className="flex items-center gap-1 text-[11px] font-medium text-slate-400 transition hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400"
                             >
                               <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 shrink-0">
                                 <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                               </svg>
                               YouTube
                             </a>
-                            <span className="text-muted-soft dark:text-on-dark-soft">|</span>
+                            <span className="text-slate-200 dark:text-slate-700">|</span>
                             <a
                               href={`https://www.google.com/search?q=${encodeURIComponent(rec.title + ' book')}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               title="Search on Google"
-                              className="flex items-center gap-1 font-sans text-[11px] font-medium text-muted-soft transition hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark"
+                              className="flex items-center gap-1 text-[11px] font-medium text-slate-400 transition hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400"
                             >
                               <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 shrink-0">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -718,10 +755,10 @@ export default function StudentChat({
                     type="button"
                     title="Copy message"
                     onClick={() => handleCopy(message)}
-                    className="rounded-btn p-2 text-muted-soft transition hover:bg-primary/5 hover:text-primary dark:text-on-dark-soft dark:hover:bg-dark-primary/10 dark:hover:text-dark-primary"
+                    className="rounded-xl p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                   >
                     {copiedId === message.id ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5 text-success">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5 text-emerald-500">
                         <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clipRule="evenodd" />
                       </svg>
                     ) : (
@@ -735,7 +772,7 @@ export default function StudentChat({
                     type="button"
                     title="Edit message"
                     onClick={() => handleEdit(message)}
-                    className="rounded-btn p-2 text-muted-soft transition hover:bg-primary/5 hover:text-primary dark:text-on-dark-soft dark:hover:bg-dark-primary/10 dark:hover:text-dark-primary"
+                    className="rounded-xl p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
                       <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
@@ -748,9 +785,9 @@ export default function StudentChat({
           ))}
         </ol>
         {isAssistantTyping ? (
-          <div className="mt-4 flex items-center gap-2 font-sans text-caption italic text-muted dark:text-on-dark-soft">
-            <span className="h-2 w-2 animate-ping rounded-full bg-muted-soft dark:bg-on-dark-soft" />
-            Library Assistant is typing…
+          <div className="mt-4 flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <span className="h-2 w-2 animate-ping rounded-full bg-slate-400 dark:bg-slate-500" />
+            Library Assistant is typing...
           </div>
         ) : null}
       </div>}
@@ -762,7 +799,7 @@ export default function StudentChat({
             scrollToBottom();
             setStickToBottom(true);
           }}
-          className="mt-2 inline-flex items-center justify-center self-center rounded-pill border border-hairline bg-canvas px-3 py-1 font-sans text-caption font-semibold text-ink transition hover:border-primary/20 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:hover:border-dark-primary/30 dark:hover:text-dark-primary"
+          className="mt-2 inline-flex items-center justify-center self-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-red-400 hover:text-red-600 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:border-red-500 dark:hover:text-red-400"
         >
           Scroll to latest
         </button>
@@ -775,7 +812,7 @@ export default function StudentChat({
               key={prompt.id}
               type="button"
               onClick={() => handleQuickPrompt(prompt)}
-              className="rounded-pill border border-hairline bg-canvas px-3 py-1.5 font-sans text-caption font-medium text-muted transition hover:border-primary/20 hover:bg-primary/5 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark-soft dark:hover:border-dark-primary/30 dark:hover:bg-dark-primary/10 dark:hover:text-dark-primary"
+              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:border-red-500/50 dark:hover:bg-red-950/20 dark:hover:text-red-400"
             >
               {prompt.label}
             </button>
@@ -799,36 +836,36 @@ export default function StudentChat({
             event.target.style.height = `${event.target.scrollHeight}px`;
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Ask a question or search for books…"
+          placeholder="Ask a question or search for books..."
           style={{ resize: 'none', overflow: 'hidden', minHeight: '44px', maxHeight: '160px' }}
-          className="w-full rounded-btn border border-hairline bg-canvas p-3 font-sans text-body-md text-ink outline-none transition placeholder:text-muted-soft focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
+          className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100 dark:focus:border-slate-500 dark:focus:ring-slate-700/50"
         />
-        <div className="flex flex-wrap items-center justify-end gap-3 font-sans text-caption text-muted dark:text-on-dark-soft">
+        <div className="flex flex-wrap items-center justify-end gap-3 text-xs text-slate-500 dark:text-slate-400">
           {(!isFullscreen || sendNotice) && (
             <p>
               {sendNotice ??
                 'English only. Ask academic questions or search for books from the library catalog.'}
             </p>
           )}
-          <Button
+          <button
             type="submit"
             disabled={isAssistantTyping}
-            aria-disabled={isAssistantTyping}
+            className="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-red-600 dark:hover:bg-red-700 dark:focus-visible:ring-red-500 dark:focus-visible:ring-offset-slate-900"
           >
-            {isAssistantTyping ? 'Sending…' : 'Send message'}
-          </Button>
+            {isAssistantTyping ? 'Sending...' : 'Send message'}
+          </button>
         </div>
       </form>}
 
       {!isFullscreen && onboardingComplete && linkedInSuggestions.length > 0 && (
-        <div className="mt-5 rounded-card border border-hairline bg-canvas p-4 dark:border-dark-hairline dark:bg-dark-surface-soft">
-          <p className="font-sans text-[11px] uppercase tracking-[0.25em] text-muted dark:text-on-dark-soft">
+        <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+          <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
             Go deeper
           </p>
-          <h3 className="mt-0.5 font-sans text-title-md text-ink dark:text-on-dark">
+          <h3 className="mt-0.5 text-base font-semibold text-slate-900 dark:text-slate-100">
             Courses on LinkedIn Learning
           </h3>
-          <p className="mt-0.5 font-sans text-caption text-muted dark:text-on-dark-soft">
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
             Suggested based on your interests. Opens LinkedIn Learning search.
           </p>
           <div className="mt-3 flex flex-col gap-2">
@@ -838,7 +875,7 @@ export default function StudentChat({
                 href={`https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(suggestion.query)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between gap-3 rounded-card border border-hairline bg-surface-card px-4 py-3 font-sans text-body-sm font-medium text-ink transition hover:border-[#0A66C2] hover:text-[#0A66C2] dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:border-[#0A66C2] dark:hover:text-[#70B5F9]"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-sm transition hover:border-[#0A66C2] hover:text-[#0A66C2] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-[#0A66C2] dark:hover:text-[#70B5F9]"
               >
                 <span>{suggestion.title}</span>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 shrink-0 opacity-50">
@@ -852,22 +889,22 @@ export default function StudentChat({
 
       {/* Learning path — auto-generated from top interest */}
       {(learningPathLoading || learningPath) && (
-        <div className="mt-6 rounded-card border border-hairline bg-canvas p-4 dark:border-dark-hairline dark:bg-dark-surface-soft">
-          <p className="font-sans text-[11px] uppercase tracking-[0.25em] text-muted dark:text-on-dark-soft">
+        <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+          <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
             Your learning path
           </p>
-          <h3 className="mt-0.5 font-sans text-title-md text-ink dark:text-on-dark">
+          <h3 className="mt-0.5 text-base font-semibold text-slate-900 dark:text-slate-100">
             {learningPath?.topic ? (
-              <>Books arranged for <span className="text-primary dark:text-dark-primary">&ldquo;{learningPath.topic}&rdquo;</span></>
+              <>Books arranged for <span className="text-swin-red">&ldquo;{learningPath.topic}&rdquo;</span></>
             ) : 'Building your learning path…'}
           </h3>
-          <p className="font-sans text-caption text-muted dark:text-on-dark-soft">
+          <p className="text-xs text-slate-600 dark:text-slate-300/80">
             From beginner to advanced — based on what you asked for.
           </p>
 
           {learningPathLoading && (
-            <div className="mt-4 flex items-center gap-2 font-sans text-caption text-muted dark:text-on-dark-soft">
-              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-swin-red border-t-transparent" />
               Arranging books by difficulty…
             </div>
           )}
@@ -877,33 +914,33 @@ export default function StudentChat({
               {learningPath.stages.map((stage, stageIndex) => {
                 const styles = STAGE_STYLES[stage.level];
                 return (
-                  <div key={stage.level} className={`rounded-card border p-4 ${styles.bg}`}>
+                  <div key={stage.level} className={`rounded-2xl border p-4 ${styles.bg}`}>
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary font-sans text-caption font-bold text-on-primary">
+                      <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-swin-red text-xs font-bold text-white">
                         {stageIndex + 1}
                       </span>
                       <div>
-                        <p className={`font-sans text-body-sm font-semibold ${styles.badge}`}>{stage.level}</p>
-                        <p className="font-sans text-caption text-muted dark:text-on-dark-soft">{stage.description}</p>
+                        <p className={`text-sm font-semibold ${styles.badge}`}>{stage.level}</p>
+                        <p className="text-xs text-swin-charcoal/60 dark:text-slate-400">{stage.description}</p>
                       </div>
                     </div>
                     <div className="mt-3 space-y-2">
                       {stage.books.map((book) => (
                         <div
                           key={book.id}
-                          className="flex items-start justify-between gap-3 rounded-card border border-hairline bg-surface-card px-3 py-2.5 dark:border-dark-hairline dark:bg-dark-surface-card"
+                          className="flex items-start justify-between gap-3 rounded-xl border border-swin-charcoal/10 bg-white px-3 py-2.5 shadow-sm dark:border-white/10 dark:bg-slate-900/50"
                         >
                           <div className="min-w-0">
-                            <p className="truncate font-sans text-body-sm font-medium text-ink dark:text-on-dark">{book.title}</p>
+                            <p className="truncate text-sm font-medium text-swin-charcoal dark:text-white">{book.title}</p>
                             {book.author && (
-                              <p className="font-sans text-caption text-muted dark:text-on-dark-soft">by {book.author}</p>
+                              <p className="text-xs text-swin-charcoal/60 dark:text-slate-400">by {book.author}</p>
                             )}
-                            <p className="mt-0.5 font-sans text-caption text-muted-soft dark:text-on-dark-soft">{book.reason}</p>
+                            <p className="mt-0.5 text-xs text-swin-charcoal/50 dark:text-slate-500">{book.reason}</p>
                           </div>
-                          <span className={`shrink-0 rounded-pill px-2 py-0.5 font-sans text-[10px] font-semibold ${
+                          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
                             book.availableCopies > 0
-                              ? 'bg-success/15 text-success dark:bg-success/20'
-                              : 'bg-surface-cream-strong text-muted dark:bg-dark-surface-strong dark:text-on-dark-soft'
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                              : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
                           }`}>
                             {book.availableCopies > 0 ? `${book.availableCopies} available` : 'On loan'}
                           </span>
