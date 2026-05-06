@@ -1,14 +1,6 @@
 import { NextResponse } from 'next/server';
 import { isSensitiveContent } from '@/app/lib/recommendations/guardrails';
-import {
-  classifyAndExtract,
-  suggestLinkedInCourses,
-  facultyToCategory,
-  detectPresetIntent,
-  buildPersonalizedSuggestion,
-  AiUnavailableError,
-  checkAiAvailable,
-} from '@/app/lib/recommendations/ai';
+import { classifyAndExtract, suggestYouTubeCourses, facultyToCategory } from '@/app/lib/recommendations/ai';
 import { retrieveCandidateBooks } from '@/app/lib/recommendations/retrieve';
 import {
   buildAssociationRules,
@@ -46,10 +38,9 @@ const MIN_INTERVAL_MS = 1200;
 const rateLimiter = new Map<string, RateLimitEntry>();
 
 const GREETING_PATTERNS = [
-  /^\s*(hi|hello|hey|yo|hiya|halo|hai|morning|afternoon|evening)[!.,?\s]*$/i,
-  /^\s*(hi|hello|hey|yo|hiya|halo|hai)\s+(there|all|everyone|claude|bot|assistant)[!.,?\s]*$/i,
-  /^\s*(good\s+(morning|afternoon|evening|night))[!.,?\s]*$/i,
-  /^\s*(how\s+are\s+you|what'?s\s+up|how'?s\s+it\s+going|sup)[!.,?\s]*$/i,
+  /^\s*(hi|hello|hey|yo|hiya|halo|hai|morning|afternoon|evening)\b/i,
+  /^\s*(good\s+(morning|afternoon|evening|night))\b/i,
+  /^\s*(how\s+are\s+you|what'?s\s+up|how'?s\s+it\s+going)\b/i,
 ];
 
 const clamp = (value: number, min: number, max: number) =>
@@ -144,42 +135,25 @@ const findBooks = async (
   searchTerms: string[],
   userContext: UserContext,
   requestedLimit: number,
-  originalMessage?: string,
-): Promise<{ items: RecommendationItem[]; linkedIn: Awaited<ReturnType<typeof suggestLinkedInCourses>> }> => {
-  // Combine original user message with LLM-extracted terms for richer semantic embedding.
-  const parts = [originalMessage, searchTerms.join(', ')].filter((s): s is string => Boolean(s && s.trim()));
-  const searchInput = parts.join('. ') || searchTerms.join(', ');
+): Promise<{ items: RecommendationItem[]; youtube: Awaited<ReturnType<typeof suggestYouTubeCourses>> }> => {
+  const searchInput = searchTerms.join(', ');
   const preferredCategory = facultyToCategory(userContext.faculty);
   const intakeYear = userContext.intakeYear;
 
   const books = await retrieveCandidateBooks(searchInput, 200, preferredCategory, intakeYear);
   const associations = buildAssociationRules(books);
-  // requireMatch: false — vector search already filtered by semantic similarity, so we don't need
-  // a second strict token-level match (which throws away good semantic matches).
   const ranked = recommendBooks(
     books,
     searchInput,
-    { onlyAvailable: true, favorPopular: true, limit: Math.max(12, requestedLimit * 2), requireMatch: false },
+    { onlyAvailable: true, favorPopular: true, limit: Math.max(12, requestedLimit * 2), requireMatch: true },
     associations,
   );
 
-  const borrowedTitles = new Set(
-    (userContext.recentBorrowedBooks ?? [])
-      .map((b) => b.title?.toLowerCase().trim())
-      .filter((t): t is string => Boolean(t)),
-  );
-  const filtered = borrowedTitles.size
-    ? ranked.filter((rec) => !borrowedTitles.has(rec.book.title?.toLowerCase().trim() ?? ''))
-    : ranked;
-
-  const finalList = diversify(filtered, requestedLimit);
+  const finalList = diversify(ranked, requestedLimit);
   const items = finalList.map(toRecommendationItem);
-  // LinkedIn course suggestions disabled to conserve Gemini quota (free tier = 20 req/day on 2.5-flash).
-  // Re-enable by uncommenting the line below if you have higher quota or switch to gemini-2.0-flash.
-  // const linkedIn = await suggestLinkedInCourses(searchTerms);
-  const linkedIn: Awaited<ReturnType<typeof suggestLinkedInCourses>> = [];
+  const youtube = await suggestYouTubeCourses(searchTerms);
 
-  return { items, linkedIn };
+  return { items, youtube };
 };
 
 export async function POST(request: Request) {
@@ -235,12 +209,8 @@ export async function POST(request: Request) {
     });
   }
 
-  // Step 4 removed: the previous health-check "ping" call doubled Gemini usage.
-  // We now let the real classifyAndExtract call below surface any provider failure
-  // (caught by the existing try/catch around it).
-
-  // Step 4.1: Fetch user context
-  let userContext: UserContext = { historyTags: [], recentBorrowedBooks: [], savedInterests: [], faculty: null, department: null, intakeYear: null };
+  // Step 4: Fetch user context
+  let userContext: UserContext = { historyTags: [], savedInterests: [], faculty: null, department: null, intakeYear: null };
   try {
     const { user } = await getDashboardSession();
     if (user) userContext = await fetchUserContext(user.id);
@@ -248,78 +218,9 @@ export async function POST(request: Request) {
     // Non-fatal
   }
 
+  // Step 5: Single AI call — classify intent + extract everything
   const requestedLimit = clamp(Number(body.limit ?? 3), 1, 6);
 
-  // Step 4.5: Preset fast path — deterministic, uses real user context.
-  // Handles the four quick-prompt buttons (faculty/assignment/available/interesting)
-  // plus any natural phrasing that maps to one of those intents.
-  const presetIntent = detectPresetIntent(message);
-  if (presetIntent) {
-    const preset = buildPersonalizedSuggestion(userContext, presetIntent);
-
-    // "Available" without any user context still shows generic available books.
-    // All other presets need at least some context, else ask to clarify.
-    if (!preset.hasContext && preset.kind !== 'available') {
-      return NextResponse.json({
-        ok: true,
-        kind: 'clarify',
-        reply: preset.reply,
-        recommendations: [],
-        interests: [],
-        summary: null,
-        followUpQuestion: null,
-      });
-    }
-
-    const followUpByKind: Record<typeof preset.kind, string> = {
-      personalized: 'Want me to narrow these down by a specific topic?',
-      assignment: 'What specific topic is your assignment on?',
-      available: 'Want me to filter by a specific subject?',
-      interesting: 'Want more like this, or something completely different?',
-    };
-
-    try {
-      const searchTerms = preset.searchTerms.length
-        ? preset.searchTerms
-        : preset.kind === 'available'
-          ? ['library catalog']
-          : [message];
-
-      const { items, linkedIn } = await findBooks(searchTerms, userContext, requestedLimit, message);
-
-      if (!items.length) {
-        return NextResponse.json({
-          ok: true,
-          kind: 'no_matches',
-          reply: `${preset.reply} I could not find direct matches in the catalog yet — try a more specific topic.`,
-          recommendations: [],
-          linkedInSuggestions: linkedIn,
-          interests: preset.searchTerms,
-          summary: null,
-          followUpQuestion: followUpByKind[preset.kind],
-        });
-      }
-
-      return NextResponse.json({
-        ok: true,
-        kind: 'recommendations',
-        reply: preset.reply,
-        recommendations: items,
-        linkedInSuggestions: linkedIn,
-        interests: preset.searchTerms,
-        summary: preset.reply,
-        followUpQuestion: followUpByKind[preset.kind],
-      });
-    } catch (error) {
-      console.error('Preset recommendation failed', error);
-      return NextResponse.json(
-        { ok: false, kind: 'error', reply: 'The recommendation service is temporarily unavailable. Please try again.' },
-        { status: 500 },
-      );
-    }
-  }
-
-  // Step 5: Single AI call — classify intent + extract everything
   try {
     const aiResult = await classifyAndExtract(message, userContext, provider);
 
@@ -350,11 +251,10 @@ export async function POST(request: Request) {
 
       case 'answer': {
         // Answer the question and try to find a few related books
-        const { items, linkedIn } = await findBooks(
+        const { items, youtube } = await findBooks(
           aiResult.searchTerms.length ? aiResult.searchTerms : [message],
           userContext,
           3,
-          message,
         );
 
         return NextResponse.json({
@@ -362,7 +262,7 @@ export async function POST(request: Request) {
           kind: items.length ? 'recommendations' : 'chat',
           reply: aiResult.reply,
           recommendations: items,
-          linkedInSuggestions: linkedIn,
+          youtubeSuggestions: youtube,
           interests: aiResult.searchTerms,
           summary: aiResult.reply,
           followUpQuestion: aiResult.followUpQuestion,
@@ -383,7 +283,7 @@ export async function POST(request: Request) {
           });
         }
 
-        const { items, linkedIn } = await findBooks(aiResult.searchTerms, userContext, requestedLimit, message);
+        const { items, youtube } = await findBooks(aiResult.searchTerms, userContext, requestedLimit);
 
         if (!items.length) {
           return NextResponse.json({
@@ -391,14 +291,14 @@ export async function POST(request: Request) {
             kind: 'no_matches',
             reply: `I could not find matching books in the catalog for "${aiResult.searchTerms.slice(0, 3).join(', ')}". Try broader topic keywords.`,
             recommendations: [],
-            linkedInSuggestions: linkedIn,
+            youtubeSuggestions: youtube,
             interests: aiResult.searchTerms,
             summary: null,
             followUpQuestion: aiResult.followUpQuestion,
           });
         }
 
-        const introReply = aiResult.reply
+        const introReply = aiResult.intent === 'both' && aiResult.reply
           ? aiResult.reply
           : `Here are some books on ${aiResult.searchTerms.slice(0, 3).join(', ')} from our catalog.`;
 
@@ -407,7 +307,7 @@ export async function POST(request: Request) {
           kind: 'recommendations',
           reply: introReply,
           recommendations: items,
-          linkedInSuggestions: linkedIn,
+          youtubeSuggestions: youtube,
           interests: aiResult.searchTerms,
           summary: introReply,
           followUpQuestion: aiResult.followUpQuestion,
@@ -427,18 +327,6 @@ export async function POST(request: Request) {
       }
     }
   } catch (error) {
-    if (error instanceof AiUnavailableError) {
-      console.error('AI provider unavailable', error);
-      return NextResponse.json(
-        {
-          ok: false,
-          kind: 'ai_unavailable',
-          reply:
-            'Sorry, the AI recommendation service is currently unavailable. Please try again in a few minutes, or use the quick-prompt buttons above.',
-        },
-        { status: 503 },
-      );
-    }
     console.error('Recommendation service failed', error);
     return NextResponse.json(
       { ok: false, kind: 'error', reply: 'The recommendation service is temporarily unavailable. Please try again.' },

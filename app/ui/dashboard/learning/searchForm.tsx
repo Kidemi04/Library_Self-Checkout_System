@@ -9,7 +9,7 @@ type SearchDefaults = {
   difficulty?: string;
 };
 
-export default function LinkedInLearningSearchForm({
+export default function YouTubeSearchForm({
   defaults,
 }: {
   defaults: SearchDefaults;
@@ -29,17 +29,16 @@ export default function LinkedInLearningSearchForm({
     e.preventDefault();
     const q = inputRef.current?.value.trim() ?? '';
     const diff = selectRef.current?.value ?? 'ALL';
-    const params = new URLSearchParams();
+    const params = new URLSearchParams({ view: 'youtube' });
     if (q) params.set('q', q);
     if (diff && diff !== 'ALL') params.set('difficulty', diff);
-    const qs = params.toString();
-    router.push(`/dashboard/learning/linkedin${qs ? `?${qs}` : ''}`);
+    router.push(`/dashboard/learning/youtube?${params.toString()}`);
   };
 
   const handleReset = () => {
     if (inputRef.current) inputRef.current.value = '';
     if (selectRef.current) selectRef.current.value = 'ALL';
-    router.push('/dashboard/learning/linkedin');
+    router.push('/dashboard/learning/youtube?view=youtube');
   };
 
   return (
@@ -48,17 +47,17 @@ export default function LinkedInLearningSearchForm({
       onSubmit={handleSubmit}
     >
       <label className="text-sm font-medium text-swin-charcoal dark:text-white">
-        Search LinkedIn Learning
-        <span className="mt-2 flex items-center gap-3 rounded-2xl border border-swin-charcoal/10 bg-swin-charcoal/5 px-4 py-3 text-base dark:border-white/10 dark:bg-white/5">
-          <MagnifyingGlassIcon className="h-5 w-5 text-swin-charcoal/60 dark:text-slate-300/80" />
+        Search YouTube tutorials
+        <div className="group mt-2 flex items-center gap-3 rounded-2xl border border-swin-charcoal/10 bg-swin-charcoal/5 px-4 py-3.5 transition-all focus-within:border-swin-red focus-within:bg-white focus-within:ring-4 focus-within:ring-swin-red/5 dark:border-white/10 dark:bg-white/5 dark:focus-within:bg-slate-900">
+          <MagnifyingGlassIcon className="h-5 w-5 text-swin-charcoal/40 transition-colors group-focus-within:text-swin-red dark:text-white/30" />
           <input
             ref={inputRef}
             type="search"
             defaultValue={query}
             placeholder='Try "Python" or "project management"'
-            className="w-full border-none bg-transparent text-base text-swin-charcoal placeholder:text-swin-charcoal/50 focus:outline-none dark:text-white dark:placeholder:text-slate-400"
+            className="w-full border-none bg-transparent text-sm text-swin-charcoal placeholder:text-swin-charcoal/40 focus:outline-none focus:ring-0 dark:text-white dark:placeholder:text-white/30"
           />
-        </span>
+        </div>
       </label>
 
       <div className="grid gap-4 md:grid-cols-[minmax(0,220px)_auto] md:items-end">

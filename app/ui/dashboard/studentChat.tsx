@@ -16,9 +16,10 @@ type RecommendationItem = {
   reason: string;
 };
 
-type LinkedInSuggestion = {
+type YouTubeSuggestion = {
   title: string;
   query: string;
+  url?: string | null;
 };
 
 type RecommendationResponse = {
@@ -34,7 +35,7 @@ type RecommendationResponse = {
     | 'ai_unavailable';
   reply?: string;
   recommendations?: RecommendationItem[];
-  linkedInSuggestions?: LinkedInSuggestion[];
+  youtubeSuggestions?: YouTubeSuggestion[];
   interests?: string[];
   summary?: string | null;
   followUpQuestion?: string | null;
@@ -182,7 +183,7 @@ export default function StudentChat({
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [sendNotice, setSendNotice] = useState<string | null>(null);
   const [stickToBottom, setStickToBottom] = useState(true);
-  const [linkedInSuggestions, setLinkedInSuggestions] = useState<LinkedInSuggestion[]>([]);
+  const [youtubeSuggestions, setYoutubeSuggestions] = useState<YouTubeSuggestion[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(!needsOnboarding);
@@ -278,7 +279,7 @@ export default function StudentChat({
       await clearChatMessages(userId);
 
       setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
-      setLinkedInSuggestions([]);
+      setYoutubeSuggestions([]);
       setSendNotice(null);
       setShowQuickPrompts(true);
       setStickToBottom(true);
@@ -415,7 +416,7 @@ export default function StudentChat({
         saveChatMessage(userId, assistantMessage.id, assistantMessage.sender, assistantMessage.text, assistantMessage.recommendations).catch(console.error);
       });
 
-      setLinkedInSuggestions(data?.linkedInSuggestions ?? []);
+      setYoutubeSuggestions(data?.youtubeSuggestions ?? []);
 
       // Race-safe learning path fetch (Nigel #5): requestId guards against
       // stale responses from in-flight requests that get superseded.
@@ -462,7 +463,7 @@ export default function StudentChat({
           timestamp: Date.now(),
         },
       ]);
-      setLinkedInSuggestions([]);
+      setYoutubeSuggestions([]);
       setLearningPath(null);
       setSendNotice('Unable to send right now. Please try again.');
     } finally {
@@ -982,22 +983,22 @@ export default function StudentChat({
         </div>
       </form>}
 
-      {!isFullscreen && onboardingComplete && linkedInSuggestions.length > 0 && (
+      {!isFullscreen && onboardingComplete && youtubeSuggestions.length > 0 && (
         <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
           <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
             Go deeper
           </p>
           <h3 className="mt-0.5 text-base font-semibold text-slate-900 dark:text-slate-100">
-            Courses on LinkedIn Learning
+            Videos on YouTube
           </h3>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-            Suggested based on your interests. Opens LinkedIn Learning.
+            Suggested based on your interests. Opens YouTube.
           </p>
           <div className="mt-3 flex flex-col gap-2">
-            {linkedInSuggestions.map((suggestion) => {
+            {youtubeSuggestions.map((suggestion) => {
               const href = suggestion.url
                 ? suggestion.url
-                : `https://www.linkedin.com/learning/search?keywords=${encodeURIComponent(suggestion.query)}`;
+                : `https://www.youtube.com/results?search_query=${encodeURIComponent(suggestion.query)}`;
 
               return (
                 <a

@@ -1,27 +1,6 @@
 import '@/app/ui/global.css';
-import { Newsreader, Inter, JetBrains_Mono } from 'next/font/google';
 import { Providers } from './providers';
 
-const newsreader = Newsreader({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  display: 'swap',
-  variable: '--font-newsreader',
-});
-
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-  variable: '--font-inter',
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-  variable: '--font-jetbrains-mono',
-});
 
 export default function RootLayout({
   children,
@@ -29,15 +8,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html
-      lang="en"
-      className={`${newsreader.variable} ${inter.variable} ${jetbrainsMono.variable}`}
-    >
+    <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body
         suppressHydrationWarning
-        className="min-h-screen bg-canvas font-sans text-ink dark:bg-dark-canvas dark:text-on-dark"
+        className="min-h-screen bg-white dark:bg-swin-dark-bg"
       >
-        <Providers>{children}</Providers>
+        {/* GLOBAL PROVIDERS: mount once */}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -1,37 +1,46 @@
 import {
-  getLinkedInLearningStatus,
-  searchLinkedInLearningCourses,
-  getLinkedInLearningCollections,
-} from '@/app/lib/linkedin/service';
+  getYouTubeStatus,
+  searchYouTubeCourses,
+  getYouTubeCollections,
+  getYouTubeTrending,
+} from '@/app/lib/youtube/service';
 import type {
-  LinkedInLearningSearchOptions,
-  LinkedInLearningSearchResult,
-  LinkedInLearningTopicCollection,
-  LinkedInLearningTopicDefinition,
-} from '@/app/lib/linkedin/types';
+  YouTubeSearchOptions,
+  YouTubeSearchResult,
+  YouTubeTopicCollection,
+  YouTubeTopicDefinition,
+  YouTubeTrendingOptions,
+} from '@/app/lib/youtube/types';
 
 export type LearningStatus = {
   isLive: boolean;
   usingStub: boolean;
+  reason?: string;
 };
 
 export const getLearningStatus = async (): Promise<LearningStatus> => {
-  const status = await getLinkedInLearningStatus();
+  const status = await getYouTubeStatus();
   const isLive = status.enabled && status.isConfigured && !status.usingStub;
-  return { isLive, usingStub: status.usingStub };
+  return { isLive, usingStub: status.usingStub, reason: status.reason };
 };
 
 export const searchLearningCourses = async (
-  options: LinkedInLearningSearchOptions = {},
-): Promise<LinkedInLearningSearchResult> => {
-  return searchLinkedInLearningCourses(options);
+  options: YouTubeSearchOptions = {},
+): Promise<YouTubeSearchResult> => {
+  return searchYouTubeCourses(options);
 };
 
 export const getLearningCollections = async (
-  definitions: LinkedInLearningTopicDefinition[],
-  options: Omit<LinkedInLearningSearchOptions, 'query' | 'topics'> & {
+  definitions: YouTubeTopicDefinition[],
+  options: Omit<YouTubeSearchOptions, 'query' | 'topics'> & {
     limitPerTopic?: number;
   } = {},
-): Promise<LinkedInLearningTopicCollection[]> => {
-  return getLinkedInLearningCollections(definitions, options);
+): Promise<YouTubeTopicCollection[]> => {
+  return getYouTubeCollections(definitions, options);
+};
+
+export const getLearningTrending = async (
+  options: YouTubeTrendingOptions = {},
+): Promise<YouTubeSearchResult> => {
+  return getYouTubeTrending(options);
 };

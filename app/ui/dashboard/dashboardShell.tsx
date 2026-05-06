@@ -5,6 +5,7 @@ import MobileNav from '@/app/ui/dashboard/mobileNav';
 import FaqFloatingHelp from '@/app/ui/dashboard/faqFloatingHelp';
 import NotificationToast from '@/app/ui/dashboard/notificationToast';
 import DueDateChecker from '@/app/ui/dashboard/dueDateChecker';
+import FaqScrollTopButton from '@/app/ui/dashboard/faqScrollTopButton';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 import { useState } from 'react';
 import clsx from 'clsx';
@@ -47,6 +48,7 @@ export default function DashboardShell({ user, isBypassed, children }: Dashboard
         </main>
       </div>
 
+      <FaqScrollTopButton className="md:hidden" />
       {user.role !== 'admin' && user.role !== 'staff' && <FaqFloatingHelp />}
       {(user.role === 'staff' || user.role === 'admin') && <NotificationToast />}
       {user.role === 'user' && <DueDateChecker />}
