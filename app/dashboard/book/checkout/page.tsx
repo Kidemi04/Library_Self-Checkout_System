@@ -83,7 +83,7 @@ export default async function BorrowBooksPage({
                 <p className="font-sans text-caption-uppercase font-bold opacity-80">
                   Self-Service Desk · Scan to Process
                 </p>
-                <h2 className="mt-1 font-display text-display-md font-semibold leading-tight tracking-tight">
+                <h2 className="mt-1 font-sans text-display-md font-semibold leading-tight tracking-tight">
                   Scan a barcode or pick a title below
                 </h2>
                 <p className="mt-1 font-sans text-body-sm opacity-85">

@@ -50,7 +50,7 @@ export default async function ReturningBooksPage({
                 <p className="font-sans text-caption-uppercase font-bold opacity-80">
                   Return Desk · Scan to Complete
                 </p>
-                <h2 className="mt-1 font-display text-display-md font-semibold leading-tight tracking-tight">
+                <h2 className="mt-1 font-sans text-display-md font-semibold leading-tight tracking-tight">
                   {canProcessReturns
                     ? 'Scan the returned copy barcode'
                     : 'Drop by the library counter to return'}
@@ -147,7 +147,7 @@ export default async function ReturningBooksPage({
                   <MapPinIcon className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="font-display text-title-lg font-semibold tracking-tight text-ink dark:text-on-dark">
+                  <p className="font-sans text-title-lg font-semibold tracking-tight text-ink dark:text-on-dark">
                     Bring your book to the library counter
                   </p>
                   <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
