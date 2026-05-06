@@ -1,6 +1,7 @@
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import type { DashboardRole } from '@/app/lib/auth/types';
 import type { Book, Copy, DashboardSummary, Loan, LoanStatus } from '@/app/lib/supabase/types';
+import { isbnsMatch, normalizeIsbn } from '@/app/lib/supabase/isbnMatch';
 
 const sanitizeSearchTerm = (value?: string): string | null => {
   if (!value) return null;
@@ -397,7 +398,19 @@ export async function fetchActiveLoans(searchTerm?: string, userId?: string): Pr
       loan.book?.isbn ?? null,
     ];
 
-    return fields.some((field) => field?.toLowerCase().includes(lowered));
+    // Generic case-insensitive substring match (existing behaviour for names/title)
+    const substringHit = fields.some((field) => field?.toLowerCase().includes(lowered));
+    if (substringHit) return true;
+
+    // ISBN-aware match: if the search term looks ISBN-ish, also accept ISBN-10 ↔ ISBN-13
+    // equivalence against book.isbn — needed when the scanned cover ISBN differs in
+    // length or edition from the seeded ISBN.
+    const normTerm = normalizeIsbn(sanitized);
+    if (normTerm.length === 10 || normTerm.length === 13) {
+      if (isbnsMatch(loan.book?.isbn, sanitized)) return true;
+    }
+
+    return false;
   });
 }
 
