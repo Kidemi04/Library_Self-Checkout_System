@@ -24,6 +24,7 @@ import {
   ChatBubbleLeftRightIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/themeProvider';
@@ -37,12 +38,13 @@ type NavItem = { icon: React.ElementType; label: string; href: string; badge?: n
 const ADMIN_NAV: NavItem[] = [
   { icon: HomeIcon,                  label: 'Overview',        href: '/dashboard/admin' },
   { icon: BookOpenIcon,              label: 'Catalogue',       href: '/dashboard/book/items' },
+  { icon: PlusIcon,                  label: 'Add Book',        href: '/dashboard/admin/books/new' },
   { icon: UserGroupIcon,             label: 'Users',           href: '/dashboard/admin/users' },
   { icon: BookmarkIcon,              label: 'Holds',           href: '/dashboard/book/holds' },
   { icon: QrCodeIcon,                label: 'Borrow Books',    href: '/dashboard/book/checkout' },
   { icon: ArrowPathIcon,             label: 'Return Books',    href: '/dashboard/book/checkin' },
   { icon: ExclamationTriangleIcon,   label: 'Damage Reports',  href: '/dashboard/staff/damage-reports' },
-  { icon: ClockIcon,                 label: 'Borrow History',  href: '/dashboard/book/history' },
+  { icon: ClockIcon,                 label: 'Loan History',    href: '/dashboard/staff/history' },
   { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
   { icon: Cog6ToothIcon,             label: 'Settings',        href: '/dashboard/profile' },
 ];
@@ -54,6 +56,7 @@ const STAFF_NAV: NavItem[] = [
   { icon: BookmarkIcon,              label: 'Holds',           href: '/dashboard/book/holds' },
   { icon: BookOpenIcon,              label: 'Catalogue',       href: '/dashboard/book/items' },
   { icon: ExclamationTriangleIcon,   label: 'Damage Reports',  href: '/dashboard/staff/damage-reports' },
+  { icon: ClockIcon,                 label: 'Loan History',    href: '/dashboard/staff/history' },
   { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
   { icon: UserCircleIcon,            label: 'Profile',         href: '/dashboard/profile' },
 ];
