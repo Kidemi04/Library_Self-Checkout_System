@@ -1,21 +1,43 @@
 'use client';
 
 import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import clsx from 'clsx';
 import { updateProfileNamesAction, type ProfileNameFormState } from '@/app/profile/actions';
-import { PencilSquareIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { Button } from '@/app/ui/button';
 
 type ProfileNameFormProps = {
   displayName: string | null;
   username: string | null;
-  isPrivileged: boolean;
 };
 
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" aria-disabled={pending} disabled={pending}>
+      {pending ? (
+        <span className="flex items-center gap-2">
+          <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          Saving...
+        </span>
+      ) : (
+        <span className="flex items-center gap-2">
+          <CheckIcon className="h-4 w-4" />
+          Save
+        </span>
+      )}
+    </Button>
+  );
+}
 
 export default function ProfileNameForm({
   displayName,
   username,
-  isPrivileged,
 }: ProfileNameFormProps) {
   const [state, formAction] = useActionState(updateProfileNamesAction, {
     status: 'idle',
@@ -23,10 +45,10 @@ export default function ProfileNameForm({
   } satisfies ProfileNameFormState);
 
   return (
-    <form action={formAction} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center w-full">
-      <div className="relative flex-1 w-full">
+    <form action={formAction} className="flex w-full flex-col items-start gap-3 sm:flex-row sm:items-center">
+      <div className="relative w-full flex-1">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <PencilSquareIcon className="h-4 w-4 text-swin-charcoal/30 dark:text-white/30" aria-hidden="true" />
+          <PencilSquareIcon className="h-4 w-4 text-muted-soft dark:text-on-dark-soft" aria-hidden="true" />
         </div>
         <input
           id="display_name"
@@ -34,23 +56,22 @@ export default function ProfileNameForm({
           type="text"
           defaultValue={displayName ?? ''}
           placeholder="Display Name"
-          className={clsx(
-            'block w-full rounded-xl border-0 py-2.5 pl-10 pr-4 text-swin-charcoal ring-1 ring-inset placeholder:text-swin-charcoal/30 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-all duration-300',
-            'bg-white/50 backdrop-blur-sm dark:bg-white/5 dark:text-white dark:placeholder:text-white/30',
-            isPrivileged
-              ? 'ring-swin-gold/30 focus:ring-swin-gold dark:ring-swin-gold/20 dark:focus:ring-swin-gold/50'
-              : 'ring-swin-charcoal/15 focus:ring-swin-red dark:ring-white/10 dark:focus:ring-swin-red'
-          )}
+          className="block h-10 w-full rounded-btn border border-hairline bg-canvas pl-10 pr-3.5 font-sans text-body-md text-ink placeholder:text-muted-soft transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
           maxLength={120}
         />
         {state.status !== 'idle' && (
-          <p className={clsx(
-            'absolute -bottom-5 left-0 text-xs font-medium',
-            state.status === 'success' ? 'text-green-500' : 'text-rose-500'
-          )}>
+          <p
+            className={clsx(
+              'absolute -bottom-5 left-0 font-sans text-caption font-medium',
+              state.status === 'success' ? 'text-success' : 'text-error',
+            )}
+          >
             {state.message}
           </p>
         )}
+      </div>
+      <div className="w-full sm:w-auto">
+        <SubmitButton />
       </div>
     </form>
   );

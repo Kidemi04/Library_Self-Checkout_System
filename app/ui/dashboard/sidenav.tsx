@@ -21,6 +21,7 @@ import {
   SunIcon,
   MoonIcon,
   ExclamationTriangleIcon,
+  ChatBubbleLeftRightIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from '@heroicons/react/24/outline';
@@ -34,7 +35,7 @@ import { useEffect, useState } from 'react';
 type NavItem = { icon: React.ElementType; label: string; href: string; badge?: number };
 
 const ADMIN_NAV: NavItem[] = [
-  { icon: HomeIcon,                  label: 'Home',            href: '/dashboard/admin' },
+  { icon: HomeIcon,                  label: 'Overview',        href: '/dashboard/admin' },
   { icon: BookOpenIcon,              label: 'Catalogue',       href: '/dashboard/book/items' },
   { icon: UserGroupIcon,             label: 'Users',           href: '/dashboard/admin/users' },
   { icon: BookmarkIcon,              label: 'Holds',           href: '/dashboard/book/holds' },
@@ -47,7 +48,7 @@ const ADMIN_NAV: NavItem[] = [
 ];
 
 const STAFF_NAV: NavItem[] = [
-  { icon: HomeIcon,                  label: 'Home',            href: '/dashboard' },
+  { icon: HomeIcon,                  label: 'Desk',            href: '/dashboard' },
   { icon: QrCodeIcon,                label: 'Borrow Books',    href: '/dashboard/book/checkout' },
   { icon: ArrowPathIcon,             label: 'Return Books',    href: '/dashboard/book/checkin' },
   { icon: BookmarkIcon,              label: 'Holds',           href: '/dashboard/book/holds' },
@@ -58,15 +59,16 @@ const STAFF_NAV: NavItem[] = [
 ];
 
 const USER_NAV: NavItem[] = [
-  { icon: HomeIcon,                  label: 'Home',            href: '/dashboard' },
+  { icon: HomeIcon,                  label: 'Dashboard',       href: '/dashboard' },
   { icon: MagnifyingGlassIcon,       label: 'Catalogue',       href: '/dashboard/book/items' },
   { icon: QrCodeIcon,                label: 'Borrow',          href: '/dashboard/book/checkout' },
   { icon: ArrowPathIcon,             label: 'Return',          href: '/dashboard/book/checkin' },
   { icon: BookOpenIcon,              label: 'My Books',        href: '/dashboard/my-books' },
   { icon: AcademicCapIcon,           label: 'Learning hub',    href: '/dashboard/learning' },
-  { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
   { icon: SparklesIcon,              label: 'Recommendations', href: '/dashboard/recommendations' },
-  { icon: QuestionMarkCircleIcon,    label: 'FAQ',             href: '/dashboard/faq' },
+  { icon: ChatBubbleLeftRightIcon,   label: 'Chat Assistant',  href: '/dashboard/chat' },
+  { icon: QuestionMarkCircleIcon,    label: 'Help Centre',     href: '/dashboard/faq' },
+  { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
   { icon: UserCircleIcon,            label: 'Profile',         href: '/dashboard/profile' },
 ];
 
@@ -113,61 +115,80 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
   }, [pathname]);
 
   const nav = getNav(user.role);
+  const roleBadge = user.role === 'admin' ? 'ADMIN' : user.role === 'staff' ? 'STAFF' : 'STUDENT';
   const initials = getInitials(user.name);
 
   return (
     <aside className={clsx(
-      'fixed left-0 top-0 flex h-screen flex-col border-r overflow-hidden transition-all duration-300',
-      collapsed ? 'w-16 py-4 px-2' : 'w-64 py-7 px-[18px]',
-      isDark
-        ? 'border-white/10 bg-swin-dark-surface text-white'
-        : 'border-swin-charcoal/10 bg-white text-swin-charcoal',
+      'fixed left-0 top-0 flex h-screen flex-col border-r border-hairline bg-canvas text-ink transition-all duration-300 dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark',
+      collapsed ? 'w-16 px-2 py-4' : 'w-64 px-[18px] py-7',
     )}>
-
-      {/* Header */}
-      {collapsed ? (
-        <div className="mb-4 flex justify-center border-b border-swin-charcoal/10 pb-4 dark:border-white/10">
-          <button
-            type="button"
-            onClick={onToggle}
-            title="Expand sidebar"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-swin-charcoal/50 transition hover:bg-swin-charcoal/8 hover:text-swin-charcoal dark:text-white/50 dark:hover:bg-white/8 dark:hover:text-white"
-          >
-            <ChevronRightIcon className="h-5 w-5" />
-          </button>
+      {/* Logo + collapse toggle */}
+      <div className={clsx(
+        'mb-5 pb-5 border-b border-hairline dark:border-dark-hairline',
+        collapsed ? 'px-0' : 'px-2.5',
+      )}>
+        <div className={clsx('flex items-center', collapsed ? 'justify-center' : 'gap-2')}>
+          {!collapsed && (
+            <Link href="/dashboard" className="block flex-1">
+              <Image
+                src="/swinburne-logo.png"
+                alt="Swinburne University of Technology Sarawak Campus"
+                width={220}
+                height={103}
+                className="w-full rounded-sm"
+                priority
+              />
+            </Link>
+          )}
+          {onToggle && (
+            <button
+              type="button"
+              onClick={onToggle}
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-btn border border-hairline bg-surface-card text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
+            >
+              {collapsed ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
+            </button>
+          )}
         </div>
-      ) : (
-        <>
-          <div className="mb-5 px-2.5 pb-5 border-b border-swin-charcoal/10 dark:border-white/10">
-            <div className="flex items-start gap-2">
-              <Link href="/dashboard" className="block flex-1">
-                <Image
-                  src="/swinburne-logo.png"
-                  alt="Swinburne University of Technology Sarawak Campus"
-                  width={220}
-                  height={103}
-                  className="w-full rounded-sm"
-                  priority
-                />
-              </Link>
-              <button
-                type="button"
-                onClick={onToggle}
-                title="Collapse sidebar"
-                className="mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-swin-charcoal/40 transition hover:bg-swin-charcoal/8 hover:text-swin-charcoal dark:text-white/40 dark:hover:bg-white/8 dark:hover:text-white"
-              >
-                <ChevronLeftIcon className="h-4 w-4" />
-              </button>
-            </div>
-            <p className="mt-2 font-display text-[11px] italic text-swin-charcoal/45 dark:text-white/40">
-              Library · est. 1908
-            </p>
-          </div>
-
-          <p className="mb-2 px-3 font-mono text-[9px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
-            Workspace
+        {!collapsed && (
+          <p className="mt-2 font-display text-[11px] italic text-muted-soft dark:text-on-dark-soft">
+            Library · est. 1908
           </p>
-        </>
+        )}
+      </div>
+
+      {/* Role badge — hidden when collapsed */}
+      {!collapsed && (
+        <div className={clsx(
+          'mx-2.5 mb-5 rounded-btn border p-2.5',
+          user.role === 'admin'
+            ? 'border-primary/30 bg-primary/8 dark:border-dark-primary/40 dark:bg-dark-primary/15'
+            : user.role === 'staff'
+            ? 'border-accent-amber/30 bg-accent-amber/10 dark:border-accent-amber/40 dark:bg-accent-amber/15'
+            : 'border-hairline bg-transparent dark:border-dark-hairline',
+        )}>
+          <p className={clsx(
+            'font-mono text-[9px] font-bold uppercase tracking-[2px]',
+            user.role === 'admin' ? 'text-primary dark:text-dark-primary'
+              : user.role === 'staff' ? 'text-accent-amber'
+              : 'text-muted-soft dark:text-on-dark-soft',
+          )}>{roleBadge}</p>
+          <p className="mt-0.5 font-sans text-[13px] font-semibold text-ink dark:text-on-dark">
+            {user.name ?? user.email ?? 'Library Member'}
+          </p>
+          {isBypassed && (
+            <p className="mt-0.5 font-mono text-[9px] text-primary/70 dark:text-dark-primary/70">Dev bypass active</p>
+          )}
+        </div>
+      )}
+
+      {!collapsed && (
+        <p className="mb-2 px-3 font-mono text-[9px] font-semibold uppercase tracking-[1.8px] text-muted-soft dark:text-on-dark-soft">
+          Workspace
+        </p>
       )}
 
       {/* Nav items */}
@@ -187,26 +208,24 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
               href={item.href}
               title={collapsed ? item.label : undefined}
               className={clsx(
-                'flex items-center rounded-lg transition-colors',
-                collapsed
-                  ? 'justify-center px-2 py-2.5'
-                  : 'gap-3 px-3 py-2.5 text-[14px] font-medium',
+                'flex items-center rounded-btn font-sans text-nav-link transition-colors',
+                collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
                 isActive
-                  ? 'bg-swin-red/10 text-swin-red dark:bg-swin-red/15 dark:text-red-300'
-                  : 'text-swin-charcoal/65 hover:bg-swin-charcoal/5 hover:text-swin-charcoal dark:text-white/55 dark:hover:bg-white/8 dark:hover:text-white',
+                  ? 'bg-primary/10 text-primary dark:bg-dark-primary/15 dark:text-dark-primary'
+                  : 'text-body hover:bg-surface-cream-strong hover:text-ink dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark',
               )}
             >
               <span className="relative flex-shrink-0">
                 <Icon className="h-[18px] w-[18px]" />
                 {showDot && (
-                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-swin-red ring-2 ring-white dark:ring-swin-dark-surface" />
+                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary ring-2 ring-canvas dark:ring-dark-canvas" />
                 )}
               </span>
               {!collapsed && <span className="flex-1">{item.label}</span>}
               {!collapsed && item.badge != null && (
                 <span className={clsx(
-                  'rounded-full px-1.5 py-0.5 font-mono text-[10px] font-bold',
-                  isActive ? 'bg-swin-red text-white' : 'bg-swin-charcoal/10 text-swin-charcoal/60 dark:bg-white/10 dark:text-white/60',
+                  'rounded-pill px-1.5 py-0.5 font-mono text-[10px] font-bold',
+                  isActive ? 'bg-primary text-on-primary' : 'bg-surface-cream-strong text-muted dark:bg-dark-surface-strong dark:text-on-dark-soft',
                 )}>{item.badge}</span>
               )}
             </Link>
@@ -222,8 +241,8 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
           aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           title={collapsed ? (isDark ? 'Light mode' : 'Dark mode') : undefined}
           className={clsx(
-            'flex w-full items-center rounded-lg border border-swin-charcoal/10 bg-swin-charcoal/5 text-swin-charcoal/70 transition hover:bg-swin-charcoal/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/40 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10',
-            collapsed ? 'justify-center px-2 py-2' : 'justify-center gap-2 px-3 py-2 text-[12px] font-medium',
+            'flex w-full items-center justify-center rounded-btn border border-hairline bg-surface-card font-sans text-caption text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas',
+            collapsed ? 'h-10 w-10 mx-auto p-0' : 'gap-2 px-3 py-2',
           )}
         >
           {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
@@ -232,26 +251,23 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
 
         {/* User footer */}
         <div className={clsx(
-          'flex items-center rounded-lg border border-swin-charcoal/10 dark:border-white/10',
-          collapsed ? 'justify-center p-2' : 'gap-2.5 p-2.5',
+          'flex items-center rounded-btn border border-hairline dark:border-dark-hairline',
+          collapsed ? 'justify-center p-1.5' : 'gap-2.5 p-2.5',
         )}>
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-swin-red text-[12px] font-bold text-white">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-on-primary">
             {initials}
           </div>
           {!collapsed && (
             <>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-semibold text-swin-charcoal dark:text-white">
+                <p className="truncate font-sans text-[13px] font-semibold text-ink dark:text-on-dark">
                   {user.name ?? 'Library Member'}
                 </p>
-                <p className="truncate font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">
+                <p className="truncate font-mono text-[11px] text-muted-soft dark:text-on-dark-soft">
                   {user.email ?? ''}
                 </p>
               </div>
-              <SignOutButton
-                className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-swin-charcoal/40 transition hover:text-swin-red dark:text-white/40 dark:hover:text-red-400"
-                labelClassName="hidden"
-              />
+              <SignOutButton labelClassName="hidden" />
             </>
           )}
         </div>
