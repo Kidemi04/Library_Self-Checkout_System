@@ -234,11 +234,12 @@ export default function CameraScannerButton({
     <>
       {/* ---------- Trigger zone (on page) ---------- */}
       <div className={clsx('flex flex-col gap-3', className)}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:gap-3">
         {/* Primary: Scan with camera */}
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="group relative flex w-full items-center gap-4 overflow-hidden rounded-card bg-primary p-5 text-left text-on-primary transition hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+          className="group relative flex w-full flex-1 items-center gap-4 overflow-hidden rounded-card bg-primary p-5 text-left text-on-primary transition hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
         >
           <span
             aria-hidden="true"
@@ -265,7 +266,7 @@ export default function CameraScannerButton({
         <button
           type="button"
           onClick={() => uploadInputRef.current?.click()}
-          className="group relative flex w-full items-center gap-4 rounded-card border border-hairline bg-surface-card p-5 text-left text-ink transition hover:bg-surface-cream-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas"
+          className="group relative flex w-full flex-1 items-center gap-4 rounded-card border border-hairline bg-surface-card p-5 text-left text-ink transition hover:bg-surface-cream-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas"
         >
           <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-card border border-hairline bg-canvas dark:border-dark-hairline dark:bg-dark-canvas">
             <PhotoIcon className="h-6 w-6 text-muted dark:text-on-dark-soft" strokeWidth={1.8} />
@@ -283,6 +284,7 @@ export default function CameraScannerButton({
           </span>
           <ArrowUpTrayIcon className="h-5 w-5 flex-shrink-0 text-muted dark:text-on-dark-soft" />
         </button>
+        </div>
 
         {lastScan && (
           <span className="inline-flex w-fit items-center gap-1.5 rounded-pill border border-success/30 bg-success/10 px-2.5 py-0.5 font-mono text-code font-semibold text-success">
