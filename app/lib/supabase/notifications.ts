@@ -193,3 +193,21 @@ export async function markAllUserNotificationsRead(userId: string): Promise<void
   const rows = notifs.map((n) => ({ notification_id: n.id as string, user_id: userId }));
   await supabase.from('NotificationReads').upsert(rows, { onConflict: 'notification_id,user_id' });
 }
+
+/**
+ * Mark exactly the supplied notification IDs as read for `userId`.
+ * Source-of-truth is the IDs the client currently shows — eliminates any
+ * read/write filter divergence that the legacy `markAll*` helpers had.
+ */
+export async function markNotificationsReadByIds(
+  userId: string,
+  notificationIds: string[],
+): Promise<void> {
+  if (!notificationIds.length) return;
+  const supabase = getSupabaseServerClient();
+  const rows = notificationIds.map((id) => ({ notification_id: id, user_id: userId }));
+  const { error } = await supabase
+    .from('NotificationReads')
+    .upsert(rows, { onConflict: 'notification_id,user_id' });
+  if (error) console.error('[notifications] markNotificationsReadByIds error:', error.message);
+}

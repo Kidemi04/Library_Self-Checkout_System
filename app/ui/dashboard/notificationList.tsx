@@ -124,10 +124,11 @@ export default function NotificationList({ filter: initialFilter = 'all', search
 
   const markAllRead = async () => {
     setMarking('all');
+    const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
     await fetch('/api/notifications', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ markAll: true }),
+      body: JSON.stringify({ notificationIds: unreadIds }),
     });
     await refresh();
     setMarking(null);

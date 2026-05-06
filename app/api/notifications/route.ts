@@ -6,6 +6,7 @@ import {
   fetchNotificationsForRole,
   fetchNotificationsForUser,
   markNotificationRead,
+  markNotificationsReadByIds,
   markAllNotificationsRead,
   markAllUserNotificationsRead,
 } from '@/app/lib/supabase/notifications';
@@ -55,7 +56,11 @@ export async function PATCH(request: Request) {
 
   const body = await request.json();
 
-  if (body.markAll === true) {
+  if (Array.isArray(body.notificationIds)) {
+    // New, source-of-truth contract: client tells us which IDs are unread.
+    await markNotificationsReadByIds(user.id, body.notificationIds);
+  } else if (body.markAll === true) {
+    // Legacy fallback — kept for backward compat with stale clients.
     if (user.role === 'staff' || user.role === 'admin') {
       await markAllNotificationsRead(user.role, user.id);
     } else {
