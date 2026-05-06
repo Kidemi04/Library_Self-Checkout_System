@@ -10,30 +10,21 @@ import type {
   LinkedInLearningTopicDefinition,
 } from '@/app/lib/linkedin/types';
 
-export type LearningProvider = 'linkedin';
-
 export type LearningStatus = {
-  provider: LearningProvider;
-  label: string;
   isLive: boolean;
+  usingStub: boolean;
 };
 
 export const getLearningStatus = async (): Promise<LearningStatus> => {
   const status = await getLinkedInLearningStatus();
   const isLive = status.enabled && status.isConfigured && !status.usingStub;
-  return {
-    provider: 'linkedin',
-    label: 'LinkedIn Learning',
-    isLive,
-  };
+  return { isLive, usingStub: status.usingStub };
 };
 
 export const searchLearningCourses = async (
   options: LinkedInLearningSearchOptions = {},
-): Promise<LinkedInLearningSearchResult & { provider: LearningProvider; label: string }> => {
-  const status = await getLearningStatus();
-  const result = await searchLinkedInLearningCourses(options);
-  return { ...result, provider: status.provider, label: status.label };
+): Promise<LinkedInLearningSearchResult> => {
+  return searchLinkedInLearningCourses(options);
 };
 
 export const getLearningCollections = async (
@@ -41,8 +32,6 @@ export const getLearningCollections = async (
   options: Omit<LinkedInLearningSearchOptions, 'query' | 'topics'> & {
     limitPerTopic?: number;
   } = {},
-): Promise<Array<LinkedInLearningTopicCollection & { provider: LearningProvider; label: string }>> => {
-  const status = await getLearningStatus();
-  const collections = await getLinkedInLearningCollections(definitions, options);
-  return collections.map((c) => ({ ...c, provider: status.provider, label: status.label }));
+): Promise<LinkedInLearningTopicCollection[]> => {
+  return getLinkedInLearningCollections(definitions, options);
 };

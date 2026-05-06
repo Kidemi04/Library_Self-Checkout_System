@@ -82,7 +82,7 @@ function CollectionSection({
 }
 
 type Props = {
-  collections: Array<LinkedInLearningTopicCollection & { provider: string; label: string }>;
+  collections: Array<LinkedInLearningTopicCollection>;
   difficulty: string;
 };
 

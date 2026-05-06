@@ -33,7 +33,7 @@ import { useEffect, useState } from 'react';
 type NavItem = { icon: React.ElementType; label: string; href: string; badge?: number };
 
 const ADMIN_NAV: NavItem[] = [
-  { icon: HomeIcon,                  label: 'Overview',        href: '/dashboard/admin' },
+  { icon: HomeIcon,                  label: 'Home',            href: '/dashboard/admin' },
   { icon: BookOpenIcon,              label: 'Catalogue',       href: '/dashboard/book/items' },
   { icon: UserGroupIcon,             label: 'Users',           href: '/dashboard/admin/users' },
   { icon: BookmarkIcon,              label: 'Holds',           href: '/dashboard/book/holds' },
@@ -46,7 +46,7 @@ const ADMIN_NAV: NavItem[] = [
 ];
 
 const STAFF_NAV: NavItem[] = [
-  { icon: HomeIcon,                  label: 'Desk',            href: '/dashboard' },
+  { icon: HomeIcon,                  label: 'Home',            href: '/dashboard' },
   { icon: QrCodeIcon,                label: 'Borrow Books',    href: '/dashboard/book/checkout' },
   { icon: ArrowPathIcon,             label: 'Return Books',    href: '/dashboard/book/checkin' },
   { icon: BookmarkIcon,              label: 'Holds',           href: '/dashboard/book/holds' },
@@ -57,7 +57,7 @@ const STAFF_NAV: NavItem[] = [
 ];
 
 const USER_NAV: NavItem[] = [
-  { icon: HomeIcon,                  label: 'Dashboard',       href: '/dashboard' },
+  { icon: HomeIcon,                  label: 'Home',            href: '/dashboard' },
   { icon: MagnifyingGlassIcon,       label: 'Catalogue',       href: '/dashboard/book/items' },
   { icon: QrCodeIcon,                label: 'Borrow',          href: '/dashboard/book/checkout' },
   { icon: ArrowPathIcon,             label: 'Return',          href: '/dashboard/book/checkin' },

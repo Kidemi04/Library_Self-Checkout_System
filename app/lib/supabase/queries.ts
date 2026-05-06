@@ -898,6 +898,131 @@ export async function fetchLoanHistory(userId: string, limit?: number): Promise<
   return limit ? history.slice(0, limit) : history;
 }
 
+// ─── System-wide circulation history (staff / admin) ───────────────────────
+
+type RawCirculationRow = RawHistoryRow & {
+  borrower?: {
+    id: string;
+    email: string | null;
+    profile?: { display_name: string | null; student_id: string | null } | null;
+  } | null;
+};
+
+export type CirculationHistoryLoan = BorrowingHistoryLoan & {
+  patron: { id: string; name: string | null; email: string | null; studentId: string | null };
+};
+
+export async function fetchAllCirculationHistory(
+  searchTerm?: string,
+  period?: TimePeriod,
+): Promise<CirculationHistoryLoan[]> {
+  const supabase = getSupabaseServerClient();
+
+  let query = supabase
+    .from('Loans')
+    .select(
+      `
+        id,
+        borrowed_at,
+        due_at,
+        returned_at,
+        renewed_count,
+        copy:Copies(
+          id,
+          book:Books(id, title, author, isbn, cover_image_url)
+        ),
+        borrower:Users!Loans_user_id_fkey(
+          id,
+          email,
+          profile:UserProfile(display_name, student_id)
+        )
+      `,
+    )
+    .not('returned_at', 'is', null)
+    .order('returned_at', { ascending: false });
+
+  const cutoff = getPeriodCutoff(period ?? 'all');
+  if (cutoff) query = query.gte('borrowed_at', cutoff.toISOString());
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const rows = ((data ?? []) as unknown) as RawCirculationRow[];
+
+  const mapped: CirculationHistoryLoan[] = rows
+    .filter((row) => row.copy?.book != null)
+    .map((row) => {
+      const book = row.copy!.book!;
+      const borrowed = new Date(row.borrowed_at);
+      const returned = new Date(row.returned_at);
+      const loanDurationDays = Math.max(1, Math.round((returned.getTime() - borrowed.getTime()) / (1000 * 60 * 60 * 24)));
+      const profile = row.borrower?.profile;
+      return {
+        id: row.id,
+        borrowedAt: row.borrowed_at,
+        returnedAt: row.returned_at,
+        dueAt: row.due_at,
+        renewedCount: row.renewed_count ?? 0,
+        loanDurationDays,
+        book: {
+          id: book.id,
+          title: book.title,
+          author: book.author ?? null,
+          isbn: book.isbn ?? null,
+          coverImageUrl: book.cover_image_url ?? null,
+        },
+        patron: {
+          id: row.borrower?.id ?? '',
+          name: profile?.display_name ?? null,
+          email: row.borrower?.email ?? null,
+          studentId: profile?.student_id ?? null,
+        },
+      };
+    });
+
+  const sanitized = sanitizeSearchTerm(searchTerm);
+  if (!sanitized) return mapped;
+
+  const lowered = sanitized.toLowerCase();
+  return mapped.filter(
+    (loan) =>
+      loan.book.title.toLowerCase().includes(lowered) ||
+      (loan.book.author?.toLowerCase().includes(lowered) ?? false) ||
+      (loan.patron.name?.toLowerCase().includes(lowered) ?? false) ||
+      (loan.patron.email?.toLowerCase().includes(lowered) ?? false) ||
+      (loan.patron.studentId?.toLowerCase().includes(lowered) ?? false),
+  );
+}
+
+export async function fetchCirculationStats(): Promise<BorrowingStats> {
+  const supabase = getSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from('Loans')
+    .select('borrowed_at, returned_at')
+    .not('returned_at', 'is', null);
+
+  if (error) throw error;
+
+  const rows = (data ?? []) as Array<{ borrowed_at: string; returned_at: string }>;
+  const currentYear = new Date().getFullYear();
+  let totalDays = 0;
+  let thisYearCount = 0;
+
+  for (const row of rows) {
+    const borrowed = new Date(row.borrowed_at);
+    const returned = new Date(row.returned_at);
+    totalDays += Math.max(1, Math.round((returned.getTime() - borrowed.getTime()) / (1000 * 60 * 60 * 24)));
+    if (borrowed.getFullYear() === currentYear) thisYearCount++;
+  }
+
+  return {
+    totalBorrowed: rows.length,
+    thisYearCount,
+    avgLoanDays: rows.length > 0 ? Math.round(totalDays / rows.length) : 0,
+  };
+}
+
 export async function fetchHoldsForBook(bookId: string): Promise<number> {
   const supabase = getSupabaseServerClient();
 
