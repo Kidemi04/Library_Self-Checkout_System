@@ -3,6 +3,7 @@ import { getDashboardSession } from '@/app/lib/auth/session';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import AddBookForm from '@/app/ui/dashboard/admin/addBookForm';
+import { isLikelyImageUrl } from '@/app/lib/validators/imageUrl';
 
 export default async function EditBookPage({
   params,
@@ -43,7 +44,7 @@ export default async function EditBookPage({
             publisher: data.publisher ?? '',
             year: data.publication_year ?? '',
             classification: data.classification ?? '',
-            coverUrl: data.cover_image_url ?? '',
+            coverUrl: isLikelyImageUrl(data.cover_image_url) ? (data.cover_image_url ?? '') : '',
             category: data.category ?? '',
             tags: [],
           }}
