@@ -157,6 +157,8 @@ type Props = {
   pageSize?: number;
   /** Search query — when provided, matched substrings in title/author are highlighted. */
   searchQuery?: string;
+  /** When true, render an Edit affordance on each row that links to the admin edit page. */
+  canEdit?: boolean;
 };
 
 const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -245,6 +247,7 @@ export default function BookList({
   category,
   pageSize,
   searchQuery,
+  canEdit = false,
 }: Props) {
   const router = useRouter();
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -346,6 +349,15 @@ export default function BookList({
                           Copies
                         </button>
                       )}
+                      {canEdit && (
+                        <Link
+                          href={`/dashboard/admin/books/${b.id}/edit`}
+                          title="Edit book"
+                          className="rounded-pill border border-hairline dark:border-dark-hairline px-2.5 py-0.5 text-[10px] font-semibold text-muted dark:text-on-dark-soft transition hover:border-primary/30 hover:text-primary dark:hover:text-dark-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+                        >
+                          Edit
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </article>
@@ -446,6 +458,14 @@ export default function BookList({
                       >
                         Copies
                       </button>
+                    )}
+                    {canEdit && (
+                      <Link
+                        href={`/dashboard/admin/books/${b.id}/edit`}
+                        className="rounded-pill border border-hairline dark:border-dark-hairline px-3 py-1 text-[11px] font-semibold text-muted dark:text-on-dark-soft transition hover:border-primary/30 hover:text-primary dark:hover:text-dark-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+                      >
+                        Edit
+                      </Link>
                     )}
                   </div>
                 </li>

@@ -157,6 +157,7 @@ export default async function BookItemsPage({
             isStaff={isStaff}
             category={category}
             searchQuery={q}
+            canEdit={user.role === 'admin'}
           />
         </div>
       </AdminShell>
