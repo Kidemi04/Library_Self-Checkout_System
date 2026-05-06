@@ -344,6 +344,7 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
                   onClick={() => setIsMoreOpen((prev) => !prev)}
                   aria-expanded={isMoreOpen}
                   aria-controls="mobile-more-sheet"
+                  suppressHydrationWarning
                   className={clsx(
                     'flex flex-1 flex-col items-center gap-0.5 py-1 transition-colors',
                     active ? 'text-primary dark:text-dark-primary' : 'text-muted dark:text-on-dark-soft',

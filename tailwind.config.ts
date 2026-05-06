@@ -23,8 +23,8 @@ const config: Config = {
         '13': 'repeat(13, minmax(0, 1fr))',
       },
       fontFamily: {
-        display: ['"Times New Roman"', 'Times', 'Georgia', 'serif'],
-        sans:    ['"Times New Roman"', 'Times', 'Georgia', 'serif'],
+        display: ['var(--font-newsreader)', 'Georgia', 'serif'],
+        sans:    ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
         mono:    ['var(--font-jetbrains-mono)', '"SF Mono"', 'Menlo', 'monospace'],
       },
       fontSize: {
@@ -58,31 +58,31 @@ const config: Config = {
         // and `black` (tooling). Charcoal/ivory/gold/dark-bg/dark-surface
         // dropped per spec §7 acceptance criterion (Chat 16 Task 30).
         swin: {
-          red: '#C82333',
+          red: '#9a0817',
           black: '#000000',
         },
 
         // Brand: dual-track Swinburne red
-        'swin-red-brand': '#C82333',          // logo / brand-mark only
-        primary:          '#B83A35',          // UI CTA, links, focus rings
-        'primary-active': '#9A2D29',
+        'swin-red-brand': '#9a0817',          // logo / brand-mark only
+        primary:          '#D01425',          // UI CTA, links, focus rings
+        'primary-active': '#A8101C',
         'primary-disabled': '#E2E2E7',
-        'dark-primary':   '#CC4640',          // dark-mode primary
+        'dark-primary':   '#9a0817',          // dark-mode primary
 
-        // Surface — light (neutral white/grey, no warm tint)
-        canvas:                 '#F5F6FB',
-        'surface-soft':         '#ECEEF8',
+        // Surface — light (off-white canvas, white cards elevated above it)
+        canvas:                 '#F9F9F9',
+        'surface-soft':         '#F2F2F2',
         'surface-card':         '#FFFFFF',
-        'surface-cream-strong': '#E8EAF5',
-        hairline:               '#DDE0F0',
-        'hairline-soft':        '#E8EAF5',
+        'surface-cream-strong': '#E8E8E8',
+        hairline:               '#E0E0E0',
+        'hairline-soft':        '#EBEBEB',
 
-        // Surface — dark (neutral zinc-grey, no brown/warm tint)
-        'dark-canvas':          '#18181B',
-        'dark-surface-soft':    '#1F1F23',
-        'dark-surface-card':    '#27272A',
-        'dark-surface-strong':  '#2E2E32',
-        'dark-hairline':        '#3F3F46',
+        // Surface — dark (black base, grey hierarchy)
+        'dark-canvas':          '#000000',
+        'dark-surface-soft':    '#0F0F0F',
+        'dark-surface-card':    '#1A1A1A',
+        'dark-surface-strong':  '#282828',
+        'dark-hairline':        '#333333',
 
         // Text (neutral zinc, no warm tint)
         ink:           '#18181B',
@@ -99,7 +99,8 @@ const config: Config = {
         'accent-amber': '#E8A55A',
 
         // Semantic
-        success: '#5DB872',
+        success:      '#5DB872',
+        'dark-success': '#166534',
         warning: '#D4A017',
         error:   '#C64545',
       },

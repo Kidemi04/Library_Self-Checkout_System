@@ -199,10 +199,11 @@ export default function NotificationList({ filter: initialFilter = 'all', search
           />
         </div>
         <div className="flex items-center gap-1 rounded-btn border border-hairline bg-surface-card px-1 py-1 font-sans text-body-sm dark:border-dark-hairline dark:bg-dark-surface-card">
-          <ArrowsUpDownIcon className="mx-1 h-4 w-4 text-muted-soft dark:text-on-dark-soft" />
+          <ArrowsUpDownIcon className="mx-1 h-4 w-4 text-ink/40 dark:text-on-dark/50" />
           <select
             value={sortField}
             onChange={(e) => setSortField(e.target.value as SortField)}
+            suppressHydrationWarning
             className="cursor-pointer border-0 bg-transparent pl-2 pr-7 text-ink outline-none focus:ring-0 dark:text-on-dark"
             aria-label="Sort field"
           >
@@ -212,6 +213,7 @@ export default function NotificationList({ filter: initialFilter = 'all', search
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+            suppressHydrationWarning
             className="cursor-pointer border-0 bg-transparent pl-2 pr-7 text-ink outline-none focus:ring-0 dark:text-on-dark"
             aria-label="Sort order"
           >
@@ -224,7 +226,8 @@ export default function NotificationList({ filter: initialFilter = 'all', search
           onClick={() => { setLoading(true); refresh(); }}
           aria-label="Refresh notifications"
           title="Refresh"
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-btn border border-hairline bg-surface-card text-muted transition hover:bg-surface-cream-strong hover:text-ink dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:bg-dark-surface-strong dark:hover:text-on-dark"
+          suppressHydrationWarning
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-btn border border-hairline bg-surface-card text-ink transition hover:bg-surface-cream-strong dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
         >
           <ArrowPathIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
         </button>

@@ -341,6 +341,7 @@ export default function BookList({
                           type="button"
                           onClick={() => setManagingBookId(b.id)}
                           title="Manage copies"
+                          suppressHydrationWarning
                           className="rounded-pill border border-hairline dark:border-dark-hairline px-2.5 py-0.5 text-[10px] font-semibold text-muted dark:text-on-dark-soft transition hover:border-primary/30 hover:text-ink dark:hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                         >
                           Copies

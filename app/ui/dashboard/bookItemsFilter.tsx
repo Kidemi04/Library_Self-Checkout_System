@@ -90,6 +90,7 @@ export default function BookItemsFilter({ action, defaults, className }: Props) 
           name="q"
           defaultValue={q}
           placeholder="Search title, author, ISBN…"
+          suppressHydrationWarning
           className="w-full rounded-pill border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft py-2.5 pl-11 pr-4 font-sans text-body-sm text-ink dark:text-on-dark placeholder:text-muted-soft dark:placeholder:text-on-dark-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
         />
       </div>
@@ -107,6 +108,7 @@ export default function BookItemsFilter({ action, defaults, className }: Props) 
               }
               disabled={isPending}
               aria-pressed={active}
+              suppressHydrationWarning
               className={clsx(
                 'rounded-pill px-3.5 py-1.5 font-sans text-body-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
                 active
@@ -127,6 +129,7 @@ export default function BookItemsFilter({ action, defaults, className }: Props) 
           onClick={() => updateParams({ view: 'grid' })}
           aria-pressed={view === 'grid'}
           aria-label="Grid view"
+          suppressHydrationWarning
           className={clsx(
             'flex h-8 w-8 items-center justify-center rounded-pill transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
             view === 'grid'
@@ -141,6 +144,7 @@ export default function BookItemsFilter({ action, defaults, className }: Props) 
           onClick={() => updateParams({ view: 'list' })}
           aria-pressed={view === 'list'}
           aria-label="List view"
+          suppressHydrationWarning
           className={clsx(
             'flex h-8 w-8 items-center justify-center rounded-pill transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
             view === 'list'

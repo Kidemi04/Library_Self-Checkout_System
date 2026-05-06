@@ -95,6 +95,7 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
   const [hasUnread, setHasUnread] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
     const check = async () => {
@@ -113,6 +114,10 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
   useEffect(() => {
     if (pathname === '/dashboard/notifications') setHasUnread(false);
   }, [pathname]);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const nav = getNav(user.role);
   const roleBadge = user.role === 'admin' ? 'ADMIN' : user.role === 'staff' ? 'STAFF' : 'STUDENT';
@@ -239,15 +244,19 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
           type="button"
           onClick={toggleTheme}
           suppressHydrationWarning
-          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={collapsed ? (isDark ? 'Light mode' : 'Dark mode') : undefined}
+          aria-label={hasMounted ? (isDark ? 'Switch to light mode' : 'Switch to dark mode') : 'Switch theme'}
+          title={collapsed ? (hasMounted ? (isDark ? 'Light mode' : 'Dark mode') : 'Theme') : undefined}
           className={clsx(
             'flex w-full items-center justify-center rounded-btn border border-hairline bg-surface-card font-sans text-caption text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas',
             collapsed ? 'h-10 w-10 mx-auto p-0' : 'gap-2 px-3 py-2',
           )}
         >
-          {isDark ? <MoonIcon className="h-4 w-4" /> : <SunIcon className="h-4 w-4" />}
-          {!collapsed && (isDark ? 'Light mode' : 'Dark mode')}
+          {hasMounted ? (
+            isDark ? <MoonIcon className="h-4 w-4" /> : <SunIcon className="h-4 w-4" />
+          ) : (
+            <span className="h-4 w-4" aria-hidden />
+          )}
+          {!collapsed && (hasMounted ? (isDark ? 'Light mode' : 'Dark mode') : 'Theme')}
         </button>
 
         {/* User footer */}

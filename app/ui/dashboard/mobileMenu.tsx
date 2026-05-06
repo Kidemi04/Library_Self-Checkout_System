@@ -313,6 +313,7 @@ export default function MobileMenu({ user }: { user: DashboardUserProfile }) {
         aria-label={isOpen ? 'Close menu' : 'Open menu'}
         aria-expanded={isOpen}
         aria-controls="mobile-menu-drawer"
+        suppressHydrationWarning
       >
         {isOpen ? (
           <XMarkIcon className="h-6 w-6" aria-hidden="true" />

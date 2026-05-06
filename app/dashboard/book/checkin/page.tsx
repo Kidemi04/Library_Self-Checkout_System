@@ -40,7 +40,7 @@ export default async function ReturningBooksPage({
       >
         <div className="space-y-6">
           {/* Return hero — solid success per spec §6.4 (drop gradient + boxShadow) */}
-          <div className="relative overflow-hidden rounded-card bg-success p-6 text-on-dark">
+          <div className="relative overflow-hidden rounded-card bg-success dark:bg-dark-success p-6 text-on-dark">
             <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-on-dark/10" />
             <div className="relative flex items-start gap-5">
               <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[14px] border border-on-dark/25 bg-on-dark/15">
