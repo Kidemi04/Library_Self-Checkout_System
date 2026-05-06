@@ -50,14 +50,14 @@ const BOTTOM_NAV_BY_ROLE: Record<DashboardRole, BottomNavItem[]> = {
     { key: 'browse', label: 'Browse', href: '/dashboard/book/items', icon: MagnifyingGlassIcon },
     { key: 'borrow', label: 'Borrow', href: '/dashboard/book/checkout', icon: QrCodeIcon, isCenter: true },
     { key: 'books', label: 'My Books', href: '/dashboard/my-books', icon: BookOpenIcon },
-    { key: 'alerts', label: 'Alerts', href: '/dashboard/notifications', icon: BellIcon },
+    { key: 'alerts', label: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
   ],
   staff: [
     { key: 'desk', label: 'Desk', href: '/dashboard', icon: HomeIcon },
     { key: 'return', label: 'Return', href: '/dashboard/book/checkin', icon: ArrowPathIcon },
     { key: 'borrow', label: 'Borrow', href: '/dashboard/book/checkout', icon: QrCodeIcon, isCenter: true },
     { key: 'holds', label: 'Holds', href: '/dashboard/book/holds', icon: BookmarkIcon },
-    { key: 'alerts', label: 'Alerts', href: '/dashboard/notifications', icon: BellIcon },
+    { key: 'alerts', label: 'Notifications', href: '/dashboard/notifications', icon: BellIcon },
   ],
   admin: [
     { key: 'overview', label: 'Overview', href: '/dashboard/admin', icon: HomeIcon },

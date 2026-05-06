@@ -98,17 +98,17 @@ type QuickPrompt = {
 const quickPrompts: QuickPrompt[] = [
   {
     id: 'faculty',
-    label: '📚 Recommend for my faculty',
+    label: '📚 My faculty',
     message: 'Recommend books based on my faculty and interests',
   },
   {
     id: 'assignment',
-    label: '📝 Books for my assignment',
+    label: '📝 Assignment',
     message: 'I need book recommendations for my academic assignment',
   },
   {
     id: 'available',
-    label: '✅ Show me what\'s available now',
+    label: '✅ Available now',
     message: 'What books are available to borrow right now?',
   },
   {
@@ -188,9 +188,8 @@ export default function StudentChat({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [onboardingComplete, setOnboardingComplete] = useState(!needsOnboarding);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
-  const [aiProvider, setAiProvider] = useState<'lmstudio' | 'gemini'>('lmstudio');
+  const [aiLive, setAiLive] = useState<boolean | null>(null);
   const [isSavingInterests, setIsSavingInterests] = useState(false);
-  const [showQuickPrompts, setShowQuickPrompts] = useState(true);
   const [learningPath, setLearningPath] = useState<LearningStage[] | null>(null);
   const [learningPathTopic, setLearningPathTopic] = useState<string | null>(null);
   const [learningPathLoading, setLearningPathLoading] = useState(false);
@@ -258,6 +257,17 @@ export default function StudentChat({
     };
   }, [isFullscreen]);
 
+  useEffect(() => {
+    const check = () =>
+      fetch('/api/ai-status')
+        .then((r) => r.json())
+        .then((d) => setAiLive(Boolean(d.live)))
+        .catch(() => setAiLive(false));
+    check();
+    const timer = setInterval(check, 30_000);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleCopy = (message: ChatMessage) => {
     navigator.clipboard.writeText(message.text).then(() => {
       setCopiedId(message.id);
@@ -281,8 +291,7 @@ export default function StudentChat({
       setMessages(buildInitialMessages(studentName ?? initialNameRef.current ?? null));
       setYoutubeSuggestions([]);
       setSendNotice(null);
-      setShowQuickPrompts(true);
-      setStickToBottom(true);
+        setStickToBottom(true);
       setInputValue('');
       setIsAssistantTyping(false);
       setLearningPath(null);
@@ -369,7 +378,6 @@ export default function StudentChat({
       timestamp: Date.now(),
     };
     setMessages((prev) => [...prev, newMessage]);
-    setShowQuickPrompts(false);
     setStickToBottom(true);
     scheduleScrollToBottom();
     lastSentAtRef.current = now;
@@ -390,7 +398,7 @@ export default function StudentChat({
       const response = await fetch('/api/recommendations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: content, provider: aiProvider }),
+        body: JSON.stringify({ message: content, provider: 'lmstudio' }),
       });
 
       const data = (await response.json()) as RecommendationResponse;
@@ -532,31 +540,16 @@ export default function StudentChat({
           </div>
         )}
         <div className="ml-auto flex items-center gap-2">
-          <div className="flex items-center rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900/70 overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setAiProvider('lmstudio')}
-              className={clsx(
-                'px-3 py-2 text-xs font-semibold transition',
-                aiProvider === 'lmstudio'
-                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
-              )}
-            >
-              Local AI
-            </button>
-            <button
-              type="button"
-              onClick={() => setAiProvider('gemini')}
-              className={clsx(
-                'px-3 py-2 text-xs font-semibold transition',
-                aiProvider === 'gemini'
-                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
-              )}
-            >
-              Gemini
-            </button>
+          {/* Local AI status */}
+          <div className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
+            <span className={clsx(
+              'h-2 w-2 rounded-full',
+              aiLive === null ? 'bg-slate-300 dark:bg-slate-600 animate-pulse' :
+              aiLive ? 'bg-green-500' : 'bg-red-400',
+            )} />
+            <span className="font-sans text-[11px] font-medium text-slate-600 dark:text-slate-300">
+              {aiLive === null ? 'Checking…' : aiLive ? 'Local AI · Live' : 'Local AI · Offline'}
+            </span>
           </div>
           <button
             type="button"
@@ -931,7 +924,7 @@ export default function StudentChat({
         </button>
       ) : null}
 
-      {onboardingComplete && showQuickPrompts && (
+      {onboardingComplete && (
         <div className="mt-3 flex flex-wrap gap-2">
           {quickPrompts.map((prompt) => (
             <button

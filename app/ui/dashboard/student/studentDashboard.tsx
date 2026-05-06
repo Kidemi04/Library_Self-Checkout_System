@@ -1,15 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   QrCodeIcon,
   BookOpenIcon,
   BookmarkIcon,
   SparklesIcon,
   ArrowRightIcon,
-  SunIcon,
-  MoonIcon,
 } from '@heroicons/react/24/outline';
 import type { Loan } from '@/app/lib/supabase/types';
 import type { PatronHold } from '@/app/lib/supabase/queries';
@@ -18,7 +15,6 @@ import HoldCard from '@/app/ui/dashboard/primitives/HoldCard';
 import BookCover, { getBookGradient } from '@/app/ui/dashboard/primitives/BookCover';
 import ScanCtaButton from '@/app/ui/dashboard/primitives/ScanCtaButton';
 import BlurFade from '@/app/ui/magicUi/blurFade';
-import { useTheme } from '@/app/ui/theme/themeProvider';
 
 export type BookPick = {
   id: string;
@@ -53,8 +49,6 @@ export default function StudentDashboard({
   holds,
   picks,
 }: StudentDashboardProps) {
-  const { theme, toggleTheme } = useTheme();
-  const isDark = theme === 'dark';
   const mobilePicks = picks.slice(0, 4);
   const featuredPick = picks[0];
 
@@ -81,16 +75,6 @@ export default function StudentDashboard({
           <div className="px-5 pb-6 pt-5">
             <div className="mb-5 flex items-start justify-between">
               <div>
-                <div className="mb-3">
-                  <Image
-                    src="/swinburne-logo.png"
-                    alt="Swinburne University of Technology Sarawak Campus"
-                    width={140}
-                    height={65}
-                    className="rounded-sm"
-                    priority
-                  />
-                </div>
                 <p className="font-display text-[32px] font-[500] leading-none tracking-tight">
                   {greeting},
                 </p>
@@ -98,14 +82,6 @@ export default function StudentDashboard({
                   {firstName}.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={toggleTheme}
-                aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-                className="mt-1 flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-surface-card text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
-              >
-                {isDark ? <SunIcon className="h-5 w-5" /> : <MoonIcon className="h-5 w-5" />}
-              </button>
             </div>
 
             {/* Stats strip */}

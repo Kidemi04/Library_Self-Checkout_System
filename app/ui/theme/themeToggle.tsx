@@ -28,7 +28,7 @@ export default function ThemeToggle({ className, size = 'default' }: ThemeToggle
         className,
       )}
     >
-      {isDark ? <SunIcon className={iconSize} /> : <MoonIcon className={iconSize} />}
+      {isDark ? <MoonIcon className={iconSize} /> : <SunIcon className={iconSize} />}
     </button>
   );
 }

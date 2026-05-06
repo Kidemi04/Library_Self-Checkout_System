@@ -238,6 +238,7 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
         <button
           type="button"
           onClick={toggleTheme}
+          suppressHydrationWarning
           aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           title={collapsed ? (isDark ? 'Light mode' : 'Dark mode') : undefined}
           className={clsx(
@@ -245,7 +246,7 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
             collapsed ? 'h-10 w-10 mx-auto p-0' : 'gap-2 px-3 py-2',
           )}
         >
-          {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
+          {isDark ? <MoonIcon className="h-4 w-4" /> : <SunIcon className="h-4 w-4" />}
           {!collapsed && (isDark ? 'Light mode' : 'Dark mode')}
         </button>
 
