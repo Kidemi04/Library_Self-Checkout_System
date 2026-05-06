@@ -515,32 +515,32 @@ export default function StudentChat({
       className={clsx(
         'flex flex-col p-5 shadow-sm',
         isFullscreen
-          ? 'fixed inset-0 z-[60] overflow-y-auto rounded-none border-0 bg-white dark:bg-slate-950'
-          : 'h-full rounded-3xl border border-slate-200 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-950/40 dark:shadow-black/20',
+          ? 'fixed inset-0 z-[60] overflow-y-auto rounded-none border-0 bg-surface-card dark:bg-dark-canvas'
+          : 'h-full rounded-3xl border border-hairline bg-canvas dark:border-dark-hairline dark:bg-dark-canvas/40 dark:shadow-black/20',
       )}
     >
       <div className={clsx('flex flex-wrap items-start gap-3', isFullscreen ? 'justify-end' : 'justify-between')}>
         {!isFullscreen && (
           <div className="flex flex-col gap-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400/80">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted dark:text-on-dark-soft">
               AI recommendations
             </p>
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Reading assistant</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-300/80">
+            <h2 className="text-xl font-semibold text-ink dark:text-on-dark">Reading assistant</h2>
+            <p className="text-sm text-muted dark:text-on-dark-soft">
               Share what you want to read, and I will recommend books from the catalog.
             </p>
           </div>
         )}
         <div className="ml-auto flex items-center gap-2">
-          <div className="flex items-center rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900/70 overflow-hidden">
+          <div className="flex items-center rounded-xl border border-hairline bg-surface-card shadow-sm dark:border-dark-hairline dark:bg-dark-surface-card overflow-hidden">
             <button
               type="button"
               onClick={() => setAiProvider('lmstudio')}
               className={clsx(
                 'px-3 py-2 text-xs font-semibold transition',
                 aiProvider === 'lmstudio'
-                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
+                  ? 'bg-primary text-on-primary dark:bg-dark-primary'
+                  : 'text-muted hover:text-body dark:text-on-dark-soft dark:hover:text-on-dark',
               )}
             >
               Local AI
@@ -551,8 +551,8 @@ export default function StudentChat({
               className={clsx(
                 'px-3 py-2 text-xs font-semibold transition',
                 aiProvider === 'gemini'
-                  ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
-                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200',
+                  ? 'bg-primary text-on-primary dark:bg-dark-primary'
+                  : 'text-muted hover:text-body dark:text-on-dark-soft dark:hover:text-on-dark',
               )}
             >
               Gemini
@@ -562,7 +562,7 @@ export default function StudentChat({
             type="button"
             title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
             onClick={() => setIsFullscreen((v) => !v)}
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white p-2 text-slate-700 shadow-sm transition hover:border-red-400 hover:text-red-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-red-500 dark:hover:text-red-400"
+            className="inline-flex items-center justify-center rounded-xl border border-hairline bg-surface-card p-2 text-body shadow-sm transition hover:border-red-400 hover:text-red-600 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:border-red-500 dark:hover:text-red-400"
           >
             {isFullscreen ? (
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
@@ -577,7 +577,7 @@ export default function StudentChat({
           <button
             type="button"
             onClick={resetChat}
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-red-400 hover:text-red-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-red-500 dark:hover:text-red-400"
+            className="inline-flex items-center justify-center rounded-xl border border-hairline bg-surface-card px-3 py-2 text-xs font-semibold text-body shadow-sm transition hover:border-red-400 hover:text-red-600 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:border-red-500 dark:hover:text-red-400"
           >
             Clear chat
           </button>
@@ -585,14 +585,14 @@ export default function StudentChat({
       </div>
 
       {!onboardingComplete && (
-        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
-          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 dark:text-slate-400/80">
+        <div className="mt-5 rounded-2xl border border-hairline bg-surface-card p-5 shadow-sm dark:border-dark-hairline dark:bg-dark-surface-card">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-muted dark:text-on-dark-soft">
             Get started
           </p>
-          <h3 className="mt-1 text-base font-semibold text-slate-900 dark:text-slate-100">
+          <h3 className="mt-1 text-base font-semibold text-ink dark:text-on-dark">
             Pick topics you are interested in
           </h3>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300/80">
+          <p className="mt-1 text-sm text-muted dark:text-on-dark-soft">
             Choose at least one. We will use these to personalize your recommendations.
           </p>
 
@@ -607,8 +607,8 @@ export default function StudentChat({
                   className={clsx(
                     'rounded-full border px-3 py-1 text-xs font-semibold transition',
                     active
-                      ? 'border-slate-900 bg-slate-900 text-white dark:border-slate-200 dark:bg-slate-200 dark:text-slate-900'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-slate-500 dark:hover:text-white',
+                      ? 'border-primary bg-primary text-on-primary dark:border-dark-primary dark:bg-dark-primary'
+                      : 'border-hairline bg-surface-card text-body hover:border-primary/40 hover:text-ink dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:border-dark-hairline dark:hover:text-on-dark',
                   )}
                 >
                   {tag}
@@ -622,7 +622,7 @@ export default function StudentChat({
               type="button"
               disabled={selectedTags.size === 0 || isSavingInterests}
               onClick={handleSaveInterests}
-              className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+              className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-active disabled:cursor-not-allowed disabled:opacity-60 dark:bg-dark-primary dark:hover:bg-primary-active"
             >
               {isSavingInterests
                 ? 'Saving...'
@@ -631,7 +631,7 @@ export default function StudentChat({
             <button
               type="button"
               onClick={() => setOnboardingComplete(true)}
-              className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+              className="text-sm text-muted hover:text-body dark:text-on-dark-soft dark:hover:text-on-dark"
             >
               Skip for now
             </button>
@@ -644,7 +644,7 @@ export default function StudentChat({
         ref={messagesRef}
         onScroll={handleScroll}
         className={clsx(
-          'mt-4 flex-1 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900/60',
+          'mt-4 flex-1 overflow-y-auto rounded-2xl border border-hairline bg-surface-card p-4 dark:border-dark-hairline dark:bg-dark-surface-card',
           isFullscreen ? 'max-h-[calc(100vh-16rem)]' : 'max-h-[55vh] sm:max-h-[60vh] lg:max-h-[65vh]',
         )}
       >
@@ -657,9 +657,9 @@ export default function StudentChat({
                 message.sender === 'student' ? 'items-end' : 'items-start',
               )}
             >
-              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted dark:text-on-dark-soft">
                 <span>{message.sender === 'student' ? 'You' : 'Library Assistant'}</span>
-                <span className="text-slate-400 dark:text-slate-500">
+                <span className="text-muted dark:text-on-dark-soft">
                   {formatTimestamp(message.timestamp)}
                 </span>
               </div>
@@ -667,8 +667,8 @@ export default function StudentChat({
                 className={clsx(
                   'w-full max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm md:max-w-[70%]',
                   message.sender === 'student'
-                    ? 'rounded-br-md bg-slate-900 text-white shadow-slate-900/20 dark:bg-slate-200 dark:text-slate-900 dark:shadow-black/30'
-                    : 'rounded-bl-md border border-slate-200 bg-slate-100 text-slate-900 shadow-slate-200/40 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-100 dark:shadow-black/30',
+                    ? 'rounded-br-md bg-surface-cream-strong text-ink shadow-black/10 dark:bg-dark-surface-strong dark:text-on-dark dark:shadow-black/30'
+                    : 'rounded-bl-md border border-hairline bg-primary text-on-primary shadow-black/10 dark:border-dark-hairline dark:bg-dark-primary dark:text-on-primary dark:shadow-black/30',
                 )}
               >
                 {message.text.split('\n').map((line, lineIndex) => (
@@ -684,10 +684,10 @@ export default function StudentChat({
                     return (
                       <div
                         key={rec.id}
-                        className="flex gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-900/70"
+                        className="flex gap-3 rounded-2xl border border-hairline bg-surface-card p-3 shadow-sm dark:border-dark-hairline dark:bg-dark-surface-card"
                       >
                         {/* Cover image */}
-                        <div className="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                        <div className="shrink-0 w-12 h-16 rounded-lg overflow-hidden bg-surface-cream-strong dark:bg-dark-surface-strong flex items-center justify-center">
                           {rec.coverImageUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -696,7 +696,7 @@ export default function StudentChat({
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-slate-400 dark:text-slate-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-muted dark:text-on-dark-soft">
                               <path d="M11.25 4.533A9.707 9.707 0 0 0 6 3a9.735 9.735 0 0 0-3.25.555.75.75 0 0 0-.5.707v14.25a.75.75 0 0 0 1 .707A8.237 8.237 0 0 1 6 18.75c1.995 0 3.823.707 5.25 1.886V4.533ZM12.75 20.636A8.214 8.214 0 0 1 18 18.75c.966 0 1.89.166 2.75.47a.75.75 0 0 0 1-.708V4.262a.75.75 0 0 0-.5-.707A9.735 9.735 0 0 0 18 3a9.707 9.707 0 0 0-5.25 1.533v16.103Z" />
                             </svg>
                           )}
@@ -705,12 +705,12 @@ export default function StudentChat({
                         <div className="flex-1 min-w-0">
                           <Link
                             href={searchUrl}
-                            className="block text-sm font-semibold text-slate-900 hover:text-red-600 dark:text-slate-100 dark:hover:text-red-400 line-clamp-2 leading-snug"
+                            className="block text-sm font-semibold text-ink hover:text-red-600 dark:text-on-dark dark:hover:text-red-400 line-clamp-2 leading-snug"
                           >
                             {rec.title}
                           </Link>
                           {rec.author && (
-                            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 truncate">{rec.author}</p>
+                            <p className="mt-0.5 text-xs text-muted dark:text-on-dark-soft truncate">{rec.author}</p>
                           )}
                           <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
                             <span className={clsx(
@@ -739,26 +739,26 @@ export default function StudentChat({
                             )}
                           </div>
                           {/* YouTube + Google search links */}
-                          <div className="mt-2 flex items-center gap-2 border-t border-slate-100 pt-2 dark:border-slate-700">
+                          <div className="mt-2 flex items-center gap-2 border-t border-hairline pt-2 dark:border-dark-hairline">
                             <a
                               href={`https://www.youtube.com/results?search_query=${encodeURIComponent(rec.title)}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               title="Search on YouTube"
-                              className="flex items-center gap-1 text-[11px] font-medium text-slate-400 transition hover:text-red-600 dark:text-slate-500 dark:hover:text-red-400"
+                              className="flex items-center gap-1 text-[11px] font-medium text-muted transition hover:text-red-600 dark:text-on-dark-soft dark:hover:text-red-400"
                             >
                               <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 shrink-0">
                                 <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                               </svg>
                               YouTube
                             </a>
-                            <span className="text-slate-200 dark:text-slate-700">|</span>
+                            <span className="text-hairline dark:text-dark-hairline">|</span>
                             <a
                               href={`https://www.google.com/search?q=${encodeURIComponent(rec.title + ' book')}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               title="Search on Google"
-                              className="flex items-center gap-1 text-[11px] font-medium text-slate-400 transition hover:text-blue-600 dark:text-slate-500 dark:hover:text-blue-400"
+                              className="flex items-center gap-1 text-[11px] font-medium text-muted transition hover:text-blue-600 dark:text-on-dark-soft dark:hover:text-blue-400"
                             >
                               <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 shrink-0">
                                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -781,7 +781,7 @@ export default function StudentChat({
                     type="button"
                     title="Copy message"
                     onClick={() => handleCopy(message)}
-                    className="rounded-xl p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                    className="rounded-xl p-2 text-muted transition hover:bg-red-50 hover:text-red-600 dark:text-on-dark-soft dark:hover:bg-red-950/40 dark:hover:text-red-400"
                   >
                     {copiedId === message.id ? (
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5 text-emerald-500">
@@ -798,7 +798,7 @@ export default function StudentChat({
                     type="button"
                     title="Edit message"
                     onClick={() => handleEdit(message)}
-                    className="rounded-xl p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:text-slate-500 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+                    className="rounded-xl p-2 text-muted transition hover:bg-red-50 hover:text-red-600 dark:text-on-dark-soft dark:hover:bg-red-950/40 dark:hover:text-red-400"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
                       <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
@@ -811,30 +811,30 @@ export default function StudentChat({
           ))}
         </ol>
         {isAssistantTyping ? (
-          <div className="mt-4 flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-            <span className="h-2 w-2 animate-ping rounded-full bg-slate-400 dark:bg-slate-500" />
+          <div className="mt-4 flex items-center gap-2 text-xs font-medium text-muted dark:text-on-dark-soft">
+            <span className="h-2 w-2 animate-ping rounded-full bg-muted dark:bg-on-dark-soft" />
             Library Assistant is typing...
           </div>
         ) : null}
 
         {(learningPathLoading || learningPath?.length) && learningPathTopic ? (
-          <section className="mt-6 border-t border-slate-200 pt-5 dark:border-slate-700">
+          <section className="mt-6 border-t border-hairline pt-5 dark:border-dark-hairline">
             <div className="flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 text-red-600">
                 <path d="M12 2 2 7l10 5 10-5-10-5Z" />
                 <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+              <h3 className="text-sm font-semibold text-ink dark:text-on-dark">
                 Recommended learning path for{' '}
                 <span className="text-red-600 dark:text-red-400">{learningPathTopic}</span>
               </h3>
             </div>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-muted dark:text-on-dark-soft">
               Books from our catalog arranged from beginner to advanced.
             </p>
 
             {learningPathLoading && !learningPath ? (
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-500 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-400">
+              <div className="mt-4 rounded-2xl border border-hairline bg-surface-card p-4 text-xs text-muted dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft">
                 Building a beginner-to-advanced path…
               </div>
             ) : null}
@@ -851,7 +851,7 @@ export default function StudentChat({
                         </span>
                         <div>
                           <p className={clsx('text-sm font-semibold', styles.badge)}>{stage.level}</p>
-                          <p className="text-xs text-slate-600 dark:text-slate-400">{stage.description}</p>
+                          <p className="text-xs text-muted dark:text-on-dark-soft">{stage.description}</p>
                         </div>
                       </div>
                       <div className="mt-3 space-y-2">
@@ -861,27 +861,27 @@ export default function StudentChat({
                           return (
                             <div
                               key={book.id}
-                              className="rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm dark:border-slate-700 dark:bg-slate-900/60"
+                              className="rounded-xl border border-hairline bg-surface-card px-3 py-2 shadow-sm dark:border-dark-hairline dark:bg-dark-surface-card"
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
                                   <Link
                                     href={bookSearch}
-                                    className="block text-sm font-medium text-slate-900 hover:text-red-600 dark:text-slate-100 dark:hover:text-red-400 line-clamp-2"
+                                    className="block text-sm font-medium text-ink hover:text-red-600 dark:text-on-dark dark:hover:text-red-400 line-clamp-2"
                                   >
                                     {book.title}
                                   </Link>
                                   {book.author ? (
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">by {book.author}</p>
+                                    <p className="text-[11px] text-muted dark:text-on-dark-soft truncate">by {book.author}</p>
                                   ) : null}
-                                  <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-500">{book.reason}</p>
+                                  <p className="mt-0.5 text-[11px] text-muted dark:text-on-dark-soft">{book.reason}</p>
                                 </div>
                                 <span
                                   className={clsx(
                                     'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold',
                                     book.availableCopies > 0
                                       ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                                      : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
+                                      : 'bg-surface-cream-strong text-muted dark:bg-dark-surface-strong dark:text-on-dark-soft',
                                   )}
                                 >
                                   {book.availableCopies > 0
@@ -925,7 +925,7 @@ export default function StudentChat({
             scrollToBottom();
             setStickToBottom(true);
           }}
-          className="mt-2 inline-flex items-center justify-center self-center rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 shadow-sm transition hover:border-red-400 hover:text-red-600 dark:border-slate-700 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:border-red-500 dark:hover:text-red-400"
+          className="mt-2 inline-flex items-center justify-center self-center rounded-full border border-hairline bg-surface-card px-3 py-1 text-xs font-semibold text-body shadow-sm transition hover:border-red-400 hover:text-red-600 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:border-red-500 dark:hover:text-red-400"
         >
           Scroll to latest
         </button>
@@ -938,7 +938,7 @@ export default function StudentChat({
               key={prompt.id}
               type="button"
               onClick={() => handleQuickPrompt(prompt)}
-              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-300 dark:hover:border-red-500/50 dark:hover:bg-red-950/20 dark:hover:text-red-400"
+              className="rounded-full border border-hairline bg-surface-card px-3 py-1.5 text-xs font-medium text-body shadow-sm transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:border-red-500/50 dark:hover:bg-red-950/20 dark:hover:text-red-400"
             >
               {prompt.label}
             </button>
@@ -964,9 +964,9 @@ export default function StudentChat({
           onKeyDown={handleKeyDown}
           placeholder="Ask a question or search for books..."
           style={{ resize: 'none', overflow: 'hidden', minHeight: '44px', maxHeight: '160px' }}
-          className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200 dark:border-slate-800 dark:bg-slate-900/80 dark:text-slate-100 dark:focus:border-slate-500 dark:focus:ring-slate-700/50"
+          className="w-full rounded-2xl border border-hairline bg-surface-card p-3 text-sm text-ink shadow-sm outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-primary/15 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:focus:border-dark-hairline dark:focus:ring-dark-hairline/50"
         />
-        <div className="flex flex-wrap items-center justify-end gap-3 text-xs text-slate-500 dark:text-slate-400">
+        <div className="flex flex-wrap items-center justify-end gap-3 text-xs text-muted dark:text-on-dark-soft">
           {(!isFullscreen || sendNotice) && (
             <p>
               {sendNotice ??
@@ -976,7 +976,7 @@ export default function StudentChat({
           <button
             type="submit"
             disabled={isAssistantTyping}
-            className="inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-red-600 dark:hover:bg-red-700 dark:focus-visible:ring-red-500 dark:focus-visible:ring-offset-slate-900"
+            className="inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-on-primary shadow-sm transition hover:bg-primary-active focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card disabled:cursor-not-allowed disabled:opacity-60 dark:bg-dark-primary dark:hover:bg-primary-active dark:focus-visible:ring-dark-primary dark:focus-visible:ring-offset-dark-canvas"
           >
             {isAssistantTyping ? 'Sending...' : 'Send message'}
           </button>
@@ -984,14 +984,14 @@ export default function StudentChat({
       </form>}
 
       {!isFullscreen && onboardingComplete && youtubeSuggestions.length > 0 && (
-        <div className="mt-5 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
-          <p className="text-[11px] uppercase tracking-[0.25em] text-slate-500 dark:text-slate-400/80">
+        <div className="mt-5 rounded-3xl border border-hairline bg-surface-card p-4 shadow-sm dark:border-dark-hairline dark:bg-dark-surface-card">
+          <p className="text-[11px] uppercase tracking-[0.25em] text-muted dark:text-on-dark-soft">
             Go deeper
           </p>
-          <h3 className="mt-0.5 text-base font-semibold text-slate-900 dark:text-slate-100">
+          <h3 className="mt-0.5 text-base font-semibold text-ink dark:text-on-dark">
             Videos on YouTube
           </h3>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-0.5 text-xs text-muted dark:text-on-dark-soft">
             Suggested based on your interests. Opens YouTube.
           </p>
           <div className="mt-3 flex flex-col gap-2">
@@ -1006,7 +1006,7 @@ export default function StudentChat({
                   href={href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 shadow-sm transition hover:border-[#0A66C2] hover:text-[#0A66C2] dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200 dark:hover:border-[#0A66C2] dark:hover:text-[#70B5F9]"
+                className="flex items-center justify-between gap-3 rounded-2xl border border-hairline bg-surface-card px-4 py-3 text-sm font-medium text-body shadow-sm transition hover:border-[#0A66C2] hover:text-[#0A66C2] dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:border-[#0A66C2] dark:hover:text-[#70B5F9]"
                 >
                   <span>{suggestion.title}</span>
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4 shrink-0 opacity-50">
