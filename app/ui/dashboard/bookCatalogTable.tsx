@@ -185,6 +185,31 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
   const [autoCategorizing, setAutoCategorizing] = React.useState(false);
   const [autoCategoryMessage, setAutoCategoryMessage] = React.useState<string | null>(null);
   const [autoCategoryError, setAutoCategoryError] = React.useState<string | null>(null);
+  const [embedding, setEmbedding] = React.useState(false);
+  const [embedMessage, setEmbedMessage] = React.useState<string | null>(null);
+  const [embedError, setEmbedError] = React.useState<string | null>(null);
+
+  async function onEmbedAll(reembed = false) {
+    setEmbedMessage(null);
+    setEmbedError(null);
+    setEmbedding(true);
+    try {
+      const res = await fetch('/api/book/embed-all', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reembed }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Embedding failed');
+      const n = Number(data?.embedded ?? 0);
+      const f = Number(data?.failed ?? 0);
+      setEmbedMessage(`Embedded ${n} book${n === 1 ? '' : 's'}${f ? ` (${f} failed)` : ''}.`);
+    } catch (err) {
+      setEmbedError(err instanceof Error ? err.message : 'Embedding failed');
+    } finally {
+      setEmbedding(false);
+    }
+  }
 
   function onManage(b: CatalogBook) {
     setActive(b);
@@ -368,6 +393,25 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
         </button>
         {autoCategoryMessage && <span className="font-sans text-body-sm text-success">{autoCategoryMessage}</span>}
         {autoCategoryError && <span className="font-sans text-body-sm text-error">{autoCategoryError}</span>}
+
+        <button
+          type="button"
+          onClick={() => onEmbedAll(false)}
+          disabled={embedding}
+          className="inline-flex items-center gap-2 rounded-btn border border-hairline bg-surface-card px-3 py-1.5 font-sans text-button text-ink hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
+        >
+          {embedding ? 'Embedding…' : 'Embed unembedded books'}
+        </button>
+        <button
+          type="button"
+          onClick={() => onEmbedAll(true)}
+          disabled={embedding}
+          className="inline-flex items-center gap-2 rounded-btn border border-hairline bg-surface-card px-3 py-1.5 font-sans text-button text-ink hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
+        >
+          {embedding ? 'Embedding…' : 'Re-embed all'}
+        </button>
+        {embedMessage && <span className="font-sans text-body-sm text-success">{embedMessage}</span>}
+        {embedError && <span className="font-sans text-body-sm text-error">{embedError}</span>}
       </div>
 
       {/* Category filter chips */}
