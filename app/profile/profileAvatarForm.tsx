@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useActionState } from 'react';
+import { useRef, useTransition, useActionState } from 'react';
 import { ArrowPathIcon, CameraIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { updateProfileAvatar } from './actions';
@@ -26,18 +26,15 @@ export default function ProfileAvatarForm({
   isPrivileged: boolean;
 }) {
   const [state, formAction] = useActionState(updateProfileAvatar, initialState);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const defaultAvatar = avatarUrl || getRandomDefaultAvatar();
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLFormElement>) => {
-    setIsUploading(true);
-    try {
-      const formData = new FormData(e.currentTarget);
-      await formAction(formData);
-    } finally {
-      setIsUploading(false);
-    }
+  const handleFileChange = (e: React.ChangeEvent<HTMLFormElement>) => {
+    const formData = new FormData(e.currentTarget);
+    startTransition(() => {
+      formAction(formData);
+    });
   };
 
   return (
@@ -76,9 +73,9 @@ export default function ProfileAvatarForm({
           name="avatar"
           accept="image/*"
           className="hidden"
-          disabled={isUploading}
+          disabled={isPending}
         />
-        {isUploading && (
+        {isPending && (
           <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm">
             <ArrowPathIcon className="h-8 w-8 animate-spin text-white" />
           </div>

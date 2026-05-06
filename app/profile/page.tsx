@@ -1,8 +1,8 @@
 import Link from 'next/link';
+import clsx from 'clsx';
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
-import ProfileNameForm from '@/app/profile/profileNameForm';
 import ProfileAvatarForm from '@/app/profile/profileAvatarForm';
 import ProfileEditForm from '@/app/profile/profileEditForm';
 import BlurFade from '@/app/ui/magicUi/blurFade';
@@ -85,11 +85,11 @@ const formatMemberSince = (value?: string | null) => {
   return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(date);
 };
 
-const ProfileValue = ({ value }: { value?: string | null }) => {
+const ProfileValue = ({ value }: { value?: string | null; isPrivileged: boolean }) => {
   if (value && value.trim().length > 0) {
-    return <span className="font-medium text-ink dark:text-on-dark">{value}</span>;
+    return <span className="font-medium text-swin-charcoal dark:text-white">{value}</span>;
   }
-  return <span className="font-sans text-caption text-muted-soft dark:text-on-dark-soft">Not provided</span>;
+  return <span className="text-[12px] text-swin-charcoal/40 dark:text-white/40">Not provided</span>;
 };
 
 export default async function ProfilePage() {
@@ -140,21 +140,26 @@ export default async function ProfilePage() {
   const links = normalizeLinks(profile.links);
   const preferredName = profile.display_name ?? user.name ?? null;
 
+  const pageWrapperClass = clsx(
+    'min-h-screen py-10 transition-colors sm:py-14',
+    'bg-slate-50 text-swin-charcoal dark:bg-swin-dark-bg dark:text-white',
+  );
+
   return (
-    <main className="min-h-screen bg-canvas py-10 text-ink transition-colors sm:py-14 dark:bg-dark-canvas dark:text-on-dark">
+    <main className={pageWrapperClass}>
       <title>My Profile</title>
 
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Page header */}
         <BlurFade delay={0.05} yOffset={12}>
-          <header className="mb-8 border-b border-hairline pb-6 dark:border-dark-hairline">
-            <p className="mb-1.5 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+          <header className="mb-8 border-b border-swin-charcoal/10 pb-6 dark:border-white/10">
+            <p className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[2px] text-swin-charcoal/40 dark:text-white/40">
               Account
             </p>
-            <h1 className="font-display text-display-lg text-ink tracking-tight dark:text-on-dark">
+            <h1 className="font-display text-[34px] font-semibold leading-none tracking-tight text-swin-charcoal dark:text-white">
               My Profile
             </h1>
-            <p className="mt-2 font-sans text-body-md text-body dark:text-on-dark/80">
+            <p className="mt-2 text-[13px] text-swin-charcoal/60 dark:text-white/50">
               Keep your identity and contact details up to date so other patrons and staff can reach you.
             </p>
           </header>
@@ -164,28 +169,30 @@ export default async function ProfilePage() {
           {/* ── LEFT COLUMN — identity card + summary ───────────────────── */}
           <aside className="space-y-5">
             <BlurFade delay={0.1} yOffset={12}>
-              <section className="rounded-card border border-hairline bg-surface-card p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
+              <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 dark:border-white/10 dark:bg-swin-dark-surface">
                 <div className="flex flex-col items-center text-center">
                   <div className="relative mb-4">
+                    <div className="absolute -inset-3 rounded-full bg-gradient-to-br from-swin-red/15 to-transparent blur-lg" />
                     <ProfileAvatarForm
                       avatarUrl={profile.avatar_url ?? null}
                       displayName={preferredName}
+                      isPrivileged={isPrivileged}
                     />
                   </div>
-                  <p className="font-display text-display-sm text-ink tracking-tight dark:text-on-dark">
+                  <p className="font-display text-[22px] font-semibold leading-tight tracking-tight text-swin-charcoal dark:text-white">
                     {preferredName ?? user.email ?? 'My Profile'}
                   </p>
                   {profile.username && (
-                    <p className="mt-0.5 font-mono text-code text-muted-soft dark:text-on-dark-soft">
+                    <p className="mt-0.5 font-mono text-[11px] text-swin-charcoal/50 dark:text-white/50">
                       @{profile.username}
                     </p>
                   )}
-                  <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
+                  <p className="mt-1 text-[12px] text-swin-charcoal/55 dark:text-white/55">
                     {user.email ?? 'Email unavailable'}
                   </p>
                   <div className="mt-3 flex flex-wrap justify-center gap-1.5">
                     <RoleBadge role={user.role ?? 'user'} />
-                    <span className="inline-flex items-center rounded-pill border border-hairline bg-surface-cream-strong px-2 py-0.5 font-sans text-caption-uppercase text-muted dark:border-dark-hairline dark:bg-dark-surface-strong dark:text-on-dark-soft">
+                    <span className="inline-flex items-center rounded-full border border-swin-charcoal/15 bg-swin-charcoal/5 px-2 py-0.5 font-mono text-[10px] font-bold tracking-[1.6px] text-swin-charcoal/70 dark:border-white/15 dark:bg-white/5 dark:text-white/70">
                       {visibilityLabel.toUpperCase()}
                     </span>
                   </div>
@@ -194,33 +201,33 @@ export default async function ProfilePage() {
             </BlurFade>
 
             <BlurFade delay={0.18} yOffset={12}>
-              <section className="rounded-card border border-hairline bg-surface-card p-5 dark:border-dark-hairline dark:bg-dark-surface-card">
-                <p className="mb-3 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+              <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-5 dark:border-white/10 dark:bg-swin-dark-surface">
+                <p className="mb-3 font-mono text-[10px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/45 dark:text-white/45">
                   Activity summary
                 </p>
-                <dl className="space-y-3 font-sans text-body-sm">
+                <dl className="space-y-3 text-[13px]">
                   <div className="flex items-baseline justify-between">
-                    <dt className="text-muted dark:text-on-dark-soft">Faculty</dt>
-                    <dd className="font-medium text-ink dark:text-on-dark">
+                    <dt className="text-swin-charcoal/55 dark:text-white/55">Faculty</dt>
+                    <dd className="font-medium text-swin-charcoal dark:text-white">
                       {profile.faculty ?? '—'}
                     </dd>
                   </div>
                   <div className="flex items-baseline justify-between">
-                    <dt className="text-muted dark:text-on-dark-soft">Department</dt>
-                    <dd className="font-medium text-ink dark:text-on-dark">
+                    <dt className="text-swin-charcoal/55 dark:text-white/55">Department</dt>
+                    <dd className="font-medium text-swin-charcoal dark:text-white">
                       {profile.department ?? '—'}
                     </dd>
                   </div>
                   <div className="flex items-baseline justify-between">
-                    <dt className="text-muted dark:text-on-dark-soft">Intake year</dt>
-                    <dd className="font-mono text-code text-ink dark:text-on-dark">
+                    <dt className="text-swin-charcoal/55 dark:text-white/55">Intake year</dt>
+                    <dd className="font-mono text-swin-charcoal dark:text-white">
                       {profile.intake_year ?? '—'}
                     </dd>
                   </div>
                   {memberSince && (
-                    <div className="flex items-baseline justify-between border-t border-hairline pt-3 dark:border-dark-hairline">
-                      <dt className="text-muted dark:text-on-dark-soft">Member since</dt>
-                      <dd className="font-mono text-code text-ink dark:text-on-dark">
+                    <div className="flex items-baseline justify-between border-t border-swin-charcoal/8 pt-3 dark:border-white/8">
+                      <dt className="text-swin-charcoal/55 dark:text-white/55">Member since</dt>
+                      <dd className="font-mono text-[12px] text-swin-charcoal dark:text-white">
                         {memberSince}
                       </dd>
                     </div>
@@ -233,38 +240,35 @@ export default async function ProfilePage() {
           {/* ── RIGHT COLUMN — identity + contact + links ───────────────── */}
           <div className="space-y-5">
             <BlurFade delay={0.22} yOffset={12}>
-              <section className="rounded-card border border-hairline bg-surface-card p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
-                <h2 className="mb-4 font-display text-display-sm text-ink tracking-tight dark:text-on-dark">
+              <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 dark:border-white/10 dark:bg-swin-dark-surface">
+                <h2 className="mb-4 font-display text-[20px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
                   Identity
                 </h2>
-                <div className="divide-y divide-hairline dark:divide-dark-hairline">
+                <div className="divide-y divide-swin-charcoal/8 dark:divide-white/8">
                   <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-                    <span className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+                    <span className="font-mono text-[10px] font-semibold uppercase tracking-[1.6px] text-swin-charcoal/45 dark:text-white/45">
                       Display name
                     </span>
-                    <div className="sm:text-right">
-                      <ProfileNameForm
-                        displayName={profile.display_name ?? user.name ?? null}
-                        username={profile.username ?? null}
-                      />
+                    <div className="sm:text-right text-[13px]">
+                      <ProfileValue value={preferredName} isPrivileged={isPrivileged} />
                     </div>
                   </div>
                   <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-                    <span className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+                    <span className="font-mono text-[10px] font-semibold uppercase tracking-[1.6px] text-swin-charcoal/45 dark:text-white/45">
                       Username
                     </span>
-                    <div className="font-sans text-body-sm sm:text-right">
-                      <ProfileValue value={profile.username ?? null} />
+                    <div className="sm:text-right text-[13px]">
+                      <ProfileValue value={profile.username ?? null} isPrivileged={isPrivileged} />
                     </div>
                   </div>
                   <div className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-                    <span className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+                    <span className="font-mono text-[10px] font-semibold uppercase tracking-[1.6px] text-swin-charcoal/45 dark:text-white/45">
                       Student ID
                     </span>
-                    <div className="font-sans text-body-sm sm:text-right">
-                      <ProfileValue value={profile.student_id ?? null} />
+                    <div className="sm:text-right text-[13px]">
+                      <ProfileValue value={profile.student_id ?? null} isPrivileged={isPrivileged} />
                       {!isPrivileged && (
-                        <p className="mt-0.5 font-sans text-caption text-muted-soft dark:text-on-dark-soft">
+                        <p className="mt-0.5 font-mono text-[10px] text-swin-charcoal/40 dark:text-white/40">
                           Managed by admin
                         </p>
                       )}
@@ -275,46 +279,48 @@ export default async function ProfilePage() {
             </BlurFade>
 
             <BlurFade delay={0.28} yOffset={12}>
-              <section className="rounded-card border border-hairline bg-surface-card p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
-                <h2 className="mb-4 font-display text-display-sm text-ink tracking-tight dark:text-on-dark">
+              <section className="rounded-2xl border border-swin-charcoal/10 bg-white p-6 dark:border-white/10 dark:bg-swin-dark-surface">
+                <h2 className="mb-4 font-display text-[20px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
                   Contact & details
                 </h2>
                 <ProfileEditForm
+                  displayName={profile.display_name ?? user.name ?? null}
                   username={profile.username ?? null}
                   phone={profile.phone ?? null}
                   preferredLanguage={profile.preferred_language ?? null}
                   faculty={profile.faculty ?? null}
                   department={profile.department ?? null}
                   bio={profile.bio ?? null}
+                  isPrivileged={isPrivileged}
                 />
               </section>
             </BlurFade>
 
             <BlurFade delay={0.34} yOffset={12}>
-              <section className="rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card">
-                <h2 className="px-6 pt-5 font-display text-display-sm text-ink tracking-tight dark:text-on-dark">
+              <section className="rounded-2xl border border-swin-charcoal/10 bg-white dark:border-white/10 dark:bg-swin-dark-surface">
+                <h2 className="px-6 pt-5 font-display text-[20px] font-semibold tracking-tight text-swin-charcoal dark:text-white">
                   Links
                 </h2>
                 {links.length > 0 ? (
-                  <ul className="mt-3 divide-y divide-hairline dark:divide-dark-hairline">
+                  <ul className="mt-3 divide-y divide-swin-charcoal/8 dark:divide-white/8">
                     {links.map((link) => (
                       <li key={`${link.label}-${link.url}`}>
                         <Link
                           href={link.url}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center justify-between px-6 py-4 transition hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong"
+                          className="flex items-center justify-between px-6 py-4 transition hover:bg-slate-50 dark:hover:bg-white/[0.03]"
                         >
-                          <span className="font-sans text-body-sm font-semibold text-primary dark:text-dark-primary">
+                          <span className="text-[13px] font-semibold text-swin-red">
                             {link.label}
                           </span>
-                          <ChevronRightIcon className="h-4 w-4 text-muted-soft dark:text-on-dark-soft" />
+                          <ChevronRightIcon className="h-4 w-4 text-swin-charcoal/30 dark:text-white/30" />
                         </Link>
                       </li>
                     ))}
                   </ul>
                 ) : (
-                  <p className="px-6 pb-6 pt-3 font-sans text-body-sm text-muted dark:text-on-dark-soft">
+                  <p className="px-6 pb-6 pt-3 text-[12px] text-swin-charcoal/45 dark:text-white/45">
                     No links added yet.
                   </p>
                 )}

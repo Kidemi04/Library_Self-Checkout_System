@@ -57,9 +57,11 @@ export default function CheckOutForm({
   const [pickedPatron, setPickedPatron] = useState<PatronOption | null>(null);
   const [override, setOverride] = useState(false);
   const [showReceipt, setShowReceipt] = useState<null | { title: string; dueAt: string }>(null);
+  const handledStateRef = useRef<typeof state | null>(null);
 
   useEffect(() => {
-    if (state.status === 'success') {
+    if (state.status === 'success' && handledStateRef.current !== state) {
+      handledStateRef.current = state;
       const selected = selectedBookId ? bookMap.get(selectedBookId) : null;
       setShowReceipt({
         title: selected?.title ?? 'Book',
@@ -73,7 +75,7 @@ export default function CheckOutForm({
       setPickedPatron(null);
       setOverride(false);
     }
-  }, [state.status, selectedBookId, bookMap, defaultDueDate]);
+  }, [state, selectedBookId, bookMap, defaultDueDate]);
 
   useEffect(() => {
     setBookOptions((prev) => {

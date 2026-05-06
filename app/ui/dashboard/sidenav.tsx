@@ -21,11 +21,11 @@ import {
   SunIcon,
   MoonIcon,
   ExclamationTriangleIcon,
-  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/themeProvider';
 import SignOutButton from '@/app/ui/dashboard/signOutButton';
+import ThemeToggle from '@/app/ui/theme/themeToggle';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 import type { DashboardRole } from '@/app/lib/auth/types';
 import { useEffect, useState } from 'react';
@@ -63,10 +63,9 @@ const USER_NAV: NavItem[] = [
   { icon: ArrowPathIcon,             label: 'Return',          href: '/dashboard/book/checkin' },
   { icon: BookOpenIcon,              label: 'My Books',        href: '/dashboard/my-books' },
   { icon: AcademicCapIcon,           label: 'Learning hub',    href: '/dashboard/learning' },
-  { icon: SparklesIcon,              label: 'Recommendations', href: '/dashboard/recommendations' },
-  { icon: ChatBubbleLeftRightIcon,   label: 'Chat Assistant',  href: '/dashboard/chat' },
-  { icon: QuestionMarkCircleIcon,    label: 'Help Centre',     href: '/dashboard/faq' },
   { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
+  { icon: SparklesIcon,              label: 'Recommendations', href: '/dashboard/recommendations' },
+  { icon: QuestionMarkCircleIcon,    label: 'FAQ',             href: '/dashboard/faq' },
   { icon: UserCircleIcon,            label: 'Profile',         href: '/dashboard/profile' },
 ];
 
@@ -115,9 +114,14 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
   const initials = getInitials(user.name);
 
   return (
-    <aside className="fixed left-0 top-0 flex h-screen w-64 flex-col border-r border-hairline bg-canvas py-7 px-[18px] text-ink dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark">
+    <aside className={clsx(
+      'fixed left-0 top-0 flex h-screen w-64 flex-col border-r py-7 px-[18px]',
+      isDark
+        ? 'border-white/10 bg-swin-dark-surface text-white'
+        : 'border-swin-charcoal/10 bg-white text-swin-charcoal',
+    )}>
       {/* Logo */}
-      <div className="mb-5 px-2.5 pb-5 border-b border-hairline dark:border-dark-hairline">
+      <div className="mb-5 px-2.5 pb-5 border-b border-swin-charcoal/10 dark:border-white/10">
         <Link href="/dashboard" className="block">
           <Image
             src="/swinburne-logo.png"
@@ -128,35 +132,33 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
             priority
           />
         </Link>
-        <p className="mt-2 font-display text-[11px] italic text-muted-soft dark:text-on-dark-soft">
+        <p className="mt-2 font-display text-[11px] italic text-swin-charcoal/45 dark:text-white/40">
           Library · est. 1908
         </p>
       </div>
 
       {/* Role badge */}
       <div className={clsx(
-        'mx-2.5 mb-5 rounded-btn border p-2.5',
+        'mx-2.5 mb-5 rounded-lg border p-2.5',
         user.role === 'admin'
-          ? 'border-primary/30 bg-primary/8 dark:border-dark-primary/40 dark:bg-dark-primary/15'
+          ? 'border-swin-red/30 bg-swin-red/8 dark:border-swin-red/40 dark:bg-swin-red/15'
           : user.role === 'staff'
-          ? 'border-accent-amber/30 bg-accent-amber/10 dark:border-accent-amber/40 dark:bg-accent-amber/15'
-          : 'border-hairline bg-transparent dark:border-dark-hairline',
+          ? 'border-swin-gold/30 bg-swin-gold/8 dark:border-swin-gold/40 dark:bg-swin-gold/15'
+          : 'border-swin-charcoal/10 bg-transparent dark:border-white/10',
       )}>
         <p className={clsx(
           'font-mono text-[9px] font-bold uppercase tracking-[2px]',
-          user.role === 'admin' ? 'text-primary dark:text-dark-primary'
-            : user.role === 'staff' ? 'text-accent-amber'
-            : 'text-muted-soft dark:text-on-dark-soft',
+          user.role === 'admin' ? 'text-swin-red' : user.role === 'staff' ? 'text-swin-gold' : 'text-swin-charcoal/50 dark:text-white/50',
         )}>{roleBadge}</p>
-        <p className="mt-0.5 font-sans text-[13px] font-semibold text-ink dark:text-on-dark">
+        <p className="mt-0.5 text-[13px] font-semibold text-swin-charcoal dark:text-white">
           {user.name ?? user.email ?? 'Library Member'}
         </p>
         {isBypassed && (
-          <p className="mt-0.5 font-mono text-[9px] text-primary/70 dark:text-dark-primary/70">Dev bypass active</p>
+          <p className="mt-0.5 font-mono text-[9px] text-swin-red/70">Dev bypass active</p>
         )}
       </div>
 
-      <p className="mb-2 px-3 font-mono text-[9px] font-semibold uppercase tracking-[1.8px] text-muted-soft dark:text-on-dark-soft">
+      <p className="mb-2 px-3 font-mono text-[9px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
         Workspace
       </p>
 
@@ -176,23 +178,23 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
               key={item.href}
               href={item.href}
               className={clsx(
-                'flex items-center gap-3 rounded-btn px-3 py-2.5 font-sans text-nav-link transition-colors',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors',
                 isActive
-                  ? 'bg-primary/10 text-primary dark:bg-dark-primary/15 dark:text-dark-primary'
-                  : 'text-body hover:bg-surface-cream-strong hover:text-ink dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark',
+                  ? 'bg-swin-red/10 text-swin-red dark:bg-swin-red/15 dark:text-red-300'
+                  : 'text-swin-charcoal/65 hover:bg-swin-charcoal/5 hover:text-swin-charcoal dark:text-white/55 dark:hover:bg-white/8 dark:hover:text-white',
               )}
             >
               <span className="relative flex-shrink-0">
                 <Icon className="h-[18px] w-[18px]" />
                 {showDot && (
-                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary ring-2 ring-canvas dark:ring-dark-canvas" />
+                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-swin-red ring-2 ring-white dark:ring-swin-dark-surface" />
                 )}
               </span>
               <span className="flex-1">{item.label}</span>
               {item.badge != null && (
                 <span className={clsx(
-                  'rounded-pill px-1.5 py-0.5 font-mono text-[10px] font-bold',
-                  isActive ? 'bg-primary text-on-primary' : 'bg-surface-cream-strong text-muted dark:bg-dark-surface-strong dark:text-on-dark-soft',
+                  'rounded-full px-1.5 py-0.5 font-mono text-[10px] font-bold',
+                  isActive ? 'bg-swin-red text-white' : 'bg-swin-charcoal/10 text-swin-charcoal/60 dark:bg-white/10 dark:text-white/60',
                 )}>{item.badge}</span>
               )}
             </Link>
@@ -206,26 +208,29 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
           type="button"
           onClick={toggleTheme}
           aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="flex w-full items-center justify-center gap-2 rounded-btn border border-hairline bg-surface-card px-3 py-2 font-sans text-caption text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-swin-charcoal/10 bg-swin-charcoal/5 px-3 py-2 text-[12px] font-medium text-swin-charcoal/70 transition hover:bg-swin-charcoal/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/40 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10"
         >
           {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
           {isDark ? 'Light mode' : 'Dark mode'}
         </button>
 
         {/* User footer */}
-        <div className="flex items-center gap-2.5 rounded-btn border border-hairline p-2.5 dark:border-dark-hairline">
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-on-primary">
+        <div className="flex items-center gap-2.5 rounded-lg border border-swin-charcoal/10 p-2.5 dark:border-white/10">
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-swin-red text-[12px] font-bold text-white">
             {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-sans text-[13px] font-semibold text-ink dark:text-on-dark">
+            <p className="truncate text-[13px] font-semibold text-swin-charcoal dark:text-white">
               {user.name ?? 'Library Member'}
             </p>
-            <p className="truncate font-mono text-[11px] text-muted-soft dark:text-on-dark-soft">
+            <p className="truncate font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">
               {user.email ?? ''}
             </p>
           </div>
-          <SignOutButton labelClassName="hidden" />
+          <SignOutButton
+            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-swin-charcoal/40 transition hover:text-swin-red dark:text-white/40 dark:hover:text-red-400"
+            labelClassName="hidden"
+          />
         </div>
       </div>
     </aside>
