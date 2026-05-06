@@ -14,6 +14,7 @@ import {
   QrCodeIcon,
   CheckCircleIcon,
   ArrowLeftIcon,
+  ArrowUpTrayIcon,
 } from '@heroicons/react/24/outline';
 import { scanBlob } from '@/lib/barcodeScanner';
 
@@ -232,7 +233,8 @@ export default function CameraScannerButton({
   return (
     <>
       {/* ---------- Trigger zone (on page) ---------- */}
-      <div className={clsx('flex flex-col gap-2.5', className)}>
+      <div className={clsx('flex flex-col gap-3', className)}>
+        {/* Primary: Scan with camera */}
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -249,7 +251,7 @@ export default function CameraScannerButton({
             <span className="block font-sans text-caption-uppercase font-semibold opacity-85">
               Fastest way
             </span>
-            <span className="mt-0.5 block font-display text-display-sm font-semibold leading-tight tracking-tight">
+            <span className="mt-0.5 block font-sans text-title-lg font-semibold leading-tight">
               Scan with camera
             </span>
             <span className="mt-0.5 block font-sans text-body-sm opacity-80">
@@ -259,22 +261,35 @@ export default function CameraScannerButton({
           <QrCodeIcon className="relative h-5 w-5 flex-shrink-0 opacity-70" />
         </button>
 
-        <div className="flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={() => uploadInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 font-sans text-body-sm font-medium text-muted dark:text-on-dark-soft underline-offset-4 transition hover:text-primary dark:hover:text-dark-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
-          >
-            <PhotoIcon className="h-3.5 w-3.5" />
-            {uploadLabel}
-          </button>
-          {lastScan && (
-            <span className="inline-flex items-center gap-1.5 rounded-pill border border-success/30 bg-success/10 px-2.5 py-0.5 font-mono text-code font-semibold text-success">
-              <CheckCircleIcon className="h-3 w-3" />
-              {lastScanPrefix} &middot; {lastScan}
+        {/* Secondary: Upload a photo */}
+        <button
+          type="button"
+          onClick={() => uploadInputRef.current?.click()}
+          className="group relative flex w-full items-center gap-4 rounded-card border border-hairline bg-surface-card p-5 text-left text-ink transition hover:bg-surface-cream-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas"
+        >
+          <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-card border border-hairline bg-canvas dark:border-dark-hairline dark:bg-dark-canvas">
+            <PhotoIcon className="h-6 w-6 text-muted dark:text-on-dark-soft" strokeWidth={1.8} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-sans text-caption-uppercase font-semibold text-muted-soft dark:text-on-dark-soft">
+              No camera?
             </span>
-          )}
-        </div>
+            <span className="mt-0.5 block font-sans text-title-lg font-semibold leading-tight">
+              {uploadLabel}
+            </span>
+            <span className="mt-0.5 block font-sans text-body-sm text-muted dark:text-on-dark-soft">
+              Pick an image from your device
+            </span>
+          </span>
+          <ArrowUpTrayIcon className="h-5 w-5 flex-shrink-0 text-muted dark:text-on-dark-soft" />
+        </button>
+
+        {lastScan && (
+          <span className="inline-flex w-fit items-center gap-1.5 rounded-pill border border-success/30 bg-success/10 px-2.5 py-0.5 font-mono text-code font-semibold text-success">
+            <CheckCircleIcon className="h-3 w-3" />
+            {lastScanPrefix} &middot; {lastScan}
+          </span>
+        )}
 
         {statusMessage && (
           <p className="font-sans text-body-sm font-medium text-muted dark:text-on-dark-soft">
