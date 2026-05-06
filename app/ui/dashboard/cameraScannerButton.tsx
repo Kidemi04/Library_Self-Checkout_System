@@ -262,27 +262,31 @@ export default function CameraScannerButton({
           <QrCodeIcon className="relative h-5 w-5 flex-shrink-0 opacity-70" />
         </button>
 
-        {/* Secondary: Upload a photo */}
+        {/* Secondary: Upload a photo (same coral as Scan) */}
         <button
           type="button"
           onClick={() => uploadInputRef.current?.click()}
-          className="group relative flex w-full flex-1 items-center gap-4 rounded-card border border-amber-300 bg-amber-100 p-5 text-left text-ink transition hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-amber-700 dark:bg-amber-950 dark:text-on-dark dark:hover:bg-amber-900 dark:focus-visible:ring-offset-dark-canvas"
+          className="group relative flex w-full flex-1 items-center gap-4 overflow-hidden rounded-card bg-primary p-5 text-left text-on-primary transition hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
         >
-          <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-card border border-amber-300 bg-amber-200 dark:border-amber-700 dark:bg-amber-900">
-            <PhotoIcon className="h-6 w-6 text-amber-700 dark:text-amber-300" strokeWidth={1.8} />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full bg-on-primary/10 blur-sm transition group-hover:scale-110"
+          />
+          <span className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-card border border-on-primary/25 bg-on-primary/15 backdrop-blur-sm">
+            <PhotoIcon className="h-6 w-6" strokeWidth={1.8} />
           </span>
-          <span className="min-w-0 flex-1">
-            <span className="block font-sans text-caption-uppercase font-semibold text-amber-700 dark:text-amber-300">
+          <span className="relative min-w-0 flex-1">
+            <span className="block font-sans text-caption-uppercase font-semibold opacity-85">
               No camera?
             </span>
             <span className="mt-0.5 block font-display text-title-lg leading-tight">
               {uploadLabel}
             </span>
-            <span className="mt-0.5 block font-sans text-body-sm text-amber-800/80 dark:text-amber-200/80">
+            <span className="mt-0.5 block font-sans text-body-sm opacity-80">
               Pick an image from your device
             </span>
           </span>
-          <ArrowUpTrayIcon className="h-5 w-5 flex-shrink-0 text-amber-700 dark:text-amber-300" />
+          <ArrowUpTrayIcon className="relative h-5 w-5 flex-shrink-0 opacity-70" />
         </button>
         </div>
 
