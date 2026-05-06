@@ -21,11 +21,12 @@ import {
   SunIcon,
   MoonIcon,
   ExclamationTriangleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/themeProvider';
 import SignOutButton from '@/app/ui/dashboard/signOutButton';
-import ThemeToggle from '@/app/ui/theme/themeToggle';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 import type { DashboardRole } from '@/app/lib/auth/types';
 import { useEffect, useState } from 'react';
@@ -83,9 +84,11 @@ function getInitials(name: string | null | undefined): string {
 type SideNavProps = {
   user: DashboardUserProfile;
   isBypassed: boolean;
+  collapsed?: boolean;
+  onToggle?: () => void;
 };
 
-export default function SideNav({ user, isBypassed }: SideNavProps) {
+export default function SideNav({ user, isBypassed, collapsed = false, onToggle }: SideNavProps) {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
@@ -110,57 +113,62 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
   }, [pathname]);
 
   const nav = getNav(user.role);
-  const roleBadge = user.role === 'admin' ? 'ADMIN' : user.role === 'staff' ? 'STAFF' : 'STUDENT';
   const initials = getInitials(user.name);
 
   return (
     <aside className={clsx(
-      'fixed left-0 top-0 flex h-screen w-64 flex-col border-r py-7 px-[18px]',
+      'fixed left-0 top-0 flex h-screen flex-col border-r overflow-hidden transition-all duration-300',
+      collapsed ? 'w-16 py-4 px-2' : 'w-64 py-7 px-[18px]',
       isDark
         ? 'border-white/10 bg-swin-dark-surface text-white'
         : 'border-swin-charcoal/10 bg-white text-swin-charcoal',
     )}>
-      {/* Logo */}
-      <div className="mb-5 px-2.5 pb-5 border-b border-swin-charcoal/10 dark:border-white/10">
-        <Link href="/dashboard" className="block">
-          <Image
-            src="/swinburne-logo.png"
-            alt="Swinburne University of Technology Sarawak Campus"
-            width={220}
-            height={103}
-            className="w-full rounded-sm"
-            priority
-          />
-        </Link>
-        <p className="mt-2 font-display text-[11px] italic text-swin-charcoal/45 dark:text-white/40">
-          Library · est. 1908
-        </p>
-      </div>
 
-      {/* Role badge */}
-      <div className={clsx(
-        'mx-2.5 mb-5 rounded-lg border p-2.5',
-        user.role === 'admin'
-          ? 'border-swin-red/30 bg-swin-red/8 dark:border-swin-red/40 dark:bg-swin-red/15'
-          : user.role === 'staff'
-          ? 'border-swin-gold/30 bg-swin-gold/8 dark:border-swin-gold/40 dark:bg-swin-gold/15'
-          : 'border-swin-charcoal/10 bg-transparent dark:border-white/10',
-      )}>
-        <p className={clsx(
-          'font-mono text-[9px] font-bold uppercase tracking-[2px]',
-          user.role === 'admin' ? 'text-swin-red' : user.role === 'staff' ? 'text-swin-gold' : 'text-swin-charcoal/50 dark:text-white/50',
-        )}>{roleBadge}</p>
-        <p className="mt-0.5 text-[13px] font-semibold text-swin-charcoal dark:text-white">
-          {user.name ?? user.email ?? 'Library Member'}
-        </p>
-        {isBypassed && (
-          <p className="mt-0.5 font-mono text-[9px] text-swin-red/70">Dev bypass active</p>
-        )}
-      </div>
+      {/* Header */}
+      {collapsed ? (
+        <div className="mb-4 flex justify-center border-b border-swin-charcoal/10 pb-4 dark:border-white/10">
+          <button
+            type="button"
+            onClick={onToggle}
+            title="Expand sidebar"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-swin-charcoal/50 transition hover:bg-swin-charcoal/8 hover:text-swin-charcoal dark:text-white/50 dark:hover:bg-white/8 dark:hover:text-white"
+          >
+            <ChevronRightIcon className="h-5 w-5" />
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="mb-5 px-2.5 pb-5 border-b border-swin-charcoal/10 dark:border-white/10">
+            <div className="flex items-start gap-2">
+              <Link href="/dashboard" className="block flex-1">
+                <Image
+                  src="/swinburne-logo.png"
+                  alt="Swinburne University of Technology Sarawak Campus"
+                  width={220}
+                  height={103}
+                  className="w-full rounded-sm"
+                  priority
+                />
+              </Link>
+              <button
+                type="button"
+                onClick={onToggle}
+                title="Collapse sidebar"
+                className="mt-1 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-swin-charcoal/40 transition hover:bg-swin-charcoal/8 hover:text-swin-charcoal dark:text-white/40 dark:hover:bg-white/8 dark:hover:text-white"
+              >
+                <ChevronLeftIcon className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="mt-2 font-display text-[11px] italic text-swin-charcoal/45 dark:text-white/40">
+              Library · est. 1908
+            </p>
+          </div>
 
-      <p className="mb-2 px-3 font-mono text-[9px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
-        Workspace
-      </p>
+          <p className="mb-2 px-3 font-mono text-[9px] font-semibold uppercase tracking-[1.8px] text-swin-charcoal/40 dark:text-white/40">
+            Workspace
+          </p>
+        </>
+      )}
 
       {/* Nav items */}
       <nav className="flex-1 overflow-y-auto scrollbar-none space-y-0.5">
@@ -177,8 +185,12 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
             <Link
               key={item.href}
               href={item.href}
+              title={collapsed ? item.label : undefined}
               className={clsx(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium transition-colors',
+                'flex items-center rounded-lg transition-colors',
+                collapsed
+                  ? 'justify-center px-2 py-2.5'
+                  : 'gap-3 px-3 py-2.5 text-[14px] font-medium',
                 isActive
                   ? 'bg-swin-red/10 text-swin-red dark:bg-swin-red/15 dark:text-red-300'
                   : 'text-swin-charcoal/65 hover:bg-swin-charcoal/5 hover:text-swin-charcoal dark:text-white/55 dark:hover:bg-white/8 dark:hover:text-white',
@@ -190,8 +202,8 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
                   <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-swin-red ring-2 ring-white dark:ring-swin-dark-surface" />
                 )}
               </span>
-              <span className="flex-1">{item.label}</span>
-              {item.badge != null && (
+              {!collapsed && <span className="flex-1">{item.label}</span>}
+              {!collapsed && item.badge != null && (
                 <span className={clsx(
                   'rounded-full px-1.5 py-0.5 font-mono text-[10px] font-bold',
                   isActive ? 'bg-swin-red text-white' : 'bg-swin-charcoal/10 text-swin-charcoal/60 dark:bg-white/10 dark:text-white/60',
@@ -208,29 +220,40 @@ export default function SideNav({ user, isBypassed }: SideNavProps) {
           type="button"
           onClick={toggleTheme}
           aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-swin-charcoal/10 bg-swin-charcoal/5 px-3 py-2 text-[12px] font-medium text-swin-charcoal/70 transition hover:bg-swin-charcoal/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/40 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10"
+          title={collapsed ? (isDark ? 'Light mode' : 'Dark mode') : undefined}
+          className={clsx(
+            'flex w-full items-center rounded-lg border border-swin-charcoal/10 bg-swin-charcoal/5 text-swin-charcoal/70 transition hover:bg-swin-charcoal/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-swin-red/40 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10',
+            collapsed ? 'justify-center px-2 py-2' : 'justify-center gap-2 px-3 py-2 text-[12px] font-medium',
+          )}
         >
           {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
-          {isDark ? 'Light mode' : 'Dark mode'}
+          {!collapsed && (isDark ? 'Light mode' : 'Dark mode')}
         </button>
 
         {/* User footer */}
-        <div className="flex items-center gap-2.5 rounded-lg border border-swin-charcoal/10 p-2.5 dark:border-white/10">
+        <div className={clsx(
+          'flex items-center rounded-lg border border-swin-charcoal/10 dark:border-white/10',
+          collapsed ? 'justify-center p-2' : 'gap-2.5 p-2.5',
+        )}>
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-swin-red text-[12px] font-bold text-white">
             {initials}
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[13px] font-semibold text-swin-charcoal dark:text-white">
-              {user.name ?? 'Library Member'}
-            </p>
-            <p className="truncate font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">
-              {user.email ?? ''}
-            </p>
-          </div>
-          <SignOutButton
-            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-swin-charcoal/40 transition hover:text-swin-red dark:text-white/40 dark:hover:text-red-400"
-            labelClassName="hidden"
-          />
+          {!collapsed && (
+            <>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-semibold text-swin-charcoal dark:text-white">
+                  {user.name ?? 'Library Member'}
+                </p>
+                <p className="truncate font-mono text-[11px] text-swin-charcoal/40 dark:text-white/40">
+                  {user.email ?? ''}
+                </p>
+              </div>
+              <SignOutButton
+                className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-swin-charcoal/40 transition hover:text-swin-red dark:text-white/40 dark:hover:text-red-400"
+                labelClassName="hidden"
+              />
+            </>
+          )}
         </div>
       </div>
     </aside>
