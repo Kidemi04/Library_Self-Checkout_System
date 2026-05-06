@@ -37,12 +37,156 @@ const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 const cache = new Map<string, CacheEntry>();
 
 const getEnv = () => ({
-  braveApiKey: process.env.BRAVE_SEARCH_API_KEY?.trim(),
   youtubeApiKey: process.env.YOUTUBE_API_KEY?.trim(),
 });
 
 const cacheKey = (topic: string) => topic.toLowerCase().trim();
 
+const REDDIT_USER_AGENT = 'library-app/1.0 (school project)';
+
+const stripHtml = (s: string) => s.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+
+// Wikipedia REST — one authoritative intro article per topic.
+const fetchWikipedia = async (topic: string): Promise<Article[]> => {
+  try {
+    const slug = encodeURIComponent(topic.replace(/\s+/g, '_'));
+    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${slug}`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as {
+      title?: string;
+      extract?: string;
+      content_urls?: { desktop?: { page?: string } };
+    };
+    const url = data.content_urls?.desktop?.page;
+    if (!url || !data.extract) return [];
+    return [
+      {
+        title: data.title ?? topic,
+        url,
+        snippet: data.extract,
+        source: 'Wikipedia',
+        faviconUrl: 'https://en.wikipedia.org/static/favicon/wikipedia.ico',
+      },
+    ];
+  } catch (err) {
+    console.error('[external-resources] Wikipedia failed', err);
+    return [];
+  }
+};
+
+// DEV.to — community articles (best for tech topics, returns empty for non-tech).
+const fetchDevTo = async (topic: string): Promise<Article[]> => {
+  try {
+    const tag = topic.toLowerCase().replace(/\s+/g, '');
+    const res = await fetch(`https://dev.to/api/articles?tag=${encodeURIComponent(tag)}&per_page=3`);
+    if (!res.ok) return [];
+    const data = (await res.json()) as Array<{
+      title?: string;
+      url?: string;
+      description?: string;
+      user?: { name?: string };
+    }>;
+    return data
+      .filter((a) => a.title && a.url)
+      .slice(0, 3)
+      .map((a) => ({
+        title: a.title!,
+        url: a.url!,
+        snippet: a.description ?? '',
+        source: a.user?.name ? `DEV.to · ${a.user.name}` : 'DEV.to',
+        faviconUrl: 'https://dev.to/favicon.ico',
+      }));
+  } catch (err) {
+    console.error('[external-resources] DEV.to failed', err);
+    return [];
+  }
+};
+
+// Reddit JSON — community discussions and recommendations.
+const fetchReddit = async (topic: string): Promise<Article[]> => {
+  try {
+    const url = new URL('https://www.reddit.com/search.json');
+    url.searchParams.set('q', topic);
+    url.searchParams.set('limit', '3');
+    url.searchParams.set('sort', 'top');
+    url.searchParams.set('t', 'year');
+    const res = await fetch(url.toString(), {
+      headers: { 'User-Agent': REDDIT_USER_AGENT, Accept: 'application/json' },
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as {
+      data?: { children?: Array<{ data?: { title?: string; permalink?: string; selftext?: string; subreddit?: string } }> };
+    };
+    const items = data.data?.children ?? [];
+    return items
+      .map((c) => c.data)
+      .filter((d): d is NonNullable<typeof d> => Boolean(d?.title && d?.permalink))
+      .slice(0, 3)
+      .map((d) => ({
+        title: d.title!,
+        url: `https://www.reddit.com${d.permalink}`,
+        snippet: stripHtml(d.selftext ?? '').slice(0, 200),
+        source: d.subreddit ? `Reddit · r/${d.subreddit}` : 'Reddit',
+        faviconUrl: 'https://www.reddit.com/favicon.ico',
+      }));
+  } catch (err) {
+    console.error('[external-resources] Reddit failed', err);
+    return [];
+  }
+};
+
+// Hacker News via Algolia — high-signal tech articles and discussions.
+const fetchHackerNews = async (topic: string): Promise<Article[]> => {
+  try {
+    const url = new URL('https://hn.algolia.com/api/v1/search');
+    url.searchParams.set('query', topic);
+    url.searchParams.set('tags', 'story');
+    url.searchParams.set('hitsPerPage', '3');
+    const res = await fetch(url.toString());
+    if (!res.ok) return [];
+    const data = (await res.json()) as {
+      hits?: Array<{ title?: string; url?: string; objectID?: string; author?: string; points?: number }>;
+    };
+    return (data.hits ?? [])
+      .filter((h) => h.title)
+      .slice(0, 3)
+      .map((h) => ({
+        title: h.title!,
+        url: h.url ?? `https://news.ycombinator.com/item?id=${h.objectID}`,
+        snippet: h.author ? `by ${h.author} · ${h.points ?? 0} points` : '',
+        source: 'Hacker News',
+        faviconUrl: 'https://news.ycombinator.com/favicon.ico',
+      }));
+  } catch (err) {
+    console.error('[external-resources] HN failed', err);
+    return [];
+  }
+};
+
+// Aggregate all four sources, dedupe by URL, cap total.
+const fetchAggregatedArticles = async (topic: string): Promise<Article[]> => {
+  const results = await Promise.allSettled([
+    fetchWikipedia(topic),
+    fetchDevTo(topic),
+    fetchReddit(topic),
+    fetchHackerNews(topic),
+  ]);
+  const all: Article[] = [];
+  const seen = new Set<string>();
+  for (const r of results) {
+    if (r.status !== 'fulfilled') continue;
+    for (const a of r.value) {
+      if (seen.has(a.url)) continue;
+      seen.add(a.url);
+      all.push(a);
+    }
+  }
+  return all.slice(0, 8);
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fetchBraveArticles = async (topic: string): Promise<Article[]> => {
   const { braveApiKey } = getEnv();
   if (!braveApiKey) return [];
@@ -185,7 +329,7 @@ export async function POST(request: Request) {
   }
 
   const [articles, videos] = await Promise.all([
-    fetchBraveArticles(topic),
+    fetchAggregatedArticles(topic),
     fetchYouTubeVideos(topic),
   ]);
 
