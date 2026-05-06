@@ -252,7 +252,7 @@ export default function CameraScannerButton({
             <span className="block font-sans text-caption-uppercase font-semibold opacity-85">
               Fastest way
             </span>
-            <span className="mt-0.5 block font-sans text-title-lg font-semibold leading-tight">
+            <span className="mt-0.5 block font-display text-title-lg leading-tight">
               Scan with camera
             </span>
             <span className="mt-0.5 block font-sans text-body-sm opacity-80">
@@ -275,7 +275,7 @@ export default function CameraScannerButton({
             <span className="block font-sans text-caption-uppercase font-semibold text-accent-amber">
               No camera?
             </span>
-            <span className="mt-0.5 block font-sans text-title-lg font-semibold leading-tight">
+            <span className="mt-0.5 block font-display text-title-lg leading-tight">
               {uploadLabel}
             </span>
             <span className="mt-0.5 block font-sans text-body-sm text-muted dark:text-on-dark-soft">
