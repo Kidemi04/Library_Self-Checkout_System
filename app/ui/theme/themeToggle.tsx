@@ -19,6 +19,7 @@ export default function ThemeToggle({ className, size = 'default' }: ThemeToggle
     <button
       type="button"
       onClick={toggleTheme}
+      suppressHydrationWarning
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
       className={clsx(
         'inline-flex items-center justify-center rounded-full border border-hairline bg-surface-card text-ink transition',

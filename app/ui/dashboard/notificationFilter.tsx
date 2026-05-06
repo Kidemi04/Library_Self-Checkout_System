@@ -114,7 +114,7 @@ export default function NotificationsFilter({ action, defaults, className }: Pro
             className="absolute inset-0 cursor-pointer opacity-0"
           >
             <option value="date">Date</option>
-            <option value="title">Title</option>
+            <option value="title">Action</option>
             <option value="author">Author</option>
           </select>
         </div>

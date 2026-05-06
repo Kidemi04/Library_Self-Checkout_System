@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { InboxIcon, MagnifyingGlassIcon, ArrowsUpDownIcon } from '@heroicons/react/24/outline';
+import { InboxIcon, MagnifyingGlassIcon, ArrowsUpDownIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import type { Notification } from '@/app/lib/supabase/notifications';
 import type { NotificationFilterType } from '@/app/ui/dashboard/notificationFilter';
 import NotificationItem from '@/app/ui/dashboard/primitives/NotificationItem';
@@ -207,7 +207,7 @@ export default function NotificationList({ filter: initialFilter = 'all', search
             aria-label="Sort field"
           >
             <option value="date">Date</option>
-            <option value="title">Title</option>
+            <option value="title">Action</option>
           </select>
           <select
             value={sortOrder}
@@ -219,6 +219,15 @@ export default function NotificationList({ filter: initialFilter = 'all', search
             <option value="asc">Oldest</option>
           </select>
         </div>
+        <button
+          type="button"
+          onClick={() => { setLoading(true); refresh(); }}
+          aria-label="Refresh notifications"
+          title="Refresh"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-btn border border-hairline bg-surface-card text-muted transition hover:bg-surface-cream-strong hover:text-ink dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:bg-dark-surface-strong dark:hover:text-on-dark"
+        >
+          <ArrowPathIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+        </button>
       </div>
 
       {/* Filter pills + Mark all read */}

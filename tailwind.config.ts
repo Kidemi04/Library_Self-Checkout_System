@@ -23,8 +23,8 @@ const config: Config = {
         '13': 'repeat(13, minmax(0, 1fr))',
       },
       fontFamily: {
-        display: ['var(--font-newsreader)', 'Georgia', 'serif'],
-        sans:    ['var(--font-inter)', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Arial', 'sans-serif'],
+        display: ['"Times New Roman"', 'Times', 'Georgia', 'serif'],
+        sans:    ['"Times New Roman"', 'Times', 'Georgia', 'serif'],
         mono:    ['var(--font-jetbrains-mono)', '"SF Mono"', 'Menlo', 'monospace'],
       },
       fontSize: {
@@ -70,12 +70,12 @@ const config: Config = {
         'dark-primary':   '#CC4640',          // dark-mode primary
 
         // Surface — light (neutral white/grey, no warm tint)
-        canvas:                 '#FAFAFA',
-        'surface-soft':         '#F5F5F6',
-        'surface-card':         '#EDEDED',
-        'surface-cream-strong': '#E5E5E5',
-        hairline:               '#E2E2E2',
-        'hairline-soft':        '#EBEBEB',
+        canvas:                 '#F5F6FB',
+        'surface-soft':         '#ECEEF8',
+        'surface-card':         '#FFFFFF',
+        'surface-cream-strong': '#E8EAF5',
+        hairline:               '#DDE0F0',
+        'hairline-soft':        '#E8EAF5',
 
         // Surface — dark (neutral zinc-grey, no brown/warm tint)
         'dark-canvas':          '#18181B',

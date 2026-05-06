@@ -287,6 +287,16 @@ export default function MobileNav({ user, isBypassed }: MobileNavProps) {
               DEV
             </span>
           )}
+          <Link
+            href="/dashboard/notifications"
+            aria-label="Notifications"
+            className="relative flex h-8 w-8 items-center justify-center rounded-xl border border-hairline bg-canvas text-muted transition hover:border-primary/20 hover:text-ink dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:text-on-dark"
+          >
+            <BellIcon className="h-4 w-4" />
+            {hasUnread && (
+              <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary ring-2 ring-canvas dark:ring-dark-canvas" />
+            )}
+          </Link>
           <ThemeToggle size="sm" />
         </div>
       </header>
