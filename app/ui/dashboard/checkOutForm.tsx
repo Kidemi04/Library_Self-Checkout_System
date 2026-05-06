@@ -262,16 +262,14 @@ export default function CheckOutForm({
       </div>
 
       {/* Scan row */}
-      <div className="flex flex-wrap items-center gap-2">
-        <CameraScannerButton
-          onDetected={(code) => {
-            void handleScanDetected(code);
-          }}
-          modalDescription="Align the book barcode or ISBN within the frame."
-          lastScanPrefix="Latest scan:"
-          className="w-full md:w-auto"
-        />
-      </div>
+      <CameraScannerButton
+        onDetected={(code) => {
+          void handleScanDetected(code);
+        }}
+        modalDescription="Align the book barcode or ISBN within the frame."
+        lastScanPrefix="Latest scan:"
+        className="w-full"
+      />
 
       {lookupMessage && (
         <p

@@ -266,23 +266,23 @@ export default function CameraScannerButton({
         <button
           type="button"
           onClick={() => uploadInputRef.current?.click()}
-          className="group relative flex w-full flex-1 items-center gap-4 rounded-card border border-accent-amber/30 bg-accent-amber/12 p-5 text-left text-ink transition hover:bg-accent-amber/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-amber/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-accent-amber/40 dark:bg-accent-amber/15 dark:text-on-dark dark:hover:bg-accent-amber/25 dark:focus-visible:ring-offset-dark-canvas"
+          className="group relative flex w-full flex-1 items-center gap-4 rounded-card border border-amber-300 bg-amber-100 p-5 text-left text-ink transition hover:bg-amber-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-amber-700 dark:bg-amber-950 dark:text-on-dark dark:hover:bg-amber-900 dark:focus-visible:ring-offset-dark-canvas"
         >
-          <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-card border border-accent-amber/40 bg-accent-amber/20 dark:border-accent-amber/50 dark:bg-accent-amber/25">
-            <PhotoIcon className="h-6 w-6 text-accent-amber" strokeWidth={1.8} />
+          <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-card border border-amber-300 bg-amber-200 dark:border-amber-700 dark:bg-amber-900">
+            <PhotoIcon className="h-6 w-6 text-amber-700 dark:text-amber-300" strokeWidth={1.8} />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block font-sans text-caption-uppercase font-semibold text-accent-amber">
+            <span className="block font-sans text-caption-uppercase font-semibold text-amber-700 dark:text-amber-300">
               No camera?
             </span>
             <span className="mt-0.5 block font-display text-title-lg leading-tight">
               {uploadLabel}
             </span>
-            <span className="mt-0.5 block font-sans text-body-sm text-muted dark:text-on-dark-soft">
+            <span className="mt-0.5 block font-sans text-body-sm text-amber-800/80 dark:text-amber-200/80">
               Pick an image from your device
             </span>
           </span>
-          <ArrowUpTrayIcon className="h-5 w-5 flex-shrink-0 text-accent-amber" />
+          <ArrowUpTrayIcon className="h-5 w-5 flex-shrink-0 text-amber-700 dark:text-amber-300" />
         </button>
         </div>
 
