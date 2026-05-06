@@ -42,7 +42,7 @@ hints.set(DecodeHintType.POSSIBLE_FORMATS, [
   BarcodeFormat.ITF,
 ]);
 hints.set(DecodeHintType.TRY_HARDER, true);
-hints.set(DecodeHintType.ALSO_INVERTED, true);
+// Note: ALSO_INVERTED hint not available in @zxing/library@0.21.3
 
 let zxingReader: BrowserMultiFormatReader | null = null;
 

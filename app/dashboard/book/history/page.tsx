@@ -7,6 +7,7 @@ import {
   fetchAllCirculationHistory,
   fetchCirculationStats,
   type TimePeriod,
+  type CirculationHistoryLoan,
 } from '@/app/lib/supabase/queries';
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import BorrowingHistoryStats from '@/app/ui/dashboard/borrowingHistoryStats';
@@ -137,11 +138,11 @@ export default async function BorrowingHistoryPage({
                             {isStaff && 'patron' in loan && (
                               <td className="px-4 py-3.5">
                                 <p className="text-[13px] font-medium text-swin-charcoal dark:text-white">
-                                  {loan.patron.name ?? loan.patron.email ?? '—'}
+                                  {(loan as CirculationHistoryLoan).patron.name ?? (loan as CirculationHistoryLoan).patron.email ?? '—'}
                                 </p>
-                                {loan.patron.studentId && (
+                                {(loan as CirculationHistoryLoan).patron.studentId && (
                                   <p className="font-mono text-[10px] text-swin-charcoal/45 dark:text-white/45">
-                                    {loan.patron.studentId}
+                                    {(loan as CirculationHistoryLoan).patron.studentId}
                                   </p>
                                 )}
                               </td>
