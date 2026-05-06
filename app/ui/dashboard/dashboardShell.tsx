@@ -23,7 +23,7 @@ export default function DashboardShell({ user, isBypassed, children }: Dashboard
     <div className="bg-canvas text-ink dark:bg-dark-canvas dark:text-on-dark">
       {/* Desktop sidebar spacer — matches the fixed sidenav width, animates on collapse */}
       <aside className={clsx(
-        'hidden md:block md:flex-none transition-all duration-300',
+        'hidden md:block md:flex-none transition-[width,padding] duration-300',
         sidebarCollapsed ? 'md:w-16' : 'md:w-64',
       )}>
         <SideNav
@@ -36,7 +36,7 @@ export default function DashboardShell({ user, isBypassed, children }: Dashboard
 
       {/* Main area — offset by sidebar width on desktop */}
       <div className={clsx(
-        'flex min-h-screen flex-col transition-all duration-300',
+        'flex min-h-screen flex-col transition-[width,padding] duration-300',
         sidebarCollapsed ? 'md:pl-16' : 'md:pl-64',
       )}>
         <MobileNav user={user} isBypassed={isBypassed} />

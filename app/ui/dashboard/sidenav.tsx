@@ -120,7 +120,7 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
 
   return (
     <aside className={clsx(
-      'fixed left-0 top-0 flex h-screen flex-col border-r border-hairline bg-canvas text-ink transition-all duration-300 dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark',
+      'fixed left-0 top-0 flex h-screen flex-col border-r border-hairline bg-canvas text-ink transition-[width,padding] duration-300 dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark',
       collapsed ? 'w-16 px-2 py-4' : 'w-64 px-[18px] py-7',
     )}>
       {/* Logo + collapse toggle */}
