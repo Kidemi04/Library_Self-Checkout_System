@@ -2112,3 +2112,99 @@ export async function fetchManagedUsers(): Promise<ManagedUserRow[]> {
   return (data ?? []) as ManagedUserRow[];
 }
 
+export type RecentLoanEntry = {
+  id: string;
+  borrowedAt: string;
+  returnedAt: string | null;
+  dueAt: string;
+  renewedCount: number;
+  action: 'borrowed' | 'returned' | 'renewed';
+  book: {
+    id: string;
+    title: string;
+    author: string | null;
+    isbn: string | null;
+    coverImageUrl: string | null;
+  };
+};
+
+export async function fetchRecentLoansByUser(
+  userId: string,
+  limit = 5,
+): Promise<RecentLoanEntry[]> {
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('Loans')
+    .select(
+      `
+        id,
+        borrowed_at,
+        due_at,
+        returned_at,
+        renewed_count,
+        copy:Copies(
+          id,
+          book:Books(
+            id,
+            title,
+            author,
+            isbn,
+            cover_image_url
+          )
+        )
+      `,
+    )
+    .eq('user_id', userId)
+    .order('borrowed_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('[fetchRecentLoansByUser] error', error);
+    return [];
+  }
+
+  type RawRow = {
+    id: string;
+    borrowed_at: string;
+    due_at: string;
+    returned_at: string | null;
+    renewed_count: number | null;
+    copy?: {
+      id: string;
+      book?: {
+        id: string;
+        title: string;
+        author: string | null;
+        isbn: string | null;
+        cover_image_url: string | null;
+      } | null;
+    } | null;
+  };
+
+  const rows = (data ?? []) as unknown as RawRow[];
+
+  return rows.map((row) => {
+    const renewedCount = row.renewed_count ?? 0;
+    const action: RecentLoanEntry['action'] = row.returned_at
+      ? 'returned'
+      : renewedCount > 0
+        ? 'renewed'
+        : 'borrowed';
+    return {
+      id: row.id,
+      borrowedAt: row.borrowed_at,
+      returnedAt: row.returned_at,
+      dueAt: row.due_at,
+      renewedCount,
+      action,
+      book: {
+        id: row.copy?.book?.id ?? '',
+        title: row.copy?.book?.title ?? 'Unknown title',
+        author: row.copy?.book?.author ?? null,
+        isbn: row.copy?.book?.isbn ?? null,
+        coverImageUrl: row.copy?.book?.cover_image_url ?? null,
+      },
+    };
+  });
+}
+
