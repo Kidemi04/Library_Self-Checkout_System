@@ -1,4 +1,4 @@
 import { redirect } from 'next/navigation';
 export default function FaqRedirect() {
-  redirect('/dashboard/help?mode=faq');
+  redirect('/dashboard/reading-assistant');
 }

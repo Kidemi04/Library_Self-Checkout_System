@@ -16,7 +16,7 @@ import {
   ClockIcon,
   Cog6ToothIcon,
   MagnifyingGlassIcon,
-  QuestionMarkCircleIcon,
+  SparklesIcon,
   SunIcon,
   MoonIcon,
   ExclamationTriangleIcon,
@@ -66,7 +66,7 @@ const USER_NAV: NavItem[] = [
   { icon: ArrowPathIcon,             label: 'Return',          href: '/dashboard/book/checkin' },
   { icon: BookOpenIcon,              label: 'My Books',        href: '/dashboard/my-books' },
   { icon: AcademicCapIcon,           label: 'Learning hub',    href: '/dashboard/learning' },
-  { icon: QuestionMarkCircleIcon,    label: 'Help Centre',     href: '/dashboard/help' },
+  { icon: SparklesIcon,              label: 'Reading Assistant', href: '/dashboard/reading-assistant' },
   { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
   { icon: UserCircleIcon,            label: 'Profile',         href: '/dashboard/profile' },
 ];
