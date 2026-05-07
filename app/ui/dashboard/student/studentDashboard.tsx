@@ -52,15 +52,17 @@ export default function StudentDashboard({
   const mobilePicks = picks.slice(0, 4);
   const featuredPick = picks[0];
 
-  const urgentLoans = activeLoans.filter(l => {
-    const daysLeft = Math.ceil((new Date(l.dueAt).getTime() - Date.now()) / 86400000);
+  const urgentLoans = activeLoans.filter((loan) => {
+    const daysLeft = Math.ceil((new Date(loan.dueAt).getTime() - Date.now()) / 86_400_000);
     return daysLeft <= 3;
   });
-  const overdueLoans = activeLoans.filter(l =>
-    l.status === 'overdue' || new Date(l.dueAt).getTime() < Date.now()
+  const overdueLoans = activeLoans.filter((loan) =>
+    loan.status === 'overdue' || new Date(loan.dueAt).getTime() < Date.now()
   );
-  const readyHolds = holds.filter(h => h.status === 'ready');
-  const sortedHolds = [...holds].sort((a, b) => (a.status === 'ready' ? -1 : 1) - (b.status === 'ready' ? -1 : 1));
+  const readyHolds = holds.filter((hold) => hold.status === 'ready');
+  const sortedHolds = [...holds].sort((a, b) =>
+    (a.status === 'ready' ? -1 : 1) - (b.status === 'ready' ? -1 : 1)
+  );
 
   const firstName = getFirstName(userName);
   const greeting = getGreeting();
@@ -261,34 +263,6 @@ export default function StudentDashboard({
       {/* ========= DESKTOP LAYOUT (hidden on mobile) ========= */}
       <div className="hidden md:block">
         {/* Top bar */}
-        <div className="mb-8 flex items-center gap-4 border-b border-hairline pb-5 dark:border-dark-hairline">
-          <form
-            action="/dashboard/book/items"
-            method="get"
-            role="search"
-            className="flex flex-1 max-w-[520px] items-center gap-2.5 rounded-btn bg-surface-card px-3.5 py-2.5 transition focus-within:ring-2 focus-within:ring-primary/40 dark:bg-dark-surface-card"
-          >
-            <BookOpenIcon className="h-4 w-4 text-muted-soft dark:text-on-dark-soft" />
-            <label htmlFor="dash-search" className="sr-only">Search the catalogue</label>
-            <input
-              id="dash-search"
-              name="q"
-              type="search"
-              placeholder="Search titles, authors, or ISBN…"
-              className="flex-1 border-0 bg-transparent text-[14px] placeholder-muted-soft outline-none dark:placeholder-on-dark-soft"
-            />
-            <button
-              type="submit"
-              className="rounded-btn bg-primary/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-primary transition hover:bg-primary/20 dark:bg-dark-primary/15 dark:text-dark-primary"
-            >
-              Search
-            </button>
-          </form>
-          <div className="ml-auto flex items-center gap-1.5 text-[12px] text-muted dark:text-on-dark-soft">
-            <span>Sarawak Campus · Library B</span>
-          </div>
-        </div>
-
         {/* Hero + stats rail */}
         <div className="mb-8 grid grid-cols-[1.2fr_1fr] items-end gap-10">
           <div>

@@ -27,7 +27,7 @@ export default function AdminShell({
             {title}
           </h1>
           {description && (
-            <p className="mt-2 max-w-2xl font-sans text-body-md text-body dark:text-on-dark-soft">
+            <p className="mt-2 hidden max-w-2xl font-sans text-body-md text-body dark:text-on-dark-soft sm:block">
               {description}
             </p>
           )}

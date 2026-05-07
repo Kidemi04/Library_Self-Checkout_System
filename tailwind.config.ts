@@ -38,7 +38,7 @@ const config: Config = {
         'body-md':    ['16px', { lineHeight: '1.55', letterSpacing: '0',      fontWeight: '400' }],
         'body-sm':    ['14px', { lineHeight: '1.55', letterSpacing: '0',      fontWeight: '400' }],
         caption:      ['13px', { lineHeight: '1.40', letterSpacing: '0',      fontWeight: '500' }],
-        'caption-uppercase': ['12px', { lineHeight: '1.40', letterSpacing: '1.5px', fontWeight: '500' }],
+        'caption-uppercase': ['11px', { lineHeight: '1.40', letterSpacing: '1.5px', fontWeight: '500' }],
         code:         ['14px', { lineHeight: '1.60', letterSpacing: '0',      fontWeight: '400' }],
         button:       ['14px', { lineHeight: '1',    letterSpacing: '0',      fontWeight: '500' }],
         'nav-link':   ['14px', { lineHeight: '1.40', letterSpacing: '0',      fontWeight: '500' }],

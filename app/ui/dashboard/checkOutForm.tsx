@@ -288,35 +288,7 @@ export default function CheckOutForm({
         {/* Hidden contract with server action */}
         <input type="hidden" name="copyId" value={selectedCopyId} />
         <input type="hidden" name="itemIdentifier" value={selectedCopyBarcode ?? ''} />
-
-        {/* Book picker */}
-        <div>
-          <label className="mb-1.5 block font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft" htmlFor="bookId">
-            Book to borrow
-          </label>
-          <select
-            id="bookId"
-            name="bookId"
-            value={selectedBookId}
-            onChange={(e) => setSelectedBookId(e.target.value)}
-            className="w-full rounded-btn border border-hairline dark:border-dark-hairline bg-canvas dark:bg-dark-surface-soft px-3.5 h-10 font-sans text-body-md text-ink dark:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
-            required
-          >
-            <option value="" disabled>
-              {bookOptions.length ? 'Select a book' : 'No titles available'}
-            </option>
-            {bookOptions.map((book) => (
-              <option key={book.id} value={book.id}>
-                {book.label}
-              </option>
-            ))}
-          </select>
-          {bookOptions.length > 0 && (
-            <p className="mt-1 font-mono text-code text-muted-soft dark:text-on-dark-soft">
-              {bookOptions.length} titles ready to borrow.
-            </p>
-          )}
-        </div>
+        <input type="hidden" name="bookId" value={selectedBookId} />
 
         {/* Preview card for selected book */}
         {selectedBook && (

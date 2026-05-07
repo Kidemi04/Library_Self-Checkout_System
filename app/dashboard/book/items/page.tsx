@@ -122,7 +122,7 @@ export default async function BookItemsPage({
               <h1 className="font-display text-display-sm tracking-tight text-ink dark:text-on-dark">
                 Browse Books
               </h1>
-              <p className="mt-1 font-sans text-body-sm text-body dark:text-on-dark-soft">
+              <p className="mt-1 hidden font-sans text-body-sm text-body dark:text-on-dark-soft sm:block">
                 Browse and reserve titles from the collection.
               </p>
               <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-code text-muted-soft dark:text-on-dark-soft">
