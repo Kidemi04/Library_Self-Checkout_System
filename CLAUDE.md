@@ -88,10 +88,11 @@ The app reads these without sensible defaults — the app will throw or refuse t
 - `AZURE_AD_CLIENT_ID`, `AZURE_AD_CLIENT_SECRET`, `AZURE_AD_TENANT_ID`, `NEXTAUTH_SECRET` (auto-set to `'dev-secret'` in development).
 - Optional dev bypass: `DEV_BYPASS_AUTH`, `DEV_BYPASS_ROLE` (`user`|`staff`|`admin`), `DEV_BYPASS_EMAIL`, `DEV_BYPASS_NAME`, `DEV_BYPASS_USER_ID`.
 - SIP2: `SIP2_BASE_URL`, `SIP2_API_KEY`, `SIP2_TIMEOUT_MS` (default 5000), `SIP2_INSTITUTION_ID`, `SIP2_TERMINAL_PASSWORD`, `SIP2_PATRON_PASSWORD`.
-- AI / LLM provider for the recommendations module — set `LLM_PROVIDER=lmstudio` or `gemini`:
-  - LM Studio (local, default): `LMSTUDIO_BASE_URL` (default `http://localhost:1234/v1`), `LMSTUDIO_MODEL` (default `google/gemma-4-e4b`).
-  - Gemini fallback: `GEMINI_API_KEY`, `GEMINI_MODEL` (default `gemini-2.5-flash`), `GEMINI_API_BASE_URL`.
-  - The provider router in `app/lib/recommendations/ai.ts` supports per-call `providerOverride` from the UI. If Gemini fails it silently falls back to LM Studio.
+- AI / LLM provider — Reading Assistant + recommendations are Gemini-only:
+  - `GEMINI_API_KEY` (required for any AI surface to work)
+  - `GEMINI_MODEL` (default `gemini-2.5-flash`)
+  - `GEMINI_API_BASE_URL` (optional override)
+  - `app/lib/recommendations/ai.ts` is the single provider entrypoint. There's no local-LLM fallback anymore.
 - LinkedIn Learning (optional, has stub mode): `LINKEDIN_LEARNING_*` — set `LINKEDIN_LEARNING_USE_STUB=true` to use the bundled sample catalogue. See `README.md` for the full list.
 - Optional LinkedIn auth provider: `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET` (only enables the provider when both are set).
 - Optional MCP recommendations: `MCP_RECOMMENDATIONS_ENABLED=false` (toggle), `MCP_SERVER_COMMAND`, `MCP_SERVER_ARGS` (defaults to `["mcp/server.mjs"]`).
