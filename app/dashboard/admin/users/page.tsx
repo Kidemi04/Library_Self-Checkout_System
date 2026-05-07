@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getDashboardSession } from '@/app/lib/auth/session';
 import { fetchManagedUsers } from '@/app/lib/supabase/queries';
-import UsersManager from '@/app/ui/dashboard/admin/usersManager';
+import UsersList from '@/app/ui/dashboard/admin/usersList';
 
 export default async function UsersPage() {
   const { user } = await getDashboardSession();
@@ -10,5 +10,5 @@ export default async function UsersPage() {
 
   const initialUsers = await fetchManagedUsers();
 
-  return <UsersManager initialUsers={initialUsers} />;
+  return <UsersList initialUsers={initialUsers} />;
 }
