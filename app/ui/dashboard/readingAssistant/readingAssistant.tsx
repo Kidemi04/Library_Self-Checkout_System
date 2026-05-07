@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { TrashIcon } from '@heroicons/react/24/outline';
 import MessageBubble, { type Role } from '@/app/ui/dashboard/readingAssistant/messageBubble';
 import QuickPrompts from '@/app/ui/dashboard/readingAssistant/quickPrompts';
 import Composer from '@/app/ui/dashboard/readingAssistant/composer';
@@ -118,25 +119,57 @@ export default function ReadingAssistant({ userId }: ReadingAssistantProps) {
     void handleSend(prompt);
   };
 
-  const showQuickPrompts = !hydrating && turns.length === 0;
+  const handleClearChat = useCallback(async () => {
+    if (busy) return;
+    if (!window.confirm('Clear all messages? This cannot be undone.')) return;
+    try {
+      const res = await fetch('/api/generalChatHistory', { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setTurns([]);
+    } catch (err) {
+      console.error('[reading-assistant] clear error:', err);
+      window.alert("Couldn't clear chat — please try again.");
+    }
+  }, [busy]);
+
+  const hasTurns = turns.length > 0;
 
   return (
     <div className="rounded-card border border-hairline bg-surface-card p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
+      <div className="mb-3 flex items-center justify-between border-b border-hairline-soft pb-3 dark:border-dark-hairline">
+        <p className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
+          Conversation
+        </p>
+        <button
+          type="button"
+          onClick={handleClearChat}
+          disabled={!hasTurns || busy}
+          aria-label="Clear chat"
+          className="inline-flex items-center gap-1.5 rounded-btn border border-hairline bg-canvas px-3 py-1.5 font-sans text-body-sm text-body transition hover:border-error/40 hover:bg-error/5 hover:text-error disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-hairline disabled:hover:bg-canvas disabled:hover:text-body dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark-soft dark:hover:border-error/50 dark:hover:bg-error/10 dark:hover:text-error"
+        >
+          <TrashIcon className="h-4 w-4" aria-hidden="true" />
+          <span>Clear</span>
+        </button>
+      </div>
+
       <div
         ref={feedRef}
-        className="min-h-[420px] space-y-4 overflow-y-auto pb-2"
-        style={{ maxHeight: 'calc(100vh - 360px)' }}
+        className="min-h-[360px] space-y-4 overflow-y-auto pb-2"
+        style={{ maxHeight: 'calc(100vh - 420px)' }}
       >
-        {showQuickPrompts ? (
-          <QuickPrompts onPick={handlePromptPick} />
-        ) : (
-          <>
-            {turns.map((t) => (
-              <MessageBubble key={t.id} role={t.role} text={t.text} books={t.books} />
-            ))}
-            {busy && <MessageBubble role="assistant" text="" loading />}
-          </>
+        {!hydrating && !hasTurns && (
+          <p className="font-sans text-body-md text-muted dark:text-on-dark-soft">
+            Ask me anything about the library — loans, holds, recommendations, or specific books. Tap a suggestion below to get started.
+          </p>
         )}
+        {turns.map((t) => (
+          <MessageBubble key={t.id} role={t.role} text={t.text} books={t.books} />
+        ))}
+        {busy && <MessageBubble role="assistant" text="" loading />}
+      </div>
+
+      <div className="mt-4">
+        <QuickPrompts onPick={handlePromptPick} disabled={busy} />
       </div>
 
       <Composer
