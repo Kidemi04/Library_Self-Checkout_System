@@ -3,8 +3,8 @@
 const mockLimit = jest.fn();
 const mockOrder = jest.fn(() => ({ limit: mockLimit }));
 const mockGte = jest.fn(() => ({ order: mockOrder }));
-const mockNot = jest.fn(() => ({ gte: mockGte, eq: jest.fn(() => ({ gte: mockGte })) }));
 const mockEqAfterNot = jest.fn(() => ({ gte: mockGte }));
+const mockNot = jest.fn(() => ({ gte: mockGte, eq: mockEqAfterNot }));
 const mockSelect = jest.fn();
 const mockFrom = jest.fn();
 
