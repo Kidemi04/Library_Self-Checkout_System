@@ -2,6 +2,7 @@ import { searchYouTubeCourses } from '@/app/lib/youtube/service';
 import type { UserContext } from '@/app/lib/recommendations/user-context';
 import { tokenizeInterests, expandAcronyms } from '@/app/lib/recommendations/recommender';
 import type { Loan } from '@/app/lib/supabase/types';
+import { READING_ASSISTANT_RETURNS_WINDOW_DAYS } from '@/app/lib/recommendations/policy';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -262,14 +263,14 @@ const renderActiveLoans = (loans: Loan[], today: Date): string => {
   return `\n\nCurrently borrowed:\n${lines.join('\n')}`;
 };
 
-const renderRecentReturns = (returns: Loan[]): string => {
+const renderRecentReturns = (returns: Loan[], windowDays: number): string => {
   if (!returns.length) return '';
   const lines = returns.map((l) => {
     const title = l.book?.title ?? '(unknown title)';
     const date = l.returnedAt ? formatDateYMD(new Date(l.returnedAt)) : '(unknown date)';
     return `- "${title}" — returned ${date}`;
   });
-  return `\n\nRecently returned (last 14 days):\n${lines.join('\n')}`;
+  return `\n\nRecently returned (last ${windowDays} days):\n${lines.join('\n')}`;
 };
 
 export function buildUnifiedSystemPrompt(
@@ -281,7 +282,7 @@ export function buildUnifiedSystemPrompt(
   const studentCtx = buildStudentContext(userContext);
   const todayStr = formatDateYMD(today);
   const loansBlock = renderActiveLoans(activeLoans, today);
-  const returnsBlock = renderRecentReturns(recentReturns);
+  const returnsBlock = renderRecentReturns(recentReturns, READING_ASSISTANT_RETURNS_WINDOW_DAYS);
 
   return `You are a helpful university library assistant. Your job is to help students find books and answer academic questions.
 
@@ -305,7 +306,9 @@ Response format:
 
 Rules:
 - reply must always be plain text. Never use **bold**, *italic*, bullet points, or markdown.
-- For "find_books" or "both": searchTerms must be the SUBJECT/TOPIC the student wants — proper noun phrases as they would appear in a book title or table of contents. NEVER include filler verbs (give, show, find, recommend, suggest, want), quantifiers (some, any, a few), or pronouns (me, my). Expand acronyms (AI → "artificial intelligence", ML → "machine learning", DB → "database", OOP → "object-oriented programming"). Use 2-6 multi-word phrases when possible.
+- For "find_books" or "both": searchTerms must be the SUBJECT/TOPIC the student wants — proper noun phrases as they would appear in a book title or table of contents. NEVER include filler verbs (give, show, find, recommend, suggest, want), quantifiers (some, any, a few), or pronouns (me, my). Expand acronyms (AI → "artificial intelligence", ML → "machine learning", DB → "database", OOP → "object-oriented programming"). Use 2-6 multi-word phrases when possible. Examples:
+  - "give me some AI books" → searchTerms: ["artificial intelligence", "machine learning", "neural networks"]
+  - "I need books for my marketing assignment" → searchTerms: ["marketing strategy", "consumer behavior", "brand management"]
 - For "answer" or "both": give a concise academic explanation (2-4 sentences max).
 - For "greeting": reply warmly and invite the student to ask for books or academic help. searchTerms must be empty.
 - For "off_topic": politely decline and redirect to books or academic topics. searchTerms must be empty.

@@ -8,6 +8,10 @@ import {
   fetchRecentlyReturnedLoans,
 } from '@/app/lib/supabase/queries';
 import { fetchUserContext } from '@/app/lib/recommendations/user-context';
+import {
+  READING_ASSISTANT_HISTORY_LIMIT,
+  READING_ASSISTANT_RETURNS_WINDOW_DAYS,
+} from '@/app/lib/recommendations/policy';
 
 type ReadingAssistantBook = {
   id: string;
@@ -17,9 +21,6 @@ type ReadingAssistantBook = {
   classification: string | null;
   isbn: string | null;
 };
-
-const HISTORY_LIMIT = 10;
-const RETURNS_WINDOW_DAYS = 14;
 
 async function currentUserId(): Promise<string | null> {
   try {
@@ -53,7 +54,7 @@ async function fetchRecentChatTurns(
     .select('sender, text, created_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
-    .limit(HISTORY_LIMIT);
+    .limit(READING_ASSISTANT_HISTORY_LIMIT);
 
   if (error) {
     console.warn('[reading-assistant] history fetch failed:', error.message);
@@ -91,7 +92,7 @@ export async function POST(request: Request) {
   const [userContext, activeLoans, recentReturns, history] = await Promise.all([
     safe(fetchUserContext(userId), undefined, 'fetchUserContext'),
     safe(fetchActiveLoans(undefined, userId), [], 'fetchActiveLoans'),
-    safe(fetchRecentlyReturnedLoans(userId, RETURNS_WINDOW_DAYS), [], 'fetchRecentlyReturnedLoans'),
+    safe(fetchRecentlyReturnedLoans(userId, READING_ASSISTANT_RETURNS_WINDOW_DAYS), [], 'fetchRecentlyReturnedLoans'),
     safe(fetchRecentChatTurns(supabase, userId), [], 'fetchRecentChatTurns'),
   ]);
 
