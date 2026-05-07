@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server';
 import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import { getSessionUser } from '@/auth';
 import { classifyAndExtract } from '@/app/lib/recommendations/ai';
-import { fetchBooks } from '@/app/lib/supabase/queries';
+import {
+  fetchBooks,
+  fetchActiveLoans,
+  fetchRecentlyReturnedLoans,
+} from '@/app/lib/supabase/queries';
+import { fetchUserContext } from '@/app/lib/recommendations/user-context';
 
 type ReadingAssistantBook = {
   id: string;
@@ -12,6 +17,9 @@ type ReadingAssistantBook = {
   classification: string | null;
   isbn: string | null;
 };
+
+const HISTORY_LIMIT = 10;
+const RETURNS_WINDOW_DAYS = 14;
 
 async function currentUserId(): Promise<string | null> {
   try {
@@ -36,6 +44,37 @@ async function persistTurn(
   if (error) console.error('[reading-assistant] persist error:', error.message);
 }
 
+async function fetchRecentChatTurns(
+  supabase: ReturnType<typeof getSupabaseServerClient>,
+  userId: string,
+): Promise<Array<{ sender: 'user' | 'assistant'; text: string }>> {
+  const { data, error } = await supabase
+    .from('GeneralChatHistory')
+    .select('sender, text, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(HISTORY_LIMIT);
+
+  if (error) {
+    console.warn('[reading-assistant] history fetch failed:', error.message);
+    return [];
+  }
+
+  return ((data ?? []) as Array<{ sender: string; text: string }>)
+    .reverse()
+    .filter((r) => r.sender === 'user' || r.sender === 'assistant')
+    .map((r) => ({ sender: r.sender as 'user' | 'assistant', text: r.text }));
+}
+
+const safe = async <T>(p: Promise<T>, fallback: T, label: string): Promise<T> => {
+  try {
+    return await p;
+  } catch (err) {
+    console.warn(`[reading-assistant] ${label} failed:`, err);
+    return fallback;
+  }
+};
+
 export async function POST(request: Request) {
   const userId = await currentUserId();
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -48,10 +87,24 @@ export async function POST(request: Request) {
 
   const supabase = getSupabaseServerClient();
 
-  // 1. AI classify + reply
-  const aiResult = await classifyAndExtract(message);
+  // 1. Parallel fetch all context
+  const [userContext, activeLoans, recentReturns, history] = await Promise.all([
+    safe(fetchUserContext(userId), undefined, 'fetchUserContext'),
+    safe(fetchActiveLoans(undefined, userId), [], 'fetchActiveLoans'),
+    safe(fetchRecentlyReturnedLoans(userId, RETURNS_WINDOW_DAYS), [], 'fetchRecentlyReturnedLoans'),
+    safe(fetchRecentChatTurns(supabase, userId), [], 'fetchRecentChatTurns'),
+  ]);
 
-  // 2. Search books when intent calls for it
+  // 2. AI classify + reply
+  const aiResult = await classifyAndExtract(
+    message,
+    userContext,
+    history,
+    activeLoans,
+    recentReturns,
+  );
+
+  // 3. Search books only when the intent calls for it
   let books: ReadingAssistantBook[] | undefined;
   if (aiResult.intent === 'find_books' || aiResult.intent === 'both') {
     const term = (aiResult.searchTerms ?? [])[0];
@@ -70,7 +123,7 @@ export async function POST(request: Request) {
     }
   }
 
-  // 3. Persist user msg + assistant msg (after AI succeeds)
+  // 4. Persist user msg + assistant msg
   await persistTurn(supabase, userId, 'user', message);
   await persistTurn(supabase, userId, 'assistant', aiResult.reply);
 

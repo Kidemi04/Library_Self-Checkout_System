@@ -3,10 +3,25 @@
 import { POST } from '@/app/api/reading-assistant/route';
 
 const insertMock = jest.fn().mockResolvedValue({ error: null });
-const fromMock = jest.fn(() => ({ insert: insertMock }));
+
+// Chat-history select chain: .select().eq().order().limit()
+const historyLimitMock = jest.fn();
+const historyOrderMock = jest.fn(() => ({ limit: historyLimitMock }));
+const historyEqMock = jest.fn(() => ({ order: historyOrderMock }));
+const historySelectMock = jest.fn(() => ({ eq: historyEqMock }));
+
+const fromMock = jest.fn((table: string) => {
+  if (table === 'GeneralChatHistory') {
+    return { insert: insertMock, select: historySelectMock };
+  }
+  return { insert: insertMock };
+});
 
 const fetchBooksMock = jest.fn();
 const classifyAndExtractMock = jest.fn();
+const fetchUserContextMock = jest.fn();
+const fetchActiveLoansMock = jest.fn();
+const fetchRecentlyReturnedLoansMock = jest.fn();
 
 jest.mock('@/app/lib/supabase/server', () => ({
   getSupabaseServerClient: () => ({ from: fromMock }),
@@ -22,6 +37,12 @@ jest.mock('@/app/lib/recommendations/ai.ts', () => ({
 
 jest.mock('@/app/lib/supabase/queries', () => ({
   fetchBooks: (...args: unknown[]) => fetchBooksMock(...args),
+  fetchActiveLoans: (...args: unknown[]) => fetchActiveLoansMock(...args),
+  fetchRecentlyReturnedLoans: (...args: unknown[]) => fetchRecentlyReturnedLoansMock(...args),
+}));
+
+jest.mock('@/app/lib/recommendations/user-context', () => ({
+  fetchUserContext: (...args: unknown[]) => fetchUserContextMock(...args),
 }));
 
 beforeEach(() => {
@@ -29,6 +50,18 @@ beforeEach(() => {
   fromMock.mockClear();
   fetchBooksMock.mockReset();
   classifyAndExtractMock.mockReset();
+
+  fetchUserContextMock.mockReset().mockResolvedValue({
+    historyTags: [],
+    recentBorrowedBooks: [],
+    savedInterests: [],
+    faculty: null,
+    department: null,
+    intakeYear: null,
+  });
+  fetchActiveLoansMock.mockReset().mockResolvedValue([]);
+  fetchRecentlyReturnedLoansMock.mockReset().mockResolvedValue([]);
+  historyLimitMock.mockReset().mockResolvedValue({ data: [], error: null });
 });
 
 const makeRequest = (body: unknown) =>
@@ -117,4 +150,74 @@ test('rejects empty message', async () => {
 test('rejects missing message', async () => {
   const res = await POST(makeRequest({}));
   expect(res.status).toBe(400);
+});
+
+test('passes prior chat history to classifyAndExtract', async () => {
+  historyLimitMock.mockResolvedValueOnce({
+    data: [
+      { sender: 'assistant', text: 'What aspect of Japan?', created_at: '2026-05-07T11:00:00Z' },
+      { sender: 'user', text: 'recommend a Japan book', created_at: '2026-05-07T10:59:00Z' },
+    ],
+    error: null,
+  });
+  classifyAndExtractMock.mockResolvedValue({ intent: 'find_books', reply: '...', searchTerms: ['japan history'], followUpQuestion: '' });
+  fetchBooksMock.mockResolvedValue([]);
+
+  await POST(makeRequest({ message: 'history!' }));
+
+  const args = classifyAndExtractMock.mock.calls[0];
+  // signature: (message, userContext, history, activeLoans, recentReturns)
+  const [msg, , history] = args;
+  expect(msg).toBe('history!');
+  expect(history).toEqual([
+    { sender: 'user', text: 'recommend a Japan book' },
+    { sender: 'assistant', text: 'What aspect of Japan?' },
+  ]);
+});
+
+test('skips fetchBooks when intent is loan_status', async () => {
+  classifyAndExtractMock.mockResolvedValue({
+    intent: 'loan_status',
+    reply: 'You have one due in 2 days.',
+    searchTerms: [],
+    followUpQuestion: '',
+  });
+
+  const res = await POST(makeRequest({ message: "what's due tomorrow?" }));
+  expect(res.status).toBe(200);
+  const body = await res.json();
+  expect(body.intent).toBe('loan_status');
+  expect(body.books).toBeUndefined();
+  expect(fetchBooksMock).not.toHaveBeenCalled();
+});
+
+test('passes active loans + recent returns to classifyAndExtract', async () => {
+  const activeLoan = { id: 'l1', book: { title: 'Sapiens' } };
+  const returned = { id: 'r1', book: { title: 'The Hobbit' }, returnedAt: '2026-05-04T00:00:00Z' };
+  fetchActiveLoansMock.mockResolvedValueOnce([activeLoan]);
+  fetchRecentlyReturnedLoansMock.mockResolvedValueOnce([returned]);
+  classifyAndExtractMock.mockResolvedValue({ intent: 'answer', reply: 'ok', searchTerms: [], followUpQuestion: '' });
+
+  await POST(makeRequest({ message: 'hi' }));
+
+  const [, , , active, returns] = classifyAndExtractMock.mock.calls[0];
+  expect(active).toEqual([activeLoan]);
+  expect(returns).toEqual([returned]);
+});
+
+test('still works when context fetches fail (degraded mode)', async () => {
+  fetchUserContextMock.mockRejectedValueOnce(new Error('db down'));
+  fetchActiveLoansMock.mockRejectedValueOnce(new Error('db down'));
+  fetchRecentlyReturnedLoansMock.mockRejectedValueOnce(new Error('db down'));
+  historyLimitMock.mockRejectedValueOnce(new Error('db down'));
+  classifyAndExtractMock.mockResolvedValue({ intent: 'answer', reply: 'ok', searchTerms: [], followUpQuestion: '' });
+
+  const res = await POST(makeRequest({ message: 'hi' }));
+  expect(res.status).toBe(200);
+  // classifyAndExtract still called, with undefined context
+  const [, ctx, hist, active, returns] = classifyAndExtractMock.mock.calls[0];
+  expect(ctx).toBeUndefined();
+  expect(hist).toEqual([]);
+  expect(active).toEqual([]);
+  expect(returns).toEqual([]);
 });
