@@ -452,8 +452,11 @@ export async function classifyAndExtract(
   message: string,
   userContext?: UserContext,
   history?: ChatTurn[],
+  activeLoans?: Loan[],
+  recentReturns?: Loan[],
+  today: Date = new Date(),
 ): Promise<AiResult> {
-  const systemPrompt = buildUnifiedSystemPrompt(userContext);
+  const systemPrompt = buildUnifiedSystemPrompt(userContext, activeLoans ?? [], recentReturns ?? [], today);
   const geminiHistory: GeminiTurn[] = (history ?? []).map((h) => ({
     role: h.sender === 'user' ? 'user' : 'model',
     text: h.text,
