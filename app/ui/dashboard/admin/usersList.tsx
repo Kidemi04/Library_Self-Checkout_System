@@ -8,6 +8,7 @@ import AdminShell from '@/app/ui/dashboard/adminShell';
 import UserAvatar from '@/app/ui/dashboard/primitives/UserAvatar';
 import RoleBadge from '@/app/ui/dashboard/primitives/RoleBadge';
 import RoleTabs, { computeRoleCounts, type RoleTab } from '@/app/ui/dashboard/admin/roleTabs';
+import AddUserDialog from '@/app/ui/dashboard/admin/addUserDialog';
 import type { ManagedUserRow } from '@/app/lib/supabase/queries';
 import type { ManagedRole } from '@/app/ui/dashboard/admin/userProfileFields';
 
@@ -53,6 +54,7 @@ export default function UsersList({ initialUsers }: Props) {
   const [page, setPage] = useState(1);
 
   const router = useRouter();
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
   const searchActive = searchTerm.trim().length > 0;
 
@@ -98,7 +100,7 @@ export default function UsersList({ initialUsers }: Props) {
           <button
             type="button"
             className="inline-flex items-center gap-1.5 rounded-btn bg-primary hover:bg-primary-active px-3.5 py-2.5 font-sans text-button text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
-            onClick={() => undefined}
+            onClick={() => setShowAddDialog(true)}
           >
             <PlusIcon className="h-4 w-4" />
             Add user
@@ -245,6 +247,11 @@ export default function UsersList({ initialUsers }: Props) {
           )}
         </section>
       </AdminShell>
+      <AddUserDialog
+        open={showAddDialog}
+        onClose={() => setShowAddDialog(false)}
+        onAdded={() => router.refresh()}
+      />
     </>
   );
 }
