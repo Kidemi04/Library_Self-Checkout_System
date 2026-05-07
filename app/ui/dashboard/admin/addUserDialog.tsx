@@ -82,11 +82,20 @@ export default function AddUserDialog({ open, onClose, onAdded }: Props) {
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 dark:bg-dark-canvas/60"
+      aria-labelledby="add-user-dialog-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
     >
-      <div className="w-full max-w-md overflow-hidden rounded-card border border-hairline bg-canvas shadow-lg dark:border-dark-hairline dark:bg-dark-surface-card">
+      {/* Backdrop */}
+      <div
+        aria-hidden="true"
+        onClick={() => { if (!pending) onClose(); }}
+        className="absolute inset-0 bg-ink/40 backdrop-blur-sm dark:bg-dark-canvas/60"
+      />
+
+      {/* Panel — relative so it sits above the backdrop */}
+      <div className="relative w-full max-w-md overflow-hidden rounded-card border border-hairline bg-surface-card shadow-lg dark:border-dark-hairline dark:bg-dark-surface-card">
         <header className="flex items-center justify-between border-b border-hairline-soft px-6 py-4 dark:border-dark-hairline">
-          <h2 className="font-display text-display-sm text-ink dark:text-on-dark">
+          <h2 id="add-user-dialog-title" className="font-display text-display-sm text-ink dark:text-on-dark">
             {confirming ? 'Confirm new user' : 'Add user'}
           </h2>
           <button
@@ -143,13 +152,13 @@ export default function AddUserDialog({ open, onClose, onAdded }: Props) {
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-btn border border-hairline bg-canvas px-4 py-2 font-sans text-button text-ink transition hover:border-primary/30 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark"
+                  className="rounded-btn border border-hairline bg-canvas px-4 py-2 font-sans text-button text-ink transition hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-btn bg-primary px-4 py-2 font-sans text-button text-on-primary transition hover:bg-primary-active dark:bg-dark-primary"
+                  className="rounded-btn bg-primary px-4 py-2 font-sans text-button text-on-primary transition hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:bg-dark-primary dark:focus-visible:ring-offset-dark-canvas"
                 >
                   Continue
                 </button>
@@ -167,7 +176,7 @@ export default function AddUserDialog({ open, onClose, onAdded }: Props) {
                   type="button"
                   disabled={pending}
                   onClick={() => setConfirming(false)}
-                  className="rounded-btn border border-hairline bg-canvas px-4 py-2 font-sans text-button text-ink transition disabled:opacity-50 dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark"
+                  className="rounded-btn border border-hairline bg-canvas px-4 py-2 font-sans text-button text-ink transition disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
                 >
                   Back
                 </button>
@@ -175,7 +184,7 @@ export default function AddUserDialog({ open, onClose, onAdded }: Props) {
                   type="button"
                   disabled={pending}
                   onClick={handleConfirm}
-                  className="rounded-btn bg-primary px-4 py-2 font-sans text-button text-on-primary transition hover:bg-primary-active disabled:opacity-50 dark:bg-dark-primary"
+                  className="rounded-btn bg-primary px-4 py-2 font-sans text-button text-on-primary transition hover:bg-primary-active disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:bg-dark-primary dark:focus-visible:ring-offset-dark-canvas"
                 >
                   {pending ? 'Creating…' : 'Create user'}
                 </button>
@@ -187,3 +196,4 @@ export default function AddUserDialog({ open, onClose, onAdded }: Props) {
     </div>
   );
 }
+
