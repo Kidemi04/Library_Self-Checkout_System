@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
 
@@ -61,7 +61,7 @@ function cannedReply(prompt: string): string {
   return 'I can help with loans, holds, renewals, fines, and finding books. Could you tell me a little more about what you need?';
 }
 
-export default function ChatAssistant() {
+export default function ChatAssistant({ userId }: { userId?: string } = {}) {
   const [messages, setMessages] = useState<Message[]>(() => [
     {
       id: 'greeting',
@@ -81,18 +81,78 @@ export default function ChatAssistant() {
     }
   }, [messages, typing]);
 
+  // Load prior conversation from /api/generalChatHistory when a userId is supplied.
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/generalChatHistory');
+        if (!res.ok) return;
+        const { messages: rows } = (await res.json()) as {
+          messages: Array<{ id: string; sender: 'user' | 'assistant'; text: string; timestamp: string }>;
+        };
+        if (cancelled || !Array.isArray(rows) || rows.length === 0) return;
+        setMessages(
+          rows.map((r) => ({
+            id: r.id,
+            role: r.sender,
+            text: r.text,
+            time: (() => {
+              const d = new Date(r.timestamp);
+              return Number.isNaN(d.getTime())
+                ? nowLabel()
+                : d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            })(),
+          })),
+        );
+      } catch {
+        // silent — keep greeting state
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  // Fire-and-forget persistence of a single message. No-op without userId.
+  const persistMessage = useCallback(
+    async (msg: { id: string; role: Role; text: string }) => {
+      if (!userId) return;
+      try {
+        await fetch('/api/generalChatHistory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message_id: msg.id,
+            sender: msg.role,
+            text: msg.text,
+          }),
+        });
+      } catch {
+        /* swallow — local state is the source of truth for this session */
+      }
+    },
+    [userId],
+  );
+
   function send(text?: string) {
     const value = (text ?? draft).trim();
     if (!value || typing) return;
     const userMsg: Message = { id: makeId(), role: 'user', text: value, time: nowLabel() };
     setMessages((prev) => [...prev, userMsg]);
+    persistMessage(userMsg);
     setDraft('');
     setTyping(true);
     window.setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        { id: makeId(), role: 'assistant', text: cannedReply(value), time: nowLabel() },
-      ]);
+      const assistantMsg: Message = {
+        id: makeId(),
+        role: 'assistant',
+        text: cannedReply(value),
+        time: nowLabel(),
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+      persistMessage(assistantMsg);
       setTyping(false);
     }, 1200);
   }
