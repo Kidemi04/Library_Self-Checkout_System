@@ -1,6 +1,7 @@
 import { searchYouTubeCourses } from '@/app/lib/youtube/service';
 import type { UserContext } from '@/app/lib/recommendations/user-context';
 import { tokenizeInterests, expandAcronyms } from '@/app/lib/recommendations/recommender';
+import type { Loan } from '@/app/lib/supabase/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -239,24 +240,62 @@ const buildStudentContext = (userContext?: UserContext): string => {
 
 // ─── System prompts ───────────────────────────────────────────────────────────
 
-const buildUnifiedSystemPrompt = (userContext?: UserContext): string => {
+const formatDateYMD = (d: Date): string =>
+  `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
+
+const renderActiveLoans = (loans: Loan[], today: Date): string => {
+  if (!loans.length) return '';
+  const todayMs = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+  const lines = loans.map((l) => {
+    const due = new Date(l.dueAt);
+    const dueMs = Date.UTC(due.getUTCFullYear(), due.getUTCMonth(), due.getUTCDate());
+    const days = Math.round((dueMs - todayMs) / 86_400_000);
+    const title = l.book?.title ?? '(unknown title)';
+    const dateStr = formatDateYMD(due);
+    if (days < 0) return `- [OVERDUE] "${title}" — was due ${dateStr} (${Math.abs(days)} days ago)`;
+    if (days === 0) return `- "${title}" — due today (${dateStr})`;
+    if (days === 1) return `- "${title}" — due tomorrow (${dateStr})`;
+    return `- "${title}" — due ${dateStr} (in ${days} days)`;
+  });
+  return `\n\nCurrently borrowed:\n${lines.join('\n')}`;
+};
+
+const renderRecentReturns = (returns: Loan[]): string => {
+  if (!returns.length) return '';
+  const lines = returns.map((l) => {
+    const title = l.book?.title ?? '(unknown title)';
+    const date = l.returnedAt ? formatDateYMD(new Date(l.returnedAt)) : '(unknown date)';
+    return `- "${title}" — returned ${date}`;
+  });
+  return `\n\nRecently returned (last 14 days):\n${lines.join('\n')}`;
+};
+
+export function buildUnifiedSystemPrompt(
+  userContext?: UserContext,
+  activeLoans: Loan[] = [],
+  recentReturns: Loan[] = [],
+  today: Date = new Date(),
+): string {
   const studentCtx = buildStudentContext(userContext);
-  const currentYear = new Date().getFullYear();
+  const todayStr = formatDateYMD(today);
+  const loansBlock = renderActiveLoans(activeLoans, today);
+  const returnsBlock = renderRecentReturns(recentReturns);
 
   return `You are a helpful university library assistant. Your job is to help students find books and answer academic questions.
 
 You must respond ONLY with a valid JSON object — no markdown, no extra text, no code fences.
 
 Classify the student's message into one of these intents:
-- "find_books": student wants book recommendations (e.g. "recommend books on marketing", "I need books for my data science assignment")
-- "answer": student has an academic question (e.g. "what is machine learning?", "explain supply and demand")
-- "both": student asks a question AND wants books (e.g. "what is blockchain and can you recommend books?")
+- "find_books": student wants book recommendations
+- "answer": student has an academic question
+- "both": student asks a question AND wants books
 - "greeting": hi, hello, how are you, or other small talk
-- "off_topic": requests unrelated to studying or books (e.g. write my essay, personal advice, harmful content)
+- "off_topic": requests unrelated to studying or books
+- "loan_status": questions about the student's current loans, due dates, overdue items ("what's due tomorrow?", "any overdue?", "what books do I have?")
 
 Response format:
 {
-  "intent": "find_books" | "answer" | "both" | "greeting" | "off_topic",
+  "intent": "find_books" | "answer" | "both" | "greeting" | "off_topic" | "loan_status",
   "reply": "Your natural, friendly response. Plain text only — no asterisks, no bullet points, no markdown.",
   "searchTerms": ["term1", "term2"],
   "followUpQuestion": "One short follow-up question (only for find_books or both, else empty string)"
@@ -264,23 +303,18 @@ Response format:
 
 Rules:
 - reply must always be plain text. Never use **bold**, *italic*, bullet points, or markdown.
-- For "find_books" or "both": searchTerms must be the SUBJECT/TOPIC the student wants — proper noun phrases as they would appear in a book title or table of contents. NEVER include filler verbs (give, show, find, recommend, suggest, want), quantifiers (some, any, a few), or pronouns (me, my). Expand acronyms to their full form (AI → "artificial intelligence", ML → "machine learning", DB → "database", OOP → "object-oriented programming"). Use 2-6 multi-word phrases when possible.
-- Examples:
-  • "give me some AI books" → searchTerms: ["artificial intelligence", "machine learning", "neural networks"]
-  • "I need books for my marketing assignment" → searchTerms: ["marketing strategy", "consumer behavior", "brand management"]
-  • "recommend something on databases" → searchTerms: ["database systems", "SQL", "relational databases"]
-  • "show me good react books" → searchTerms: ["React", "frontend development", "JavaScript frameworks"]
-- For "answer" or "both": give a concise, clear academic explanation in reply (2-4 sentences max).
-- For "greeting": reply warmly and invite the student to ask for books or academic help.
-- For "off_topic": politely decline and redirect to books or academic topics.
-- You can answer questions from ALL academic fields: computer science, business, engineering, art, mathematics, science, humanities, etc.
+- For "find_books" or "both": searchTerms must be the SUBJECT/TOPIC the student wants — proper noun phrases as they would appear in a book title or table of contents. NEVER include filler verbs (give, show, find, recommend, suggest, want), quantifiers (some, any, a few), or pronouns (me, my). Expand acronyms (AI → "artificial intelligence", ML → "machine learning", DB → "database", OOP → "object-oriented programming"). Use 2-6 multi-word phrases when possible.
+- For "answer" or "both": give a concise academic explanation (2-4 sentences max).
+- For "greeting": reply warmly and invite the student to ask for books or academic help. searchTerms must be empty.
+- For "off_topic": politely decline and redirect to books or academic topics. searchTerms must be empty.
+- For "loan_status": answer using ONLY the "Currently borrowed" data below. Never invent dates or titles. Use today's date for "due tomorrow", "due soon", "overdue" reasoning. searchTerms must be empty.
+- Never recommend a book that appears in "Currently borrowed".
+- When the student asks for a recommendation and recent-return data exists below, prefer adjacent or follow-up topics to those books and name the connection in reply (e.g. "Since you just finished X, here's something on Y").
+- When the student asks for recommendations without specifying a topic, infer topics from recent returns, recently borrowed history, and known interests.
+- You can answer questions from ALL academic fields.
 - Never reveal what AI model you are. You are the library assistant.
-- Current year: ${currentYear}.${studentCtx}
-
-Prioritize book search terms that match the student's faculty and department when relevant.
-When the student asks for recommendations without specifying a topic (e.g. "suggest me a book", "what should I read next"), infer topics from their recently borrowed books and known interests above, and use those as searchTerms. Mention the connection naturally in reply (e.g. "Since you've been reading about X, here are related books on Y").
-Never recommend a book they have already borrowed recently — pick adjacent or follow-up topics instead.`;
-};
+- Today's date: ${todayStr}.${studentCtx}${loansBlock}${returnsBlock}`;
+}
 
 const YOUTUBE_SYSTEM_PROMPT = `You are a university library assistant. Given a student's reading interests, suggest exactly 3 YouTube educational video titles that complement those topics.
 Return ONLY valid JSON — no markdown, no code fences, no extra text.
