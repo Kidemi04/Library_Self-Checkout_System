@@ -4,7 +4,7 @@ import { tokenizeInterests, expandAcronyms } from '@/app/lib/recommendations/rec
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type AiIntent = 'find_books' | 'answer' | 'both' | 'greeting' | 'off_topic';
+export type AiIntent = 'find_books' | 'answer' | 'both' | 'greeting' | 'off_topic' | 'loan_status';
 
 export type AiResult = {
   intent: AiIntent;
@@ -429,7 +429,7 @@ export async function classifyAndExtract(
   }
 
   const intent: AiIntent =
-    ['find_books', 'answer', 'both', 'greeting', 'off_topic'].includes(parsed.intent as string)
+    ['find_books', 'answer', 'both', 'greeting', 'off_topic', 'loan_status'].includes(parsed.intent as string)
       ? (parsed.intent as AiIntent)
       : 'find_books';
 
