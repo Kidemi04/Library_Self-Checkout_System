@@ -113,56 +113,40 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
   }, []);
 
   const nav = getNav(user.role);
-  const roleBadge = user.role === 'admin' ? 'ADMIN' : user.role === 'staff' ? 'STAFF' : 'STUDENT';
   return (
     <aside className={clsx(
       'fixed left-0 top-0 flex h-screen flex-col border-r border-hairline bg-canvas text-ink transition-[width,padding] duration-300 dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark',
       collapsed ? 'w-16 px-2 py-4' : 'w-64 px-[18px] py-7',
     )}>
-      {onToggle && (
+      {collapsed && onToggle && (
         <button
           type="button"
           onClick={onToggle}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className={clsx(
-            'mb-5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-btn border border-hairline bg-surface-card text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas',
-            collapsed ? 'mx-auto' : 'ml-auto mr-2.5',
-          )}
+          aria-label="Expand sidebar"
+          title="Expand sidebar"
+          className="mx-auto mb-2 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-btn border border-hairline bg-surface-card text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
         >
-          {collapsed ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
+          <ChevronRightIcon className="h-4 w-4" />
         </button>
       )}
 
-      {/* Role badge — hidden when collapsed */}
       {!collapsed && (
-        <div className={clsx(
-          'mx-2.5 mb-5 rounded-btn border p-2.5',
-          user.role === 'admin'
-            ? 'border-primary/30 bg-primary/8 dark:border-dark-primary/40 dark:bg-dark-primary/15'
-            : user.role === 'staff'
-            ? 'border-accent-amber/30 bg-accent-amber/10 dark:border-accent-amber/40 dark:bg-accent-amber/15'
-            : 'border-hairline bg-transparent dark:border-dark-hairline',
-        )}>
-          <p className={clsx(
-            'font-mono text-[9px] font-bold uppercase tracking-[2px]',
-            user.role === 'admin' ? 'text-primary dark:text-dark-primary'
-              : user.role === 'staff' ? 'text-accent-amber'
-              : 'text-muted-soft dark:text-on-dark-soft',
-          )}>{roleBadge}</p>
-          <p className="mt-0.5 font-sans text-[13px] font-semibold text-ink dark:text-on-dark">
-            {user.name ?? user.email ?? 'Library Member'}
+        <div className="mb-2 flex items-center justify-between px-3">
+          <p className="font-mono text-[9px] font-semibold uppercase tracking-[1.8px] text-muted-soft dark:text-on-dark-soft">
+            Workspace
           </p>
-          {isBypassed && (
-            <p className="mt-0.5 font-mono text-[9px] text-primary/70 dark:text-dark-primary/70">Dev bypass active</p>
+          {onToggle && (
+            <button
+              type="button"
+              onClick={onToggle}
+              aria-label="Collapse sidebar"
+              title="Collapse sidebar"
+              className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-btn text-muted-soft transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:text-on-dark/60 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
+            >
+              <ChevronLeftIcon className="h-3.5 w-3.5" />
+            </button>
           )}
         </div>
-      )}
-
-      {!collapsed && (
-        <p className="mb-2 px-3 font-mono text-[9px] font-semibold uppercase tracking-[1.8px] text-muted-soft dark:text-on-dark-soft">
-          Workspace
-        </p>
       )}
 
       {/* Nav items */}
