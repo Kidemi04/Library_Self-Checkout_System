@@ -7,6 +7,8 @@ import type { Loan } from '@/app/lib/supabase/types';
 
 export type AiIntent = 'find_books' | 'answer' | 'both' | 'greeting' | 'off_topic' | 'loan_status';
 
+export type ChatTurn = { sender: 'user' | 'assistant'; text: string };
+
 export type AiResult = {
   intent: AiIntent;
   reply: string;
@@ -323,10 +325,12 @@ Keep titles concise and realistic. The query should be a good YouTube search ter
 
 // ─── Gemini ───────────────────────────────────────────────────────────────────
 
+type GeminiTurn = { role: 'user' | 'model'; text: string };
+
 const callGemini = async (
   systemPrompt: string,
   userMessage: string,
-  options?: { temperature?: number; maxOutputTokens?: number },
+  options?: { temperature?: number; maxOutputTokens?: number; history?: GeminiTurn[] },
 ): Promise<string | null> => {
   const { geminiBaseUrl, geminiApiKey, geminiModel } = getEnv();
   if (!geminiApiKey) {
@@ -346,12 +350,15 @@ const callGemini = async (
     geminiModel,
   )}:generateContent?key=${encodeURIComponent(geminiApiKey)}`;
 
+  const history = options?.history ?? [];
   const body = {
+    systemInstruction: {
+      role: 'system',
+      parts: [{ text: systemPrompt }],
+    },
     contents: [
-      {
-        role: 'user',
-        parts: [{ text: systemPrompt }, { text: userMessage }],
-      },
+      ...history.map((h) => ({ role: h.role, parts: [{ text: h.text }] })),
+      { role: 'user', parts: [{ text: userMessage }] },
     ],
     generationConfig: {
       temperature: options?.temperature ?? 0.3,
@@ -371,17 +378,14 @@ const callGemini = async (
       if (response.status === 403) {
         geminiDisabled = true;
         console.error('Gemini API disabled:', errorText);
-        return null;
+      } else {
+        console.error('[Gemini] non-ok status', response.status, errorText.slice(0, 400));
       }
-      console.error('Gemini API error', response.status, errorText);
       return null;
     }
 
-    const data = (await response.json()) as {
-      candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
-    };
-
-    const text = data?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? '').join('').trim() ?? null;
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text ?? '').join('').trim() ?? null;
     if (!text) {
       console.error('[Gemini] returned 200 but empty content. Full response:', JSON.stringify(data).slice(0, 400));
       return null;
@@ -398,11 +402,12 @@ const callGemini = async (
 const callAI = async (
   systemPrompt: string,
   userMessage: string,
-  options?: { temperature?: number; maxTokens?: number },
+  options?: { temperature?: number; maxTokens?: number; history?: GeminiTurn[] },
 ): Promise<string | null> => {
   return callGemini(systemPrompt, userMessage, {
     temperature: options?.temperature,
     maxOutputTokens: options?.maxTokens,
+    history: options?.history,
   });
 };
 
@@ -446,9 +451,14 @@ export async function checkAiAvailable(): Promise<boolean> {
 export async function classifyAndExtract(
   message: string,
   userContext?: UserContext,
+  history?: ChatTurn[],
 ): Promise<AiResult> {
   const systemPrompt = buildUnifiedSystemPrompt(userContext);
-  const raw = await callAI(systemPrompt, message, { temperature: 0.3, maxTokens: 512 });
+  const geminiHistory: GeminiTurn[] = (history ?? []).map((h) => ({
+    role: h.sender === 'user' ? 'user' : 'model',
+    text: h.text,
+  }));
+  const raw = await callAI(systemPrompt, message, { temperature: 0.3, maxTokens: 1024, history: geminiHistory });
 
   if (!raw) throw new AiUnavailableError();
 
