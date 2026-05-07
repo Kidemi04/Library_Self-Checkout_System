@@ -414,6 +414,70 @@ export async function fetchActiveLoans(searchTerm?: string, userId?: string): Pr
   });
 }
 
+export async function fetchRecentlyReturnedLoans(
+  userId: string,
+  withinDays: number,
+  limit = 5,
+): Promise<Loan[]> {
+  if (!userId) return [];
+
+  const supabase = getSupabaseServerClient();
+  const cutoff = new Date(Date.now() - withinDays * 24 * 60 * 60 * 1000).toISOString();
+
+  const { data, error } = await supabase
+    .from('Loans')
+    .select(
+      `
+        id,
+        copy_id,
+        user_id,
+        borrowed_at,
+        due_at,
+        returned_at,
+        renewed_count,
+        handled_by,
+        created_at,
+        updated_at,
+        copy:Copies(
+          id,
+          barcode,
+          book:Books(
+            id,
+            title,
+            author,
+            isbn
+          )
+        ),
+        borrower:Users!Loans_user_id_fkey(
+          id,
+          email,
+          role,
+          profile:UserProfile(
+            display_name,
+            student_id
+          )
+        ),
+        handler:Users!Loans_handled_by_fkey(
+          id,
+          email,
+          role,
+          profile:UserProfile(
+            display_name
+          )
+        )
+      `,
+    )
+    .not('returned_at', 'is', null)
+    .eq('user_id', userId)
+    .gte('returned_at', cutoff)
+    .order('returned_at', { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+
+  return (((data ?? []) as unknown) as RawLoanRow[]).map(mapLoanRow);
+}
+
 export async function fetchBooks(searchTerm?: string): Promise<Book[]> {
   const supabase = getSupabaseServerClient();
   const sanitized = sanitizeSearchTerm(searchTerm);
