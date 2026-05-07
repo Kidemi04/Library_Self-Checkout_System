@@ -2112,6 +2112,21 @@ export async function fetchManagedUsers(): Promise<ManagedUserRow[]> {
   return (data ?? []) as ManagedUserRow[];
 }
 
+export async function fetchManagedUserById(id: string): Promise<ManagedUserRow | null> {
+  if (!id) return null;
+  const supabase = getSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('Users')
+    .select('*, profile:UserProfile(*)')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) {
+    console.error('[fetchManagedUserById] error', error);
+    return null;
+  }
+  return (data ?? null) as ManagedUserRow | null;
+}
+
 export type RecentLoanEntry = {
   id: string;
   borrowedAt: string;
