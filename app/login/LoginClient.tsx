@@ -104,7 +104,7 @@ export default function LoginClient({ callbackUrl, hasLinkedIn }: LoginClientPro
                   type="button"
                   onClick={handleLinkedInSignIn}
                   disabled={pendingMs || pendingLi}
-                  className="flex w-full items-center justify-center gap-3 rounded-btn bg-[#0A66C2] px-6 py-4 font-sans text-button text-white transition-colors hover:bg-[#004182] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A66C2]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-dark-canvas"
+                  className="flex w-full items-center justify-center gap-3 rounded-btn bg-linkedin px-6 py-4 font-sans text-button text-on-primary transition-colors hover:bg-linkedin-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-linkedin/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-dark-canvas"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

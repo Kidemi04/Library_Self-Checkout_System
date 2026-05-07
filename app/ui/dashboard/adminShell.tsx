@@ -18,8 +18,8 @@ export default function AdminShell({
   return (
     <div className="flex flex-col">
       {/* Header */}
-      <header className="mb-8 flex items-end justify-between gap-6 border-b border-hairline pb-6 dark:border-dark-hairline">
-        <div>
+      <header className="mb-8 flex items-end justify-between gap-4 border-b border-hairline pb-6 dark:border-dark-hairline">
+        <div className="min-w-0">
           <p className="mb-1.5 font-sans text-caption-uppercase text-muted dark:text-muted-soft">
             {titleSubtitle}
           </p>

@@ -279,7 +279,7 @@ export default function BookList({
         <BlurFade
           delay={0.2}
           yOffset={10}
-          className="grid grid-cols-2 gap-x-5 gap-y-7 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+          className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
         >
           {paginatedBooks.map((b, idx) => {
             const status = (b.status ?? 'available') as ItemStatus;
@@ -297,7 +297,7 @@ export default function BookList({
                     className="block"
                   >
                     {hasCover ? (
-                      <div className="relative overflow-hidden rounded-[10px] shadow-md transition duration-300 group-hover:-translate-y-0.5 group-hover:shadow-xl">
+                      <div className="relative overflow-hidden rounded-card shadow-sm transition duration-300 group-hover:-translate-y-0.5 group-hover:shadow-lg">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={b.cover!}
@@ -307,13 +307,12 @@ export default function BookList({
                         />
                       </div>
                     ) : (
-                      <div className="transition duration-300 group-hover:-translate-y-0.5 group-hover:[filter:drop-shadow(0_14px_24px_rgba(0,0,0,0.15))]">
+                      <div className="relative aspect-[2/3] w-full overflow-hidden rounded-card shadow-sm transition duration-300 group-hover:-translate-y-0.5 group-hover:shadow-lg">
                         <BookCover
                           gradient={getBookGradient(b.id)}
                           title={b.title}
                           author={b.author}
-                          w={200}
-                          h={286}
+                          fill
                           radius={6}
                         />
                       </div>
@@ -381,8 +380,8 @@ export default function BookList({
   // List variant
   return (
     <>
-      <div className="overflow-hidden rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card">
-        <ul className="divide-y divide-hairline-soft dark:divide-dark-hairline">
+      <div className="overflow-hidden rounded-card border border-hairline bg-canvas dark:border-dark-hairline dark:bg-dark-surface-card">
+        <ul className="divide-y divide-hairline dark:divide-dark-hairline">
           {paginatedBooks.map((b, idx) => {
             const status = (b.status ?? 'available') as ItemStatus;
             const meta = STATUS_META[status] ?? STATUS_META.available;
@@ -391,12 +390,7 @@ export default function BookList({
 
             return (
               <BlurFade key={b.id} delay={0.15 + idx * 0.03} yOffset={8}>
-                <li
-                  className={clsx(
-                    'flex items-center gap-4 px-4 py-3 transition',
-                    idx % 2 === 1 && 'bg-surface-cream-strong/40 dark:bg-dark-surface-strong/40',
-                  )}
-                >
+                <li className="flex items-center gap-4 px-4 py-3 transition hover:bg-surface-soft dark:hover:bg-dark-surface-soft">
                   <Link
                     href={`/dashboard/book/${b.id}`}
                     aria-label={`View details for ${b.title}`}
@@ -481,8 +475,13 @@ export default function BookList({
 
 function EmptyState() {
   return (
-    <div className="rounded-card border border-dashed border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-10 text-center font-sans text-body-sm text-muted dark:text-on-dark-soft">
-      No books match your search. Try a different keyword or clear filters.
+    <div className="flex flex-col items-center justify-center gap-2 rounded-card border border-dashed border-hairline bg-surface-soft px-6 py-14 text-center dark:border-dark-hairline dark:bg-dark-surface-soft">
+      <p className="font-display text-display-sm tracking-tight text-muted dark:text-on-dark-soft">
+        No books found
+      </p>
+      <p className="font-sans text-body-sm text-muted-soft dark:text-on-dark-soft">
+        Try a different keyword or clear the filters.
+      </p>
     </div>
   );
 }

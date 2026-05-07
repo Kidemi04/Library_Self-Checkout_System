@@ -24,7 +24,7 @@ const config: Config = {
       },
       fontFamily: {
         display: ['var(--font-newsreader)', 'Georgia', 'serif'],
-        sans:    ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        sans:    ['var(--font-inter)', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Arial', 'sans-serif'],
         mono:    ['var(--font-jetbrains-mono)', '"SF Mono"', 'Menlo', 'monospace'],
       },
       fontSize: {
@@ -58,51 +58,54 @@ const config: Config = {
         // and `black` (tooling). Charcoal/ivory/gold/dark-bg/dark-surface
         // dropped per spec §7 acceptance criterion (Chat 16 Task 30).
         swin: {
-          red: '#9a0817',
+          red: '#C82333',
           black: '#000000',
         },
 
         // Brand: dual-track Swinburne red
-        'swin-red-brand': '#9a0817',          // logo / brand-mark only
-        primary:          '#D01425',          // UI CTA, links, focus rings
-        'primary-active': '#A8101C',
-        'primary-disabled': '#E2E2E7',
-        'dark-primary':   '#9a0817',          // dark-mode primary
+        'swin-red-brand': '#C82333',          // logo / brand-mark only
+        primary:          '#B83A35',          // UI CTA, links, focus rings
+        'primary-active': '#9A2D29',
+        'primary-disabled': '#E6DFD8',
+        'dark-primary':   '#CC4640',          // dark-mode primary
 
-        // Surface — light (off-white canvas, white cards elevated above it)
-        canvas:                 '#F9F9F9',
-        'surface-soft':         '#F2F2F2',
-        'surface-card':         '#FFFFFF',
-        'surface-cream-strong': '#E8E8E8',
-        hairline:               '#E0E0E0',
-        'hairline-soft':        '#EBEBEB',
+        // Surface — light
+        canvas:                 '#FAF9F5',
+        'surface-soft':         '#F5F0E8',
+        'surface-card':         '#EFE9DE',
+        'surface-cream-strong': '#E8E0D2',
+        hairline:               '#E6DFD8',
+        'hairline-soft':        '#EBE6DF',
 
-        // Surface — dark (black base, grey hierarchy)
-        'dark-canvas':          '#000000',
-        'dark-surface-soft':    '#0F0F0F',
-        'dark-surface-card':    '#1A1A1A',
-        'dark-surface-strong':  '#282828',
-        'dark-hairline':        '#333333',
+        // Surface — dark
+        'dark-canvas':          '#181715',
+        'dark-surface-soft':    '#1F1E1B',
+        'dark-surface-card':    '#252320',
+        'dark-surface-strong':  '#2D2B27',
+        'dark-hairline':        '#3A3733',
 
-        // Text (neutral zinc, no warm tint)
-        ink:           '#18181B',
-        'body-strong': '#27272A',
-        body:          '#3F3F46',
-        muted:         '#71717A',
-        'muted-soft':  '#A1A1AA',
+        // Text
+        ink:           '#141413',
+        'body-strong': '#252523',
+        body:          '#3D3D3A',
+        muted:         '#6C6A64',
+        'muted-soft':  '#8E8B82',
         'on-primary':  '#FFFFFF',
-        'on-dark':     '#FAFAFA',
-        'on-dark-soft':'#A1A1AA',
+        'on-dark':     '#FAF9F5',
+        'on-dark-soft':'#A09D96',
 
         // Accent
         'accent-teal':  '#5DB8A6',
         'accent-amber': '#E8A55A',
 
         // Semantic
-        success:      '#5DB872',
-        'dark-success': '#166534',
+        success: '#5DB872',
         warning: '#D4A017',
         error:   '#C64545',
+
+        // Third-party brand
+        linkedin:        '#0A66C2',
+        'linkedin-active': '#004182',
       },
     },
     keyframes: {

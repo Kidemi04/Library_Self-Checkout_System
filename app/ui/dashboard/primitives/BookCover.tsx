@@ -26,18 +26,19 @@ type BookCoverProps = {
   w?: number;
   h?: number;
   radius?: number;
+  /** Fill parent positioned container (position: absolute; inset: 0) instead of fixed px size */
+  fill?: boolean;
 };
 
-export default function BookCover({ gradient, title, author, w = 48, h = 68, radius = 4 }: BookCoverProps) {
+export default function BookCover({ gradient, title, author, w = 48, h = 68, radius = 4, fill = false }: BookCoverProps) {
   return (
     <div
       style={{
-        width: w,
-        height: h,
+        ...(fill
+          ? { position: 'absolute', inset: 0 }
+          : { position: 'relative', width: w, height: h, flexShrink: 0 }),
         borderRadius: radius,
-        flexShrink: 0,
         background: gradient,
-        position: 'relative',
         overflow: 'hidden',
       }}
     >

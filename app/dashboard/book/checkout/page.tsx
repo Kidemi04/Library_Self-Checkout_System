@@ -73,22 +73,19 @@ export default async function BorrowBooksPage({
       >
         <div className="space-y-6">
           {/* Scan hero — solid primary per spec §6.4 (drop gradient + boxShadow) */}
-          <div className="relative overflow-hidden rounded-card bg-primary p-6 text-on-primary">
-            <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-on-primary/10" />
-            <div className="relative flex items-start gap-5">
-              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-[14px] border border-on-primary/25 bg-on-primary/15">
-                <QrCodeIcon className="h-7 w-7" strokeWidth={1.8} />
+          <div className="relative overflow-hidden rounded-card bg-primary px-4 py-3.5 text-on-primary">
+            <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-on-primary/10" />
+            <div className="relative flex items-center gap-3">
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] border border-on-primary/25 bg-on-primary/15">
+                <QrCodeIcon className="h-5 w-5" strokeWidth={1.8} />
               </div>
-              <div className="flex-1">
-                <p className="font-sans text-caption-uppercase font-bold opacity-80">
+              <div className="min-w-0 flex-1">
+                <p className="font-sans text-[9px] font-bold uppercase tracking-[1.4px] opacity-80">
                   Self-Service Desk · Scan to Process
                 </p>
-                <h2 className="mt-1 font-display text-display-md leading-tight tracking-tight">
-                  Scan a barcode or pick a title below
+                <h2 className="truncate font-display text-[17px] font-semibold leading-tight tracking-tight">
+                  Scan a barcode or pick a title
                 </h2>
-                <p className="mt-1 font-sans text-body-sm opacity-85">
-                  Point the camera at the book barcode, or find it in the catalogue and confirm your loan.
-                </p>
               </div>
             </div>
           </div>

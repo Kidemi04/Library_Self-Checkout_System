@@ -155,6 +155,7 @@ export default function FaqFloatingHelp() {
         aria-label={open ? 'Close help panel' : 'Open student guide'}
         onClick={() => setOpen((v) => !v)}
         className="flex h-12 w-12 items-center justify-center rounded-full bg-ink text-on-dark shadow-lg transition-all duration-300 hover:bg-primary hover:scale-110 active:scale-95 dark:bg-dark-surface-strong dark:hover:bg-primary"
+        suppressHydrationWarning
       >
         {open ? (
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">

@@ -151,23 +151,23 @@ export default function StudentDashboard({
             <div className="mx-5 mb-6">
               <Link
                 href="/dashboard/my-books?tab=reservations"
-                className="flex items-center gap-3 rounded-card bg-primary p-3.5 text-on-primary transition hover:bg-primary-active dark:bg-dark-primary dark:hover:bg-primary-active"
+                className="flex items-center gap-2.5 rounded-card bg-primary px-3 py-2.5 text-on-primary transition hover:bg-primary-active dark:bg-dark-primary dark:hover:bg-primary-active"
               >
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] bg-on-primary/18">
-                  <BookmarkIcon className="h-[18px] w-[18px]" />
+                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[8px] bg-on-primary/18">
+                  <BookmarkIcon className="h-3.5 w-3.5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="font-mono text-[9px] font-bold uppercase tracking-[1.4px] opacity-85">
+                  <p className="font-mono text-[8px] font-bold uppercase tracking-[1.4px] opacity-85">
                     {readyHolds.length > 1 ? `${readyHolds.length} holds ready · ` : 'Ready for pickup · '}
                     {readyHolds[0]?.expiresAt
                       ? `pickup by ${new Date(readyHolds[0].expiresAt).toLocaleDateString('en-MY', { day: 'numeric', month: 'short' })}`
                       : 'pick up soon'}
                   </p>
-                  <p className="truncate font-display text-[16px] font-semibold leading-tight tracking-tight">
+                  <p className="truncate font-display text-[14px] font-semibold leading-tight tracking-tight">
                     {readyHolds[0]?.title}
                   </p>
                 </div>
-                <ArrowRightIcon className="h-4.5 w-4.5 flex-shrink-0 opacity-80" />
+                <ArrowRightIcon className="h-4 w-4 flex-shrink-0 opacity-80" />
               </Link>
             </div>
           </BlurFade>
