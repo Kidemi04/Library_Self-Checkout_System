@@ -176,19 +176,14 @@ export const buildPersonalizedSuggestion = (
 
 // ─── Env ──────────────────────────────────────────────────────────────────────
 
-type Provider = 'gemini' | 'lmstudio';
-
 let geminiDisabled = false;
 
 const getEnv = () => ({
-  provider: (process.env.LLM_PROVIDER?.trim().toLowerCase() as Provider | undefined) ?? undefined,
   geminiBaseUrl:
     process.env.GEMINI_API_BASE_URL?.trim() ||
     'https://generativelanguage.googleapis.com/v1beta',
   geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
   geminiModel: process.env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash',
-  lmstudioBaseUrl: process.env.LMSTUDIO_BASE_URL?.trim() || 'http://localhost:1234/v1',
-  lmstudioModel: process.env.LMSTUDIO_MODEL?.trim() || 'google/gemma-4-e4b',
 });
 
 // ─── JSON helpers ─────────────────────────────────────────────────────────────
@@ -292,49 +287,6 @@ Return ONLY valid JSON — no markdown, no code fences, no extra text.
 Format: { "courses": [{ "title": "...", "query": "..." }, ...] }
 Keep titles concise and realistic. The query should be a good YouTube search term. Use English only.`;
 
-// ─── LM Studio (OpenAI-compatible) ───────────────────────────────────────────
-
-const callLMStudio = async (
-  systemPrompt: string,
-  userMessage: string,
-  options?: { temperature?: number; maxTokens?: number },
-): Promise<string | null> => {
-  const { lmstudioBaseUrl, lmstudioModel } = getEnv();
-
-  try {
-    const response = await fetch(`${lmstudioBaseUrl.replace(/\/+$/, '')}/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: lmstudioModel,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-        temperature: options?.temperature ?? 0.3,
-        max_tokens: options?.maxTokens ?? 512,
-        stream: false,
-        reasoning: { effort: 'none' },
-      }),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text().catch(() => '');
-      console.error('[LM Studio] API error', response.status, errText);
-      return null;
-    }
-
-    const data = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-
-    return data?.choices?.[0]?.message?.content?.trim() ?? null;
-  } catch (err) {
-    console.error('[LM Studio] fetch error', err);
-    return null;
-  }
-};
-
 // ─── Gemini ───────────────────────────────────────────────────────────────────
 
 const callGemini = async (
@@ -407,37 +359,17 @@ const callGemini = async (
   }
 };
 
-// ─── Provider router ──────────────────────────────────────────────────────────
+// ─── Provider call ────────────────────────────────────────────────────────────
 
 const callAI = async (
   systemPrompt: string,
   userMessage: string,
   options?: { temperature?: number; maxTokens?: number },
-  providerOverride?: 'lmstudio' | 'gemini',
 ): Promise<string | null> => {
-  const { provider, geminiApiKey } = getEnv();
-  const resolved = providerOverride ?? provider;
-
-  // Explicit provider choice from the UI → stick to that one, no silent fallback.
-  if (resolved === 'lmstudio') {
-    return callLMStudio(systemPrompt, userMessage, options);
-  }
-  if (resolved === 'gemini') {
-    return callGemini(systemPrompt, userMessage, {
-      temperature: options?.temperature,
-      maxOutputTokens: options?.maxTokens,
-    });
-  }
-
-  // No explicit override → auto-pick: prefer Gemini when key is present, else LM Studio.
-  if (geminiApiKey) {
-    const result = await callGemini(systemPrompt, userMessage, {
-      temperature: options?.temperature,
-      maxOutputTokens: options?.maxTokens,
-    });
-    if (result) return result;
-  }
-  return callLMStudio(systemPrompt, userMessage, options);
+  return callGemini(systemPrompt, userMessage, {
+    temperature: options?.temperature,
+    maxOutputTokens: options?.maxTokens,
+  });
 };
 
 // ─── AI unavailable error ────────────────────────────────────────────────────
@@ -457,10 +389,8 @@ type HealthCacheEntry = { healthy: boolean; checkedAt: number };
 const aiHealthCache = new Map<string, HealthCacheEntry>();
 const AI_HEALTH_CACHE_MS = 15_000;
 
-export async function checkAiAvailable(
-  providerOverride?: 'lmstudio' | 'gemini',
-): Promise<boolean> {
-  const key = providerOverride ?? 'auto';
+export async function checkAiAvailable(): Promise<boolean> {
+  const key = 'gemini';
   const now = Date.now();
   const cached = aiHealthCache.get(key);
   if (cached && now - cached.checkedAt < AI_HEALTH_CACHE_MS) {
@@ -471,7 +401,6 @@ export async function checkAiAvailable(
     'Respond with only the single word: ok',
     'ping',
     { temperature: 0, maxTokens: 64 },
-    providerOverride,
   );
   const healthy = Boolean(raw && raw.trim().length);
   aiHealthCache.set(key, { healthy, checkedAt: now });
@@ -483,10 +412,9 @@ export async function checkAiAvailable(
 export async function classifyAndExtract(
   message: string,
   userContext?: UserContext,
-  providerOverride?: 'lmstudio' | 'gemini',
 ): Promise<AiResult> {
   const systemPrompt = buildUnifiedSystemPrompt(userContext);
-  const raw = await callAI(systemPrompt, message, { temperature: 0.3, maxTokens: 512 }, providerOverride);
+  const raw = await callAI(systemPrompt, message, { temperature: 0.3, maxTokens: 512 });
 
   if (!raw) throw new AiUnavailableError();
 
@@ -525,7 +453,6 @@ export async function classifyAndExtract(
 
 export async function suggestYouTubeCourses(
   interests: string[],
-  providerOverride?: 'lmstudio' | 'gemini',
 ): Promise<YouTubeCourseSuggestion[]> {
   if (!interests.length) return [];
 
@@ -534,7 +461,6 @@ export async function suggestYouTubeCourses(
       YOUTUBE_SYSTEM_PROMPT,
       `Student interests: ${interests.join(', ')}`,
       { temperature: 0.4, maxTokens: 256 },
-      providerOverride,
     );
     if (!raw) return [];
 
@@ -596,9 +522,8 @@ export type AiPreferenceResult = {
 export async function extractPreferences(
   message: string,
   userContext?: UserContext,
-  providerOverride?: 'lmstudio' | 'gemini',
 ): Promise<AiPreferenceResult> {
-  const result = await classifyAndExtract(message, userContext, providerOverride);
+  const result = await classifyAndExtract(message, userContext);
   return {
     summary: result.reply,
     interests: result.searchTerms.length ? result.searchTerms : tokenizeInterests(message).slice(0, 6),
@@ -608,8 +533,7 @@ export async function extractPreferences(
 
 export async function answerQuestion(
   message: string,
-  providerOverride?: 'lmstudio' | 'gemini',
 ): Promise<string | null> {
-  const result = await classifyAndExtract(message, undefined, providerOverride);
+  const result = await classifyAndExtract(message, undefined);
   return result.reply || null;
 }
