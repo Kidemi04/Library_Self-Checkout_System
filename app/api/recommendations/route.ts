@@ -222,7 +222,7 @@ export async function POST(request: Request) {
   const requestedLimit = clamp(Number(body.limit ?? 3), 1, 6);
 
   try {
-    const aiResult = await classifyAndExtract(message, userContext, provider);
+    const aiResult = await classifyAndExtract(message, userContext);
 
     switch (aiResult.intent) {
       case 'greeting': {
