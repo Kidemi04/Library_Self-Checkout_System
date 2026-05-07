@@ -9,6 +9,7 @@ import { deleteUserAction } from '@/app/actions/deleteUser';
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import ConfirmModal from '@/app/ui/dashboard/confirmModal';
 import RoleBadge from '@/app/ui/dashboard/primitives/RoleBadge';
+import RoleSelect from '@/app/ui/dashboard/primitives/RoleSelect';
 import UserAvatar from '@/app/ui/dashboard/primitives/UserAvatar';
 import { Button } from '@/app/ui/button';
 import type { ManagedUserRow } from '@/app/lib/supabase/queries';
@@ -668,23 +669,11 @@ export default function UsersManager({ initialUsers }: { initialUsers: ManagedUs
                       />
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <RoleBadge role={user.role} />
-                        <select
-                          value={user.role}
-                          onChange={(event) =>
-                            updateLocalUser(user.id, { role: event.target.value as ManagedRole })
-                          }
-                          className="rounded-btn border border-hairline bg-canvas px-2.5 py-1.5 font-sans text-caption text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
-                          aria-label="Change role"
-                        >
-                          {roleOptions.map((role) => (
-                            <option key={role} value={role}>
-                              {role.charAt(0).toUpperCase() + role.slice(1)}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      <RoleSelect
+                        value={user.role}
+                        onChange={(role) => updateLocalUser(user.id, { role })}
+                        options={roleOptions}
+                      />
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="inline-flex items-center gap-2">
