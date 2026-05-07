@@ -27,7 +27,6 @@ import {
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/themeProvider';
-import SignOutButton from '@/app/ui/dashboard/signOutButton';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 import type { DashboardRole } from '@/app/lib/auth/types';
 import { useEffect, useState } from 'react';
@@ -78,10 +77,6 @@ function getNav(role: DashboardRole): NavItem[] {
   return USER_NAV;
 }
 
-function getInitials(name: string | null | undefined): string {
-  if (!name) return '?';
-  return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-}
 
 type SideNavProps = {
   user: DashboardUserProfile;
@@ -121,8 +116,6 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
 
   const nav = getNav(user.role);
   const roleBadge = user.role === 'admin' ? 'ADMIN' : user.role === 'staff' ? 'STAFF' : 'STUDENT';
-  const initials = getInitials(user.name);
-
   return (
     <aside className={clsx(
       'fixed left-0 top-0 flex h-screen flex-col border-r border-hairline bg-canvas text-ink transition-[width,padding] duration-300 dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark',
@@ -259,28 +252,6 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
           {!collapsed && (hasMounted ? (isDark ? 'Light mode' : 'Dark mode') : 'Theme')}
         </button>
 
-        {/* User footer */}
-        <div className={clsx(
-          'flex items-center rounded-btn border border-hairline dark:border-dark-hairline',
-          collapsed ? 'justify-center p-1.5' : 'gap-2.5 p-2.5',
-        )}>
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-on-primary">
-            {initials}
-          </div>
-          {!collapsed && (
-            <>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-sans text-[13px] font-semibold text-ink dark:text-on-dark">
-                  {user.name ?? 'Library Member'}
-                </p>
-                <p className="truncate font-mono text-[11px] text-muted-soft dark:text-on-dark-soft">
-                  {user.email ?? ''}
-                </p>
-              </div>
-              <SignOutButton labelClassName="hidden" />
-            </>
-          )}
-        </div>
       </div>
     </aside>
   );

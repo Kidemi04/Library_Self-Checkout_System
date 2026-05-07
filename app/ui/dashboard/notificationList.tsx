@@ -72,7 +72,7 @@ function NotificationDetails({ n }: { n: Notification }) {
   );
 }
 
-type InboxFilter = 'all' | 'unread';
+type InboxFilter = 'all' | 'unread' | 'read' | 'flagged';
 type SortField = 'date' | 'title';
 type SortOrder = 'desc' | 'asc';
 
@@ -87,7 +87,7 @@ export default function NotificationList({ filter: initialFilter = 'all', search
   const [marking, setMarking] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<InboxFilter>(
-    initialFilter === 'unread' ? 'unread' : 'all',
+    (['all', 'unread', 'read', 'flagged'] as string[]).includes(initialFilter ?? '') ? (initialFilter as InboxFilter) : 'all',
   );
   const [search, setSearch] = useState<string>(initialSearch);
   const [sortField, setSortField] = useState<SortField>('date');
@@ -111,8 +111,10 @@ export default function NotificationList({ filter: initialFilter = 'all', search
     refresh();
   }, [refresh]);
 
+  // ── Read / unread ────────────────────────────────────────────
   const markRead = async (id: string) => {
     setMarking(id);
+    setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, is_read: true } : n));
     await fetch('/api/notifications', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -133,10 +135,44 @@ export default function NotificationList({ filter: initialFilter = 'all', search
     setMarking(null);
   };
 
+  const toggleRead = useCallback(async (id: string, currentRead: boolean) => {
+    setNotifications((prev) =>
+      prev.map((n) => n.id === id ? { ...n, is_read: !currentRead } : n),
+    );
+    await fetch('/api/notifications', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(
+        currentRead
+          ? { notificationId: id, markUnread: true }
+          : { notificationId: id },
+      ),
+    });
+  }, []);
+
+  // ── Flag / unflag ────────────────────────────────────────────
+  const toggleFlag = useCallback(async (id: string, currentFlagged: boolean) => {
+    setNotifications((prev) =>
+      prev.map((n) => n.id === id ? { ...n, is_flagged: !currentFlagged } : n),
+    );
+    await fetch('/api/notifications', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notificationId: id, flagged: !currentFlagged }),
+    });
+  }, []);
+
+  // ── Derived counts ───────────────────────────────────────────
+  const unreadCount  = notifications.filter((n) => !n.is_read).length;
+  const readCount    = notifications.filter((n) => n.is_read).length;
+  const flaggedCount = notifications.filter((n) => n.is_flagged).length;
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const matches = notifications.filter((n) => {
-      if (filter === 'unread' && n.is_read) return false;
+      if (filter === 'unread'  && n.is_read)    return false;
+      if (filter === 'read'    && !n.is_read)   return false;
+      if (filter === 'flagged' && !n.is_flagged) return false;
       if (!q) return true;
       return (
         n.title.toLowerCase().includes(q) ||
@@ -154,8 +190,6 @@ export default function NotificationList({ filter: initialFilter = 'all', search
       return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * direction;
     });
   }, [notifications, filter, search, sortField, sortOrder]);
-
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   // Group filtered notifications by day bucket, preserving server order (newest first).
   const groups = useMemo(() => {
@@ -237,8 +271,10 @@ export default function NotificationList({ filter: initialFilter = 'all', search
       <div className="flex items-center justify-between gap-3">
         <FilterPills<InboxFilter>
           options={[
-            { value: 'all', label: 'All', count: notifications.length },
-            { value: 'unread', label: 'Unread', count: unreadCount },
+            { value: 'all',     label: 'All',     count: notifications.length },
+            { value: 'unread',  label: 'Unread',  count: unreadCount },
+            { value: 'read',    label: 'Read',    count: readCount },
+            { value: 'flagged', label: 'Flagged', count: flaggedCount },
           ]}
           value={filter}
           onChange={setFilter}
@@ -268,6 +304,10 @@ export default function NotificationList({ filter: initialFilter = 'all', search
                   ? 'No notifications match your search.'
                   : filter === 'unread'
                   ? 'No unread notifications'
+                  : filter === 'read'
+                  ? 'No read notifications'
+                  : filter === 'flagged'
+                  ? 'No flagged notifications'
                   : 'No notifications yet'}
               </p>
             </div>
@@ -291,10 +331,13 @@ export default function NotificationList({ filter: initialFilter = 'all', search
                       body={n.message}
                       timeLabel={shortTime(n.created_at)}
                       read={n.is_read}
+                      flagged={n.is_flagged}
                       onClick={() => {
                         setExpandedId((prev) => (prev === n.id ? null : n.id));
                         if (!n.is_read) markRead(n.id);
                       }}
+                      onToggleFlag={() => toggleFlag(n.id, n.is_flagged)}
+                      onToggleRead={() => toggleRead(n.id, n.is_read)}
                       expanded={expandedId === n.id}
                       details={
                         <div className="space-y-3">

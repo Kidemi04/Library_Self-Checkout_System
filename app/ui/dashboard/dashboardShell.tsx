@@ -2,6 +2,7 @@
 
 import SideNav from '@/app/ui/dashboard/sidenav';
 import MobileNav from '@/app/ui/dashboard/mobileNav';
+import DesktopTopBar from '@/app/ui/dashboard/desktopTopBar';
 import FaqFloatingHelp from '@/app/ui/dashboard/faqFloatingHelp';
 import NotificationToast from '@/app/ui/dashboard/notificationToast';
 import DueDateChecker from '@/app/ui/dashboard/dueDateChecker';
@@ -40,6 +41,7 @@ export default function DashboardShell({ user, isBypassed, children }: Dashboard
         sidebarCollapsed ? 'md:pl-16' : 'md:pl-64',
       )}>
         <MobileNav user={user} isBypassed={isBypassed} />
+        <DesktopTopBar user={user} isBypassed={isBypassed} />
 
         <main className="flex-1 px-4 pt-6 pb-[calc(env(safe-area-inset-bottom)+88px)] sm:px-6 md:px-10 md:py-10 md:pb-12">
           <div className="mx-auto w-full max-w-7xl">
