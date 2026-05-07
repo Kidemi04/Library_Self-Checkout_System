@@ -63,45 +63,45 @@ const config: Config = {
         },
 
         // Brand: dual-track Swinburne red
-        'swin-red-brand': '#C82333',          // logo / brand-mark only
-        primary:          '#B83A35',          // UI CTA, links, focus rings
-        'primary-active': '#9A2D29',
-        'primary-disabled': '#E6DFD8',
-        'dark-primary':   '#CC4640',          // dark-mode primary
+        'swin-red-brand': '#DA291C',          // logo / brand-mark only
+        primary:          '#DA291C',          // UI CTA, links, focus rings
+        'primary-active': '#B32218',
+        'primary-disabled': '#E0E0E0',
+        'dark-primary':   '#E84040',          // dark-mode primary
 
         // Surface — light
-        canvas:                 '#FAF9F5',
-        'surface-soft':         '#F5F0E8',
-        'surface-card':         '#EFE9DE',
-        'surface-cream-strong': '#E8E0D2',
-        hairline:               '#E6DFD8',
-        'hairline-soft':        '#EBE6DF',
+        canvas:                 '#FFFFFF',
+        'surface-soft':         '#F5F5F5',
+        'surface-card':         '#F5F5F5',
+        'surface-cream-strong': '#F5F5F5',
+        hairline:               '#E0E0E0',
+        'hairline-soft':        '#E0E0E0',
 
         // Surface — dark
-        'dark-canvas':          '#181715',
-        'dark-surface-soft':    '#1F1E1B',
-        'dark-surface-card':    '#252320',
-        'dark-surface-strong':  '#2D2B27',
-        'dark-hairline':        '#3A3733',
+        'dark-canvas':          '#121212',
+        'dark-surface-soft':    '#1E1E1E',
+        'dark-surface-card':    '#1E1E1E',
+        'dark-surface-strong':  '#1E1E1E',
+        'dark-hairline':        '#2A2A2A',
 
         // Text
-        ink:           '#141413',
-        'body-strong': '#252523',
-        body:          '#3D3D3A',
-        muted:         '#6C6A64',
-        'muted-soft':  '#8E8B82',
+        ink:           '#000000',
+        'body-strong': '#000000',
+        body:          '#000000',
+        muted:         '#000000',
+        'muted-soft':  '#000000',
         'on-primary':  '#FFFFFF',
-        'on-dark':     '#FAF9F5',
-        'on-dark-soft':'#A09D96',
+        'on-dark':     '#F0F0F0',
+        'on-dark-soft':'#F0F0F0',
 
         // Accent
-        'accent-teal':  '#5DB8A6',
-        'accent-amber': '#E8A55A',
+        'accent-teal':  '#000000',
+        'accent-amber': '#000000',
 
         // Semantic
-        success: '#5DB872',
-        warning: '#D4A017',
-        error:   '#C64545',
+        success: '#000000',
+        warning: '#000000',
+        error:   '#DA291C',
 
         // Third-party brand
         linkedin:        '#0A66C2',

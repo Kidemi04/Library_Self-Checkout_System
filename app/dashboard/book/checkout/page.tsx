@@ -70,6 +70,7 @@ export default async function BorrowBooksPage({
         description={canProcessLoans
           ? 'Lend titles by scanning barcodes or selecting items from the catalogue.'
           : 'Borrow a title by scanning your copy or searching the catalogue, then confirm your details.'}
+        showHeader={false}
       >
         <div className="space-y-6">
           <CheckOutForm

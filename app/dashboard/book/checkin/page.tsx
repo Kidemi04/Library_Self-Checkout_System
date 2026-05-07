@@ -41,7 +41,7 @@ export default async function ReturningBooksPage({
         <div className="space-y-6">
           <div className="flex flex-wrap items-center gap-3">
             <SearchForm
-              action="/dashboard/book"
+              action="/dashboard/book/checkin"
               placeholder="Search borrowed books by borrower, ID, or title"
               defaultValue={searchTerm}
               aria-label="Search borrowed books"
@@ -117,19 +117,6 @@ export default async function ReturningBooksPage({
                 );
               })()}
 
-              <div className="flex gap-4 rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-5">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-surface-cream-strong dark:bg-dark-surface-strong text-ink dark:text-on-dark">
-                  <MapPinIcon className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="font-display text-title-lg tracking-tight text-ink dark:text-on-dark">
-                    Bring your book to the library counter
-                  </p>
-                  <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
-                    Staff will process your return — no form needed. Just hand over the book and you&apos;re done.
-                  </p>
-                </div>
-              </div>
             </>
           )}
 

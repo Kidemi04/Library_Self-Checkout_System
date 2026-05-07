@@ -257,7 +257,10 @@ export default function NotificationList({ filter: initialFilter = 'all', search
         </div>
         <button
           type="button"
-          onClick={() => { setLoading(true); refresh(); }}
+          onClick={() => {
+            setLoading(true);
+            window.setTimeout(() => window.location.reload(), 80);
+          }}
           aria-label="Refresh notifications"
           title="Refresh"
           suppressHydrationWarning

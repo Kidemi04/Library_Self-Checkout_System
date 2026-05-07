@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import clsx from 'clsx';
 import {
   MagnifyingGlassIcon,
@@ -27,6 +27,7 @@ type Props = {
 };
 
 export default function NotificationsFilter({ action, defaults, className }: Props) {
+  const [refreshing, setRefreshing] = useState(false);
   const q = defaults?.q ?? '';
   const filter = defaults?.filter ?? 'all';
   const sort = defaults?.sort ?? 'date';
@@ -173,14 +174,18 @@ export default function NotificationsFilter({ action, defaults, className }: Pro
           <span className="hidden font-sans text-button md:inline">Apply</span>
         </button>
 
-        <a
-          href={action}
+        <button
+          type="button"
+          onClick={() => {
+            setRefreshing(true);
+            window.setTimeout(() => window.location.reload(), 80);
+          }}
           className="flex h-10 w-10 items-center justify-center rounded-btn border border-hairline bg-surface-card text-muted transition hover:bg-surface-cream-strong md:w-auto md:px-4 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:bg-dark-surface-strong"
           title="Reset"
         >
-          <ArrowPathIcon className="h-5 w-5 md:hidden" />
+          <ArrowPathIcon className={clsx('h-5 w-5 md:hidden', refreshing && 'animate-spin')} />
           <span className="hidden font-sans text-button md:inline">Reset</span>
-        </a>
+        </button>
       </div>
     </form>
   );

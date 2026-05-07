@@ -1,14 +1,17 @@
 'use client';
 
-import React, { useMemo, useRef, useTransition } from 'react';
+import React, { useMemo, useRef, useState, useTransition } from 'react';
 import clsx from 'clsx';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import {
   MagnifyingGlassIcon,
   Squares2X2Icon,
   ListBulletIcon,
+  CameraIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import { CATEGORY_OPTIONS, type CategoryKey } from '@/app/ui/dashboard/bookCategories';
+import CameraScanModal from '@/app/ui/dashboard/admin/cameraScanModal';
 
 type SortField = 'title' | 'author' | 'year' | 'created_at';
 type SortOrder = 'asc' | 'desc';
@@ -39,6 +42,8 @@ export default function BookItemsFilter({ action, defaults, className }: Props) 
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   const q = defaults?.q ?? '';
@@ -78,7 +83,7 @@ export default function BookItemsFilter({ action, defaults, className }: Props) 
       onSubmit={handleSubmit}
       className={clsx('flex flex-col gap-3', className)}
     >
-      {/* Row 1: search input + view toggle */}
+      {/* Row 1: search input + camera button */}
       <div className="flex items-center gap-2">
         {/* Search — text-input spec: canvas bg, rounded-btn (8px), h-10, hairline border */}
         <div className="relative min-w-0 flex-1">
@@ -89,43 +94,50 @@ export default function BookItemsFilter({ action, defaults, className }: Props) 
             defaultValue={q}
             placeholder="Search title, author, ISBN…"
             suppressHydrationWarning
-            className="h-10 w-full rounded-btn border border-hairline bg-canvas py-2.5 pl-9 pr-4 font-sans text-body-sm text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
+            className="h-10 w-full rounded-btn border border-hairline bg-canvas py-2.5 pl-9 pr-12 font-sans text-body-sm text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
           />
+          <button
+            type="button"
+            onClick={() => setScannerOpen(true)}
+            aria-label="Scan with camera"
+            suppressHydrationWarning
+            className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center text-primary transition hover:text-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:text-dark-primary dark:hover:text-dark-primary"
+          >
+            <CameraIcon className="h-4 w-4" />
+          </button>
         </div>
+      </div>
 
-        {/* View toggle — button-icon-circular: 36px circles, canvas bg, hairline border */}
-        <div className="flex flex-shrink-0 items-center gap-1">
-          <button
-            type="button"
-            onClick={() => updateParams({ view: 'grid' })}
-            aria-label="Grid view"
-            aria-pressed={view === 'grid'}
-            suppressHydrationWarning
-            className={clsx(
-              'flex h-9 w-9 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-              view === 'grid'
-                ? 'border-ink bg-ink text-on-dark dark:border-on-dark dark:bg-on-dark dark:text-ink'
-                : 'border-hairline bg-canvas text-muted hover:text-ink dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:text-on-dark',
-            )}
-          >
+      {/* Row 2: view toggle + refresh */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => updateParams({ view: view === 'grid' ? 'list' : 'grid' })}
+          aria-label={view === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
+          suppressHydrationWarning
+          className="flex h-10 w-full items-center justify-between rounded-btn border border-hairline bg-canvas px-3 text-left text-ink transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark"
+        >
+          <span className="font-sans text-body-sm">
+            {view === 'grid' ? 'Grid view' : 'List view'}
+          </span>
+          {view === 'grid' ? (
             <Squares2X2Icon className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => updateParams({ view: 'list' })}
-            aria-label="List view"
-            aria-pressed={view === 'list'}
-            suppressHydrationWarning
-            className={clsx(
-              'flex h-9 w-9 items-center justify-center rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-              view === 'list'
-                ? 'border-ink bg-ink text-on-dark dark:border-on-dark dark:bg-on-dark dark:text-ink'
-                : 'border-hairline bg-canvas text-muted hover:text-ink dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:text-on-dark',
-            )}
-          >
+          ) : (
             <ListBulletIcon className="h-4 w-4" />
-          </button>
-        </div>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setRefreshing(true);
+            window.setTimeout(() => window.location.reload(), 80);
+          }}
+          aria-label="Refresh results"
+          suppressHydrationWarning
+          className="flex h-10 w-10 items-center justify-center rounded-full border border-hairline bg-canvas text-muted transition hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:text-on-dark"
+        >
+          <ArrowPathIcon className={clsx('h-4 w-4', refreshing && 'animate-spin')} />
+        </button>
       </div>
 
       {/* Row 2: category tabs — category-tab / category-tab-active per DESIGN.md */}
@@ -156,6 +168,16 @@ export default function BookItemsFilter({ action, defaults, className }: Props) 
       {/* Hidden fields for JS-off fallback */}
       <input type="hidden" name="view" value={view} />
       <input type="hidden" name="category" value={activeCategory} />
+
+      {scannerOpen && (
+        <CameraScanModal
+          onResult={(value) => {
+            updateParams({ q: value.trim() || null });
+            setScannerOpen(false);
+          }}
+          onClose={() => setScannerOpen(false)}
+        />
+      )}
     </form>
   );
 }

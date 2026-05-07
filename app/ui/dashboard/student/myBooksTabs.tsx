@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { MagnifyingGlassIcon, XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, XMarkIcon, ChevronRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import type { Loan } from '@/app/lib/supabase/types';
 import type { BorrowingHistoryLoan, PatronHold } from '@/app/lib/supabase/queries';
 import LoanCard from '@/app/ui/dashboard/primitives/LoanCard';
@@ -13,14 +13,13 @@ import CancelHoldButton from '@/app/ui/dashboard/cancelHoldButton';
 type HistorySort = 'newest' | 'oldest' | 'title-az' | 'title-za';
 
 const fmtDayMonth = new Intl.DateTimeFormat('en-MY', { day: 'numeric', month: 'short' });
-const fmtYear     = new Intl.DateTimeFormat('en-MY', { year: 'numeric' });
 const fmtFull     = new Intl.DateTimeFormat('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
 
 const formatDate = (v: string | null): { dayMonth: string; year: string } => {
   if (!v) return { dayMonth: '—', year: '' };
   const d = new Date(v);
   if (isNaN(d.valueOf())) return { dayMonth: '—', year: '' };
-  return { dayMonth: fmtDayMonth.format(d), year: fmtYear.format(d) };
+  return { dayMonth: fmtDayMonth.format(d), year: d.getFullYear().toString() };
 };
 
 const formatFull = (v: string | null): string => {
@@ -44,30 +43,23 @@ export default function MyBooksTabs({
   activeLoans, loanHistory, holds, defaultTab = 'current', holdCounts, cancelHoldAction,
 }: MyBooksTabsProps) {
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   // History controls
-  const [historySearch,     setHistorySearch]     = useState('');
   const [historySort,       setHistorySort]       = useState<HistorySort>('newest');
-  const [historyYear,       setHistoryYear]       = useState<string | null>(null);
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
 
-  const historyYears = useMemo(() => {
-    const years = new Set<string>();
-    loanHistory.forEach(l => { if (l.borrowedAt) years.add(String(new Date(l.borrowedAt).getFullYear())); });
-    return [...years].sort().reverse();
-  }, [loanHistory]);
+  const normalizedSearch = searchTerm.trim().toLowerCase();
 
   const filteredHistory = useMemo(() => {
     let items = [...loanHistory];
-    if (historySearch.trim()) {
-      const q = historySearch.toLowerCase();
+    if (normalizedSearch) {
+      const q = normalizedSearch;
       items = items.filter(l =>
         l.book?.title?.toLowerCase().includes(q) ||
         l.book?.author?.toLowerCase().includes(q),
       );
-    }
-    if (historyYear) {
-      items = items.filter(l => l.borrowedAt && String(new Date(l.borrowedAt).getFullYear()) === historyYear);
     }
     items.sort((a, b) => {
       if (historySort === 'newest') return new Date(b.borrowedAt ?? 0).getTime() - new Date(a.borrowedAt ?? 0).getTime();
@@ -76,7 +68,52 @@ export default function MyBooksTabs({
       return (b.book?.title ?? '').localeCompare(a.book?.title ?? '');
     });
     return items;
-  }, [loanHistory, historySearch, historySort, historyYear]);
+  }, [loanHistory, normalizedSearch, historySort]);
+
+  const filteredLoans = useMemo(() => {
+    let items = [...activeLoans];
+    if (normalizedSearch) {
+      items = items.filter((loan) =>
+        loan.book?.title?.toLowerCase().includes(normalizedSearch) ||
+        loan.book?.author?.toLowerCase().includes(normalizedSearch) ||
+        loan.copy?.barcode?.toLowerCase().includes(normalizedSearch),
+      );
+    }
+    items.sort((a, b) => {
+      if (historySort === 'newest') return new Date(b.borrowedAt ?? 0).getTime() - new Date(a.borrowedAt ?? 0).getTime();
+      if (historySort === 'oldest') return new Date(a.borrowedAt ?? 0).getTime() - new Date(b.borrowedAt ?? 0).getTime();
+      if (historySort === 'title-az') return (a.book?.title ?? '').localeCompare(b.book?.title ?? '');
+      return (b.book?.title ?? '').localeCompare(a.book?.title ?? '');
+    });
+    return items;
+  }, [activeLoans, normalizedSearch, historySort]);
+
+  const filteredHolds = useMemo(() => {
+    let items = [...holds];
+    if (normalizedSearch) {
+      items = items.filter((hold) =>
+        hold.title?.toLowerCase().includes(normalizedSearch) ||
+        hold.author?.toLowerCase().includes(normalizedSearch),
+      );
+    }
+    items.sort((a, b) => {
+      if (historySort === 'newest') {
+        const aTime = new Date(a.placedAt ?? 0).getTime();
+        const bTime = new Date(b.placedAt ?? 0).getTime();
+        return bTime - aTime;
+      }
+      if (historySort === 'oldest') {
+        const aTime = new Date(a.placedAt ?? 0).getTime();
+        const bTime = new Date(b.placedAt ?? 0).getTime();
+        return aTime - bTime;
+      }
+      if (historySort === 'title-az') {
+        return (a.title ?? '').localeCompare(b.title ?? '');
+      }
+      return (b.title ?? '').localeCompare(a.title ?? '');
+    });
+    return items;
+  }, [holds, normalizedSearch, historySort]);
 
   const tabDef: { id: Tab; label: string; count: number }[] = [
     { id: 'current',      label: 'Current',      count: activeLoans.length },
@@ -86,6 +123,30 @@ export default function MyBooksTabs({
 
   return (
     <div>
+      {/* Search */}
+      <div className="mb-4">
+        <div className="relative">
+          <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-soft dark:text-on-dark-soft" />
+          <input
+            type="search"
+            placeholder="Search current, history, or reservations"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded-btn border border-hairline bg-canvas py-2 pl-9 pr-3 font-sans text-body-sm text-ink placeholder:text-muted-soft focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => setSearchTerm('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-muted-soft hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark"
+              aria-label="Clear search"
+            >
+              <XMarkIcon className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Tab bar */}
       <div
         role="tablist"
@@ -138,6 +199,32 @@ export default function MyBooksTabs({
         })}
       </div>
 
+      {/* Tab controls */}
+      <div className="mb-5 flex flex-wrap items-center gap-2">
+        <select
+          value={historySort}
+          onChange={e => setHistorySort(e.target.value as HistorySort)}
+          className="rounded-btn border border-hairline bg-canvas py-1.5 pl-2.5 pr-7 font-sans text-[11px] text-ink focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark"
+        >
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="title-az">Title A–Z</option>
+          <option value="title-za">Title Z–A</option>
+        </select>
+
+        <button
+          type="button"
+          onClick={() => {
+            setRefreshing(true);
+            window.setTimeout(() => window.location.reload(), 80);
+          }}
+          aria-label="Refresh"
+          className="ml-auto flex h-9 w-9 items-center justify-center rounded-full border border-hairline bg-canvas text-ink transition hover:bg-surface-cream-strong dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:hover:bg-dark-surface-strong"
+        >
+          <ArrowPathIcon className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
+
       {activeTab === 'current' && (
         <div
           role="tabpanel"
@@ -145,7 +232,7 @@ export default function MyBooksTabs({
           aria-labelledby="my-books-tab-current"
           className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2"
         >
-          {activeLoans.length === 0 ? (
+          {filteredLoans.length === 0 ? (
             <div className="col-span-2 rounded-card border border-dashed border-hairline bg-surface-card p-10 text-center dark:border-dark-hairline dark:bg-dark-surface-card">
               <p className="font-display text-display-sm text-ink dark:text-on-dark">No books borrowed</p>
               <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">You don't have any books checked out right now.</p>
@@ -154,7 +241,7 @@ export default function MyBooksTabs({
               </Link>
             </div>
           ) : (
-            activeLoans.map(loan => (
+            filteredLoans.map(loan => (
               <LoanCard key={loan.id} loan={loan} holdCount={loan.bookId ? holdCounts?.[loan.bookId] : 0} />
             ))
           )}
@@ -174,59 +261,7 @@ export default function MyBooksTabs({
           ) : (
             <>
               {/* Toolbar */}
-              <div className="mb-3 space-y-2">
-                {/* Search */}
-                <div className="relative">
-                  <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-soft dark:text-on-dark-soft" />
-                  <input
-                    type="search"
-                    placeholder="Search title or author…"
-                    value={historySearch}
-                    onChange={e => setHistorySearch(e.target.value)}
-                    className="w-full rounded-btn border border-hairline bg-surface-card py-2 pl-9 pr-3 font-sans text-body-sm text-ink placeholder:text-muted-soft focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:placeholder:text-on-dark-soft"
-                  />
-                  {historySearch && (
-                    <button
-                      type="button"
-                      onClick={() => setHistorySearch('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-muted-soft hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark"
-                      aria-label="Clear search"
-                    >
-                      <XMarkIcon className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Year pills + sort */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto">
-                    {historyYears.map(year => (
-                      <button
-                        key={year}
-                        type="button"
-                        onClick={() => setHistoryYear(prev => prev === year ? null : year)}
-                        className={`flex-shrink-0 rounded-pill px-2.5 py-1 font-mono text-[11px] font-bold transition ${
-                          historyYear === year
-                            ? 'bg-primary text-on-primary dark:bg-dark-primary'
-                            : 'bg-surface-cream-strong text-muted hover:bg-primary/10 hover:text-primary dark:bg-dark-surface-strong dark:text-on-dark-soft dark:hover:bg-primary/10 dark:hover:text-dark-primary'
-                        }`}
-                      >
-                        {year}
-                      </button>
-                    ))}
-                  </div>
-                  <select
-                    value={historySort}
-                    onChange={e => setHistorySort(e.target.value as HistorySort)}
-                    className="flex-shrink-0 rounded-btn border border-hairline bg-surface-card py-1.5 pl-2.5 pr-7 font-sans text-[11px] text-ink focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark"
-                  >
-                    <option value="newest">Newest</option>
-                    <option value="oldest">Oldest</option>
-                    <option value="title-az">Title A–Z</option>
-                    <option value="title-za">Title Z–A</option>
-                  </select>
-                </div>
-              </div>
+              <div className="mb-3" />
 
               {/* Table */}
               <div className="overflow-hidden rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card">
@@ -363,7 +398,7 @@ export default function MyBooksTabs({
           aria-labelledby="my-books-tab-reservations"
           className="flex flex-col gap-3"
         >
-          {holds.length === 0 ? (
+          {filteredHolds.length === 0 ? (
             <div className="rounded-card border border-dashed border-hairline bg-surface-card p-10 text-center dark:border-dark-hairline dark:bg-dark-surface-card">
               <p className="font-display text-display-sm text-ink dark:text-on-dark">No active reservations</p>
               <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">Browse the catalogue to place a hold on an unavailable book.</p>
@@ -372,7 +407,7 @@ export default function MyBooksTabs({
               </Link>
             </div>
           ) : (
-            holds.map(hold => {
+            filteredHolds.map(hold => {
               const canCancel = cancelHoldAction && (hold.status === 'queued' || hold.status === 'ready');
               return (
                 <div
