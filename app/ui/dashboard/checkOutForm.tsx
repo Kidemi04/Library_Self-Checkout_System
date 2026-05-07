@@ -404,15 +404,7 @@ export default function CheckOutForm({
           <p className="font-sans text-body-sm font-semibold text-primary dark:text-dark-primary">{state.message}</p>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          {!selfCheckout && (
-            <Link
-              href="/dashboard"
-              className="font-sans text-body-sm font-medium text-muted dark:text-on-dark-soft underline-offset-2 hover:underline hover:text-ink dark:hover:text-on-dark"
-            >
-              Cancel
-            </Link>
-          )}
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <SubmitButton
             disabled={!confirmEnabled}
             label={selfCheckout ? 'Confirm loan' : 'Confirm loan'}

@@ -160,19 +160,19 @@ export default async function ProfilePage() {
           </header>
         </BlurFade>
 
-        <div className="grid gap-4 sm:gap-6 lg:grid-cols-[320px_1fr]">
+        <div className="grid gap-3 sm:gap-4 lg:grid-cols-[300px_1fr]">
           {/* ── LEFT COLUMN — identity card + summary ───────────────────── */}
-          <aside className="space-y-5">
+          <aside className="space-y-3">
             <BlurFade delay={0.1} yOffset={12}>
-              <section className="rounded-card border border-hairline bg-surface-card p-4 sm:p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
+              <section className="rounded-card border border-hairline bg-surface-card p-2.5 sm:p-3 dark:border-dark-hairline dark:bg-dark-surface-card">
                 <div className="flex flex-col items-center text-center">
-                  <div className="relative mb-3">
+                  <div className="relative mb-2">
                     <ProfileAvatarForm
                       avatarUrl={profile.avatar_url ?? null}
                       displayName={preferredName}
                     />
                   </div>
-                  <p className="font-display text-[22px] tracking-tight text-ink dark:text-on-dark sm:text-display-sm">
+                  <p className="font-display text-[20px] tracking-tight text-ink dark:text-on-dark sm:text-[24px]">
                     {preferredName ?? user.email ?? 'My Profile'}
                   </p>
                   {profile.username && (
@@ -180,10 +180,13 @@ export default async function ProfilePage() {
                       @{profile.username}
                     </p>
                   )}
-                  <p className="mt-1 font-sans text-body-sm text-muted dark:text-on-dark-soft">
+                  <p
+                    className="mt-1 w-full truncate font-sans text-[10px] text-muted dark:text-on-dark-soft"
+                    title={user.email ?? 'Email unavailable'}
+                  >
                     {user.email ?? 'Email unavailable'}
                   </p>
-                  <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                  <div className="mt-1.5 flex flex-wrap justify-center gap-1">
                     <RoleBadge role={user.role ?? 'user'} />
                     <span className="inline-flex items-center rounded-pill border border-hairline bg-surface-cream-strong px-2 py-0.5 font-sans text-caption-uppercase text-muted dark:border-dark-hairline dark:bg-dark-surface-strong dark:text-on-dark-soft">
                       {visibilityLabel.toUpperCase()}
@@ -194,7 +197,7 @@ export default async function ProfilePage() {
             </BlurFade>
 
             <BlurFade delay={0.18} yOffset={12}>
-              <section className="rounded-card border border-hairline bg-surface-card p-4 sm:p-5 dark:border-dark-hairline dark:bg-dark-surface-card">
+              <section className="rounded-card border border-hairline bg-surface-card p-3 sm:p-4 dark:border-dark-hairline dark:bg-dark-surface-card">
                 <p className="mb-2.5 font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
                   Activity summary
                 </p>
@@ -231,10 +234,10 @@ export default async function ProfilePage() {
           </aside>
 
           {/* ── RIGHT COLUMN — identity + contact + links ───────────────── */}
-          <div className="space-y-5">
+          <div className="space-y-3">
             <BlurFade delay={0.22} yOffset={12}>
-              <section className="rounded-card border border-hairline bg-surface-card p-4 sm:p-6 dark:border-dark-hairline dark:bg-dark-surface-card">
-                <h2 className="mb-3 font-display text-title-lg tracking-tight text-ink dark:text-on-dark sm:text-display-sm">
+              <section className="rounded-card border border-hairline bg-surface-card p-3 sm:p-4 dark:border-dark-hairline dark:bg-dark-surface-card">
+                <h2 className="mb-2 font-display text-title-lg tracking-tight text-ink dark:text-on-dark sm:text-display-sm">
                   Identity
                 </h2>
                 <div className="divide-y divide-hairline dark:divide-dark-hairline">

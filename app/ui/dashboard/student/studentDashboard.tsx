@@ -135,7 +135,7 @@ export default function StudentDashboard({
                 href={q.href}
                 className="flex flex-col gap-2.5 rounded-card border border-hairline bg-surface-card p-4 transition hover:border-primary/20 dark:border-dark-hairline dark:bg-dark-surface-card dark:hover:border-dark-primary/30"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-linkedin/10 text-linkedin dark:bg-[#A8D8FF]/15 dark:text-[#A8D8FF]">
+                <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-primary/10 text-primary dark:bg-dark-primary/20 dark:text-dark-primary">
                   <q.icon className="h-[18px] w-[18px]" />
                 </div>
                 <div>
@@ -329,7 +329,7 @@ export default function StudentDashboard({
               href={q.href}
               className="flex items-center gap-3.5 rounded-card border border-hairline bg-surface-card p-5 transition hover:border-primary/20 dark:border-dark-hairline dark:bg-dark-surface-card dark:hover:border-dark-primary/30"
             >
-              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[12px] bg-linkedin/10 text-linkedin dark:bg-[#A8D8FF]/15 dark:text-[#A8D8FF]">
+              <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[12px] bg-primary/10 text-primary dark:bg-dark-primary/20 dark:text-dark-primary">
                 <q.icon className="h-5 w-5" />
               </div>
               <div className="flex-1">

@@ -44,7 +44,7 @@ export default function DashboardShell({ user, isBypassed, children }: Dashboard
         <DesktopTopBar user={user} isBypassed={isBypassed} />
 
         <main className="flex-1 px-4 pt-6 pb-[calc(env(safe-area-inset-bottom)+88px)] sm:px-6 md:px-10 md:py-10 md:pb-12">
-          <div className="mx-auto w-full max-w-7xl">
+          <div className="mx-auto w-full max-w-7xl" suppressHydrationWarning>
             {children}
           </div>
         </main>

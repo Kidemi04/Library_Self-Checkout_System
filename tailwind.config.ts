@@ -23,13 +23,13 @@ const config: Config = {
         '13': 'repeat(13, minmax(0, 1fr))',
       },
       fontFamily: {
-        display: ['var(--font-newsreader)', 'Georgia', 'serif'],
+        display: ['var(--font-libre-baskerville)', 'Georgia', 'Times New Roman', 'serif'],
         sans:    ['var(--font-inter)', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Arial', 'sans-serif'],
         mono:    ['var(--font-jetbrains-mono)', '"SF Mono"', 'Menlo', 'monospace'],
       },
       fontSize: {
         'display-xl': ['64px', { lineHeight: '1.05', letterSpacing: '-1.5px', fontWeight: '400' }],
-        'display-lg': ['48px', { lineHeight: '1.10', letterSpacing: '-1px',   fontWeight: '400' }],
+        'display-lg': ['20px', { lineHeight: '1.10', letterSpacing: '-1px',   fontWeight: '400' }],
         'display-md': ['36px', { lineHeight: '1.15', letterSpacing: '-0.5px', fontWeight: '400' }],
         'display-sm': ['28px', { lineHeight: '1.20', letterSpacing: '-0.3px', fontWeight: '400' }],
         'title-lg':   ['22px', { lineHeight: '1.30', letterSpacing: '0',      fontWeight: '500' }],
@@ -64,44 +64,44 @@ const config: Config = {
 
         // Brand: dual-track Swinburne red
         'swin-red-brand': '#DA291C',          // logo / brand-mark only
-        primary:          '#DA291C',          // UI CTA, links, focus rings
-        'primary-active': '#B32218',
-        'primary-disabled': '#E0E0E0',
-        'dark-primary':   '#E84040',          // dark-mode primary
+        primary:          '#C62828',          // UI CTA, links, focus rings
+        'primary-active': '#C62828',
+        'primary-disabled': '#D9D9D9',
+        'dark-primary':   '#E53935',          // dark-mode primary
 
         // Surface — light
         canvas:                 '#FFFFFF',
-        'surface-soft':         '#F5F5F5',
-        'surface-card':         '#F5F5F5',
-        'surface-cream-strong': '#F5F5F5',
-        hairline:               '#E0E0E0',
-        'hairline-soft':        '#E0E0E0',
+        'surface-soft':         '#FFFFFF',
+        'surface-card':         '#FFFFFF',
+        'surface-cream-strong': '#FFFFFF',
+        hairline:               '#D9D9D9',
+        'hairline-soft':        '#D9D9D9',
 
         // Surface — dark
         'dark-canvas':          '#121212',
         'dark-surface-soft':    '#1E1E1E',
         'dark-surface-card':    '#1E1E1E',
         'dark-surface-strong':  '#1E1E1E',
-        'dark-hairline':        '#2A2A2A',
+        'dark-hairline':        '#2E2E2E',
 
         // Text
-        ink:           '#000000',
-        'body-strong': '#000000',
-        body:          '#000000',
-        muted:         '#000000',
-        'muted-soft':  '#000000',
+        ink:           '#111111',
+        'body-strong': '#111111',
+        body:          '#111111',
+        muted:         '#5F6368',
+        'muted-soft':  '#5F6368',
         'on-primary':  '#FFFFFF',
-        'on-dark':     '#F0F0F0',
-        'on-dark-soft':'#F0F0F0',
+        'on-dark':     '#F5F5F5',
+        'on-dark-soft':'#B0B0B0',
 
         // Accent
-        'accent-teal':  '#000000',
-        'accent-amber': '#000000',
+        'accent-teal':  '#8FAF87',
+        'accent-amber': '#D4A017',
 
         // Semantic
-        success: '#000000',
-        warning: '#000000',
-        error:   '#DA291C',
+        success: '#8FAF87',
+        warning: '#D4A017',
+        error:   '#C62828',
 
         // Third-party brand
         linkedin:        '#0A66C2',

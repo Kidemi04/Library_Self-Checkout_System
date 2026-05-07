@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BellIcon, XMarkIcon, StarIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 import { StarIcon as StarSolid } from '@heroicons/react/24/solid';
 import SignOutButton from '@/app/ui/dashboard/signOutButton';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
@@ -156,12 +157,24 @@ export default function DesktopTopBar({ user, isBypassed }: DesktopTopBarProps) 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   return (
-    <header className="hidden md:flex items-center justify-end gap-2 sticky top-0 z-30 border-b border-hairline bg-canvas/90 px-6 py-3 backdrop-blur-md dark:border-dark-hairline dark:bg-dark-canvas/90">
-      {isBypassed && (
-        <span className="rounded-pill border border-warning/40 bg-warning/10 px-2 py-0.5 font-mono text-[9px] font-bold tracking-wider text-warning">
-          DEV
-        </span>
-      )}
+    <header className="hidden md:flex items-center justify-between gap-2 sticky top-0 z-30 border-b border-hairline bg-canvas/90 px-6 py-3 backdrop-blur-md dark:border-dark-hairline dark:bg-dark-canvas/90">
+      <Link href="/dashboard" className="flex items-center gap-3">
+        <Image
+          src="/swinburne-logo.png"
+          alt="Swinburne University of Technology Sarawak Campus"
+          width={320}
+          height={150}
+          className="h-16 w-auto"
+          priority
+        />
+      </Link>
+
+      <div className="flex items-center gap-2">
+        {isBypassed && (
+          <span className="rounded-pill border border-warning/40 bg-warning/10 px-2 py-0.5 font-mono text-[9px] font-bold tracking-wider text-warning">
+            DEV
+          </span>
+        )}
 
       {/* Notification bell + dropdown */}
       <div className="relative" ref={panelRef}>
@@ -359,10 +372,11 @@ export default function DesktopTopBar({ user, isBypassed }: DesktopTopBarProps) 
       </Link>
 
       {/* Sign out */}
-      <SignOutButton
-        className="flex h-8 w-8 items-center justify-center rounded-xl border border-hairline bg-canvas text-muted transition hover:border-primary/20 hover:text-ink disabled:cursor-not-allowed dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:text-on-dark"
-        labelClassName="hidden"
-      />
+        <SignOutButton
+          className="flex h-8 w-8 items-center justify-center rounded-xl border border-hairline bg-canvas text-muted transition hover:border-primary/20 hover:text-ink disabled:cursor-not-allowed dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:text-on-dark"
+          labelClassName="hidden"
+        />
+      </div>
     </header>
   );
 }

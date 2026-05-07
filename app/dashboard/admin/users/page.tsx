@@ -552,6 +552,7 @@ export default function UserManagementPage() {
               placeholder="person@swinburne.edu.my"
               value={newUser.email}
               onChange={(event) => setNewUser((prev) => ({ ...prev, email: event.target.value }))}
+              suppressHydrationWarning
               className="h-10 rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
             />
             <input
@@ -559,12 +560,14 @@ export default function UserManagementPage() {
               placeholder="Full name"
               value={newUser.fullName}
               onChange={(event) => setNewUser((prev) => ({ ...prev, fullName: event.target.value }))}
+              suppressHydrationWarning
               className="h-10 rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink placeholder:text-muted-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:placeholder:text-on-dark-soft dark:focus-visible:ring-offset-dark-canvas"
             />
             <select
               className="h-10 min-w-[7rem] rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
               value={newUser.role}
               onChange={(event) => setNewUser((prev) => ({ ...prev, role: event.target.value as ManagedRole }))}
+              suppressHydrationWarning
             >
             {roleOptions.map((role) => (
               <option key={role} value={role}>
@@ -572,7 +575,7 @@ export default function UserManagementPage() {
               </option>
             ))}
           </select>
-          <Button type="submit" disabled={isPending} aria-disabled={isPending}>
+          <Button type="submit" disabled={isPending} aria-disabled={isPending} suppressHydrationWarning>
             {isPending ? 'Adding…' : 'Add User'}
           </Button>
         </form>

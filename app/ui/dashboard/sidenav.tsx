@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import Image from 'next/image';
 import {
   HomeIcon,
   BookOpenIcon,
@@ -121,42 +120,20 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
       'fixed left-0 top-0 flex h-screen flex-col border-r border-hairline bg-canvas text-ink transition-[width,padding] duration-300 dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark',
       collapsed ? 'w-16 px-2 py-4' : 'w-64 px-[18px] py-7',
     )}>
-      {/* Logo + collapse toggle */}
-      <div className={clsx(
-        'mb-5 pb-5 border-b border-hairline dark:border-dark-hairline',
-        collapsed ? 'px-0' : 'px-2.5',
-      )}>
-        <div className={clsx('flex items-center', collapsed ? 'justify-center' : 'gap-2')}>
-          {!collapsed && (
-            <Link href="/dashboard" className="block flex-1">
-              <Image
-                src="/swinburne-logo.png"
-                alt="Swinburne University of Technology Sarawak Campus"
-                width={220}
-                height={103}
-                className="w-full rounded-sm"
-                priority
-              />
-            </Link>
+      {onToggle && (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className={clsx(
+            'mb-5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-btn border border-hairline bg-surface-card text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas',
+            collapsed ? 'mx-auto' : 'ml-auto mr-2.5',
           )}
-          {onToggle && (
-            <button
-              type="button"
-              onClick={onToggle}
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-btn border border-hairline bg-surface-card text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
-            >
-              {collapsed ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
-            </button>
-          )}
-        </div>
-        {!collapsed && (
-          <p className="mt-2 font-display text-[11px] italic text-muted-soft dark:text-on-dark-soft">
-            Library · est. 1908
-          </p>
-        )}
-      </div>
+        >
+          {collapsed ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
+        </button>
+      )}
 
       {/* Role badge — hidden when collapsed */}
       {!collapsed && (
