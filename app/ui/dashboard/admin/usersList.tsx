@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type ChangeEvent } from 'react';
 import Link from 'next/link';
-import clsx from 'clsx';
+import { useRouter } from 'next/navigation';
 import { ChevronRightIcon, PlusIcon } from '@heroicons/react/24/outline';
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import UserAvatar from '@/app/ui/dashboard/primitives/UserAvatar';
@@ -52,20 +52,20 @@ export default function UsersList({ initialUsers }: Props) {
   const [roleFilter, setRoleFilter] = useState<RoleTab>('all');
   const [page, setPage] = useState(1);
 
+  const router = useRouter();
+
   const searchActive = searchTerm.trim().length > 0;
 
-  const matchesSearch = (row: ListRow): boolean => {
-    if (!searchActive) return true;
+  const searchFiltered = useMemo(() => {
+    if (!searchActive) return rows;
     const q = searchTerm.trim().toLowerCase();
-    return (
+    return rows.filter((row) =>
       row.email.toLowerCase().includes(q) ||
       row.fullName.toLowerCase().includes(q) ||
       row.studentId.toLowerCase().includes(q) ||
-      row.role.toLowerCase().includes(q)
+      row.role.toLowerCase().includes(q),
     );
-  };
-
-  const searchFiltered = useMemo(() => rows.filter(matchesSearch), [rows, searchTerm]);
+  }, [rows, searchTerm, searchActive]);
   const counts = useMemo(() => computeRoleCounts(searchFiltered), [searchFiltered]);
 
   const visibleRows = useMemo(() => {
@@ -141,34 +141,37 @@ export default function UsersList({ initialUsers }: Props) {
                 </tr>
               ) : (
                 paginated.map((row) => (
-                  <tr key={row.id} className="transition hover:bg-canvas/60 dark:hover:bg-dark-surface-soft/60">
+                  <tr
+                    key={row.id}
+                    onClick={() => router.push(`/dashboard/admin/users/${row.id}`)}
+                    className="cursor-pointer transition hover:bg-canvas/60 dark:hover:bg-dark-surface-soft/60"
+                  >
                     <td className="px-6 py-4">
-                      <Link href={`/dashboard/admin/users/${row.id}`} className="flex items-center gap-3">
+                      <div className="flex items-center gap-3">
                         <UserAvatar
                           name={row.fullName || row.email}
                           size="md"
                           tone={row.role === 'admin' ? 'red' : row.role === 'staff' ? 'gold' : 'charcoal'}
                         />
                         <span className="truncate font-mono text-body-sm">{row.email}</span>
-                      </Link>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 truncate">
+                      {row.fullName || <span className="text-muted-soft">—</span>}
+                    </td>
+                    <td className="px-6 py-4 font-mono text-code">
+                      {row.studentId || <span className="text-muted-soft">—</span>}
                     </td>
                     <td className="px-6 py-4">
-                      <Link href={`/dashboard/admin/users/${row.id}`} className="block truncate">
-                        {row.fullName || <span className="text-muted-soft">—</span>}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Link href={`/dashboard/admin/users/${row.id}`} className="block font-mono text-code">
-                        {row.studentId || <span className="text-muted-soft">—</span>}
-                      </Link>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Link href={`/dashboard/admin/users/${row.id}`}>
-                        <RoleBadge role={row.role} />
-                      </Link>
+                      <RoleBadge role={row.role} />
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link href={`/dashboard/admin/users/${row.id}`} className="inline-flex" aria-label="Edit user">
+                      <Link
+                        href={`/dashboard/admin/users/${row.id}`}
+                        aria-label={`View ${row.email}`}
+                        onClick={(event) => event.stopPropagation()}
+                        className="inline-flex"
+                      >
                         <ChevronRightIcon className="h-5 w-5 text-muted-soft" />
                       </Link>
                     </td>
