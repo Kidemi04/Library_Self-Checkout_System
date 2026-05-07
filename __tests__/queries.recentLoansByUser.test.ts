@@ -89,4 +89,18 @@ describe('fetchRecentLoansByUser', () => {
     const result = await fetchRecentLoansByUser('user-1', 5);
     expect(result).toEqual([]);
   });
+
+  it('prefers "returned" action when a loan was both renewed and returned', async () => {
+    const rows = [
+      buildLoanRow({ id: 'loan-rr', renewed_count: 2, returned_at: '2026-05-10T00:00:00Z' }),
+    ];
+    const limit = jest.fn().mockResolvedValue({ data: rows, error: null });
+    const order = jest.fn().mockReturnValue({ limit });
+    const eq = jest.fn().mockReturnValue({ order });
+    const select = jest.fn().mockReturnValue({ eq });
+    mockFrom.mockReturnValue({ select });
+
+    const result = await fetchRecentLoansByUser('user-1', 5);
+    expect(result[0].action).toBe('returned');
+  });
 });

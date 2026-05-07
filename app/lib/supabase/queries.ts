@@ -2128,9 +2128,26 @@ export type RecentLoanEntry = {
   };
 };
 
+type RawRecentLoanRow = {
+  id: string;
+  borrowed_at: string;
+  due_at: string;
+  returned_at: string | null;
+  renewed_count: number | null;
+  copy?: {
+    book?: {
+      id: string;
+      title: string;
+      author: string | null;
+      isbn: string | null;
+      cover_image_url: string | null;
+    } | null;
+  } | null;
+};
+
 export async function fetchRecentLoansByUser(
   userId: string,
-  limit = 5,
+  maxResults = 5,
 ): Promise<RecentLoanEntry[]> {
   const supabase = getSupabaseServerClient();
   const { data, error } = await supabase
@@ -2143,7 +2160,6 @@ export async function fetchRecentLoansByUser(
         returned_at,
         renewed_count,
         copy:Copies(
-          id,
           book:Books(
             id,
             title,
@@ -2156,32 +2172,16 @@ export async function fetchRecentLoansByUser(
     )
     .eq('user_id', userId)
     .order('borrowed_at', { ascending: false })
-    .limit(limit);
+    .limit(maxResults);
 
   if (error) {
     console.error('[fetchRecentLoansByUser] error', error);
     return [];
   }
 
-  type RawRow = {
-    id: string;
-    borrowed_at: string;
-    due_at: string;
-    returned_at: string | null;
-    renewed_count: number | null;
-    copy?: {
-      id: string;
-      book?: {
-        id: string;
-        title: string;
-        author: string | null;
-        isbn: string | null;
-        cover_image_url: string | null;
-      } | null;
-    } | null;
-  };
-
-  const rows = (data ?? []) as unknown as RawRow[];
+  const rows = ((data ?? []) as unknown as RawRecentLoanRow[]).filter(
+    (row) => Boolean(row.copy?.book?.id),
+  );
 
   return rows.map((row) => {
     const renewedCount = row.renewed_count ?? 0;
@@ -2193,16 +2193,16 @@ export async function fetchRecentLoansByUser(
     return {
       id: row.id,
       borrowedAt: row.borrowed_at,
-      returnedAt: row.returned_at,
+      returnedAt: row.returned_at ?? null,
       dueAt: row.due_at,
       renewedCount,
       action,
       book: {
-        id: row.copy?.book?.id ?? '',
-        title: row.copy?.book?.title ?? 'Unknown title',
-        author: row.copy?.book?.author ?? null,
-        isbn: row.copy?.book?.isbn ?? null,
-        coverImageUrl: row.copy?.book?.cover_image_url ?? null,
+        id: row.copy!.book!.id,
+        title: row.copy!.book!.title ?? 'Unknown title',
+        author: row.copy!.book!.author ?? null,
+        isbn: row.copy!.book!.isbn ?? null,
+        coverImageUrl: row.copy!.book!.cover_image_url ?? null,
       },
     };
   });
