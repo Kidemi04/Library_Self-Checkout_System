@@ -78,7 +78,8 @@ const ACTION_LABEL: Record<RecentLoanEntry['action'], string> = {
 export default function UserDetailForm({ user: initial, recentLoans }: Props) {
   const router = useRouter();
   const [user, setUser] = useState<ManagedUser>(() => buildManagedUser(initial));
-  const [pending, startTransition] = useTransition();
+  const [savePending, startSave] = useTransition();
+  const [deletePending, startDelete] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -106,11 +107,11 @@ export default function UserDetailForm({ user: initial, recentLoans }: Props) {
       return;
     }
 
-    startTransition(async () => {
+    startSave(async () => {
       const result = await updateUserAction({
         id: user.id,
         user: {
-          email: user.email,
+          email: user.email.trim().toLowerCase(),
           role: user.role,
           display_name: user.fullName,
         },
@@ -126,11 +127,11 @@ export default function UserDetailForm({ user: initial, recentLoans }: Props) {
   };
 
   const handleDelete = () => {
-    startTransition(async () => {
+    setConfirmDelete(false);
+    startDelete(async () => {
       const result = await deleteUserAction(user.id);
       if (!result.success) {
         setError(result.error ?? 'Failed to delete user.');
-        setConfirmDelete(false);
         return;
       }
       router.replace('/dashboard/admin/users');
@@ -192,15 +193,22 @@ export default function UserDetailForm({ user: initial, recentLoans }: Props) {
                   type="email"
                   value={user.email}
                   onChange={(e) => updateField({ email: e.target.value })}
-                  className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark"
+                  className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                 />
               </Field>
               <Field label="Full name">
                 <input
                   type="text"
                   value={user.fullName}
-                  onChange={(e) => updateField({ fullName: e.target.value })}
-                  className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setUser((prev) => ({
+                      ...prev,
+                      fullName: val,
+                      profile: { ...prev.profile, display_name: val },
+                    }));
+                  }}
+                  className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                 />
               </Field>
               <Field label="Role">
@@ -224,7 +232,7 @@ export default function UserDetailForm({ user: initial, recentLoans }: Props) {
                         <select
                           value={value}
                           onChange={(e: ChangeEvent<HTMLSelectElement>) => updateProfileValue(key, e.target.value)}
-                          className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark"
+                          className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                         >
                           <option value="">—</option>
                           {config.options.map((opt) => (
@@ -244,7 +252,7 @@ export default function UserDetailForm({ user: initial, recentLoans }: Props) {
                           onChange={(e) => updateProfileValue(key, e.target.value)}
                           maxLength={config?.maxLength}
                           placeholder={config?.placeholder}
-                          className="w-full rounded-btn border border-hairline bg-canvas px-3.5 py-2 font-sans text-body-md text-ink dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark"
+                          className="w-full rounded-btn border border-hairline bg-canvas px-3.5 py-2 font-sans text-body-md text-ink dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                         />
                       </Field>
                     );
@@ -258,7 +266,7 @@ export default function UserDetailForm({ user: initial, recentLoans }: Props) {
                         onChange={(e) => updateProfileValue(key, e.target.value)}
                         maxLength={config?.maxLength}
                         placeholder={config?.placeholder}
-                        className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark"
+                        className="h-10 w-full rounded-btn border border-hairline bg-canvas px-3.5 font-sans text-body-md text-ink dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                       />
                     </Field>
                   );
@@ -268,16 +276,16 @@ export default function UserDetailForm({ user: initial, recentLoans }: Props) {
             <div className="mt-6 flex justify-end gap-2">
               <Link
                 href="/dashboard/admin/users"
-                className="rounded-btn border border-hairline bg-canvas px-4 py-2 font-sans text-button text-ink transition hover:border-primary/30 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark"
+                className="rounded-btn border border-hairline bg-canvas px-4 py-2 font-sans text-button text-ink transition hover:border-primary/30 hover:text-primary dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
               >
                 Cancel
               </Link>
               <button
                 type="submit"
-                disabled={pending}
-                className="rounded-btn bg-primary px-4 py-2 font-sans text-button text-on-primary transition hover:bg-primary-active disabled:opacity-60 dark:bg-dark-primary"
+                disabled={savePending}
+                className="rounded-btn bg-primary px-4 py-2 font-sans text-button text-on-primary transition hover:bg-primary-active disabled:opacity-60 dark:bg-dark-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
               >
-                {pending ? 'Saving…' : 'Save changes'}
+                {savePending ? 'Saving…' : 'Save changes'}
               </button>
             </div>
           </section>
@@ -323,7 +331,7 @@ export default function UserDetailForm({ user: initial, recentLoans }: Props) {
             <button
               type="button"
               onClick={() => setConfirmDelete(true)}
-              className="inline-flex items-center gap-1.5 rounded-btn border border-primary/40 bg-canvas px-3.5 py-2 font-sans text-button text-primary transition hover:bg-primary/10 dark:border-dark-primary/40 dark:bg-dark-surface-soft dark:text-dark-primary"
+              className="inline-flex items-center gap-1.5 rounded-btn border border-primary/40 bg-canvas px-3.5 py-2 font-sans text-button text-primary transition hover:bg-primary/10 dark:border-dark-primary/40 dark:bg-dark-surface-soft dark:text-dark-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             >
               <TrashIcon className="h-4 w-4" />
               Delete account
@@ -337,7 +345,7 @@ export default function UserDetailForm({ user: initial, recentLoans }: Props) {
         type="danger"
         title="Delete user"
         message={`Delete ${user.fullName || user.email}? This cannot be undone.`}
-        confirmText={pending ? 'Deleting…' : 'Delete user'}
+        confirmText={deletePending ? 'Deleting…' : 'Delete user'}
         onCancel={() => setConfirmDelete(false)}
         onConfirm={handleDelete}
       />
