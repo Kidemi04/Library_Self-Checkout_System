@@ -46,6 +46,11 @@ export async function createBookWithCopies(input: CreateBookInput): Promise<Crea
     return { ok: false, message: 'Not allowed.' };
   }
 
+  const isbn = (input.isbn ?? '').trim();
+  if (!isbn) {
+    return { ok: false, message: 'ISBN is required.', field: 'isbn' };
+  }
+
   const title = input.title?.trim();
   const author = input.author?.trim();
   if (!title) return { ok: false, message: 'Title is required.', field: 'title' };
@@ -64,7 +69,7 @@ export async function createBookWithCopies(input: CreateBookInput): Promise<Crea
   const bookPayload = {
     title,
     author,
-    isbn: input.isbn?.trim() || null,
+    isbn,
     publisher: input.publisher?.trim() || null,
     publication_year: input.publicationYear?.trim() || null,
     classification: input.classification?.trim() || null,
@@ -152,6 +157,11 @@ export async function updateBookAction(input: UpdateBookInput): Promise<UpdateBo
     return { ok: false, message: 'Not allowed.' };
   }
 
+  const isbn = (input.isbn ?? '').trim();
+  if (!isbn) {
+    return { ok: false, message: 'ISBN is required.', field: 'isbn' };
+  }
+
   if (!input.id) return { ok: false, message: 'Book id is required.', field: 'id' };
 
   const title = input.title?.trim();
@@ -169,7 +179,7 @@ export async function updateBookAction(input: UpdateBookInput): Promise<UpdateBo
   const updatePayload = {
     title,
     author,
-    isbn: input.isbn?.trim() || null,
+    isbn,
     publisher: input.publisher?.trim() || null,
     publication_year: input.publicationYear?.trim() || null,
     classification: input.classification?.trim() || null,

@@ -121,6 +121,10 @@ export default function AddBookForm({
       setError('Title and Author are required.');
       return;
     }
+    if (!isbn.trim()) {
+      setError('ISBN is required.');
+      return;
+    }
     const cover = validateImageUrl(coverUrl);
     if (!cover.ok) {
       setCoverError(cover.error);
@@ -194,7 +198,7 @@ export default function AddBookForm({
 
       {!isEdit && (
         <section className="rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6">
-          <h2 className="font-display text-display-sm text-ink dark:text-on-dark mb-3">ISBN duplicate check</h2>
+          <h2 className="font-display text-display-sm text-ink dark:text-on-dark mb-3">ISBN duplicate check *</h2>
           <IsbnLookupBox
             value={isbn}
             onChange={setIsbn}
@@ -250,12 +254,13 @@ export default function AddBookForm({
             />
           </Field>
           {isEdit && (
-            <Field label="ISBN">
+            <Field label="ISBN *">
               <input
                 value={isbn}
                 onChange={(e) => setIsbn(e.target.value)}
                 className={inputCls}
                 placeholder="978…"
+                required
               />
             </Field>
           )}
