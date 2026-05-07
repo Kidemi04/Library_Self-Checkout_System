@@ -54,13 +54,13 @@ export default function LoginClient({ callbackUrl, hasLinkedIn }: LoginClientPro
       <BlurFade delay={0.2} yOffset={20}>
         <GlassCard
           intensity="high"
-          className="relative w-full max-w-md border-on-dark/20 bg-canvas/80 p-10 shadow-2xl dark:bg-dark-surface-card/80"
+          className="relative w-full max-w-sm border-on-dark/20 bg-canvas/80 p-7 shadow-2xl dark:bg-dark-surface-card/80"
         >
           {/* Logo */}
           <BlurFade delay={0.3} yOffset={10}>
             <Link href="/" className="block transition-transform duration-300 hover:scale-105">
               <img
-                className="mx-auto scale-125 drop-shadow-lg"
+                className="mx-auto scale-110 drop-shadow-lg"
                 src="https://www.swinburne.edu.my/wp-content/themes/mytheme-2021/images/logo-long-full.svg"
                 alt="Swinburne logo"
               />
@@ -69,20 +69,20 @@ export default function LoginClient({ callbackUrl, hasLinkedIn }: LoginClientPro
 
           {/* Title */}
           <BlurFade delay={0.4} yOffset={10}>
-            <h1 className="mt-8 text-center font-display text-display-xl tracking-tight text-ink dark:text-on-dark">
+            <h1 className="mt-6 text-center font-display text-display-lg tracking-tight text-ink dark:text-on-dark">
               Swinburne Sarawak Library
             </h1>
           </BlurFade>
 
           {/* Sign In Buttons */}
           <BlurFade delay={0.5} yOffset={10}>
-            <div className="mt-8 flex flex-col gap-3">
+            <div className="mt-6 flex flex-col gap-2.5">
               {/* Microsoft */}
               <button
                 type="button"
                 onClick={handleMicrosoftSignIn}
                 disabled={pendingMs || pendingLi}
-                className="flex w-full items-center justify-center gap-3 rounded-btn bg-primary px-6 py-4 font-sans text-button text-on-primary transition-colors hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-primary-disabled disabled:text-muted dark:bg-dark-primary dark:hover:bg-primary-active dark:focus-visible:ring-offset-dark-canvas"
+                className="flex w-full items-center justify-center gap-3 rounded-btn bg-primary px-5 py-3.5 font-sans text-button text-on-primary transition-colors hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-primary-disabled disabled:text-muted dark:bg-dark-primary dark:hover:bg-primary-active dark:focus-visible:ring-offset-dark-canvas"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -104,7 +104,7 @@ export default function LoginClient({ callbackUrl, hasLinkedIn }: LoginClientPro
                   type="button"
                   onClick={handleLinkedInSignIn}
                   disabled={pendingMs || pendingLi}
-                  className="flex w-full items-center justify-center gap-3 rounded-btn bg-[#0A66C2] px-6 py-4 font-sans text-button text-white transition-colors hover:bg-[#004182] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A66C2]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-dark-canvas"
+                  className="flex w-full items-center justify-center gap-3 rounded-btn bg-linkedin px-5 py-3.5 font-sans text-button text-on-primary transition-colors hover:bg-linkedin-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-linkedin/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-dark-canvas"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

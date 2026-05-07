@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import Image from 'next/image';
 import {
   HomeIcon,
   BookOpenIcon,
@@ -26,7 +25,6 @@ import {
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/themeProvider';
-import SignOutButton from '@/app/ui/dashboard/signOutButton';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 import type { DashboardRole } from '@/app/lib/auth/types';
 import { useEffect, useState } from 'react';
@@ -77,10 +75,6 @@ function getNav(role: DashboardRole): NavItem[] {
   return USER_NAV;
 }
 
-function getInitials(name: string | null | undefined): string {
-  if (!name) return '?';
-  return name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-}
 
 type SideNavProps = {
   user: DashboardUserProfile;
@@ -94,6 +88,7 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
   const [hasUnread, setHasUnread] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
     const check = async () => {
@@ -113,51 +108,31 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
     if (pathname === '/dashboard/notifications') setHasUnread(false);
   }, [pathname]);
 
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const nav = getNav(user.role);
   const roleBadge = user.role === 'admin' ? 'ADMIN' : user.role === 'staff' ? 'STAFF' : 'STUDENT';
-  const initials = getInitials(user.name);
-
   return (
     <aside className={clsx(
       'fixed left-0 top-0 flex h-screen flex-col border-r border-hairline bg-canvas text-ink transition-[width,padding] duration-300 dark:border-dark-hairline dark:bg-dark-canvas dark:text-on-dark',
       collapsed ? 'w-16 px-2 py-4' : 'w-64 px-[18px] py-7',
     )}>
-      {/* Logo + collapse toggle */}
-      <div className={clsx(
-        'mb-5 pb-5 border-b border-hairline dark:border-dark-hairline',
-        collapsed ? 'px-0' : 'px-2.5',
-      )}>
-        <div className={clsx('flex items-center', collapsed ? 'justify-center' : 'gap-2')}>
-          {!collapsed && (
-            <Link href="/dashboard" className="block flex-1">
-              <Image
-                src="/swinburne-logo.png"
-                alt="Swinburne University of Technology Sarawak Campus"
-                width={220}
-                height={103}
-                className="w-full rounded-sm"
-                priority
-              />
-            </Link>
+      {onToggle && (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          className={clsx(
+            'mb-5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-btn border border-hairline bg-surface-card text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas',
+            collapsed ? 'mx-auto' : 'ml-auto mr-2.5',
           )}
-          {onToggle && (
-            <button
-              type="button"
-              onClick={onToggle}
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-btn border border-hairline bg-surface-card text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
-            >
-              {collapsed ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
-            </button>
-          )}
-        </div>
-        {!collapsed && (
-          <p className="mt-2 font-display text-[11px] italic text-muted-soft dark:text-on-dark-soft">
-            Library · est. 1908
-          </p>
-        )}
-      </div>
+        >
+          {collapsed ? <ChevronRightIcon className="h-4 w-4" /> : <ChevronLeftIcon className="h-4 w-4" />}
+        </button>
+      )}
 
       {/* Role badge — hidden when collapsed */}
       {!collapsed && (
@@ -237,39 +212,22 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
         <button
           type="button"
           onClick={toggleTheme}
-          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          title={collapsed ? (isDark ? 'Light mode' : 'Dark mode') : undefined}
+          suppressHydrationWarning
+          aria-label={hasMounted ? (isDark ? 'Switch to light mode' : 'Switch to dark mode') : 'Switch theme'}
+          title={collapsed ? (hasMounted ? (isDark ? 'Light mode' : 'Dark mode') : 'Theme') : undefined}
           className={clsx(
             'flex w-full items-center justify-center rounded-btn border border-hairline bg-surface-card font-sans text-caption text-body transition hover:bg-surface-cream-strong hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark dark:focus-visible:ring-offset-dark-canvas',
             collapsed ? 'h-10 w-10 mx-auto p-0' : 'gap-2 px-3 py-2',
           )}
         >
-          {isDark ? <SunIcon className="h-4 w-4" /> : <MoonIcon className="h-4 w-4" />}
-          {!collapsed && (isDark ? 'Light mode' : 'Dark mode')}
+          {hasMounted ? (
+            isDark ? <MoonIcon className="h-4 w-4" /> : <SunIcon className="h-4 w-4" />
+          ) : (
+            <span className="h-4 w-4" aria-hidden />
+          )}
+          {!collapsed && (hasMounted ? (isDark ? 'Light mode' : 'Dark mode') : 'Theme')}
         </button>
 
-        {/* User footer */}
-        <div className={clsx(
-          'flex items-center rounded-btn border border-hairline dark:border-dark-hairline',
-          collapsed ? 'justify-center p-1.5' : 'gap-2.5 p-2.5',
-        )}>
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-[12px] font-bold text-on-primary">
-            {initials}
-          </div>
-          {!collapsed && (
-            <>
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-sans text-[13px] font-semibold text-ink dark:text-on-dark">
-                  {user.name ?? 'Library Member'}
-                </p>
-                <p className="truncate font-mono text-[11px] text-muted-soft dark:text-on-dark-soft">
-                  {user.email ?? ''}
-                </p>
-              </div>
-              <SignOutButton labelClassName="hidden" />
-            </>
-          )}
-        </div>
       </div>
     </aside>
   );
