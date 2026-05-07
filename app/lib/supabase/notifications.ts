@@ -89,14 +89,40 @@ function mapRows(
   }));
 }
 
-async function getReadSet(supabase: ReturnType<typeof getSupabaseServerClient>, userId: string, ids: string[]): Promise<Set<string>> {
+async function getReadSet(
+  supabase: ReturnType<typeof getSupabaseServerClient>,
+  userId: string,
+  ids: string[],
+): Promise<Set<string>> {
   if (ids.length === 0) return new Set();
-  const { data: reads } = await supabase
-    .from('NotificationReads')
-    .select('notification_id')
-    .eq('user_id', userId)
-    .in('notification_id', ids);
-  return new Set((reads ?? []).map((r) => r.notification_id as string));
+
+  // Chunk to avoid PostgREST URL-length limits with very long IN clauses.
+  // 50 UUIDs per chunk keeps the URL well under any practical limit.
+  const CHUNK = 50;
+  const seen = new Set<string>();
+
+  for (let i = 0; i < ids.length; i += CHUNK) {
+    const slice = ids.slice(i, i + CHUNK);
+    const { data: reads, error } = await supabase
+      .from('NotificationReads')
+      .select('notification_id')
+      .eq('user_id', userId)
+      .in('notification_id', slice);
+
+    if (error) {
+      console.error('[notifications] getReadSet error:', error.message, {
+        userId,
+        chunkSize: slice.length,
+      });
+      continue; // skip this chunk; keep going so we still mark what we can
+    }
+
+    for (const r of reads ?? []) {
+      seen.add(r.notification_id as string);
+    }
+  }
+
+  return seen;
 }
 
 export async function fetchNotificationsForRole(
