@@ -12,7 +12,7 @@ export type LookupIsbnResult =
 
 export async function lookupIsbnInDb(isbn: string): Promise<LookupIsbnResult> {
   const { user } = await getDashboardSession();
-  if (!user || user.role !== 'admin') {
+  if (!user || (user.role !== 'admin' && user.role !== 'staff')) {
     return { ok: false, message: 'Not allowed.' };
   }
   try {
@@ -42,7 +42,7 @@ export type CreateBookResult =
 
 export async function createBookWithCopies(input: CreateBookInput): Promise<CreateBookResult> {
   const { user } = await getDashboardSession();
-  if (!user || user.role !== 'admin') {
+  if (!user || (user.role !== 'admin' && user.role !== 'staff')) {
     return { ok: false, message: 'Not allowed.' };
   }
 
@@ -153,7 +153,7 @@ export type UpdateBookResult =
 
 export async function updateBookAction(input: UpdateBookInput): Promise<UpdateBookResult> {
   const { user } = await getDashboardSession();
-  if (!user || user.role !== 'admin') {
+  if (!user || (user.role !== 'admin' && user.role !== 'staff')) {
     return { ok: false, message: 'Not allowed.' };
   }
 

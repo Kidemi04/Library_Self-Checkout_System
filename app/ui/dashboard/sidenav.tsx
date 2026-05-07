@@ -22,6 +22,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   PlusIcon,
+  EnvelopeIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/themeProvider';
@@ -41,6 +42,7 @@ const ADMIN_NAV: NavItem[] = [
   { icon: ArrowPathIcon,             label: 'Return Books',    href: '/dashboard/book/checkin' },
   { icon: ExclamationTriangleIcon,   label: 'Damage Reports',  href: '/dashboard/staff/damage-reports' },
   { icon: ClockIcon,                 label: 'Loan History',    href: '/dashboard/staff/history' },
+  { icon: EnvelopeIcon,              label: 'Overdue',         href: '/dashboard/admin/overdue' },
   { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
   { icon: Cog6ToothIcon,             label: 'Settings',        href: '/dashboard/profile' },
 ];
@@ -51,8 +53,10 @@ const STAFF_NAV: NavItem[] = [
   { icon: ArrowPathIcon,             label: 'Return Books',    href: '/dashboard/book/checkin' },
   { icon: BookmarkIcon,              label: 'Holds',           href: '/dashboard/book/holds' },
   { icon: BookOpenIcon,              label: 'Catalogue',       href: '/dashboard/book/items' },
+  { icon: PlusIcon,                  label: 'Add Book',        href: '/dashboard/admin/books/new' },
   { icon: ExclamationTriangleIcon,   label: 'Damage Reports',  href: '/dashboard/staff/damage-reports' },
   { icon: ClockIcon,                 label: 'Loan History',    href: '/dashboard/staff/history' },
+  { icon: EnvelopeIcon,              label: 'Overdue',         href: '/dashboard/admin/overdue' },
   { icon: BellIcon,                  label: 'Notifications',   href: '/dashboard/notifications' },
   { icon: UserCircleIcon,            label: 'Profile',         href: '/dashboard/profile' },
 ];

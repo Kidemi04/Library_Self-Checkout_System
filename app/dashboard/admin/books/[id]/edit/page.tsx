@@ -12,7 +12,7 @@ export default async function EditBookPage({
 }) {
   const { user } = await getDashboardSession();
   if (!user) redirect('/login');
-  if (user.role !== 'admin') redirect('/dashboard');
+  if (user.role !== 'admin' && user.role !== 'staff') redirect('/dashboard');
 
   const { id } = await params;
   const supabase = getSupabaseServerClient();
