@@ -333,7 +333,12 @@ type GeminiTurn = { role: 'user' | 'model'; text: string };
 const callGemini = async (
   systemPrompt: string,
   userMessage: string,
-  options?: { temperature?: number; maxOutputTokens?: number; history?: GeminiTurn[] },
+  options?: {
+    temperature?: number;
+    maxOutputTokens?: number;
+    history?: GeminiTurn[];
+    json?: boolean;
+  },
 ): Promise<string | null> => {
   const { geminiBaseUrl, geminiApiKey, geminiModel } = getEnv();
   if (!geminiApiKey) {
@@ -366,6 +371,7 @@ const callGemini = async (
     generationConfig: {
       temperature: options?.temperature ?? 0.3,
       ...(options?.maxOutputTokens ? { maxOutputTokens: options.maxOutputTokens } : {}),
+      ...(options?.json ? { responseMimeType: 'application/json' } : {}),
     },
   };
 
@@ -405,12 +411,18 @@ const callGemini = async (
 const callAI = async (
   systemPrompt: string,
   userMessage: string,
-  options?: { temperature?: number; maxTokens?: number; history?: GeminiTurn[] },
+  options?: {
+    temperature?: number;
+    maxTokens?: number;
+    history?: GeminiTurn[];
+    json?: boolean;
+  },
 ): Promise<string | null> => {
   return callGemini(systemPrompt, userMessage, {
     temperature: options?.temperature,
     maxOutputTokens: options?.maxTokens,
     history: options?.history,
+    json: options?.json,
   });
 };
 
@@ -464,7 +476,7 @@ export async function classifyAndExtract(
     role: h.sender === 'user' ? 'user' : 'model',
     text: h.text,
   }));
-  const raw = await callAI(systemPrompt, message, { temperature: 0.3, maxTokens: 1024, history: geminiHistory });
+  const raw = await callAI(systemPrompt, message, { temperature: 0.3, maxTokens: 1024, history: geminiHistory, json: true });
 
   if (!raw) throw new AiUnavailableError();
 
@@ -510,7 +522,7 @@ export async function suggestYouTubeCourses(
     const raw = await callAI(
       YOUTUBE_SYSTEM_PROMPT,
       `Student interests: ${interests.join(', ')}`,
-      { temperature: 0.4, maxTokens: 256 },
+      { temperature: 0.4, maxTokens: 256, json: true },
     );
     if (!raw) return [];
 
