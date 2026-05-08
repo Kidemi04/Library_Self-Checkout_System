@@ -7,6 +7,7 @@ import {
   FunnelIcon,
   ArrowPathIcon,
 } from '@heroicons/react/24/outline';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 export type TimePeriod = 'all' | '30d' | '6m' | 'semester';
 
@@ -99,18 +100,19 @@ export default function BorrowingHistoryFilter({ action = '/dashboard/book/histo
 
         {/* Reset */}
         <div className="flex items-center sm:ml-auto">
-          <button
+          <MotionButton
+            variant="secondary"
             type="button"
             onClick={() => {
               setRefreshing(true);
               window.setTimeout(() => window.location.reload(), 80);
             }}
-            className="flex h-10 w-10 items-center justify-center rounded-pill border border-hairline bg-surface-card text-ink hover:bg-surface-cream-strong sm:h-auto sm:w-auto sm:rounded-btn sm:px-4 sm:py-2 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-pill sm:h-10 sm:w-auto sm:rounded-btn sm:px-4"
             title="Reset Filters"
           >
             <ArrowPathIcon className={clsx('h-5 w-5 sm:hidden', refreshing && 'animate-spin')} />
             <span className="hidden sm:inline font-sans text-button">Reset</span>
-          </button>
+          </MotionButton>
         </div>
       </div>
     </form>

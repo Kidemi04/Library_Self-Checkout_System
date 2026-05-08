@@ -10,6 +10,7 @@ import SignOutButton from '@/app/ui/dashboard/signOutButton';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 import type { Notification, NotificationFilter } from '@/app/lib/supabase/notifications';
 import clsx from 'clsx';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 function getInitials(name: string | null | undefined): string {
   if (!name) return '?';
@@ -178,13 +179,14 @@ export default function DesktopTopBar({ user, isBypassed }: DesktopTopBarProps) 
 
       {/* Notification bell + dropdown */}
       <div className="relative" ref={panelRef}>
-        <button
+        <MotionButton
+          variant="icon"
           type="button"
           aria-label="Notifications"
           aria-expanded={isOpen}
           onClick={() => setIsOpen((v) => !v)}
           className={clsx(
-            'relative flex h-8 w-8 items-center justify-center rounded-xl border transition',
+            'relative h-8 w-8 rounded-xl border',
             isOpen
               ? 'border-primary/30 bg-primary/8 text-primary dark:border-dark-primary/40 dark:bg-dark-primary/15 dark:text-dark-primary'
               : 'border-hairline bg-canvas text-muted hover:border-primary/20 hover:text-ink dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark-soft dark:hover:text-on-dark',
@@ -194,7 +196,7 @@ export default function DesktopTopBar({ user, isBypassed }: DesktopTopBarProps) 
           {hasUnread && (
             <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary ring-2 ring-canvas dark:ring-dark-canvas" />
           )}
-        </button>
+        </MotionButton>
 
         {/* Dropdown panel */}
         {isOpen && (
@@ -214,41 +216,46 @@ export default function DesktopTopBar({ user, isBypassed }: DesktopTopBarProps) 
               </div>
               <div className="flex items-center gap-3">
                 {unreadCount > 0 && (
-                  <button
+                  <MotionButton
+                    variant="secondary"
+                    type="button"
                     onClick={markAllRead}
                     disabled={marking}
-                    className="font-sans text-caption font-medium text-primary transition-colors hover:text-primary-active disabled:opacity-50 dark:text-dark-primary"
+                    state={marking ? 'pending' : 'idle'}
+                    className="h-auto border-none bg-transparent px-0 py-0 text-caption font-medium text-primary shadow-none hover:border-none hover:bg-transparent hover:text-primary-active dark:text-dark-primary"
                   >
                     {marking ? 'Marking…' : 'Mark all read'}
-                  </button>
+                  </MotionButton>
                 )}
-                <button
+                <MotionButton
+                  variant="icon"
                   type="button"
                   onClick={() => setIsOpen(false)}
                   aria-label="Close"
-                  className="flex h-6 w-6 items-center justify-center rounded-lg text-muted transition hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark"
+                  className="h-6 w-6 rounded-lg text-muted hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark"
                 >
                   <XMarkIcon className="h-4 w-4" strokeWidth={2} />
-                </button>
+                </MotionButton>
               </div>
             </div>
 
             {/* Filter tabs */}
             <div className="flex border-b border-hairline dark:border-dark-hairline">
               {PANEL_TABS.map((tab) => (
-                <button
+                <MotionButton
                   key={tab.value}
+                  variant="secondary"
                   type="button"
                   onClick={() => setPanelFilter(tab.value)}
                   className={clsx(
-                    'flex-1 px-2 py-2 font-sans text-[11px] font-semibold transition-colors',
+                    'flex-1 px-2 py-2 h-auto border-none bg-transparent text-[11px] font-semibold hover:border-none hover:bg-transparent rounded-none',
                     panelFilter === tab.value
                       ? 'border-b-2 border-primary text-primary dark:border-dark-primary dark:text-dark-primary'
                       : 'text-muted hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark',
                   )}
                 >
                   {tab.label}
-                </button>
+                </MotionButton>
               ))}
             </div>
 
@@ -289,10 +296,11 @@ export default function DesktopTopBar({ user, isBypassed }: DesktopTopBarProps) 
                         )} />
 
                         {/* Content — clicking marks as read */}
-                        <button
+                        <MotionButton
+                          variant="secondary"
                           type="button"
                           onClick={() => { if (!n.is_read) markOneRead(n.id); }}
-                          className="min-w-0 flex-1 text-left"
+                          className="min-w-0 flex-1 h-auto border-none bg-transparent px-0 py-0 text-left hover:border-none hover:bg-transparent rounded-none"
                         >
                           <div className="flex items-center gap-1.5">
                             <span className={clsx(
@@ -314,24 +322,25 @@ export default function DesktopTopBar({ user, isBypassed }: DesktopTopBarProps) 
                           <p className="truncate font-sans text-caption text-muted dark:text-on-dark-soft">
                             {n.message}
                           </p>
-                        </button>
+                        </MotionButton>
 
                         {/* Time + star action */}
                         <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
                           <span className="font-sans text-caption text-muted-soft dark:text-on-dark-soft">
                             {timeAgo(n.created_at)}
                           </span>
-                          <button
+                          <MotionButton
+                            variant="icon"
                             type="button"
                             onClick={() => toggleFlag(n.id, n.is_flagged)}
                             title={n.is_flagged ? 'Remove flag' : 'Flag'}
-                            className="flex h-5 w-5 items-center justify-center rounded transition opacity-0 group-hover:opacity-100 hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong"
+                            className="h-5 w-5 rounded opacity-0 group-hover:opacity-100 hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong"
                           >
                             {n.is_flagged
                               ? <StarSolid className="h-3.5 w-3.5 text-warning" />
                               : <StarIcon className="h-3.5 w-3.5 text-muted-soft dark:text-on-dark-soft" />
                             }
-                          </button>
+                          </MotionButton>
                         </div>
                       </li>
                     );

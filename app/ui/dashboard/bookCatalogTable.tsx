@@ -69,6 +69,7 @@ const getBookCategory = (tags?: string[] | null): BookCategory | null => {
 import { updateBook, deleteBook, type ItemStatus } from '@/app/lib/supabase/updates';
 import type { CopyStatus } from '@/app/lib/supabase/types';
 import { Pagination } from '@/app/ui/dashboard/pagination';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 export type CatalogBook = {
   id: string;
@@ -353,63 +354,69 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
   return (
     <>
       <div className="mb-4 flex flex-wrap items-center gap-3">
-        <button
+        <MotionButton
+          variant="secondary"
           type="button"
           onClick={onAutoTagAll}
-          disabled={bulkTagging}
-          className="inline-flex items-center gap-2 rounded-btn border border-hairline bg-surface-card px-3 py-1.5 font-sans text-button text-ink hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
+          state={bulkTagging ? 'pending' : 'idle'}
+          className="px-3 py-1.5 h-auto"
         >
           {bulkTagging ? 'Auto-tagging…' : 'Auto-tag all untagged'}
-        </button>
+        </MotionButton>
         {bulkTagMessage && <span className="font-sans text-body-sm text-success">{bulkTagMessage}</span>}
         {bulkTagError && <span className="font-sans text-body-sm text-error">{bulkTagError}</span>}
 
-        <button
+        <MotionButton
+          variant="secondary"
           type="button"
           onClick={onReTagAll}
-          disabled={bulkRetagging}
-          className="inline-flex items-center gap-2 rounded-btn border border-hairline bg-surface-card px-3 py-1.5 font-sans text-button text-ink hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
+          state={bulkRetagging ? 'pending' : 'idle'}
+          className="px-3 py-1.5 h-auto"
         >
           {bulkRetagging ? 'Re-tagging…' : 'Re-tag all (overwrite)'}
-        </button>
+        </MotionButton>
         {bulkRetagMessage && <span className="font-sans text-body-sm text-success">{bulkRetagMessage}</span>}
         {bulkRetagError && <span className="font-sans text-body-sm text-error">{bulkRetagError}</span>}
 
-        <button
+        <MotionButton
+          variant="secondary"
           type="button"
           onClick={() => onAutoCategorizeAll(false)}
-          disabled={autoCategorizing}
-          className="inline-flex items-center gap-2 rounded-btn border border-hairline bg-surface-card px-3 py-1.5 font-sans text-button text-ink hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
+          state={autoCategorizing ? 'pending' : 'idle'}
+          className="px-3 py-1.5 h-auto"
         >
           {autoCategorizing ? 'Categorizing…' : 'Auto-categorize uncategorized'}
-        </button>
-        <button
+        </MotionButton>
+        <MotionButton
+          variant="secondary"
           type="button"
           onClick={() => onAutoCategorizeAll(true)}
-          disabled={autoCategorizing}
-          className="inline-flex items-center gap-2 rounded-btn border border-hairline bg-surface-card px-3 py-1.5 font-sans text-button text-ink hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
+          state={autoCategorizing ? 'pending' : 'idle'}
+          className="px-3 py-1.5 h-auto"
         >
           {autoCategorizing ? 'Categorizing…' : 'Re-categorize all (overwrite)'}
-        </button>
+        </MotionButton>
         {autoCategoryMessage && <span className="font-sans text-body-sm text-success">{autoCategoryMessage}</span>}
         {autoCategoryError && <span className="font-sans text-body-sm text-error">{autoCategoryError}</span>}
 
-        <button
+        <MotionButton
+          variant="secondary"
           type="button"
           onClick={() => onEmbedAll(false)}
-          disabled={embedding}
-          className="inline-flex items-center gap-2 rounded-btn border border-hairline bg-surface-card px-3 py-1.5 font-sans text-button text-ink hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
+          state={embedding ? 'pending' : 'idle'}
+          className="px-3 py-1.5 h-auto"
         >
           {embedding ? 'Embedding…' : 'Embed unembedded books'}
-        </button>
-        <button
+        </MotionButton>
+        <MotionButton
+          variant="secondary"
           type="button"
           onClick={() => onEmbedAll(true)}
-          disabled={embedding}
-          className="inline-flex items-center gap-2 rounded-btn border border-hairline bg-surface-card px-3 py-1.5 font-sans text-button text-ink hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
+          state={embedding ? 'pending' : 'idle'}
+          className="px-3 py-1.5 h-auto"
         >
           {embedding ? 'Embedding…' : 'Re-embed all'}
-        </button>
+        </MotionButton>
         {embedMessage && <span className="font-sans text-body-sm text-success">{embedMessage}</span>}
         {embedError && <span className="font-sans text-body-sm text-error">{embedError}</span>}
       </div>
@@ -417,17 +424,18 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
       {/* Category filter chips */}
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <span className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">Filter:</span>
-        <button
+        <MotionButton
+          variant="secondary"
           type="button"
           onClick={() => setSelectedCategory(null)}
-          className={`rounded-pill px-3 py-1 font-sans text-button transition-colors ${
+          className={`rounded-pill px-3 py-1 h-auto ${
             selectedCategory === null
-              ? 'bg-ink text-canvas dark:bg-on-dark dark:text-dark-canvas'
-              : 'border border-hairline bg-surface-card text-ink hover:bg-surface-cream-strong dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong'
+              ? 'bg-ink text-canvas border-transparent dark:bg-on-dark dark:text-dark-canvas'
+              : ''
           }`}
         >
           All
-        </button>
+        </MotionButton>
         {CATEGORIES.map((cat) => {
           const colors: Record<BookCategory, string> = {
             'Computer Science': 'bg-primary text-on-primary',
@@ -442,18 +450,19 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
             'Engineering':      'border-accent-amber/30 text-accent-amber hover:bg-accent-amber/10 dark:border-accent-amber/40 dark:text-accent-amber dark:hover:bg-accent-amber/10',
           };
           return (
-            <button
+            <MotionButton
               key={cat}
+              variant="secondary"
               type="button"
               onClick={() => setSelectedCategory(selectedCategory === cat ? null : cat)}
-              className={`rounded-pill px-3 py-1 font-sans text-button transition-colors ${
+              className={`rounded-pill px-3 py-1 h-auto ${
                 selectedCategory === cat
-                  ? colors[cat]
-                  : `border bg-surface-card dark:bg-dark-surface-card ${borders[cat]}`
+                  ? `${colors[cat]} border-transparent`
+                  : `bg-surface-card dark:bg-dark-surface-card ${borders[cat]}`
               }`}
             >
               {cat}
-            </button>
+            </MotionButton>
           );
         })}
         {selectedCategory && (
@@ -528,20 +537,22 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
                   <Td>{renderSipStatusBadge(b.sip_status)}</Td>
                   <Td>
                     <div className="flex flex-wrap gap-2">
-                      <button
-                        className="rounded-btn border border-hairline bg-surface-card px-3 py-1.5 font-sans text-button text-ink hover:bg-surface-cream-strong dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
-                        onClick={() => onManage(b)}
+                      <MotionButton
+                        variant="secondary"
                         type="button"
+                        onClick={() => onManage(b)}
+                        className="px-3 py-1.5 h-auto"
                       >
                         Manage
-                      </button>
-                      <button
-                        className="rounded-btn border border-primary/20 bg-surface-card px-3 py-1.5 font-sans text-button text-primary hover:bg-primary/5 dark:border-dark-primary/20 dark:bg-dark-surface-card dark:text-dark-primary dark:hover:bg-dark-primary/10"
-                        onClick={() => onDelete(b.id)}
+                      </MotionButton>
+                      <MotionButton
+                        variant="destructive"
                         type="button"
+                        onClick={() => onDelete(b.id)}
+                        className="px-3 py-1.5 h-auto"
                       >
                         Delete
-                      </button>
+                      </MotionButton>
                     </div>
                   </Td>
                 </tr>
@@ -626,20 +637,22 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
 
                 {/* Actions */}
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <button
-                    className="rounded-btn border border-hairline bg-surface-card px-3 py-1.5 font-sans text-button text-ink hover:bg-surface-cream-strong dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
-                    onClick={() => onManage(b)}
+                  <MotionButton
+                    variant="secondary"
                     type="button"
+                    onClick={() => onManage(b)}
+                    className="px-3 py-1.5 h-auto"
                   >
                     Manage
-                  </button>
-                  <button
-                    className="rounded-btn border border-primary/20 bg-surface-card px-3 py-1.5 font-sans text-button text-primary hover:bg-primary/5 dark:border-dark-primary/20 dark:bg-dark-surface-card dark:text-dark-primary dark:hover:bg-dark-primary/10"
-                    onClick={() => onDelete(b.id)}
+                  </MotionButton>
+                  <MotionButton
+                    variant="destructive"
                     type="button"
+                    onClick={() => onDelete(b.id)}
+                    className="px-3 py-1.5 h-auto"
                   >
                     Delete
-                  </button>
+                  </MotionButton>
                 </div>
               </div>
             </div>
@@ -760,14 +773,16 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
           />
           <p className="mt-1 font-sans text-caption text-muted dark:text-on-dark-soft">Separate with commas</p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            <button
+            <MotionButton
+              variant="secondary"
               type="button"
               disabled={autoTagging || !active}
+              state={autoTagging ? 'pending' : 'idle'}
               onClick={onAutoTag}
-              className="inline-flex items-center gap-2 rounded-btn border border-hairline bg-surface-card px-3 py-1.5 font-sans text-button text-ink hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-60 dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
+              className="px-3 py-1.5 h-auto"
             >
               {autoTagging ? 'Tagging…' : 'Auto-tag with AI'}
-            </button>
+            </MotionButton>
             {autoTagError && (
               <span className="font-sans text-body-sm text-error">{autoTagError}</span>
             )}
@@ -775,31 +790,34 @@ export default function BookCatalogTable({ books }: { books: CatalogBook[] }) {
         </div>
 
           <div className="mt-2 flex flex-wrap justify-between gap-2">
-            <button
+            <MotionButton
+              variant="secondary"
               type="button"
               onClick={onClose}
-              className="rounded-btn border border-hairline bg-surface-card px-4 py-2 font-sans text-button text-ink hover:bg-surface-cream-strong dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong"
+              className="px-4 py-2 h-auto"
             >
               Cancel
-            </button>
+            </MotionButton>
 
             {/* Inline delete inside modal (optional) */}
             {active && (
-              <button
+              <MotionButton
+                variant="destructive"
                 type="button"
                 onClick={() => onDelete(active.id)}
-                className="rounded-btn border border-primary/20 bg-surface-card px-4 py-2 font-sans text-button text-primary hover:bg-primary/5 dark:border-dark-primary/20 dark:bg-dark-surface-card dark:text-dark-primary dark:hover:bg-dark-primary/10"
+                className="px-4 py-2 h-auto"
               >
                 Delete
-              </button>
+              </MotionButton>
             )}
 
-            <button
+            <MotionButton
+              variant="primary"
               type="submit"
-              className="rounded-btn bg-primary px-4 py-2 font-sans text-button text-on-primary hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+              className="px-4 py-2 h-auto"
             >
               Save changes
-            </button>
+            </MotionButton>
           </div>
         </form>
       </ManageBookModal>
