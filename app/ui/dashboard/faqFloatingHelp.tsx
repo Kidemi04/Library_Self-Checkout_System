@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { SparklesIcon } from '@heroicons/react/24/outline';
+import { AnimatePresence, motion } from 'framer-motion';
+import { motionDuration, motionEase } from '@/app/lib/motion';
 
 const guideTopics = [
   {
@@ -73,72 +75,73 @@ export default function FaqFloatingHelp() {
   return (
     <div ref={panelRef} className="fixed bottom-40 right-4 z-40 flex flex-col items-end gap-3 md:bottom-24 md:right-8">
       {/* Panel */}
-      {open && (
-        <div
-          className="w-60 rounded-card border border-hairline bg-surface-card shadow-[0_4px_16px_rgba(20,20,19,0.08)] dark:border-dark-hairline dark:bg-dark-surface-card"
-          style={{ animation: 'faqPanelIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both' }}
-        >
-          <style>{`
-            @keyframes faqPanelIn {
-              from { opacity: 0; transform: translateY(12px) scale(0.97); }
-              to   { opacity: 1; transform: translateY(0) scale(1); }
-            }
-          `}</style>
-
-          {/* Header */}
-          <div className="flex items-center justify-between rounded-t-card bg-primary px-3 py-2">
-            <p className="font-sans text-[11px] font-semibold text-on-primary">Student Guide</p>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label="Close panel"
-              className="flex h-6 w-6 items-center justify-center rounded-full text-on-primary/70 transition hover:bg-on-primary/15 hover:text-on-primary"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
-                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Guide topics */}
-          <div className="p-2">
-            <ul className="space-y-0.5">
-              {guideTopics.map((topic, index) => (
-                <li key={topic.id}>
-                  <Link
-                    href={topicHref(topic.id)}
-                    onClick={() => setOpen(false)}
-                    className="group flex items-center gap-2 rounded-btn px-2 py-1.5 transition hover:bg-primary/5 dark:hover:bg-primary/10"
-                  >
-                    <span className="flex h-4 w-4 flex-none items-center justify-center rounded-full bg-surface-cream-strong font-sans text-[9px] font-bold text-muted group-hover:bg-primary group-hover:text-on-primary dark:bg-dark-surface-strong dark:text-on-dark-soft">
-                      {index + 1}
-                    </span>
-                    <p className="font-sans text-[11px] font-medium text-ink group-hover:text-primary dark:text-on-dark dark:group-hover:text-dark-primary">
-                      {topic.label}
-                    </p>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Divider */}
-          <div className="mx-3 border-t border-hairline dark:border-dark-hairline" />
-
-          {/* Contact footer */}
-          <div className="rounded-b-card px-3 py-2">
-            <p className="font-sans text-[10px] text-muted dark:text-on-dark-soft">
-              Visit Level 1 desk or{' '}
-              <a
-                href="mailto:library@swinburne.edu.my"
-                className="font-semibold text-primary hover:underline"
+      <AnimatePresence>
+        {open && (
+          // eslint-disable-next-line motion/no-layout-animation
+          <motion.div
+            key="faq-panel"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: motionDuration.base, ease: motionEase.inOut }}
+            style={{ overflow: 'hidden' }}
+            className="w-60 rounded-card border border-hairline bg-surface-card shadow-[0_4px_16px_rgba(20,20,19,0.08)] dark:border-dark-hairline dark:bg-dark-surface-card"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between rounded-t-card bg-primary px-3 py-2">
+              <p className="font-sans text-[11px] font-semibold text-on-primary">Student Guide</p>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label="Close panel"
+                className="flex h-6 w-6 items-center justify-center rounded-full text-on-primary/70 transition hover:bg-on-primary/15 hover:text-on-primary"
               >
-                email us
-              </a>
-            </p>
-          </div>
-        </div>
-      )}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
+                  <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Guide topics */}
+            <div className="p-2">
+              <ul className="space-y-0.5">
+                {guideTopics.map((topic, index) => (
+                  <li key={topic.id}>
+                    <Link
+                      href={topicHref(topic.id)}
+                      onClick={() => setOpen(false)}
+                      className="group flex items-center gap-2 rounded-btn px-2 py-1.5 transition hover:bg-primary/5 dark:hover:bg-primary/10"
+                    >
+                      <span className="flex h-4 w-4 flex-none items-center justify-center rounded-full bg-surface-cream-strong font-sans text-[9px] font-bold text-muted group-hover:bg-primary group-hover:text-on-primary dark:bg-dark-surface-strong dark:text-on-dark-soft">
+                        {index + 1}
+                      </span>
+                      <p className="font-sans text-[11px] font-medium text-ink group-hover:text-primary dark:text-on-dark dark:group-hover:text-dark-primary">
+                        {topic.label}
+                      </p>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Divider */}
+            <div className="mx-3 border-t border-hairline dark:border-dark-hairline" />
+
+            {/* Contact footer */}
+            <div className="rounded-b-card px-3 py-2">
+              <p className="font-sans text-[10px] text-muted dark:text-on-dark-soft">
+                Visit Level 1 desk or{' '}
+                <a
+                  href="mailto:library@swinburne.edu.my"
+                  className="font-semibold text-primary hover:underline"
+                >
+                  email us
+                </a>
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* AI recommendations button — mobile only */}
       <Link
