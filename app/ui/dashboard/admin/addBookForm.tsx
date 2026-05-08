@@ -9,6 +9,7 @@ import CameraScanModal from '@/app/ui/dashboard/admin/cameraScanModal';
 import { lookupIsbnInDb, createBookWithCopies, updateBookAction } from '@/app/dashboard/bookActions';
 import { supabaseBrowserClient } from '@/app/lib/supabase/client';
 import { validateImageUrl } from '@/app/lib/validators/imageUrl';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 type ExistingMatch = { id: string; title: string; author: string | null; copyCount: number };
 
@@ -214,20 +215,22 @@ export default function AddBookForm({
                 cop{existing.copyCount === 1 ? 'y' : 'ies'})
               </p>
               <div className="mt-3 flex gap-2">
-                <button
+                <MotionButton
+                  variant="secondary"
                   type="button"
                   onClick={() => router.push(`/dashboard/book/${existing.id}`)}
                   className="rounded-btn bg-warning hover:bg-warning/90 px-3 py-1.5 font-sans text-button text-on-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                 >
                   Go to that book
-                </button>
-                <button
+                </MotionButton>
+                <MotionButton
+                  variant="secondary"
                   type="button"
                   onClick={() => setExisting(null)}
                   className="rounded-btn border border-warning/40 px-3 py-1.5 font-sans text-button text-warning hover:bg-warning/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
                 >
                   Continue creating new entry
-                </button>
+                </MotionButton>
               </div>
             </div>
           )}
@@ -332,13 +335,14 @@ export default function AddBookForm({
                     className="flex items-center gap-1 rounded-pill bg-surface-cream-strong dark:bg-dark-surface-strong px-2 py-1 font-sans text-body-sm text-ink dark:text-on-dark"
                   >
                     {t}
-                    <button
+                    <MotionButton
+                      variant="icon"
                       type="button"
                       onClick={() => setTags(tags.filter((x) => x !== t))}
                       className="text-muted-soft hover:text-primary dark:hover:text-dark-primary"
                     >
                       ×
-                    </button>
+                    </MotionButton>
                   </span>
                 ))}
                 <input
@@ -381,11 +385,13 @@ export default function AddBookForm({
       )}
 
       <div className="flex justify-center">
-        <button
+        <MotionButton
+          variant="primary"
           type="button"
           onClick={submit}
           disabled={submitting}
           aria-disabled={submitting}
+          state={submitting ? 'pending' : 'idle'}
           className="rounded-btn bg-primary hover:bg-primary-active px-8 py-3 font-sans text-button text-on-primary transition disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
         >
           {isEdit
@@ -395,7 +401,7 @@ export default function AddBookForm({
             : submitting
               ? 'Creating…'
               : `Create book + ${copies} cop${copies === 1 ? 'y' : 'ies'}`}
-        </button>
+        </MotionButton>
       </div>
 
       {!isEdit && (

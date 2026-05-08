@@ -8,6 +8,7 @@ import ReminderButton from '@/app/ui/dashboard/primitives/ReminderButton';
 import UserAvatar from '@/app/ui/dashboard/primitives/UserAvatar';
 import BookCover, { getBookGradient } from '@/app/ui/dashboard/primitives/BookCover';
 import { sendReminder } from '@/app/dashboard/overdueActions';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 type Props = {
   loans: OverdueLoan[];
@@ -92,8 +93,9 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           {BUCKETS.map((b) => (
-            <button
+            <MotionButton
               key={b.value}
+              variant="secondary"
               type="button"
               onClick={() => setBucket(b.value)}
               className={clsx(
@@ -104,7 +106,7 @@ export default function OverdueViewer({ loans, initialFilters }: Props) {
               )}
             >
               {b.label}
-            </button>
+            </MotionButton>
           ))}
         </div>
         <form onSubmit={submitSearch} className="flex items-center gap-2">

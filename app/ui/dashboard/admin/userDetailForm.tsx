@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition, type ChangeEvent, type FormEvent } fr
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import UserAvatar from '@/app/ui/dashboard/primitives/UserAvatar';
 import RoleSelect from '@/app/ui/dashboard/primitives/RoleSelect';
@@ -280,13 +281,15 @@ export default function UserDetailForm({ user: initial, recentLoans }: Props) {
               >
                 Cancel
               </Link>
-              <button
+              <MotionButton
+                variant="primary"
                 type="submit"
                 disabled={savePending}
+                state={savePending ? 'pending' : 'idle'}
                 className="rounded-btn bg-primary px-4 py-2 font-sans text-button text-on-primary transition hover:bg-primary-active disabled:opacity-60 dark:bg-dark-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
               >
                 {savePending ? 'Saving…' : 'Save changes'}
-              </button>
+              </MotionButton>
             </div>
           </section>
 
@@ -328,14 +331,15 @@ export default function UserDetailForm({ user: initial, recentLoans }: Props) {
             <p className="mb-4 font-sans text-body-md text-ink/80 dark:text-on-dark/80">
               Deleting an account permanently removes the user and disconnects their loan history.
             </p>
-            <button
+            <MotionButton
+              variant="destructive"
               type="button"
               onClick={() => setConfirmDelete(true)}
               className="inline-flex items-center gap-1.5 rounded-btn border border-primary/40 bg-canvas px-3.5 py-2 font-sans text-button text-primary transition hover:bg-primary/10 dark:border-dark-primary/40 dark:bg-dark-surface-soft dark:text-dark-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             >
               <TrashIcon className="h-4 w-4" />
               Delete account
-            </button>
+            </MotionButton>
           </section>
         </form>
       </AdminShell>

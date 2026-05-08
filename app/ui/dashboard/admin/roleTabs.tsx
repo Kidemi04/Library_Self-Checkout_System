@@ -2,6 +2,7 @@
 
 import clsx from 'clsx';
 import type { ManagedRole } from '@/app/ui/dashboard/admin/userProfileFields';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 export type RoleTab = 'all' | ManagedRole;
 
@@ -36,8 +37,9 @@ export default function RoleTabs({ active, counts, onChange }: Props) {
       {TABS.map((tab) => {
         const isActive = active === tab.key;
         return (
-          <button
+          <MotionButton
             key={tab.key}
+            variant="secondary"
             type="button"
             onClick={() => onChange(tab.key)}
             className={clsx(
@@ -51,7 +53,7 @@ export default function RoleTabs({ active, counts, onChange }: Props) {
             <span className={clsx('ml-2 font-mono text-[11px]', isActive ? 'opacity-80' : 'opacity-60')}>
               {counts[tab.key]}
             </span>
-          </button>
+          </MotionButton>
         );
       })}
     </div>

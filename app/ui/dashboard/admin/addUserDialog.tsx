@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition, type FormEvent } from 'react';
 import { addUserAction } from '@/app/actions/addUser';
 import RoleSelect from '@/app/ui/dashboard/primitives/RoleSelect';
 import { roleOptions, type ManagedRole } from '@/app/ui/dashboard/admin/userProfileFields';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 type Props = {
   open: boolean;
@@ -98,13 +99,14 @@ export default function AddUserDialog({ open, onClose, onAdded }: Props) {
           <h2 id="add-user-dialog-title" className="font-display text-display-sm text-ink dark:text-on-dark">
             {confirming ? 'Confirm new user' : 'Add user'}
           </h2>
-          <button
+          <MotionButton
+            variant="secondary"
             type="button"
             onClick={onClose}
             className="font-sans text-caption text-muted hover:text-ink dark:text-on-dark-soft dark:hover:text-on-dark"
           >
             Close
-          </button>
+          </MotionButton>
         </header>
 
         <div className="px-6 py-5">
@@ -149,19 +151,21 @@ export default function AddUserDialog({ open, onClose, onAdded }: Props) {
                 Staff and admin must use their Swinburne Outlook email addresses.
               </p>
               <div className="flex justify-end gap-2 pt-2">
-                <button
+                <MotionButton
+                  variant="secondary"
                   type="button"
                   onClick={onClose}
                   className="rounded-btn border border-hairline bg-canvas px-4 py-2 font-sans text-button text-ink transition hover:border-primary/30 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
                 >
                   Cancel
-                </button>
-                <button
+                </MotionButton>
+                <MotionButton
+                  variant="primary"
                   type="submit"
                   className="rounded-btn bg-primary px-4 py-2 font-sans text-button text-on-primary transition hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:bg-dark-primary dark:focus-visible:ring-offset-dark-canvas"
                 >
                   Continue
-                </button>
+                </MotionButton>
               </div>
             </form>
           ) : (
@@ -172,22 +176,25 @@ export default function AddUserDialog({ open, onClose, onAdded }: Props) {
                 with the role <span className="font-semibold">{form.role}</span>. Proceed?
               </p>
               <div className="flex justify-end gap-2 pt-2">
-                <button
+                <MotionButton
+                  variant="secondary"
                   type="button"
                   disabled={pending}
                   onClick={() => setConfirming(false)}
                   className="rounded-btn border border-hairline bg-canvas px-4 py-2 font-sans text-button text-ink transition disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark dark:focus-visible:ring-offset-dark-canvas"
                 >
                   Back
-                </button>
-                <button
+                </MotionButton>
+                <MotionButton
+                  variant="primary"
                   type="button"
                   disabled={pending}
                   onClick={handleConfirm}
+                  state={pending ? 'pending' : 'idle'}
                   className="rounded-btn bg-primary px-4 py-2 font-sans text-button text-on-primary transition hover:bg-primary-active disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:bg-dark-primary dark:focus-visible:ring-offset-dark-canvas"
                 >
                   {pending ? 'Creating…' : 'Create user'}
-                </button>
+                </MotionButton>
               </div>
             </div>
           )}

@@ -4,6 +4,7 @@ import { useMemo, useState, type ChangeEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronRightIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import UserAvatar from '@/app/ui/dashboard/primitives/UserAvatar';
 import RoleBadge from '@/app/ui/dashboard/primitives/RoleBadge';
@@ -97,14 +98,15 @@ export default function UsersList({ initialUsers }: Props) {
         title="User Management"
         description="Review and manage every account that can sign in to the library system."
         primaryAction={
-          <button
+          <MotionButton
+            variant="primary"
             type="button"
             className="inline-flex items-center gap-1.5 rounded-btn bg-primary hover:bg-primary-active px-3.5 py-2.5 font-sans text-button text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
             onClick={() => setShowAddDialog(true)}
           >
             <PlusIcon className="h-4 w-4" />
             Add user
-          </button>
+          </MotionButton>
         }
       >
         <section className="overflow-hidden rounded-card border border-hairline bg-surface-card dark:border-dark-hairline dark:bg-dark-surface-card">
@@ -223,25 +225,27 @@ export default function UsersList({ initialUsers }: Props) {
                 Showing {start + 1}–{Math.min(start + PAGE_SIZE, visibleRows.length)} of {visibleRows.length}
               </p>
               <div className="flex items-center gap-2">
-                <button
+                <MotionButton
+                  variant="secondary"
                   type="button"
                   disabled={safePage === 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   className="rounded-btn border border-hairline bg-canvas px-3 py-1 font-sans text-caption font-semibold uppercase text-ink transition hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark"
                 >
                   Previous
-                </button>
+                </MotionButton>
                 <span className="font-mono text-[11px] text-muted dark:text-on-dark-soft">
                   Page {safePage} of {totalPages}
                 </span>
-                <button
+                <MotionButton
+                  variant="secondary"
                   type="button"
                   disabled={safePage === totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   className="rounded-btn border border-hairline bg-canvas px-3 py-1 font-sans text-caption font-semibold uppercase text-ink transition hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 dark:border-dark-hairline dark:bg-dark-surface-soft dark:text-on-dark"
                 >
                   Next
-                </button>
+                </MotionButton>
               </div>
             </footer>
           )}

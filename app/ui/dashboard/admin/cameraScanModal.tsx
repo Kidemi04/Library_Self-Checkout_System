@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { XMarkIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 const CameraScanner = dynamic(() => import('@/app/ui/dashboard/cameraScanner'), { ssr: false });
 
@@ -69,14 +70,15 @@ export default function CameraScanModal({ onResult, onClose }: Props) {
           <h2 id="scan-isbn-title" className="font-display text-title-md font-semibold">
             Scan ISBN
           </h2>
-          <button
+          <MotionButton
+            variant="icon"
             type="button"
             onClick={onClose}
             aria-label="Close scanner"
             className="rounded-pill border border-dark-hairline bg-dark-surface-card/40 p-2 text-on-dark/80 transition hover:bg-dark-surface-strong hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
           >
             <XMarkIcon className="h-4 w-4" />
-          </button>
+          </MotionButton>
         </header>
 
         {/* Viewfinder */}
@@ -116,21 +118,23 @@ export default function CameraScanModal({ onResult, onClose }: Props) {
         {/* Bottom action bar */}
         <footer className="relative z-10 flex flex-col gap-2 border-t border-dark-hairline bg-black/40 px-4 py-3 backdrop-blur-sm">
           <div className="flex items-center justify-between gap-2">
-            <button
+            <MotionButton
+              variant="secondary"
               type="button"
               onClick={() => setManualOpen((v) => !v)}
               className="flex items-center gap-1.5 rounded-pill border border-dark-hairline bg-dark-surface-card/40 px-3 py-1.5 font-sans text-button text-on-dark/80 transition hover:bg-dark-surface-strong hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               <PencilSquareIcon className="h-3.5 w-3.5" />
               Type ISBN
-            </button>
-            <button
+            </MotionButton>
+            <MotionButton
+              variant="secondary"
               type="button"
               onClick={onClose}
               className="rounded-pill border border-dark-hairline bg-dark-surface-card/40 px-3 py-1.5 font-sans text-button text-on-dark/80 transition hover:bg-dark-surface-strong hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
             >
               Cancel
-            </button>
+            </MotionButton>
           </div>
 
           {manualOpen && (
@@ -148,14 +152,15 @@ export default function CameraScanModal({ onResult, onClose }: Props) {
                 autoComplete="off"
                 className="flex-1 border-0 bg-transparent font-sans text-body-sm text-on-dark placeholder:text-on-dark-soft outline-none"
               />
-              <button
+              <MotionButton
+                variant="primary"
                 type="submit"
                 disabled={!manualValue.trim()}
                 aria-disabled={!manualValue.trim()}
                 className="rounded-btn bg-primary hover:bg-primary-active px-3 py-1.5 font-sans text-button text-on-primary transition disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 Use
-              </button>
+              </MotionButton>
             </form>
           )}
         </footer>
