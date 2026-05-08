@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { BoltIcon, BoltSlashIcon } from '@heroicons/react/24/outline';
 import { scanBlob, scanImageData } from '@/lib/barcodeScanner';
+import { InkLine, StampReveal } from '@/app/ui/motion';
 
 type CameraScannerProps = {
   onDetected: (value: string) => void;
@@ -23,6 +24,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
   const [torchSupported, setTorchSupported] = useState(false);
   const [torchOn, setTorchOn] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [captured, setCaptured] = useState(false);
 
   useEffect(() => { onDetectedRef.current = onDetected; });
   useEffect(() => { onErrorRef.current = onError; });
@@ -32,6 +34,11 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
     const ts = new Date().toLocaleTimeString();
     onDebugLogRef.current?.(`[${ts}] ${msg}`);
   };
+
+  const triggerCaptureFlash = useCallback(() => {
+    setCaptured(true);
+    setTimeout(() => setCaptured(false), 1500);
+  }, []);
 
   const toggleTorch = useCallback(async () => {
     const track = trackRef.current;
@@ -80,6 +87,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
       if (result) {
         onDebugLogRef.current?.(`${ts()} MANUAL DETECTED: "${result.text}" (engine: ${result.engine})`);
         setStatus(`Detected ${result.text}`);
+        triggerCaptureFlash();
         onDetectedRef.current(result.text);
       } else {
         setStatus('No code found. Hold closer · keep barcode in the frame · tap again.');
@@ -88,7 +96,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
     } finally {
       setIsCapturing(false);
     }
-  }, [isCapturing]);
+  }, [isCapturing, triggerCaptureFlash]);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -226,6 +234,7 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
                 if (result && !stopped) {
                   log(`DETECTED: "${result.text}" (engine: ${result.engine})`);
                   setStatus(`Detected ${result.text}`);
+                  triggerCaptureFlash();
                   onDetectedRef.current(result.text);
                   stopped = true;
                   stream.getTracks().forEach((t) => t.stop());
@@ -296,6 +305,17 @@ export default function CameraScanner({ onDetected, onError, facingMode, deviceI
         muted
         playsInline
       />
+      {/* Capture flash — InkLine sweep + StampReveal shown briefly on successful decode */}
+      {captured && (
+        <>
+          <div className="pointer-events-none absolute inset-x-0 top-1/2 z-30 -translate-y-1/2 text-primary">
+            <InkLine d="M0,7 Q200,0 400,7 T800,7" width={800} height={14} duration="quick" />
+          </div>
+          <div className="pointer-events-none absolute right-4 top-4 z-30">
+            <StampReveal kind="borrowed" />
+          </div>
+        </>
+      )}
       {/* Aiming reticle — sits inside the actual scan ROI so anything the user
           fits in the brackets is guaranteed to be in the scanned region. */}
       <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
