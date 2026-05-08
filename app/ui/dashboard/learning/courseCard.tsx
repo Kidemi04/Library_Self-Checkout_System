@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import React, { useMemo, useState } from 'react';
+import { motionEase } from '@/app/lib/motion';
 import {
   AcademicCapIcon,
   ClockIcon,
@@ -121,7 +122,7 @@ export default function YouTubeCourseCard({ course }: Props) {
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-r from-swin-charcoal via-swin-red to-slate-900 text-white">
             <motion.div
               animate={{ scale: [1, 1.08, 1] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: motionEase.inOut }}
             >
               <PlayCircleIcon className="h-12 w-12 text-white/80" />
             </motion.div>

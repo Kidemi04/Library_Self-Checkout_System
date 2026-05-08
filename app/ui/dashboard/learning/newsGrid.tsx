@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { motionDuration } from '@/app/lib/motion';
 import {
   ArrowTopRightOnSquareIcon,
   ClockIcon,
@@ -48,7 +49,7 @@ function ArticlePanel({ item, onClose }: { item: NewsItem; onClose: () => void }
       <motion.div
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: motionDuration.quick }}
       />
       <motion.div
         className="relative z-10 flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl dark:bg-slate-950 sm:max-w-2xl sm:rounded-3xl"

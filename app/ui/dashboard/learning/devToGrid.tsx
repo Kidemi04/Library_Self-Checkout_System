@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { motionDuration } from '@/app/lib/motion';
 import {
   XMarkIcon,
   ArrowTopRightOnSquareIcon,
@@ -71,7 +72,7 @@ function ArticlePanel({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: motionDuration.quick }}
       />
 
       {/* Panel */}

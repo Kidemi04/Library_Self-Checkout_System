@@ -5,6 +5,7 @@ import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import type { YouTubeTopicCollection } from '@/app/lib/youtube/types';
 import YouTubeCourseCard from './courseCard';
+import { motionDuration, motionEase, motionStagger } from '@/app/lib/motion';
 
 const cardVariant = {
   hidden: { opacity: 0, y: 60, scale: 0.88, filter: 'blur(6px)' },
@@ -36,7 +37,7 @@ function CollectionSection({
       ref={ref}
       initial={{ opacity: 0, y: 32 }}
       animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.45, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: motionDuration.paper, delay: index * motionStagger.cards, ease: motionEase.out }}
       className="space-y-4 rounded-3xl border border-swin-charcoal/10 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-slate-900/50"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { motionDuration } from '@/app/lib/motion';
 import type { YouTubeAsset } from '@/app/lib/youtube/types';
 import YouTubeCourseCard from './courseCard';
 
@@ -45,7 +46,7 @@ export default function SearchResultsPanel({ items, query, autoScroll = true }: 
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: motionDuration.base }}
         className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-swin-charcoal/20 bg-white p-8 text-center text-sm text-swin-charcoal/70 dark:border-white/20 dark:bg-slate-900/40 dark:text-slate-300/80"
       >
         <p className="mb-4">No videos found for &ldquo;{query}&rdquo;. Please refresh the page or try a different keyword.</p>
