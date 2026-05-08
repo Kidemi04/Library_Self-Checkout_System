@@ -1,5 +1,9 @@
 import type { Config } from 'tailwindcss';
 
+// NOTE: motion system reads color tokens at runtime via
+// app/lib/motion/resolveColorToken.ts. When changing values for
+// `primary`, `accent-teal`, `accent-amber`, or `success`, also
+// update the TOKEN_TO_HEX map in that file.
 const config: Config = {
   darkMode: 'class',
   content: [
