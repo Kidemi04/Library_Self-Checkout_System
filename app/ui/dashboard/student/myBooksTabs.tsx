@@ -9,6 +9,8 @@ import LoanCard from '@/app/ui/dashboard/primitives/LoanCard';
 import HoldCard from '@/app/ui/dashboard/primitives/HoldCard';
 import BookCover, { getBookGradient } from '@/app/ui/dashboard/primitives/BookCover';
 import CancelHoldButton from '@/app/ui/dashboard/cancelHoldButton';
+import { PaperEnter } from '@/app/ui/motion';
+import { motionStagger } from '@/app/lib/motion';
 
 type HistorySort = 'newest' | 'oldest' | 'title-az' | 'title-za';
 
@@ -241,8 +243,10 @@ export default function MyBooksTabs({
               </Link>
             </div>
           ) : (
-            filteredLoans.map(loan => (
-              <LoanCard key={loan.id} loan={loan} holdCount={loan.bookId ? holdCounts?.[loan.bookId] : 0} />
+            filteredLoans.map((loan, i) => (
+              <PaperEnter key={loan.id} delay={i * motionStagger.list}>
+                <LoanCard loan={loan} holdCount={loan.bookId ? holdCounts?.[loan.bookId] : 0} />
+              </PaperEnter>
             ))
           )}
         </div>
