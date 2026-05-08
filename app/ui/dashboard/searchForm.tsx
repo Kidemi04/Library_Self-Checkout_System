@@ -1,4 +1,5 @@
 import clsx from 'clsx';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 interface SearchFormProps {
   action?: string;
@@ -49,13 +50,13 @@ export default function SearchForm({
           ) : null
         )}
 
-      <button
+      <MotionButton
+        variant="primary"
         type="submit"
         suppressHydrationWarning
-        className="inline-flex items-center justify-center rounded-btn bg-primary hover:bg-primary-active px-5 h-10 font-sans text-button text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
       >
         Search
-      </button>
+      </MotionButton>
     </form>
   );
 }

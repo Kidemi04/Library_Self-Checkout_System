@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import ConfirmModal from '@/app/ui/dashboard/confirmModal';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 interface Props {
   holdId: string;
@@ -24,14 +25,15 @@ export default function CancelHoldButton({ holdId, bookTitle, cancelAction }: Pr
 
   return (
     <>
-      <button
+      <MotionButton
+        variant="destructive"
         type="button"
-        disabled={isPending}
+        state={isPending ? 'pending' : 'idle'}
         onClick={() => setShowConfirm(true)}
-        className="rounded-pill border border-hairline dark:border-dark-hairline px-4 py-2 font-sans text-caption-uppercase font-semibold text-muted dark:text-on-dark-soft transition hover:border-primary/30 hover:text-ink dark:hover:text-on-dark disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+        className="rounded-pill px-4 py-2 font-sans text-caption-uppercase font-semibold"
       >
         {isPending ? 'Cancelling...' : 'Cancel hold'}
-      </button>
+      </MotionButton>
 
       <ConfirmModal
         isOpen={showConfirm}

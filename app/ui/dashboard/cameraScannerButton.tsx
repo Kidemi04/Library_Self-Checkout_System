@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import clsx from 'clsx';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 import {
   ViewfinderCircleIcon,
   XMarkIcon,
@@ -236,10 +237,11 @@ export default function CameraScannerButton({
       <div className={clsx('flex flex-col gap-3', className)}>
         <div className="flex flex-col gap-3 sm:flex-row sm:gap-3">
         {/* Primary: Scan with camera */}
-        <button
+        <MotionButton
+          variant="primary"
           type="button"
           onClick={() => setOpen(true)}
-          className="group relative flex w-full flex-1 items-center gap-3 overflow-hidden rounded-card bg-primary px-3.5 py-3 text-left text-on-primary transition hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+          className="group relative flex w-full flex-1 items-center gap-3 overflow-hidden rounded-card px-3.5 py-3 text-left h-auto justify-start"
         >
           <span
             aria-hidden="true"
@@ -260,13 +262,14 @@ export default function CameraScannerButton({
             </span>
           </span>
           <QrCodeIcon className="relative h-4 w-4 flex-shrink-0 opacity-70" />
-        </button>
+        </MotionButton>
 
         {/* Secondary: Upload a photo (same coral as Scan) */}
-        <button
+        <MotionButton
+          variant="primary"
           type="button"
           onClick={() => uploadInputRef.current?.click()}
-          className="group relative flex w-full flex-1 items-center gap-3 overflow-hidden rounded-card bg-primary px-3.5 py-3 text-left text-on-primary transition hover:bg-primary-active focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+          className="group relative flex w-full flex-1 items-center gap-3 overflow-hidden rounded-card px-3.5 py-3 text-left h-auto justify-start"
         >
           <span
             aria-hidden="true"
@@ -287,7 +290,7 @@ export default function CameraScannerButton({
             </span>
           </span>
           <ArrowUpTrayIcon className="relative h-4 w-4 flex-shrink-0 opacity-70" />
-        </button>
+        </MotionButton>
         </div>
 
         {lastScan && (
@@ -342,43 +345,46 @@ export default function CameraScannerButton({
             <div className="relative flex h-full w-full flex-col overflow-hidden bg-dark-canvas text-on-dark sm:h-[680px] sm:max-h-[92vh] sm:max-w-xl sm:rounded-card sm:shadow-[0_4px_16px_rgba(20,20,19,0.08)]">
               {/* Top bar */}
               <header className="relative z-10 flex items-center justify-between gap-3 border-b border-dark-hairline bg-black/30 px-4 py-3 backdrop-blur-sm">
-                <button
+                <MotionButton
+                  variant="secondary"
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="flex items-center gap-1.5 rounded-full border border-dark-hairline bg-dark-surface-card/40 px-3 py-1.5 font-sans text-button text-on-dark/80 transition hover:bg-dark-surface-strong hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                  className="flex items-center gap-1.5 rounded-full border-dark-hairline bg-dark-surface-card/40 px-3 py-1.5 h-auto text-on-dark/80 hover:bg-dark-surface-strong hover:text-on-dark focus-visible:ring-white/40"
                   aria-label="Close scanner"
                 >
                   <ArrowLeftIcon className="h-3.5 w-3.5" />
                   Back
-                </button>
+                </MotionButton>
                 <h2 id="scanner-title" className="absolute left-1/2 -translate-x-1/2 font-display text-title-md font-semibold">
                   {modalTitle}
                 </h2>
                 <div className="flex items-center gap-1.5">
                   {hasMultipleCameras && (
-                    <button
+                    <MotionButton
+                      variant="icon"
                       type="button"
                       onClick={toggleFacingMode}
                       disabled={Boolean(selectedDeviceId)}
                       aria-label="Switch camera"
-                      className="rounded-pill border border-dark-hairline bg-dark-surface-card/40 p-2 text-on-dark/80 transition hover:bg-dark-surface-strong hover:text-on-dark disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+                      className="border border-dark-hairline bg-dark-surface-card/40 p-2 text-on-dark/80 hover:bg-dark-surface-strong hover:text-on-dark focus-visible:ring-white/40"
                     >
                       <ArrowPathIcon className="h-4 w-4" />
-                    </button>
+                    </MotionButton>
                   )}
-                  <button
+                  <MotionButton
+                    variant="icon"
                     type="button"
                     onClick={() => setSettingsOpen((v) => !v)}
                     aria-label="Scanner settings"
                     className={clsx(
-                      'rounded-pill border p-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                      'border p-2',
                       settingsOpen
                         ? 'border-on-dark/40 bg-on-dark/15 text-on-dark'
                         : 'border-dark-hairline bg-dark-surface-card/40 text-on-dark/80 hover:bg-dark-surface-strong hover:text-on-dark',
                     )}
                   >
                     <Cog6ToothIcon className="h-4 w-4" />
-                  </button>
+                  </MotionButton>
                 </div>
               </header>
 
@@ -456,22 +462,24 @@ export default function CameraScannerButton({
               {/* Bottom action bar */}
               <footer className="relative z-10 flex flex-col gap-2 border-t border-dark-hairline bg-black/40 px-4 py-3 backdrop-blur-sm">
                 <div className="flex items-center justify-between gap-2">
-                  <button
+                  <MotionButton
+                    variant="secondary"
                     type="button"
                     onClick={() => setManualOpen(true)}
-                    className="flex items-center gap-1.5 rounded-full border border-dark-hairline bg-dark-surface-card/40 px-3 py-1.5 font-sans text-button text-on-dark/80 transition hover:bg-dark-surface-strong hover:text-on-dark"
+                    className="flex items-center gap-1.5 rounded-full border-dark-hairline bg-dark-surface-card/40 px-3 py-1.5 h-auto text-on-dark/80 hover:bg-dark-surface-strong hover:text-on-dark"
                   >
                     <PencilSquareIcon className="h-3.5 w-3.5" />
                     Type barcode
-                  </button>
-                  <button
+                  </MotionButton>
+                  <MotionButton
+                    variant="secondary"
                     type="button"
                     onClick={() => modalUploadInputRef.current?.click()}
-                    className="flex items-center gap-1.5 rounded-full border border-dark-hairline bg-dark-surface-card/40 px-3 py-1.5 font-sans text-button text-on-dark/80 transition hover:bg-dark-surface-strong hover:text-on-dark"
+                    className="flex items-center gap-1.5 rounded-full border-dark-hairline bg-dark-surface-card/40 px-3 py-1.5 h-auto text-on-dark/80 hover:bg-dark-surface-strong hover:text-on-dark"
                   >
                     <PhotoIcon className="h-3.5 w-3.5" />
                     Upload photo
-                  </button>
+                  </MotionButton>
                 </div>
 
                 {/* Manual entry drawer */}
@@ -490,25 +498,27 @@ export default function CameraScannerButton({
                       autoComplete="off"
                       className="flex-1 border-0 bg-transparent font-sans text-body-sm text-on-dark placeholder:text-on-dark-soft outline-none"
                     />
-                    <button
+                    <MotionButton
+                      variant="primary"
                       type="submit"
                       disabled={!manualValue.trim()}
                       aria-disabled={!manualValue.trim()}
-                      className="rounded-btn bg-primary hover:bg-primary-active px-3 py-1.5 font-sans text-button text-on-primary transition disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                      className="px-3 py-1.5 h-auto"
                     >
                       Submit
-                    </button>
-                    <button
+                    </MotionButton>
+                    <MotionButton
+                      variant="icon"
                       type="button"
                       onClick={() => {
                         setManualOpen(false);
                         setManualValue('');
                       }}
                       aria-label="Cancel manual entry"
-                      className="rounded-pill p-1 text-on-dark-soft hover:bg-dark-surface-strong hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                      className="p-1 text-on-dark-soft hover:bg-dark-surface-strong hover:text-on-dark"
                     >
                       <XMarkIcon className="h-4 w-4" />
-                    </button>
+                    </MotionButton>
                   </form>
                 )}
 
@@ -519,18 +529,19 @@ export default function CameraScannerButton({
                       <p className="font-sans text-caption-uppercase font-semibold text-on-dark-soft">
                         Camera source
                       </p>
-                      <button
+                      <MotionButton
+                        variant="secondary"
                         type="button"
                         onClick={() => {
                           void refreshDeviceOptions();
                         }}
-                        className="inline-flex items-center gap-1 rounded-btn border border-dark-hairline px-2 py-0.5 font-sans text-caption-uppercase font-semibold text-on-dark/70 hover:bg-dark-surface-strong hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                        className="inline-flex items-center gap-1 border-dark-hairline px-2 py-0.5 h-auto text-on-dark/70 hover:bg-dark-surface-strong hover:text-on-dark"
                       >
                         <ArrowPathIcon
                           className={clsx('h-3 w-3', enumeratingDevices && 'animate-spin')}
                         />
                         Refresh
-                      </button>
+                      </MotionButton>
                     </div>
                     {availableDevices.length > 0 ? (
                       <select
