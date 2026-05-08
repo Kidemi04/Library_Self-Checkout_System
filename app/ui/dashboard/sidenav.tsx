@@ -24,8 +24,10 @@ import {
   PlusIcon,
   EnvelopeIcon,
 } from '@heroicons/react/24/outline';
+import { motion } from 'framer-motion';
 import clsx from 'clsx';
 import { useTheme } from '@/app/ui/theme/themeProvider';
+import { motionSpring } from '@/app/lib/motion';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
 import type { DashboardRole } from '@/app/lib/auth/types';
 import { useEffect, useState } from 'react';
@@ -170,23 +172,30 @@ export default function SideNav({ user, isBypassed, collapsed = false, onToggle 
               href={item.href}
               title={collapsed ? item.label : undefined}
               className={clsx(
-                'flex items-center rounded-btn font-sans text-nav-link transition-colors',
+                'relative flex items-center rounded-btn font-sans text-nav-link transition-colors',
                 collapsed ? 'justify-center px-2 py-2.5' : 'gap-3 px-3 py-2.5',
                 isActive
-                  ? 'bg-primary/10 text-primary dark:bg-dark-primary/15 dark:text-dark-primary'
+                  ? 'text-primary dark:text-dark-primary'
                   : 'text-body hover:bg-surface-cream-strong hover:text-ink dark:text-on-dark/70 dark:hover:bg-dark-surface-strong dark:hover:text-on-dark',
               )}
             >
+              {isActive && (
+                <motion.div
+                  layoutId="sidenav-active-indicator"
+                  className="absolute inset-0 rounded-btn bg-primary/10 dark:bg-dark-primary/15"
+                  transition={motionSpring.paper}
+                />
+              )}
               <span className="relative flex-shrink-0">
                 <Icon className="h-[18px] w-[18px]" />
                 {showDot && (
                   <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary ring-2 ring-canvas dark:ring-dark-canvas" />
                 )}
               </span>
-              {!collapsed && <span className="flex-1">{item.label}</span>}
+              {!collapsed && <span className="relative flex-1">{item.label}</span>}
               {!collapsed && item.badge != null && (
                 <span className={clsx(
-                  'rounded-pill px-1.5 py-0.5 font-mono text-[10px] font-bold',
+                  'relative rounded-pill px-1.5 py-0.5 font-mono text-[10px] font-bold',
                   isActive ? 'bg-primary text-on-primary' : 'bg-surface-cream-strong text-muted dark:bg-dark-surface-strong dark:text-on-dark-soft',
                 )}>{item.badge}</span>
               )}
