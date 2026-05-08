@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import DashboardShell from '@/app/ui/dashboard/dashboardShell';
 import { getDashboardSession } from '@/app/lib/auth/session';
+import { RootMotionLayer } from '@/app/ui/motion';
 
 export default async function DashboardLayout({
   children,
@@ -11,8 +12,10 @@ export default async function DashboardLayout({
   if (!user) redirect('/login');
 
   return (
-    <DashboardShell user={user} isBypassed={isBypassed}>
-      {children}
-    </DashboardShell>
+    <RootMotionLayer>
+      <DashboardShell user={user} isBypassed={isBypassed}>
+        {children}
+      </DashboardShell>
+    </RootMotionLayer>
   );
 }
