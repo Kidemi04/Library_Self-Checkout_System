@@ -1,11 +1,13 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import clsx from 'clsx';
 import { renewLoanAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/actionState';
 import type { Loan } from '@/app/lib/supabase/types';
+import { StampReveal, useMotionLayer } from '@/app/ui/motion';
 
 type RenewButtonProps = {
   loan: Loan;
@@ -21,6 +23,7 @@ const isOverdue = (loan: Loan) => {
 
 export default function RenewButton({ loan, holdCount }: RenewButtonProps) {
   const [state, formAction] = useActionState(renewLoanAction, initialActionState);
+  const layer = useMotionLayer();
 
   const overdue = isOverdue(loan);
   const maxRenewals = loan.renewedCount >= 2;
@@ -35,11 +38,15 @@ export default function RenewButton({ loan, holdCount }: RenewButtonProps) {
         ? 'Cannot renew — another student has a hold on this book'
         : undefined;
 
+  useEffect(() => {
+    if (state.status === 'success' && state.milestone) {
+      layer.fireMilestone(state.milestone);
+    }
+  }, [state, layer]);
+
   if (state.status === 'success') {
     return (
-      <p className="font-sans text-caption font-medium text-success">
-        Renewed!
-      </p>
+      <StampReveal kind="renewed" />
     );
   }
 
