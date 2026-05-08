@@ -9,7 +9,7 @@ import { initialActionState } from '@/app/dashboard/actionState';
 import type { ActionState } from '@/app/dashboard/actionState';
 import PatronCombobox, { type PatronOption } from '@/app/ui/dashboard/patronCombobox';
 import DamageReportModal, { type DamageSubmitPayload } from '@/app/ui/dashboard/damageReportModal';
-import { MotionButton } from '@/app/ui/motion';
+import { MotionButton, StampReveal, useMotionLayer } from '@/app/ui/motion';
 
 type CheckInFormProps = {
   activeLoanCount: number;
@@ -28,6 +28,7 @@ const SEVERITY_LABEL: Record<string, string> = {
 
 export default function CheckInForm({ activeLoanCount, defaultIdentifier }: CheckInFormProps) {
   const [state, formAction] = useActionState(checkinBookAction, initialActionState);
+  const layer = useMotionLayer();
   const formRef = useRef<HTMLFormElement | null>(null);
   const identifierRef = useRef<HTMLInputElement | null>(null);
   const patronLoanRef = useRef<HTMLSelectElement | null>(null);
@@ -64,6 +65,12 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
       }
     }
   }, [state.status, state.message, damage, bulkMode]);
+
+  useEffect(() => {
+    if (state.status === 'success' && state.milestone) {
+      layer.fireMilestone(state.milestone);
+    }
+  }, [state, layer]);
 
   // If parent passes a pre-filled identifier (e.g. from staff dashboard scan), use it
   useEffect(() => {
@@ -293,9 +300,14 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
             <p className="font-sans text-body-sm font-semibold text-primary dark:text-dark-primary">{state.message}</p>
           )}
           {singleReceipt && (
-            <p className="rounded-btn border border-success/40 bg-success/10 px-3 py-2 font-sans text-body-sm text-success">
-              {bulkFeed[0]!.label}
-            </p>
+            <>
+              <div className="mt-4 flex justify-center">
+                <StampReveal kind="returned" />
+              </div>
+              <p className="rounded-btn border border-success/40 bg-success/10 px-3 py-2 font-sans text-body-sm text-success">
+                {bulkFeed[0]!.label}
+              </p>
+            </>
           )}
 
           <div className="flex justify-end">
