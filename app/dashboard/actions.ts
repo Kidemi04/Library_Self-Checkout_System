@@ -107,6 +107,17 @@ async function fetchMilestoneCounts(
   };
 }
 
+async function safeMilestoneCounts(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<UserMilestoneCounts> {
+  try {
+    return await fetchMilestoneCounts(supabase, userId);
+  } catch {
+    return { totalLoans: 0, onTimeReturns: 0, hasOverdue: false };
+  }
+}
+
 async function withMilestone(
   supabase: SupabaseClient,
   userId: string,
@@ -115,9 +126,13 @@ async function withMilestone(
   before: UserMilestoneCounts,
 ): Promise<ActionState> {
   if (result.status !== 'success') return result;
-  const after = await fetchMilestoneCounts(supabase, userId);
-  const milestone = detectMilestone({ action, before, after });
-  return milestone ? { ...result, milestone } : result;
+  try {
+    const after = await fetchMilestoneCounts(supabase, userId);
+    const milestone = detectMilestone({ action, before, after });
+    return milestone ? { ...result, milestone } : result;
+  } catch {
+    return result; // milestone detection is best-effort; never block the action
+  }
 }
 
 // ── End milestone helpers ────────────────────────────────────────────────────
@@ -431,7 +446,7 @@ export async function checkoutBookAction(
     return failure('No patron matches that ID or email.');
   }
 
-  const milestoneBefore = await fetchMilestoneCounts(supabase, borrower.id);
+  const milestoneBefore = await safeMilestoneCounts(supabase, borrower.id);
 
   // ---------- Pre-flight: loan-limit + overdue + hold-respect ----------
   // Staff-assisted borrows can pass `override=on` to soft-bypass warn-level
@@ -815,7 +830,7 @@ export async function checkinBookAction(
     return failure('No active loan matched the provided reference.');
   }
 
-  const milestoneBefore = await fetchMilestoneCounts(supabase, loan.user_id ?? '');
+  const milestoneBefore = await safeMilestoneCounts(supabase, loan.user_id ?? '');
 
   // ---------- Supabase updates ----------
   const loanUpdatePayload: Record<string, unknown> = {
@@ -1104,7 +1119,7 @@ export async function renewLoanAction(
   const renewedCount = loan.renewed_count ?? 0;
   if (renewedCount >= 2) return failure('Maximum renewals reached (2/2).');
 
-  const milestoneBefore = await fetchMilestoneCounts(supabase, loan.user_id ?? '');
+  const milestoneBefore = await safeMilestoneCounts(supabase, loan.user_id ?? '');
 
   const newDueAt = new Date(loan.due_at);
   newDueAt.setDate(newDueAt.getDate() + 14);
