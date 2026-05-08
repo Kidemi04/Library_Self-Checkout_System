@@ -1,5 +1,5 @@
 'use client';
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, type ReactNode } from 'react';
 import { motion, type HTMLMotionProps } from 'framer-motion';
 import clsx from 'clsx';
 import { motionTap, motionHover, motionSpring } from '@/app/lib/motion/tokens';
@@ -8,10 +8,13 @@ import { usePrefersReducedMotion } from '@/app/lib/motion/reduced-motion';
 export type MotionButtonVariant = 'primary' | 'secondary' | 'icon' | 'destructive';
 export type MotionButtonState = 'idle' | 'pending' | 'success' | 'error';
 
-type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> & {
+// Use HTMLMotionProps so framer-motion's drag/animation handlers don't clash
+// with React's native onDrag/onAnimation event types. Props that can collide
+// (onDrag, onDragStart, onDragEnd, onAnimationStart, onAnimationEnd,
+// onAnimationIteration, onTransitionEnd) are already PanInfo-typed here.
+type Props = Omit<HTMLMotionProps<'button'>, 'children'> & {
   variant?: MotionButtonVariant;
   state?: MotionButtonState;
-  type?: 'button' | 'submit' | 'reset';
   children: ReactNode;
 };
 

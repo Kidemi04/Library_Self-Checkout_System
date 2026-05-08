@@ -1,11 +1,14 @@
 'use client';
 
 import React from 'react';
+import type { HTMLMotionProps } from 'framer-motion';
 import { MotionButton } from '@/app/ui/motion/MotionButton';
 import { cn } from '@/app/lib/utils';
 
-export interface ShimmerButtonProps
-  extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
+// Extend HTMLMotionProps so onDrag / onAnimationStart etc. resolve to
+// framer-motion's PanInfo / AnimationDefinition types instead of the React
+// DOM event types that would clash when forwarded into MotionButton.
+export interface ShimmerButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   shimmerColor?: string;
   shimmerSize?: string;
   borderRadius?: string;
@@ -13,7 +16,6 @@ export interface ShimmerButtonProps
   background?: string;
   className?: string;
   children?: React.ReactNode;
-  type?: 'button' | 'submit' | 'reset';
 }
 
 const ShimmerButton = React.forwardRef<HTMLButtonElement, ShimmerButtonProps>(
