@@ -22,6 +22,11 @@ import {
   DAMAGE_NOTES_MAX,
   DAMAGE_PHOTOS_MAX,
 } from '@/app/dashboard/loanPolicy';
+import {
+  detectMilestone,
+  type CirculationAction,
+  type UserMilestoneCounts,
+} from '@/app/dashboard/detectMilestone';
 
 const SIP2_INSTITUTION_ID = process.env.SIP2_INSTITUTION_ID ?? 'LIB001';
 const SIP2_TERMINAL_PASSWORD = process.env.SIP2_TERMINAL_PASSWORD ?? '';
@@ -63,6 +68,59 @@ const formatSipDate = (date: Date) => {
 
 const success = (message: string): ActionState => ({ status: 'success', message });
 const failure = (message: string): ActionState => ({ status: 'error', message });
+
+// ── Milestone helpers ────────────────────────────────────────────────────────
+
+async function fetchMilestoneCounts(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<UserMilestoneCounts> {
+  // Total loans for this user
+  const { count: totalLoans } = await supabase
+    .from('Loans')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  // On-time returns: column-vs-column comparison isn't supported by Supabase REST,
+  // so fetch returned-loan rows and filter in JS. User's loan history is small (< 100 rows).
+  const { data: returnedRows } = await supabase
+    .from('Loans')
+    .select('returned_at, due_at')
+    .eq('user_id', userId)
+    .not('returned_at', 'is', null);
+
+  const onTimeReturns = (returnedRows ?? []).filter(
+    (r: any) =>
+      r.returned_at && r.due_at && new Date(r.returned_at) <= new Date(r.due_at),
+  ).length;
+
+  // Currently-overdue rows for this user (OverdueLoan is a view per CLAUDE.md)
+  const { count: overdueCount } = await supabase
+    .from('OverdueLoan')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId);
+
+  return {
+    totalLoans: totalLoans ?? 0,
+    onTimeReturns,
+    hasOverdue: (overdueCount ?? 0) > 0,
+  };
+}
+
+async function withMilestone(
+  supabase: SupabaseClient,
+  userId: string,
+  action: CirculationAction,
+  result: ActionState,
+  before: UserMilestoneCounts,
+): Promise<ActionState> {
+  if (result.status !== 'success') return result;
+  const after = await fetchMilestoneCounts(supabase, userId);
+  const milestone = detectMilestone({ action, before, after });
+  return milestone ? { ...result, milestone } : result;
+}
+
+// ── End milestone helpers ────────────────────────────────────────────────────
 
 type AuditAction = 'create' | 'update' | 'delete';
 
@@ -373,6 +431,8 @@ export async function checkoutBookAction(
     return failure('No patron matches that ID or email.');
   }
 
+  const milestoneBefore = await fetchMilestoneCounts(supabase, borrower.id);
+
   // ---------- Pre-flight: loan-limit + overdue + hold-respect ----------
   // Staff-assisted borrows can pass `override=on` to soft-bypass warn-level
   // checks (overdue, hold queue). Hard blocks (loan-limit) always apply.
@@ -603,7 +663,7 @@ export async function checkoutBookAction(
 
   const borrowerLabel =
     borrowerName ?? borrower.profile?.display_name ?? borrower.email ?? 'borrower';
-  return success(`Loan recorded for ${borrowerLabel}.`);
+  return withMilestone(supabase, borrower.id, 'checkout', success(`Loan recorded for ${borrowerLabel}.`), milestoneBefore);
 }
 
 
@@ -754,6 +814,8 @@ export async function checkinBookAction(
   if (!loan) {
     return failure('No active loan matched the provided reference.');
   }
+
+  const milestoneBefore = await fetchMilestoneCounts(supabase, loan.user_id ?? '');
 
   // ---------- Supabase updates ----------
   const loanUpdatePayload: Record<string, unknown> = {
@@ -926,7 +988,8 @@ export async function checkinBookAction(
   revalidatePath('/dashboard/book/holds');
 
   const conditionSuffix = severity ? ` (flagged ${severity.replace('_', ' ')})` : '';
-  return success(`Marked ${copyLabel} as returned for ${borrowerLabel}${conditionSuffix}.`);
+  const patronId = loan.user_id ?? '';
+  return withMilestone(supabase, patronId, 'checkin', success(`Marked ${copyLabel} as returned for ${borrowerLabel}${conditionSuffix}.`), milestoneBefore);
 }
 
 
@@ -1031,15 +1094,17 @@ export async function renewLoanAction(
 
   const { data: loan, error: fetchError } = await supabase
     .from('Loans')
-    .select('id, due_at, renewed_count, returned_at')
+    .select('id, due_at, renewed_count, returned_at, user_id')
     .eq('id', loanId)
     .is('returned_at', null)
-    .maybeSingle<{ id: string; due_at: string; renewed_count: number | null; returned_at: string | null }>();
+    .maybeSingle<{ id: string; due_at: string; renewed_count: number | null; returned_at: string | null; user_id: string | null }>();
 
   if (fetchError || !loan) return failure('Active loan not found.');
 
   const renewedCount = loan.renewed_count ?? 0;
   if (renewedCount >= 2) return failure('Maximum renewals reached (2/2).');
+
+  const milestoneBefore = await fetchMilestoneCounts(supabase, loan.user_id ?? '');
 
   const newDueAt = new Date(loan.due_at);
   newDueAt.setDate(newDueAt.getDate() + 14);
@@ -1056,7 +1121,7 @@ export async function renewLoanAction(
 
   revalidatePath('/dashboard/my-books');
   revalidatePath('/dashboard');
-  return success(`Loan renewed. New due date: ${newDueAt.toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}.`);
+  return withMilestone(supabase, loan.user_id ?? '', 'renew', success(`Loan renewed. New due date: ${newDueAt.toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })}.`), milestoneBefore);
 }
 
 export async function createBookAction(
