@@ -18,7 +18,7 @@ export function StreakFlame({ days, className }: { days: number; className?: str
         transition={reduced ? undefined : { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
         key={days}
         initial={reduced ? false : { scale: 0 }}
-        whileInView={{ scale: 1, transition: motionSpring.milestone }}
+        whileInView={reduced ? undefined : { scale: 1, transition: motionSpring.milestone }}
       >
         🔥
       </motion.span>

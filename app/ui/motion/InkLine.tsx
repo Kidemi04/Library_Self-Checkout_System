@@ -31,7 +31,7 @@ export function InkLine({
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         fill="none"
-        initial={{ pathLength: 0, opacity: reduced ? 1 : 0 }}
+        initial={{ pathLength: reduced ? 1 : 0, opacity: reduced ? 1 : 0 }}
         animate={{ pathLength: 1, opacity: 1 }}
         transition={{ duration: dur, ease: motionEase.inkWrite }}
       />
