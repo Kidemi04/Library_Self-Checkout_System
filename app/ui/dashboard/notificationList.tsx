@@ -6,6 +6,8 @@ import type { Notification } from '@/app/lib/supabase/notifications';
 import type { NotificationFilterType } from '@/app/ui/dashboard/notificationFilter';
 import NotificationItem from '@/app/ui/dashboard/primitives/NotificationItem';
 import FilterPills from '@/app/ui/dashboard/primitives/FilterPills';
+import { PaperEnter } from '@/app/ui/motion';
+import { motionStagger } from '@/app/lib/motion';
 
 function shortTime(iso: string): string {
   const d = new Date(iso);
@@ -327,8 +329,9 @@ export default function NotificationList({ filter: initialFilter = 'all', search
                 {dayLabel}
               </div>
               <ul className="divide-y divide-hairline-soft dark:divide-dark-hairline">
-                {items.map((n) => (
+                {items.map((n, itemIndex) => (
                   <li key={n.id}>
+                  <PaperEnter delay={(gi * items.length + itemIndex) * motionStagger.list}>
                     <NotificationItem
                       type={n.type}
                       title={n.title}
@@ -361,6 +364,7 @@ export default function NotificationList({ filter: initialFilter = 'all', search
                         </div>
                       }
                     />
+                  </PaperEnter>
                   </li>
                 ))}
               </ul>
