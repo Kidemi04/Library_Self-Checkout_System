@@ -10,6 +10,7 @@ import type {
 } from '@/app/lib/supabase/types';
 import BookCover, { getBookGradient } from '@/app/ui/dashboard/primitives/BookCover';
 import Chip from '@/app/ui/dashboard/primitives/Chip';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 type Props = {
   result: HistoryPage;
@@ -95,26 +96,28 @@ export default function HistoryViewer({ result, initialFilters }: Props) {
       <div className="space-y-3 rounded-card border border-hairline bg-surface-card p-5 dark:border-dark-hairline dark:bg-dark-surface-card">
         <div className="flex flex-wrap gap-2">
           {STATUSES.map(([v, label]) => (
-            <button
+            <MotionButton
               key={v}
+              variant="secondary"
               type="button"
               onClick={() => setParam('status', v === 'all' ? null : v)}
               className={clsx(pillBase, initialFilters.status === v ? pillActive : pillInactive)}
             >
               {label}
-            </button>
+            </MotionButton>
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
           {RANGES.map(([v, label]) => (
-            <button
+            <MotionButton
               key={v}
+              variant="secondary"
               type="button"
               onClick={() => setParam('range', v === '30d' ? null : v)}
               className={clsx(pillBase, initialFilters.range === v ? pillActive : pillInactive)}
             >
               {label}
-            </button>
+            </MotionButton>
           ))}
         </div>
         <div className="grid gap-2 md:grid-cols-3">
@@ -254,25 +257,27 @@ export default function HistoryViewer({ result, initialFilters }: Props) {
       {/* Pagination */}
       {result.total > result.pageSize && (
         <div className="flex items-center justify-end gap-3">
-          <button
+          <MotionButton
+            variant="secondary"
             type="button"
             onClick={() => goToPage(Math.max(1, initialFilters.page - 1))}
             disabled={initialFilters.page === 1}
             className="inline-flex h-9 items-center rounded-btn border border-hairline bg-surface-card px-3 font-sans text-caption-uppercase text-ink transition hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas"
           >
             Previous
-          </button>
+          </MotionButton>
           <span className="font-sans text-body-sm text-muted dark:text-on-dark-soft">
             Page {initialFilters.page} of {totalPages}
           </span>
-          <button
+          <MotionButton
+            variant="secondary"
             type="button"
             onClick={() => goToPage(Math.min(totalPages, initialFilters.page + 1))}
             disabled={initialFilters.page >= totalPages}
             className="inline-flex h-9 items-center rounded-btn border border-hairline bg-surface-card px-3 font-sans text-caption-uppercase text-ink transition hover:bg-surface-cream-strong disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-hairline dark:bg-dark-surface-card dark:text-on-dark dark:hover:bg-dark-surface-strong dark:focus-visible:ring-offset-dark-canvas"
           >
             Next
-          </button>
+          </MotionButton>
         </div>
       )}
     </div>

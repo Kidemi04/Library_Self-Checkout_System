@@ -8,6 +8,7 @@ import {
   ExclamationTriangleIcon,
   ArrowPathIcon,
 } from '@heroicons/react/24/outline';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import type { DashboardSummary, Loan } from '@/app/lib/supabase/types';
 import Link from 'next/link';
@@ -138,28 +139,31 @@ export default function StaffDashboard({
               autoComplete="off"
               className="flex-1 bg-transparent font-sans text-body-sm text-on-primary placeholder:text-on-primary/55 outline-none"
             />
-            <button
+            <MotionButton
+              variant="primary"
               type="submit"
               className="inline-flex h-9 items-center rounded-btn bg-on-primary px-4 font-sans text-button text-primary transition hover:bg-on-primary/90"
             >
               Process
-            </button>
+            </MotionButton>
           </form>
           <div className="relative mt-3.5 flex gap-2">
-            <button
+            <MotionButton
+              variant="secondary"
               type="button"
               onClick={() => handleScan('checkout')}
               className="rounded-btn border border-on-primary/25 bg-on-primary/15 px-3 py-1.5 font-sans text-caption-uppercase transition hover:bg-on-primary/25"
             >
               Checkout
-            </button>
-            <button
+            </MotionButton>
+            <MotionButton
+              variant="secondary"
               type="button"
               onClick={() => handleScan('checkin')}
               className="rounded-btn border border-on-primary/25 bg-on-primary/15 px-3 py-1.5 font-sans text-caption-uppercase transition hover:bg-on-primary/25"
             >
               Return
-            </button>
+            </MotionButton>
           </div>
         </div>
 

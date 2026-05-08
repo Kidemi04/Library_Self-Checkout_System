@@ -3,6 +3,7 @@
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import type { DamageReportRow, DamageSeverity } from '@/app/lib/supabase/queries';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 // Severity palette remap from raw amber/rose/sky to semantic tokens
 // (extends Chat 12 STAGE_STYLES + Chat 14 STATUS_STYLE precedent).
@@ -69,14 +70,15 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
               </p>
             )}
           </div>
-          <button
+          <MotionButton
+            variant="icon"
             type="button"
             onClick={onClose}
             aria-label="Close"
             className="rounded-pill p-1.5 text-muted transition hover:bg-surface-cream-strong hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 dark:text-on-dark-soft dark:hover:bg-dark-surface-strong dark:hover:text-on-dark"
           >
             <XMarkIcon className="h-5 w-5" />
-          </button>
+          </MotionButton>
         </div>
 
         {/* Severity */}
