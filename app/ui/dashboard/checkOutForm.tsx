@@ -12,7 +12,7 @@ import CameraScannerButton from '@/app/ui/dashboard/cameraScannerButton';
 import DueDatePicker from '@/app/ui/dashboard/primitives/DueDatePicker';
 import PatronCombobox, { type PatronOption } from '@/app/ui/dashboard/patronCombobox';
 import TransactionReceipt from '@/app/ui/dashboard/primitives/TransactionReceipt';
-import { MotionButton } from '@/app/ui/motion';
+import { MotionButton, StampReveal, useMotionLayer } from '@/app/ui/motion';
 
 interface CheckOutFormProps {
   books: Book[];
@@ -45,6 +45,7 @@ export default function CheckOutForm({
   loanLimit = 5,
 }: CheckOutFormProps) {
   const [state, formAction] = useActionState(checkoutBookAction, initialActionState);
+  const layer = useMotionLayer();
   const formRef = useRef<HTMLFormElement | null>(null);
   const [selectedBookId, setSelectedBookId] = useState<string>(preSelectedBookId ?? '');
   const [selectedCopyId, setSelectedCopyId] = useState<string>('');
@@ -77,6 +78,12 @@ export default function CheckOutForm({
       setOverride(false);
     }
   }, [state, selectedBookId, bookMap, defaultDueDate]);
+
+  useEffect(() => {
+    if (state.status === 'success' && state.milestone) {
+      layer.fireMilestone(state.milestone);
+    }
+  }, [state, layer]);
 
   useEffect(() => {
     setBookOptions((prev) => {
@@ -240,14 +247,19 @@ export default function CheckOutForm({
         ]
       : [{ label: 'Back to desk', href: '/dashboard' }];
     return (
-      <TransactionReceipt
-        tone="borrow"
-        title={showReceipt.title}
-        subtitle={dueLabel ? `Due back by ${dueLabel}` : undefined}
-        primaryLabel={selfCheckout ? 'Borrow another' : 'Process another'}
-        onPrimaryClick={() => setShowReceipt(null)}
-        secondary={secondary}
-      />
+      <>
+        <div className="mt-4 flex justify-center">
+          <StampReveal kind="borrowed" />
+        </div>
+        <TransactionReceipt
+          tone="borrow"
+          title={showReceipt.title}
+          subtitle={dueLabel ? `Due back by ${dueLabel}` : undefined}
+          primaryLabel={selfCheckout ? 'Borrow another' : 'Process another'}
+          onPrimaryClick={() => setShowReceipt(null)}
+          secondary={secondary}
+        />
+      </>
     );
   }
 
