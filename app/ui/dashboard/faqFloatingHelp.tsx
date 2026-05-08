@@ -77,16 +77,17 @@ export default function FaqFloatingHelp() {
       {/* Panel */}
       <AnimatePresence>
         {open && (
-          // eslint-disable-next-line motion/no-layout-animation
-          <motion.div
-            key="faq-panel"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: motionDuration.base, ease: motionEase.inOut }}
-            style={{ overflow: 'hidden' }}
-            className="w-60 rounded-card border border-hairline bg-surface-card shadow-[0_4px_16px_rgba(20,20,19,0.08)] dark:border-dark-hairline dark:bg-dark-surface-card"
-          >
+          <>
+            {/* eslint-disable motion/no-layout-animation */}
+            <motion.div
+              key="faq-panel"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: motionDuration.base, ease: motionEase.inOut }}
+              style={{ overflow: 'hidden' }}
+              className="w-60 rounded-card border border-hairline bg-surface-card shadow-[0_4px_16px_rgba(20,20,19,0.08)] dark:border-dark-hairline dark:bg-dark-surface-card"
+            >
             {/* Header */}
             <div className="flex items-center justify-between rounded-t-card bg-primary px-3 py-2">
               <p className="font-sans text-[11px] font-semibold text-on-primary">Student Guide</p>
@@ -139,7 +140,9 @@ export default function FaqFloatingHelp() {
                 </a>
               </p>
             </div>
-          </motion.div>
+            </motion.div>
+            {/* eslint-enable motion/no-layout-animation */}
+          </>
         )}
       </AnimatePresence>
 
