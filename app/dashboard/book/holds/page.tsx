@@ -7,6 +7,7 @@ import { getSupabaseServerClient } from '@/app/lib/supabase/server';
 import { createUserNotification } from '@/app/lib/supabase/notifications';
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import HoldsManagementView from '@/app/ui/dashboard/staff/holdsManagementView';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 // ---------- server actions ----------
 
@@ -212,12 +213,13 @@ export default async function HoldsManagementPage() {
                           <div className="flex justify-end">
                             <form action={cancelHold}>
                               <input type="hidden" name="holdId" value={hold.id} />
-                              <button
+                              <MotionButton
+                                variant="destructive"
                                 type="submit"
-                                className="rounded-btn border border-primary/30 bg-primary/5 px-3 py-1.5 font-sans text-button text-primary transition hover:bg-primary/10 dark:border-dark-primary/30 dark:bg-dark-primary/10 dark:text-dark-primary dark:hover:bg-dark-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+                                className="px-3 py-1.5 h-auto"
                               >
                                 Cancel hold
-                              </button>
+                              </MotionButton>
                             </form>
                           </div>
                         </td>

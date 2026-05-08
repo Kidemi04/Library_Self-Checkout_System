@@ -6,7 +6,7 @@ import { createBookAction } from '@/app/dashboard/actions';
 import { initialActionState } from '@/app/dashboard/actionState';
 import type { ActionState } from '@/app/dashboard/actionState';
 import { ArrowDownCircleIcon, ArrowUpCircleIcon } from "@heroicons/react/24/outline";
-import { Button } from '@/app/ui/button';
+import { MotionButton } from '@/app/ui/motion/MotionButton';
 
 export default function CreateBookForm() {
   const [state, formAction] = useActionState(createBookAction, initialActionState);
@@ -168,9 +168,15 @@ export default function CreateBookForm() {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} aria-disabled={pending}>
+    <MotionButton
+      variant="primary"
+      type="submit"
+      disabled={pending}
+      aria-disabled={pending}
+      state={pending ? 'pending' : 'idle'}
+    >
       {pending ? 'Saving...' : 'Add book'}
-    </Button>
+    </MotionButton>
   );
 }
 
