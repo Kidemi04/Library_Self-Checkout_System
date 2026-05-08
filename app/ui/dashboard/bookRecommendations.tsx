@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { SparklesIcon } from '@heroicons/react/24/outline';
 import BookCover from '@/app/ui/dashboard/primitives/BookCover';
 import Chip from '@/app/ui/dashboard/primitives/Chip';
+import { PaperEnter, BookCardLift } from '@/app/ui/motion';
+import { motionStagger } from '@/app/lib/motion';
 
 type RecBook = {
   id: string;
@@ -88,39 +90,42 @@ export default function BookRecommendations({ studentName }: { studentName?: str
         </div>
 
         <div className="grid grid-cols-2 gap-[18px] sm:grid-cols-3">
-          {REC_BOOKS.map((book) => (
-            <button
-              key={book.id}
-              type="button"
-              className="group flex cursor-pointer flex-col text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
-            >
-              <BookCover
-                gradient={book.cover}
-                title={book.title}
-                author={book.author}
-                w={168}
-                h={240}
-                radius={6}
-              />
-              <div className="mt-2.5 flex flex-col gap-1.5">
-                <h3 className="font-display text-[15px] font-semibold leading-[1.15] tracking-[-0.2px] text-ink dark:text-on-dark">
-                  {book.title}
-                </h3>
-                <p className="font-display text-[11px] italic text-muted dark:text-on-dark-soft">
-                  {book.author}
-                </p>
-                <div className="mt-1 flex flex-wrap gap-1">
-                  {book.tags.map((tag) => (
-                    <Chip key={tag} mono>
-                      {tag}
-                    </Chip>
-                  ))}
-                </div>
-                <p className="mt-1 font-mono text-[10px] text-muted-soft dark:text-on-dark-soft">
-                  {book.reason}
-                </p>
-              </div>
-            </button>
+          {REC_BOOKS.map((book, i) => (
+            <PaperEnter key={book.id} delay={i * motionStagger.cards}>
+              <BookCardLift>
+                <button
+                  type="button"
+                  className="group flex w-full cursor-pointer flex-col text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+                >
+                  <BookCover
+                    gradient={book.cover}
+                    title={book.title}
+                    author={book.author}
+                    w={168}
+                    h={240}
+                    radius={6}
+                  />
+                  <div className="mt-2.5 flex flex-col gap-1.5">
+                    <h3 className="font-display text-[15px] font-semibold leading-[1.15] tracking-[-0.2px] text-ink dark:text-on-dark">
+                      {book.title}
+                    </h3>
+                    <p className="font-display text-[11px] italic text-muted dark:text-on-dark-soft">
+                      {book.author}
+                    </p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {book.tags.map((tag) => (
+                        <Chip key={tag} mono>
+                          {tag}
+                        </Chip>
+                      ))}
+                    </div>
+                    <p className="mt-1 font-mono text-[10px] text-muted-soft dark:text-on-dark-soft">
+                      {book.reason}
+                    </p>
+                  </div>
+                </button>
+              </BookCardLift>
+            </PaperEnter>
           ))}
         </div>
       </div>
