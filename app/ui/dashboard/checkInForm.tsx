@@ -9,6 +9,7 @@ import { initialActionState } from '@/app/dashboard/actionState';
 import type { ActionState } from '@/app/dashboard/actionState';
 import PatronCombobox, { type PatronOption } from '@/app/ui/dashboard/patronCombobox';
 import DamageReportModal, { type DamageSubmitPayload } from '@/app/ui/dashboard/damageReportModal';
+import { MotionButton } from '@/app/ui/motion';
 
 type CheckInFormProps = {
   activeLoanCount: number;
@@ -321,23 +322,25 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
               {damage ? ` to ${SEVERITY_LABEL[damage.severity]}` : ''}.
             </p>
             <div className="mt-5 flex gap-2">
-              <button
+              <MotionButton
                 type="button"
+                variant="secondary"
                 onClick={() => setConfirmOpen(false)}
                 suppressHydrationWarning
-                className="flex-1 rounded-btn border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card px-4 h-10 font-sans text-button text-ink dark:text-on-dark transition hover:bg-surface-cream-strong dark:hover:bg-dark-surface-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+                className="flex-1"
               >
                 Cancel
-              </button>
-              <button
+              </MotionButton>
+              <MotionButton
                 ref={confirmButtonRef}
                 type="button"
+                variant="primary"
                 onClick={doSubmit}
                 suppressHydrationWarning
-                className="flex-1 rounded-btn bg-primary hover:bg-primary-active px-4 h-10 font-sans text-button text-on-primary transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+                className="flex-1"
               >
                 Yes, mark returned
-              </button>
+              </MotionButton>
             </div>
           </div>
         </div>
@@ -355,18 +358,17 @@ export default function CheckInForm({ activeLoanCount, defaultIdentifier }: Chec
 
 function SubmitButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
   const { pending } = useFormStatus();
-  const isDisabled = disabled || pending;
   return (
-    <button
+    <MotionButton
       type="button"
+      variant="primary"
+      state={pending ? 'pending' : 'idle'}
+      disabled={disabled}
       onClick={onClick}
-      disabled={isDisabled}
-      aria-disabled={isDisabled}
       suppressHydrationWarning
-      className="inline-flex items-center justify-center rounded-btn bg-primary hover:bg-primary-active px-5 h-10 font-sans text-button text-on-primary transition disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
     >
       {pending ? 'Processing\u2026' : 'Mark returned'}
-    </button>
+    </MotionButton>
   );
 }
 

@@ -12,6 +12,7 @@ import CameraScannerButton from '@/app/ui/dashboard/cameraScannerButton';
 import DueDatePicker from '@/app/ui/dashboard/primitives/DueDatePicker';
 import PatronCombobox, { type PatronOption } from '@/app/ui/dashboard/patronCombobox';
 import TransactionReceipt from '@/app/ui/dashboard/primitives/TransactionReceipt';
+import { MotionButton } from '@/app/ui/motion';
 
 interface CheckOutFormProps {
   books: Book[];
@@ -417,16 +418,15 @@ export default function CheckOutForm({
 
 function SubmitButton({ disabled, label }: { disabled: boolean; label: string }) {
   const { pending } = useFormStatus();
-  const isDisabled = disabled || pending;
   return (
-    <button
+    <MotionButton
       type="submit"
-      disabled={isDisabled}
-      aria-disabled={isDisabled}
-      className="inline-flex items-center justify-center rounded-btn bg-primary hover:bg-primary-active px-5 h-10 font-sans text-button text-on-primary transition disabled:bg-primary-disabled disabled:text-muted disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+      variant="primary"
+      state={pending ? 'pending' : 'idle'}
+      disabled={disabled}
     >
       {pending ? 'Processing\u2026' : label}
-    </button>
+    </MotionButton>
   );
 }
 
