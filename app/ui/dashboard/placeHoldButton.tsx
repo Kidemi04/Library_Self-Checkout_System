@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabaseBrowserClient } from '@/app/lib/supabase/client';
+import { StampReveal } from '@/app/ui/motion';
 
 type HoldState = 'none' | 'queued' | 'ready';
 
@@ -16,6 +17,7 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
   const [holdState, setHoldState] = useState<HoldState>('none');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showStamp, setShowStamp] = useState(false);
 
   // Check if the user already has an active hold for this book
   useEffect(() => {
@@ -76,6 +78,8 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
       }
 
       setHoldState('queued');
+      setShowStamp(true);
+      setTimeout(() => setShowStamp(false), 1500);
     } catch (err) {
       console.error(err);
       setError('Something went wrong.');
@@ -92,6 +96,7 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
 
     return (
       <div className="flex flex-col gap-1">
+        {showStamp && <StampReveal kind="reserved" />}
         <button
           disabled
           className="rounded-btn bg-success px-3 py-1.5 font-sans text-button text-on-dark"
