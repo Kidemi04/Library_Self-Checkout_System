@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { XMarkIcon, PhotoIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { uploadDamagePhotos } from '@/app/dashboard/damageActions';
+import { PaperEnter } from '@/app/ui/motion';
 
 export type DamageSeverity = 'damaged' | 'lost' | 'needs_inspection';
 
@@ -118,7 +119,7 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
         className="absolute inset-0 bg-ink/50 dark:bg-dark-canvas/70 backdrop-blur-sm"
         onClick={() => !busy && onClose()}
       />
-      <div className="relative w-full max-w-lg rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6 shadow-[0_4px_16px_rgba(20,20,19,0.08)]">
+      <PaperEnter className="relative w-full max-w-lg rounded-card border border-hairline dark:border-dark-hairline bg-surface-card dark:bg-dark-surface-card p-6 shadow-[0_4px_16px_rgba(20,20,19,0.08)]">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-pill bg-primary/10 dark:bg-dark-primary/15">
@@ -272,7 +273,7 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
             {busy ? 'Uploading\u2026' : 'Attach to return'}
           </button>
         </div>
-      </div>
+      </PaperEnter>
     </div>
   );
 }

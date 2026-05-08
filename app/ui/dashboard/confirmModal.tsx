@@ -1,4 +1,7 @@
+'use client';
+
 import React, { useEffect } from 'react';
+import { PaperEnter } from '@/app/ui/motion';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -42,10 +45,10 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         onClick={onCancel}
       />
 
-      <div className="relative w-full max-w-md transform overflow-hidden rounded-card
+      <PaperEnter className="relative w-full max-w-md overflow-hidden rounded-card
                       bg-surface-card dark:bg-dark-surface-card
                       border border-hairline dark:border-dark-hairline
-                      shadow-[0_4px_16px_rgba(20,20,19,0.08)] transition-all animate-in fade-in zoom-in duration-200">
+                      shadow-[0_4px_16px_rgba(20,20,19,0.08)]">
 
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
@@ -84,7 +87,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             {confirmText}
           </button>
         </div>
-      </div>
+      </PaperEnter>
     </div>
   );
 };
