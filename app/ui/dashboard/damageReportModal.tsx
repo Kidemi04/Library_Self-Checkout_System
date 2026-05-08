@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { XMarkIcon, PhotoIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 import { uploadDamagePhotos } from '@/app/dashboard/damageActions';
-import { PaperEnter } from '@/app/ui/motion';
+import { PaperEnter, StampReveal } from '@/app/ui/motion';
 
 export type DamageSeverity = 'damaged' | 'lost' | 'needs_inspection';
 
@@ -44,6 +44,7 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
   const [photos, setPhotos] = useState<File[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   if (!open) return null;
@@ -95,11 +96,13 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
         }
         photoUrls = result.urls;
       }
+      setSubmitted(true);
       onSubmit({ severity, notes: notes.trim(), photoUrls });
       // caller closes the modal; we reset state for next open
       setNotes('');
       setPhotos([]);
       setSeverity('damaged');
+      setTimeout(() => setSubmitted(false), 1500);
     } catch (err) {
       console.error('Damage submit failed', err);
       setError('Something went wrong. Please try again.');
@@ -253,6 +256,8 @@ export default function DamageReportModal({ open, loanId, onClose, onSubmit }: D
         </div>
 
         {error && <p className="mb-3 font-sans text-body-sm font-semibold text-primary dark:text-dark-primary">{error}</p>}
+
+        {submitted && <div className="mb-3"><StampReveal kind="reported" /></div>}
 
         <div className="flex justify-end gap-2.5">
           <button
