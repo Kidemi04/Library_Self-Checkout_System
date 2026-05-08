@@ -305,3 +305,58 @@ Motion components never embed hex literals; if Tailwind tokens change, this sing
 - Existing `app/ui/magicUi/blurFade.tsx` is kept and continues to be used in non-receipt contexts; receipt / stamp surfaces switch to `<PaperEnter>`
 - ESLint custom rules will live in a new `eslint-rules/motion/` directory; root `eslintrc` references them
 - The `magicUi/shimmerButton.tsx` migration is the single trickiest refactor — verify shimmer overlay still renders on top of the new motion baseline before merging
+
+## Implementation Verification (2026-05-08)
+
+### Reduced-motion audit (code-level)
+
+All 8 expected consumers import and call `usePrefersReducedMotion`. Fallback behaviour per primitive:
+
+| Primitive | Consumes `usePrefersReducedMotion` | Reduced-motion fallback |
+|---|---|---|
+| `MotionButton` | ✓ | `whileTap` and `whileHover` props omitted entirely — no transforms, no scale |
+| `StampReveal` | ✓ | `initial/animate` scoped to `{ opacity: 0/0.95 }` only; no scale, no rotate |
+| `InkLine` | ✓ | `opacity` initial set to `1` (no fade); `pathLength: 0 → 1` still animates but duration clamped to `instant` (0.1s) — see concern below |
+| `PaperEnter` | ✓ | `initial/animate` scoped to `{ opacity: 0/1 }` only; no `y` translate |
+| `BookCardLift` | ✓ | `whileHover` set to `undefined` — wrapper renders with zero motion |
+| `XPCounter` | ✓ | `useState` initialises directly to `to` value; `useEffect` returns early — number appears instantly with no tick animation |
+| `StreakFlame` | ✓ | `animate` and `initial` gated on `reduced`; however `whileInView={{ scale: 1 }}` is unconditional — see concern below |
+| `MilestoneBurst` | ✓ | Inner card `initial/animate` scoped to `{ opacity: 0/1 }` only; confetti call skipped entirely |
+| `RootMotionLayer` | N/A — context provider only, no animation |
+
+**Concerns:**
+
+1. **`InkLine` pathLength animation at `instant` (0.1s)**: when reduced-motion is active, the SVG path still draws from `pathLength: 0 → 1` over 0.1s. The opacity fade is correctly suppressed, but the drawing effect is a position-like animation. For strict WCAG 2.3.3 compliance the path should snap to `pathLength: 1` immediately. Impact is very low (0.1s draw at fast speed is almost imperceptible) but is technically non-conformant. Fix: set `animate={{ pathLength: 1, opacity: 1 }}` with an `initial={{ pathLength: reduced ? 1 : 0, opacity: reduced ? 1 : 0 }}` when reduced is true.
+
+2. **`StreakFlame` `whileInView` unconditional**: line 21 has `whileInView={{ scale: 1, transition: motionSpring.milestone }}` without a `reduced` guard. When `initial={false}` (reduced mode), framer-motion still applies the `whileInView` scale variant on viewport entry. This could produce a scale pop. Fix: conditionalise as `whileInView={reduced ? undefined : { scale: 1, transition: motionSpring.milestone }}`.
+
+### Focus + ARIA audit (code-level)
+
+- MotionButton focus-visible ring: ✓ — `BASE_CLASSES` contains `outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`
+- StampReveal aria-hidden: ✓ — `aria-hidden="true"` on the `motion.div` stamp container (line 29)
+- InkLine aria-hidden: ✓ — `aria-hidden="true"` on the `<svg>` element (line 27)
+- MilestoneBurst role=status + aria-live: ✓ — `role="status" aria-live="polite"` on the outer overlay `motion.div` (lines 58–59)
+- MilestoneBurst dismissal paths: ESC ✓ (`keydown` listener in `useEffect`), click ✓ (`onClick={() => onClose?.()}` on overlay), timeout ✓ (`setTimeout(() => onClose?.(), 1200)`)
+
+### Test results
+
+**163 passing / 29 failing — no regression from baseline.**
+
+- Total test suites: 54 (35 passed, 19 failed)
+- Total tests: 192 (163 passed, 29 failed)
+- All 29 failures are pre-existing: `.worktrees/` test suites (`TextEncoder` jsdom issue) and `homePage.test.jsx` — unchanged from before Phase 0–6 work
+- No new failures introduced by motion system work
+
+### Build status
+
+- TypeScript compilation: ✓ (`✓ Compiled successfully in 8.2s`)
+- Build exit code: non-zero (pre-existing ESLint errors block Next.js build)
+- Pre-existing ESLint errors confirmed unchanged: `react-hooks/exhaustive-deps` plugin not installed (2 files), `@typescript-eslint/no-explicit-any` in `lib/barcodeScanner.ts` (5 occurrences), `motion/no-layout-animation` in `faqFloatingHelp.tsx` (3 lines — intended accordion, inline-disable misapplied to `motion.div` tag rather than the prop lines, so the disable is marked unused and the violations still fire)
+- No new TypeScript type errors from Phase 0–6 motion work
+
+### Open items requiring user browser verification
+
+- Reduced-motion: walk every surface with OS reduced-motion enabled; confirm only opacity changes, no movement. Pay particular attention to `InkLine` (should show instantly, not draw) and `StreakFlame` (should not scale in on viewport entry)
+- Focus rings: Tab through every page; confirm visible primary-color ring on every interactive element — especially any `<MotionButton>` wrapped in a form or inside a modal
+- Color contrast: spot-check `text-accent-teal` stamp variant (`reserved`) in browser devtools accessibility panel — spec notes it measures 3.2:1 against canvas, which is below AA for normal text (4.5:1). The reverse-pattern mitigation described in the spec should be verified in the actual rendered output
+- MilestoneBurst announcement: NVDA / Narrator should read the milestone `display` text — confirm the `role="status"` region is visible to the AT at the time the overlay mounts
