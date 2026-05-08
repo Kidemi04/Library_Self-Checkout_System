@@ -1,8 +1,9 @@
 import clsx from 'clsx';
+import type { ReactNode } from 'react';
 
 type KpiCardProps = {
   label: string;
-  value: string | number;
+  value: string | number | ReactNode;
   delta?: string;
   positive?: boolean;
   danger?: boolean;

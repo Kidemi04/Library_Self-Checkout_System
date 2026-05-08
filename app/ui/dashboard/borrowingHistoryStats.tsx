@@ -1,5 +1,8 @@
+'use client';
+
 import KpiCard from '@/app/ui/dashboard/primitives/KpiCard';
 import type { BorrowingStats } from '@/app/lib/supabase/queries';
+import { XPCounter } from '@/app/ui/motion';
 
 export default function BorrowingHistoryStats({ stats }: { stats: BorrowingStats }) {
   const currentYear = new Date().getFullYear();
@@ -8,7 +11,7 @@ export default function BorrowingHistoryStats({ stats }: { stats: BorrowingStats
     <div className="grid gap-3 sm:grid-cols-3">
       <KpiCard
         label="Total borrowed"
-        value={stats.totalBorrowed}
+        value={<XPCounter to={stats.totalBorrowed} />}
         footer="all-time returns"
       />
       <KpiCard
