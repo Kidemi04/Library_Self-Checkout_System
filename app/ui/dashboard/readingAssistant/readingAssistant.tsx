@@ -110,7 +110,12 @@ export default function ReadingAssistant({ userId }: ReadingAssistantProps) {
             const dataLine = frame.split('\n').find((l) => l.startsWith('data:'));
             if (!eventLine) continue;
             const event = eventLine.slice(6).trim();
-            const data = dataLine ? JSON.parse(dataLine.slice(5).trim()) : {};
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let data: Record<string, any> = {};
+            if (dataLine) {
+              try { data = JSON.parse(dataLine.slice(5).trim()); }
+              catch { continue; }
+            }
             if (event === 'delta' && typeof data.text === 'string') appendAssistant(data.text);
             else if (event === 'meta') patchAssistant({ books: data.books, basedOn: data.faqSection ?? null });
             else if (event === 'error') patchAssistant({ text: data.message ?? 'Something went wrong.', books: data.books ?? [], streaming: false });
