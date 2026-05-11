@@ -15,7 +15,7 @@ const getEnv = () => ({
   apiKey: process.env.DEEPSEEK_API_KEY?.trim() || '',
   model: process.env.DEEPSEEK_MODEL?.trim() || 'deepseek-v4-flash',
   timeoutJsonMs: Number(process.env.DEEPSEEK_TIMEOUT_MS) || 15000,
-  timeoutStreamMs: Number(process.env.DEEPSEEK_STREAM_TIMEOUT_MS) || 30000,
+  timeoutStreamMs: Number(process.env.DEEPSEEK_STREAM_TIMEOUT_MS) || 30000, // used by streamDeepSeekText (added in a later task)
 });
 
 function classifyHttpStatus(status: number): DeepSeekErrorKind {

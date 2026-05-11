@@ -56,6 +56,14 @@ test('callDeepSeekJson classifies a 401 as auth', async () => {
   expect(await callDeepSeekJson('s', 'u')).toEqual({ ok: false, kind: 'auth' });
 });
 
+test('callDeepSeekJson classifies a 403 as auth', async () => {
+  fetchMock.mockReturnValueOnce(
+    Promise.resolve({ ok: false, status: 403, text: () => Promise.resolve('forbidden') } as unknown as Response),
+  );
+  const { callDeepSeekJson } = await import('@/app/lib/ai/deepseek');
+  expect(await callDeepSeekJson('s', 'u')).toEqual({ ok: false, kind: 'auth' });
+});
+
 test('callDeepSeekJson classifies a 500 as server', async () => {
   fetchMock.mockReturnValueOnce(
     Promise.resolve({ ok: false, status: 503, text: () => Promise.resolve('oops') } as unknown as Response),
