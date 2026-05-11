@@ -95,3 +95,85 @@ export async function callDeepSeekJson(
     clearTimeout(timer);
   }
 }
+
+export type DeepSeekStreamEvent =
+  | { type: 'delta'; text: string }
+  | { type: 'error'; kind: DeepSeekErrorKind };
+
+export async function* streamDeepSeekText(
+  systemPrompt: string,
+  userMessage: string,
+  options?: { temperature?: number; maxTokens?: number; history?: DeepSeekHistoryTurn[] },
+): AsyncGenerator<DeepSeekStreamEvent, void, unknown> {
+  const { baseUrl, apiKey, model, timeoutStreamMs } = getEnv();
+  if (!apiKey) {
+    console.error('[DeepSeek] DEEPSEEK_API_KEY is empty — cannot stream.');
+    yield { type: 'error', kind: 'auth' };
+    return;
+  }
+
+  const messages: ChatTurn[] = [
+    { role: 'system', content: systemPrompt },
+    ...(options?.history ?? []).map((h) => ({ role: h.role, content: h.content })),
+    { role: 'user', content: userMessage },
+  ];
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutStreamMs);
+  try {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature: options?.temperature ?? 0.4,
+        ...(options?.maxTokens ? { max_tokens: options.maxTokens } : {}),
+        stream: true,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok || !response.body) {
+      const kind = response.ok ? 'bad_response' : classifyHttpStatus(response.status);
+      const body = response.ok ? '' : await response.text().catch(() => '');
+      console.error(`[DeepSeek] stream non-ok ${response.status} (${kind}): ${body.slice(0, 300)}`);
+      yield { type: 'error', kind };
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      // SSE frames are separated by a blank line.
+      let sep: number;
+      while ((sep = buffer.indexOf('\n\n')) !== -1) {
+        const frame = buffer.slice(0, sep);
+        buffer = buffer.slice(sep + 2);
+        for (const rawLine of frame.split('\n')) {
+          const line = rawLine.trim();
+          if (!line.startsWith('data:')) continue;
+          const payload = line.slice(5).trim();
+          if (payload === '[DONE]') return;
+          try {
+            const parsed = JSON.parse(payload) as { choices?: Array<{ delta?: { content?: string } }> };
+            const text = parsed.choices?.[0]?.delta?.content;
+            if (text) yield { type: 'delta', text };
+          } catch {
+            // ignore malformed keep-alive / partial frames
+          }
+        }
+      }
+    }
+  } catch (err) {
+    const kind = classifyThrown(err);
+    if (kind !== 'timeout') console.error('[DeepSeek] stream fetch error', err);
+    yield { type: 'error', kind };
+  } finally {
+    clearTimeout(timer);
+  }
+}

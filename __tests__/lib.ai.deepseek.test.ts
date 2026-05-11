@@ -100,3 +100,81 @@ test('callDeepSeekJson returns auth when the key is missing', async () => {
   expect(await callDeepSeekJson('s', 'u')).toEqual({ ok: false, kind: 'auth' });
   expect(fetchMock).not.toHaveBeenCalled();
 });
+
+function sseStreamResponse(lines: string[]): Response {
+  const enc = new TextEncoder();
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const line of lines) controller.enqueue(enc.encode(line));
+      controller.close();
+    },
+  });
+  return { ok: true, status: 200, body } as unknown as Response;
+}
+
+test('streamDeepSeekText yields delta chunks parsed from OpenAI-style SSE', async () => {
+  fetchMock.mockReturnValueOnce(
+    Promise.resolve(
+      sseStreamResponse([
+        'data: {"choices":[{"delta":{"content":"Hel"}}]}\n\n',
+        'data: {"choices":[{"delta":{"content":"lo "}}]}\n\n',
+        'data: {"choices":[{"delta":{"content":"there"}}]}\n\n',
+        'data: [DONE]\n\n',
+      ]),
+    ),
+  );
+  const { streamDeepSeekText } = await import('@/app/lib/ai/deepseek');
+
+  const chunks: string[] = [];
+  let sawError = false;
+  for await (const ev of streamDeepSeekText('sys', 'hi')) {
+    if (ev.type === 'delta') chunks.push(ev.text);
+    if (ev.type === 'error') sawError = true;
+  }
+  expect(sawError).toBe(false);
+  expect(chunks.join('')).toBe('Hello there');
+
+  const [url, init] = fetchMock.mock.calls[0];
+  expect(url).toBe('https://example.test/chat/completions');
+  const reqBody = JSON.parse((init as RequestInit).body as string);
+  expect(reqBody.stream).toBe(true);
+  expect(reqBody.response_format).toBeUndefined();
+});
+
+test('streamDeepSeekText handles SSE lines split across network chunks', async () => {
+  fetchMock.mockReturnValueOnce(
+    Promise.resolve(
+      sseStreamResponse([
+        'data: {"choices":[{"delta":{"con',
+        'tent":"AB"}}]}\n\ndata: {"choices":[{"delta":{"content":"CD"}}]}\n\n',
+        'data: [DONE]\n\n',
+      ]),
+    ),
+  );
+  const { streamDeepSeekText } = await import('@/app/lib/ai/deepseek');
+  const chunks: string[] = [];
+  for await (const ev of streamDeepSeekText('s', 'u')) {
+    if (ev.type === 'delta') chunks.push(ev.text);
+  }
+  expect(chunks.join('')).toBe('ABCD');
+});
+
+test('streamDeepSeekText yields an error event on a 500', async () => {
+  fetchMock.mockReturnValueOnce(
+    Promise.resolve({ ok: false, status: 502, text: () => Promise.resolve('bad gateway') } as unknown as Response),
+  );
+  const { streamDeepSeekText } = await import('@/app/lib/ai/deepseek');
+  const events: Array<{ type: string }> = [];
+  for await (const ev of streamDeepSeekText('s', 'u')) events.push(ev);
+  expect(events).toEqual([{ type: 'error', kind: 'server' }]);
+});
+
+test('streamDeepSeekText yields auth error when the key is missing', async () => {
+  delete process.env.DEEPSEEK_API_KEY;
+  jest.resetModules();
+  const { streamDeepSeekText } = await import('@/app/lib/ai/deepseek');
+  const events: Array<{ type: string }> = [];
+  for await (const ev of streamDeepSeekText('s', 'u')) events.push(ev);
+  expect(events).toEqual([{ type: 'error', kind: 'auth' }]);
+  expect(fetchMock).not.toHaveBeenCalled();
+});
