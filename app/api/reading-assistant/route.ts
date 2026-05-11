@@ -124,12 +124,16 @@ export async function POST(request: Request) {
     }
   }
 
+  // TODO(Task 5.1): rewrite this route as an SSE stream that runs streamLibraryAnswer.
+  // Stopgap: classifyAndExtract no longer returns a prose `reply`.
+  const reply = aiResult.followUpQuestion || '';
+
   // 4. Persist user msg + assistant msg
   await persistTurn(supabase, userId, 'user', message);
-  await persistTurn(supabase, userId, 'assistant', aiResult.reply);
+  await persistTurn(supabase, userId, 'assistant', reply);
 
   return NextResponse.json({
-    reply: aiResult.reply,
+    reply,
     intent: aiResult.intent,
     ...(books && books.length > 0 ? { books } : {}),
   });
