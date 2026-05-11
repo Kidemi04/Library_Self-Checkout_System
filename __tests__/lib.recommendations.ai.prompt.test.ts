@@ -62,8 +62,8 @@ test('renders sanitized student profile fields (faculty, study year, interests, 
 test('renders Currently borrowed block with due-date countdown', () => {
   const today = new Date('2026-05-07T00:00:00Z');
   const loans: Loan[] = [
-    makeLoan({ book: { id: 'b1', title: 'Sapiens', author: 'Yuval Harari', isbn: null, coverImageUrl: null, classification: null }, dueAt: '2026-05-09T00:00:00Z' }),
-    makeLoan({ id: 'l2', book: { id: 'b2', title: '1Q84', author: 'Haruki Murakami', isbn: null, coverImageUrl: null, classification: null }, dueAt: '2026-05-01T00:00:00Z' }),
+    makeLoan({ book: { id: 'b1', title: 'Sapiens', author: 'Yuval Harari', isbn: null }, dueAt: '2026-05-09T00:00:00Z' }),
+    makeLoan({ id: 'l2', book: { id: 'b2', title: '1Q84', author: 'Haruki Murakami', isbn: null }, dueAt: '2026-05-01T00:00:00Z' }),
   ];
 
   const prompt = buildUnifiedSystemPrompt(undefined, loans, [], today);
@@ -81,7 +81,7 @@ test('renders Recently returned block', () => {
       id: 'r1',
       status: 'returned',
       returnedAt: '2026-05-04T00:00:00Z',
-      book: { id: 'b3', title: 'The Hobbit', author: null, isbn: null, coverImageUrl: null, classification: null },
+      book: { id: 'b3', title: 'The Hobbit', author: null, isbn: null },
     }),
   ];
 

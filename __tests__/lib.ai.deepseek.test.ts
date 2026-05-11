@@ -1,4 +1,5 @@
 /** @jest-environment node */
+export {};
 
 const fetchMock = jest.fn();
 (global as unknown as { fetch: typeof fetch }).fetch = fetchMock as unknown as typeof fetch;
