@@ -6,7 +6,7 @@ import {
   READING_ASSISTANT_RETURNS_WINDOW_DAYS,
   READING_ASSISTANT_HISTORY_CHAR_BUDGET,
 } from '@/app/lib/recommendations/policy';
-import { callDeepSeekJson, type DeepSeekHistoryTurn } from '@/app/lib/ai/deepseek';
+import { callDeepSeekJson, streamDeepSeekText, type DeepSeekHistoryTurn, type DeepSeekStreamEvent } from '@/app/lib/ai/deepseek';
 import {
   parsePass1Response,
   type Pass1Response,
@@ -456,7 +456,50 @@ export async function suggestYouTubeCourses(
   }
 }
 
-// NOTE: `buildStudentContext`, `renderActiveLoans`, `renderRecentReturns`,
-// `budgetHistory`, `ANTI_INJECTION_CLAUSE` and `FAQ_CONTEXT` are intentionally
-// kept module-scoped (or exported, for FAQ_CONTEXT) so the streaming-answer
-// pass added in a later task can reuse them without a second prompt code path.
+// ─── Streaming prose answer pass ─────────────────────────────────────────────
+
+export type LibraryAnswerInput = {
+  message: string;
+  intent: AiIntent;
+  faqSection: string | null;
+  /** Real catalogue titles already retrieved (so the prose can name them accurately). */
+  bookTitles: string[];
+  userContext?: Parameters<typeof sanitizeUserContextForPrompt>[0];
+  history?: ChatTurn[];
+  activeLoans?: Loan[];
+  recentReturns?: Loan[];
+  today?: Date;
+};
+
+function buildAnswerSystemPrompt(input: LibraryAnswerInput, sanitized: SanitizedUserContext): string {
+  // Reuse buildStudentContext / renderActiveLoans / renderRecentReturns over the sanitized data.
+  const ctx = buildStudentContext(sanitized);
+  const loans = renderActiveLoans(input.activeLoans ?? [], input.today ?? new Date());
+  const returns = renderRecentReturns(input.recentReturns ?? [], READING_ASSISTANT_RETURNS_WINDOW_DAYS);
+  const books =
+    input.bookTitles.length > 0
+      ? `\n\nBook results already found in our catalogue (refer to these by title; do NOT invent others):\n${input.bookTitles.map((t) => `- "${t}"`).join('\n')}`
+      : '';
+  const faqAnchor =
+    input.intent === 'answer' || input.intent === 'both'
+      ? input.faqSection
+        ? `\n\nAnswer using ONLY the FAQ content for the "${input.faqSection}" section. If the user's question goes beyond it, say: "I'm not sure — please ask a librarian or check the contact links in the help articles."`
+        : `\n\nThis question is not covered by our FAQ. Reply: "I'm not sure — please ask a librarian or check the contact links in the help articles." Do not invent policy details.`
+      : '';
+  return `You are the Swinburne Sarawak Library assistant. Reply to the student in warm, concise, plain English. No markdown, no bullet points, no emoji. 2-5 sentences.${faqAnchor}${books}${ctx}${loans}${returns}
+
+# FAQ
+${FAQ_CONTEXT}
+
+${ANTI_INJECTION_CLAUSE}`;
+}
+
+export async function* streamLibraryAnswer(input: LibraryAnswerInput): AsyncGenerator<DeepSeekStreamEvent, void, unknown> {
+  const sanitized = sanitizeUserContextForPrompt(input.userContext);
+  const systemPrompt = buildAnswerSystemPrompt(input, sanitized);
+  const dsHistory: DeepSeekHistoryTurn[] = budgetHistory(input.history ?? []).map((h) => ({
+    role: h.sender === 'user' ? 'user' : 'assistant',
+    content: h.text,
+  }));
+  yield* streamDeepSeekText(systemPrompt, input.message, { temperature: 0.4, maxTokens: 500, history: dsHistory });
+}
