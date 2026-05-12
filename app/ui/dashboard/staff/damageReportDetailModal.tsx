@@ -60,12 +60,12 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
             </p>
             <h2
               id="damage-detail-title"
-              className="font-display text-display-sm text-ink dark:text-on-dark tracking-tight"
+              className="font-display text-display-sm text-ink dark:text-on-dark tracking-tight break-words whitespace-normal"
             >
               {report.copy?.book?.title ?? 'Unknown book'}
             </h2>
             {report.copy?.book?.author && (
-              <p className="mt-0.5 font-display text-body-sm italic text-muted dark:text-on-dark-soft">
+              <p className="mt-0.5 font-display text-body-sm italic text-muted dark:text-on-dark-soft break-words whitespace-normal">
                 by {report.copy.book.author}
               </p>
             )}
@@ -106,7 +106,7 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
             <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Borrower
             </dt>
-            <dd className="mt-0.5 text-ink dark:text-on-dark">
+            <dd className="mt-0.5 text-ink dark:text-on-dark break-words whitespace-normal min-w-0">
               {report.borrower?.displayName ?? report.borrower?.email ?? '—'}
             </dd>
           </div>
@@ -114,7 +114,7 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
             <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Reported by
             </dt>
-            <dd className="mt-0.5 text-ink dark:text-on-dark">
+            <dd className="mt-0.5 text-ink dark:text-on-dark break-words whitespace-normal min-w-0">
               {report.reportedBy?.displayName ?? report.reportedBy?.email ?? '—'}
             </dd>
           </div>
@@ -122,7 +122,7 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
             <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Loan due / returned
             </dt>
-            <dd className="mt-0.5 text-ink dark:text-on-dark">
+            <dd className="mt-0.5 text-ink dark:text-on-dark break-words whitespace-normal min-w-0">
               Due {formatDate(report.loan?.dueAt)}
               {report.loan?.returnedAt ? ` · Returned ${formatDate(report.loan.returnedAt)}` : ''}
             </dd>
