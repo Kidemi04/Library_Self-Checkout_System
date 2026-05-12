@@ -93,8 +93,8 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
         </div>
 
         {/* Meta grid */}
-        <dl className="mb-5 grid gap-x-6 gap-y-3 rounded-card border border-hairline bg-surface-cream-strong/40 p-4 font-mono text-code dark:border-dark-hairline dark:bg-dark-surface-strong/40 sm:grid-cols-2">
-          <div>
+        <dl className="mb-5 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 rounded-card border border-hairline bg-surface-cream-strong/40 p-4 font-mono text-code dark:border-dark-hairline dark:bg-dark-surface-strong/40">
+          <div className="min-w-0">
             <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Copy barcode
             </dt>
@@ -102,23 +102,23 @@ export default function DamageReportDetailModal({ report, signedUrls, onClose }:
               {report.copy?.barcode ?? '—'}
             </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Borrower
             </dt>
-            <dd className="mt-0.5 text-ink dark:text-on-dark break-words whitespace-normal min-w-0">
+            <dd className="mt-0.5 text-ink dark:text-on-dark min-w-0 truncate sm:whitespace-normal sm:break-words">
               {report.borrower?.displayName ?? report.borrower?.email ?? '—'}
             </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Reported by
             </dt>
-            <dd className="mt-0.5 text-ink dark:text-on-dark break-words whitespace-normal min-w-0">
+            <dd className="mt-0.5 text-ink dark:text-on-dark min-w-0 truncate sm:whitespace-normal sm:break-words">
               {report.reportedBy?.displayName ?? report.reportedBy?.email ?? '—'}
             </dd>
           </div>
-          <div>
+          <div className="min-w-0">
             <dt className="font-sans text-caption-uppercase text-muted dark:text-on-dark-soft">
               Loan due / returned
             </dt>
