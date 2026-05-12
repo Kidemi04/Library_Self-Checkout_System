@@ -1,7 +1,6 @@
 'use client';
 
 import { useActionState, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import clsx from 'clsx';
 import { useFormStatus } from 'react-dom';
 import { ExclamationTriangleIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
