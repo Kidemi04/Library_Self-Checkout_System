@@ -173,7 +173,16 @@ export default async function ProfilePage() {
                     />
                   </div>
                   <p
-                    className="block w-full max-w-full truncate font-display text-[20px] tracking-tight text-ink dark:text-on-dark sm:text-[24px]"
+                    className="
+                      max-w-full
+                      truncate
+                      font-display
+                      text-[20px]
+                      tracking-tight
+                      text-ink
+                      dark:text-on-dark
+                      sm:text-[24px]
+                    "
                     title={preferredName ?? user.email ?? 'My Profile'}
                   >
                     {preferredName ?? user.email ?? 'My Profile'}

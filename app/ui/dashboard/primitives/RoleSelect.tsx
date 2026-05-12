@@ -1,5 +1,4 @@
 import clsx from 'clsx';
-import { ChevronDownIcon } from '@heroicons/react/20/solid';
 
 type ManagedRole = 'admin' | 'staff' | 'user';
 
@@ -27,23 +26,25 @@ const LABEL: Record<ManagedRole, string> = {
 
 export default function RoleSelect({ value, onChange, options, className }: RoleSelectProps) {
   return (
-    <div className={clsx('relative inline-flex', className)}>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value as ManagedRole)}
-        aria-label="Change role"
-        className={clsx(
-          'cursor-pointer appearance-none rounded-pill border pl-3.5 pr-8 py-1 font-sans text-caption-uppercase font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
-          TONE[value],
-        )}
-      >
+    <div className={clsx('relative inline-flex p-2', className)}>
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value as ManagedRole)}
+      aria-label="Change role"
+      className={clsx(
+        'cursor-pointer appearance-none rounded-pill border',
+        'pl-4 pr-10 py-2 min-w-[120px]',
+        'font-sans text-caption-uppercase font-semibold transition',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas',
+        TONE[value],
+      )}
+    >
         {options.map((role) => (
           <option key={role} value={role} className="bg-canvas font-sans normal-case tracking-normal text-ink dark:bg-dark-surface dark:text-on-dark">
             {LABEL[role]}
           </option>
         ))}
       </select>
-      <ChevronDownIcon className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 opacity-70" />
     </div>
   );
 }

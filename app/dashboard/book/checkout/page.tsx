@@ -1,6 +1,5 @@
 import CheckOutForm from '@/app/ui/dashboard/checkOutForm';
 import ActiveLoansTable from '@/app/ui/dashboard/activeLoansTable';
-import SearchForm from '@/app/ui/dashboard/searchForm';
 import {
   fetchActiveLoans,
   fetchAvailableBooks,
@@ -11,7 +10,6 @@ import {
 import { getDashboardSession } from '@/app/lib/auth/session';
 import AdminShell from '@/app/ui/dashboard/adminShell';
 import { STUDENT_LOAN_LIMIT } from '@/app/dashboard/loanPolicy';
-import { QrCodeIcon } from '@heroicons/react/24/outline';
 
 const defaultLoanDurationDays = 14;
 
