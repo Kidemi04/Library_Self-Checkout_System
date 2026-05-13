@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import clsx from 'clsx';
 import { useRouter } from 'next/navigation';
 import PlaceHoldButton from './placeHoldButton';
 import ManageCopiesModal from './manageCopiesModal';
