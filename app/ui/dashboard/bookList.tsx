@@ -412,7 +412,7 @@ export default function BookList({
                       </div>
                       
                       {/* buttons row */}
-                      <div className="flex w-full gap-2 sm:w-auto">
+                      <div className="flex w-full gap-2 ">
                         {!canBorrow && !noCopies && (
                           <PlaceHoldButton bookId={b.id} patronId={patronId} bookTitle={b.title} />
                         )}
