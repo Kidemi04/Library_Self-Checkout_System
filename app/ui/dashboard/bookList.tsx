@@ -389,22 +389,37 @@ export default function BookList({
                     <p className="mt-0.5 truncate font-display text-[12px] italic text-muted-soft dark:text-on-dark-soft">
                       {b.author ? highlightMatch(b.author, searchQuery) : 'Unknown author'}
                     </p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <AvailabilityChip
-                        available={b.copies_available}
-                        total={b.total_copies}
-                        status={status}
-                      />
-                      {!canBorrow && !noCopies && (
-                        <PlaceHoldButton bookId={b.id} patronId={patronId} bookTitle={b.title} />
-                      )}
+                    
+                    <div className="mt-2 flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+                      {/* status row */}
+                      <div className='w-full'>
+                        <AvailabilityChip
+                          available={b.copies_available}
+                          total={b.total_copies}
+                          status={status}
+                        />
+                      </div>
+                      
+                      {/* buttons row */}
+                      <div className="flex w-full gap-2 sm:w-auto">
+                        {!canBorrow && !noCopies && (
+                          <PlaceHoldButton bookId={b.id} patronId={patronId} bookTitle={b.title} />
+                        )}
+                      </div>
+
                       {isStaff && (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex w-full gap-2 sm:w-auto sm:items-center">
                           <button
                             type="button"
                             onClick={() => openEdit(b)}
                             suppressHydrationWarning
-                            className="rounded-pill border border-primary/30 px-2.5 py-0.5 text-[10px] font-semibold text-primary transition hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:border-dark-primary/40 dark:text-dark-primary dark:hover:bg-dark-primary/10 dark:focus-visible:ring-offset-dark-canvas"
+                            className="
+                              flex-1 rounded-pill border border-primary/30
+                              px-4 py-2 text-[12px]
+                              font-semibold text-primary transition
+                              hover:bg-primary/10
+                              sm:flex-none sm:px-2.5 sm:py-0.5 sm:text-[10px]
+                            "
                           >
                             Edit
                           </button>
@@ -413,7 +428,13 @@ export default function BookList({
                             onClick={() => setManagingBookId(b.id)}
                             title="Manage copies"
                             suppressHydrationWarning
-                            className="rounded-pill border border-hairline dark:border-dark-hairline px-2.5 py-0.5 text-[10px] font-semibold text-muted dark:text-on-dark-soft transition hover:border-primary/30 hover:text-ink dark:hover:text-on-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
+                            className="
+                              flex-1 rounded-pill border border-hairline dark:border-dark-hairline
+                              px-4 py-2 text-[12px]
+                              font-semibold text-muted dark:text-on-dark-soft transition
+                              hover:border-primary/30 hover:text-ink dark:hover:text-on-dark
+                              sm:flex-none sm:px-2.5 sm:py-0.5 sm:text-[10px]
+                            "
                           >
                             Copies
                           </button>
