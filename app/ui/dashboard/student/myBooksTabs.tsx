@@ -288,7 +288,7 @@ export default function MyBooksTabs({
           aria-labelledby="my-books-tab-current"
           className={
             viewMode.current === 'grid'
-              ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2'
+              ? 'grid gap-3 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2'
               : 'flex flex-col gap-3'
           }
         >
@@ -296,7 +296,7 @@ export default function MyBooksTabs({
             <div
               className={
                 viewMode.current === 'grid'
-                  ? 'col-span-2 rounded-card border border-dashed border-hairline bg-surface-card p-10 text-center dark:border-dark-hairline dark:bg-dark-surface-card'
+                  ? 'md:col-span-2 rounded-card border border-dashed border-hairline bg-surface-card p-10 text-center dark:border-dark-hairline dark:bg-dark-surface-card'
                   : 'rounded-card border border-dashed border-hairline bg-surface-card p-10 text-center dark:border-dark-hairline dark:bg-dark-surface-card'
               }
             >
@@ -308,7 +308,12 @@ export default function MyBooksTabs({
             </div>
           ) : (
             filteredLoans.map(loan => (
-              <LoanCard key={loan.id} loan={loan} holdCount={loan.bookId ? holdCounts?.[loan.bookId] : 0} />
+              <LoanCard
+                key={loan.id}
+                loan={loan}
+                holdCount={loan.bookId ? holdCounts?.[loan.bookId] : 0}
+                layout={viewMode.current === 'grid' ? 'stack' : 'row'}
+              />
             ))
           )}
         </div>
@@ -456,7 +461,7 @@ export default function MyBooksTabs({
                   </div>
                 </>
               ) : (
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                 {filteredHistory.length === 0 ? (
                   <div className="rounded-card border border-dashed border-hairline bg-surface-card p-10 text-center dark:border-dark-hairline dark:bg-dark-surface-card">
                     <p className="font-sans text-body-sm text-muted dark:text-on-dark-soft">No results match your search.</p>
@@ -560,7 +565,7 @@ export default function MyBooksTabs({
           aria-labelledby="my-books-tab-reservations"
           className={
             viewMode.reservations === 'grid'
-              ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2'
+              ? 'grid gap-3 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2'
               : 'flex flex-col gap-3'
           }
         >
@@ -568,7 +573,7 @@ export default function MyBooksTabs({
             <div
               className={
                 viewMode.reservations === 'grid'
-                  ? 'sm:col-span-2 rounded-card border border-dashed border-hairline bg-surface-card p-10 text-center dark:border-dark-hairline dark:bg-dark-surface-card'
+                  ? 'md:col-span-2 rounded-card border border-dashed border-hairline bg-surface-card p-10 text-center dark:border-dark-hairline dark:bg-dark-surface-card'
                   : 'rounded-card border border-dashed border-hairline bg-surface-card p-10 text-center dark:border-dark-hairline dark:bg-dark-surface-card'
               }
             >
