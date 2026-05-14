@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabaseBrowserClient } from '@/app/lib/supabase/client';
+import clsx from 'clsx';
 
 type HoldState = 'none' | 'queued' | 'ready';
 
@@ -85,6 +86,8 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
   };
 
   const hasHold = holdState === 'queued' || holdState === 'ready';
+  const buttonClassName = "rounded-btn text-[11px] px-3 py-1.5 font-sans text-button ";
+
 
   if (hasHold) {
     const label =
@@ -94,7 +97,7 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
       <div className="flex flex-col gap-1 w-full">
         <button
           disabled
-          className="rounded-btn bg-success px-3 py-1.5 font-sans text-button text-on-dark"
+          className={clsx(buttonClassName + "bg-success text-on-dark")}
         >
           {label}
         </button>
@@ -111,7 +114,6 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
       </div>
     );
   }
-
   // No hold yet → normal "Place Hold" button
   return (
     <div className="flex flex-col gap-1 w-full">
@@ -120,7 +122,7 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
         onClick={handleClick}
         disabled={loading}
         suppressHydrationWarning
-        className="rounded-btn bg-slate-200 text-[11px] px-3 py-1.5 font-sans text-button text-ink transition hover:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:bg-on-dark/15 dark:text-on-dark dark:hover:bg-on-dark/25 dark:focus-visible:ring-offset-dark-canvas"
+        className={clsx(buttonClassName + "bg-slate-200 text-ink transition hover:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:bg-on-dark/15 dark:text-on-dark dark:hover:bg-on-dark/25 dark:focus-visible:ring-offset-dark-canvas")}
       >
         {loading ? 'Placing…' : 'Place Hold'}
       </button>
