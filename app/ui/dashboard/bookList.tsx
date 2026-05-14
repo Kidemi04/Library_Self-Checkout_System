@@ -409,20 +409,19 @@ export default function BookList({
 
                       {isStaff && (
                         <div className="flex w-full gap-2 sm:w-auto sm:items-center">
-                          <button
-                            type="button"
-                            onClick={() => openEdit(b)}
-                            suppressHydrationWarning
+                        {canEdit && (
+                          <Link
+                            href={`/dashboard/admin/books/${b.id}/edit`}
+                            title="Edit book"
                             className="
-                              flex-1 rounded-pill border border-primary/30
-                              px-4 py-2 text-[12px]
-                              font-semibold text-primary transition
-                              hover:bg-primary/10
-                              sm:flex-none sm:px-2.5 sm:py-0.5 sm:text-[10px]
-                            "
-                          >
+                                flex-1 rounded-pill border border-primary/30
+                                px-4 py-2 text-[12px] text-center
+                                font-semibold text-primary transition
+                                hover:bg-primary/10
+                                sm:flex-none sm:px-2.5 sm:py-0.5 sm:text-[10px]
+                              ">
                             Edit
-                          </button>
+                          </Link>)}
                           <button
                             type="button"
                             onClick={() => setManagingBookId(b.id)}
@@ -434,20 +433,10 @@ export default function BookList({
                               font-semibold text-muted dark:text-on-dark-soft transition
                               hover:border-primary/30 hover:text-ink dark:hover:text-on-dark
                               sm:flex-none sm:px-2.5 sm:py-0.5 sm:text-[10px]
-                            "
-                          >
+                            ">
                             Copies
                           </button>
                         </div>
-                      )}
-                      {canEdit && (
-                        <Link
-                          href={`/dashboard/admin/books/${b.id}/edit`}
-                          title="Edit book"
-                          className="rounded-pill border border-hairline dark:border-dark-hairline px-2.5 py-0.5 text-[10px] font-semibold text-muted dark:text-on-dark-soft transition hover:border-primary/30 hover:text-primary dark:hover:text-dark-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:focus-visible:ring-offset-dark-canvas"
-                        >
-                          Edit
-                        </Link>
                       )}
                     </div>
                   </div>
