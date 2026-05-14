@@ -395,7 +395,7 @@ export default function BookList({
                       {b.author ? highlightMatch(b.author, searchQuery) : 'Unknown author'}
                     </p>
                     
-                    <div className="mt-2 flex flex-col items-start gap-2 sm:flex-row sm:items-center">
+                    <div className="mt-2 flex flex-col items-start gap-2 sm:items-center">
                       {/* status row */}
                       <div className='w-full'>
                         <AvailabilityChip
@@ -423,7 +423,7 @@ export default function BookList({
                                 px-4 py-2 text-[12px] text-center
                                 font-semibold text-primary transition
                                 hover:bg-primary/10
-                                sm:flex-none sm:px-2.5 sm:py-0.5 sm:text-[10px]
+                                sm:mx-2 sm:px-6
                               ">
                             Edit
                           </Link>)}
@@ -437,7 +437,7 @@ export default function BookList({
                               px-4 py-2 text-[12px]
                               font-semibold text-muted dark:text-on-dark-soft transition
                               hover:border-primary/30 hover:text-ink dark:hover:text-on-dark
-                              sm:flex-none sm:px-2.5 sm:py-0.5 sm:text-[10px]
+                              sm:mx-2 sm:px-6
                             ">
                             Copies
                           </button>
