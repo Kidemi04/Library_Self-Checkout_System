@@ -91,7 +91,7 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
       holdState === 'ready' ? 'Ready for pickup' : 'Hold placed ✓';
 
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 w-full">
         <button
           disabled
           className="rounded-btn bg-success px-3 py-1.5 font-sans text-button text-on-dark"
@@ -114,13 +114,13 @@ export default function PlaceHoldButton({ bookId, patronId, bookTitle }: PlaceHo
 
   // No hold yet → normal "Place Hold" button
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 w-full">
       <button
         type="button"
         onClick={handleClick}
         disabled={loading}
         suppressHydrationWarning
-        className="rounded-btn bg-ink px-3 py-1.5 font-sans text-button text-on-dark transition hover:bg-ink/90 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:bg-on-dark/15 dark:text-on-dark dark:hover:bg-on-dark/25 dark:focus-visible:ring-offset-dark-canvas"
+        className="rounded-btn bg-slate-200 text-[11px] px-3 py-1.5 font-sans text-button text-ink transition hover:bg-slate-400 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas dark:bg-on-dark/15 dark:text-on-dark dark:hover:bg-on-dark/25 dark:focus-visible:ring-offset-dark-canvas"
       >
         {loading ? 'Placing…' : 'Place Hold'}
       </button>

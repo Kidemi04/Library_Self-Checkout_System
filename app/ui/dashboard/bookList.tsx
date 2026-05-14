@@ -11,6 +11,7 @@ import { Pagination } from '@/app/ui/dashboard/pagination';
 import BookCover, { getBookGradient } from '@/app/ui/dashboard/primitives/BookCover';
 import BlurFade from '@/app/ui/magicUi/blurFade';
 import type { CategoryKey } from '@/app/ui/dashboard/bookCategories';
+import clsx from 'clsx';
 
 // ---- Category filter ----
 // Screenshot categories: All / Computing / Design / Psychology / Self-help / History
@@ -211,30 +212,34 @@ function AvailabilityChip({
 }) {
   const avail = available ?? 0;
   const tot = total ?? 0;
+
+  // Same color logic for both variants, so define className here to avoid duplication
+  const statusClassName = "inline-flex rounded-pill px-2.5 py-0.5 text-[12px] font-semibold justify-center w-full ";
+
   if (tot === 0) {
     return (
-      <span className="inline-flex rounded-pill bg-surface-cream-strong dark:bg-dark-surface-strong px-2.5 py-0.5 text-[11px] font-semibold text-muted dark:text-on-dark-soft">
+      <span className={clsx(statusClassName + "bg-surface-cream-strong dark:bg-dark-surface-strong text-muted dark:text-on-dark-soft")} >
         No copies
       </span>
     );
   }
   if (avail > 0) {
     return (
-      <span className="inline-flex rounded-pill bg-success/15 px-2.5 py-0.5 text-[11px] font-semibold text-success">
-        {avail} avail.
+      <span className={clsx(statusClassName + "bg-success/15 text-success")} >
+        {avail} available
       </span>
     );
   }
   // No copies free — show On loan (primary) per design
   if (status === 'on_hold') {
     return (
-      <span className="inline-flex rounded-pill bg-accent-amber/15 px-2.5 py-0.5 text-[11px] font-semibold text-accent-amber">
+      <span className={clsx(statusClassName + "bg-accent-amber/15 text-accent-amber")} >
         On hold
       </span>
     );
   }
   return (
-    <span className="inline-flex rounded-pill bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary dark:bg-dark-primary/15 dark:text-dark-primary">
+    <span className={clsx(statusClassName + "bg-primary/10 text-primary dark:bg-dark-primary/15 dark:text-dark-primary")} >
       On loan
     </span>
   );
