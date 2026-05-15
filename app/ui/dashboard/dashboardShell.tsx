@@ -8,7 +8,7 @@ import NotificationToast from '@/app/ui/dashboard/notificationToast';
 import DueDateChecker from '@/app/ui/dashboard/dueDateChecker';
 import FaqScrollTopButton from '@/app/ui/dashboard/faqScrollTopButton';
 import type { DashboardUserProfile } from '@/app/lib/auth/types';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import clsx from 'clsx';
 
 type DashboardShellProps = {
@@ -51,7 +51,7 @@ export default function DashboardShell({ user, isBypassed, children }: Dashboard
       </div>
 
       <FaqScrollTopButton className="md:hidden" />
-      {user.role !== 'admin' && user.role !== 'staff' && <FaqFloatingHelp />}
+      {user.role !== 'admin' && user.role !== 'staff' && <Suspense><FaqFloatingHelp /></Suspense>}
       {(user.role === 'staff' || user.role === 'admin') && <NotificationToast />}
       {user.role === 'user' && <DueDateChecker />}
     </div>

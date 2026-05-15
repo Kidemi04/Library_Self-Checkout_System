@@ -59,7 +59,13 @@ export default function NotificationPopover({ hasUnread, onAllRead }: Props) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const [marking, setMarking] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+
+  // Only run client-side calculations after component mounts to avoid hydration mismatches
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
@@ -197,7 +203,7 @@ export default function NotificationPopover({ hasUnread, onAllRead }: Props) {
                           {n.message}
                         </p>
                         <p className="mt-0.5 font-mono text-[10px] text-muted-soft dark:text-on-dark-soft">
-                          {timeAgo(n.created_at)}
+                          {isMounted ? timeAgo(n.created_at) : 'just now'}
                         </p>
                       </div>
                     </li>

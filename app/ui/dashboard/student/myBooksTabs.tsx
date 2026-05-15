@@ -46,22 +46,27 @@ export default function MyBooksTabs({
   const [activeTab, setActiveTab] = useState<Tab>(defaultTab);
   const [searchTerm, setSearchTerm] = useState('');
   const [refreshing, setRefreshing] = useState(false);
-  const [viewMode, setViewMode] = useState<Record<Tab, ViewMode>>(() => {
-    if (typeof window === 'undefined') {
-      return { current: 'grid', history: 'list', reservations: 'list' };
-    }
+  const [viewMode, setViewMode] = useState<Record<Tab, ViewMode>>({
+    current: 'grid',
+    history: 'list',
+    reservations: 'list',
+  });
+
+  // Hydrate view mode from localStorage after mount to avoid SSR hydration mismatches.
+  React.useEffect(() => {
     try {
       const raw = window.localStorage.getItem('my-books:view-mode');
       const parsed = raw ? (JSON.parse(raw) as Partial<Record<Tab, ViewMode>>) : null;
-      return {
-        current: parsed?.current ?? 'grid',
-        history: parsed?.history ?? 'list',
-        reservations: parsed?.reservations ?? 'list',
-      };
+      if (!parsed) return;
+      setViewMode((prev) => ({
+        current: parsed.current ?? prev.current,
+        history: parsed.history ?? prev.history,
+        reservations: parsed.reservations ?? prev.reservations,
+      }));
     } catch {
-      return { current: 'grid', history: 'list', reservations: 'list' };
+      /* ignore */
     }
-  });
+  }, []);
 
   const setTabViewMode = (tab: Tab, mode: ViewMode) => {
     setViewMode((prev) => {

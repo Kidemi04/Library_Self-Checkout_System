@@ -13,6 +13,7 @@ import ScrollUnlock from '@/app/ui/dashboard/learning/scrollUnlock';
 import CommunityFeed from '@/app/ui/dashboard/learning/communityFeed';
 import NewsFeed from '@/app/ui/dashboard/learning/newsFeed';
 import { type NewsItem } from '@/app/ui/dashboard/learning/newsGrid';
+import YouTubeReelsFeed from '@/app/ui/dashboard/learning/youtubeReelsFeed';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -145,6 +146,7 @@ export default async function LearningHubPage({
 
   const view        = typeof params?.view === 'string' ? params.view : 'youtube';
   const isYouTube   = view === 'youtube';
+  const isReels     = view === 'reels';
   const isCommunity = view === 'community';
   const isNews      = view === 'news';
 
@@ -180,25 +182,27 @@ export default async function LearningHubPage({
       <ScrollUnlock />
       <div className="space-y-8">
 
-        {/* ── 3-tab switcher ── */}
-        <div className="flex w-full max-w-md overflow-hidden rounded-full border border-swin-charcoal/10 bg-swin-charcoal/5 p-1 dark:border-white/10 dark:bg-white/5">
+        {/* ── 4-tab switcher ── */}
+        <div className="flex w-full overflow-hidden rounded-full border border-swin-charcoal/10 bg-swin-charcoal/5 p-0.5 dark:border-white/10 dark:bg-white/5">
           {[
-            { label: '🎬 YouTube',   value: 'youtube',   href: `${tabBase}?view=youtube`   },
-            { label: '📖 Community', value: 'community', href: `${tabBase}?view=community` },
-            { label: '📰 News',      value: 'news',      href: `${tabBase}?view=news`      },
+            { emoji: '🎬', label: 'YouTube',   value: 'youtube',   href: `${tabBase}?view=youtube`   },
+            { emoji: '🎞️', label: 'Reels',     value: 'reels',     href: `${tabBase}?view=reels`     },
+            { emoji: '📖', label: 'Community', value: 'community', href: `${tabBase}?view=community` },
+            { emoji: '📰', label: 'News',      value: 'news',      href: `${tabBase}?view=news`      },
           ].map((tab) => {
             const active = view === tab.value;
             return (
               <Link
                 key={tab.value}
                 href={tab.href}
-                className={`flex-1 rounded-full py-2 text-center text-xs sm:text-sm font-semibold transition-all ${
+                className={`flex-1 rounded-full py-1 text-center font-semibold transition-all ${
                   active
                     ? 'bg-swin-red text-white shadow-sm'
                     : 'text-swin-charcoal/60 hover:text-swin-charcoal dark:text-white/50 dark:hover:text-white'
                 }`}
               >
-                {tab.label}
+                <span className="sm:hidden text-xs">{tab.emoji}</span>
+                <span className="hidden sm:inline text-[11px]">{tab.emoji} {tab.label}</span>
               </Link>
             );
           })}
@@ -281,6 +285,11 @@ export default async function LearningHubPage({
             )}
           </>
         )}
+
+        {/* ══════════════════════════════════════════════
+            REELS TAB
+        ══════════════════════════════════════════════ */}
+        {isReels && <YouTubeReelsFeed />}
 
         {/* ══════════════════════════════════════════════
             COMMUNITY TAB
